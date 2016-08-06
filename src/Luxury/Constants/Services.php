@@ -13,6 +13,7 @@ final class Services
     const APPLICATION         = 'application';
     const ASSETS              = 'assets';
     const AUTH                = 'auth';
+    const CACHE              = 'cache';
     const CONFIG              = 'config';
     const COOKIES             = 'cookies';
     const CRYPT               = 'crypt';

@@ -1,6 +1,7 @@
 {
   "name": "ark4ne/phalcon-luxury-framework",
   "description": "Phalcon extended framework. (Luxury:Kernel)",
+  "keywords": ["framework", "phalcon", "luxury"],
   "minimum-stability": "stable",
   "license": "MIT",
   "authors": [

@@ -34,7 +34,7 @@ class View implements Providable
                     $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
 
                     $volt->setOptions([
-                        'compiledPath'      => $di->getShared(Services::CONFIG)->application->cacheDir,
+                        'compiledPath'      => $di->getShared(Services::CONFIG)->cache->cacheDir,
                         'compiledSeparator' => '_'
                     ]);
                     $volt->getCompiler()->addExtension(new PhpFunctionExtension());

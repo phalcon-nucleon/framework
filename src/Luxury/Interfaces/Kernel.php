@@ -12,6 +12,13 @@ use Phalcon\Application;
 interface Kernel
 {
     /**
+     * Application starter
+     *
+     * @return void
+     */
+    public function bootstrap();
+
+    /**
      * Register the services.
      *
      * @return void

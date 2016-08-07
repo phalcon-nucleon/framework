@@ -1,4 +1,13 @@
 <?php
+
+use Phalcon\Loader;
+
+$loader = new Loader;
+
+$loader->registerDirs([__DIR__], true);
+
+$loader->register();
+
 /*
 |--------------------------------------------------------------------------
 | Register The Composer Auto Loader
@@ -10,4 +19,4 @@
 | loading of any our classes "manually". Feels great to relax.
 |
 */
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';

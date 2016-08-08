@@ -13,7 +13,6 @@ use Phalcon\DiInterface;
  */
 class Cache implements Providable
 {
-
     /**
      * @param \Phalcon\DiInterface $di
      *
@@ -71,7 +70,9 @@ class Cache implements Providable
             $adapterClass = "\\Phalcon\\Cache\\Frontend\\$adapter";
             $driverClass  = "\\Phalcon\\Cache\\Backend\\$driver";
 
-            return new $driverClass(new $adapterClass($cache->options), $cache->options);
+            $options = isset($cache->options) ? (array)$cache->options : [];
+
+            return new $driverClass(new $adapterClass($options), $options);
         });
     }
 }

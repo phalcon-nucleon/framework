@@ -50,6 +50,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
         $this->max     = $max;
         $this->decay   = $decay;
         $this->limiter = new RateLimiter();
+        $this->limiter->setDI($this->getDI());
     }
 
     /**
@@ -68,7 +69,8 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
 
         if ($this->limiter->tooManyAttempts($signature, $this->max, $this->decay)) {
             $this->buildResponse($signature, true);
-            throw new \Exception;
+
+            return false;
         }
 
         $this->limiter->hit($signature, $this->decay);
@@ -120,11 +122,14 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
         $response = $this->response;
 
         $response->setHeader('X-RateLimit-Limit', $this->max);
-        $response->setHeader('X-RateLimit-Remaining', $this->limiter->retriesLeft($key, $this->max));
+        $response->setHeader('X-RateLimit-Remaining',
+            $this->limiter->retriesLeft($key, $this->max));
 
         if (!is_null($tooManyAttempts)) {
-            $response->setStatusCode(StatusCode::TOO_MANY_REQUESTS);
-            $response->setContent('Too Many Attempts.');
+            $msg = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
+
+            $response->setContent($msg);
+            $response->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg);
             $response->setHeader('Retry-After', $this->limiter->availableIn($key));
         }
     }

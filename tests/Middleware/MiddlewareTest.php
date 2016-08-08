@@ -23,8 +23,6 @@ class MiddlewareTest extends TestCase
 {
     public function testControllerMiddleware()
     {
-
-        \Luxury\Observator\Events::observeAll($this->app);
         // GIVEN
         $middleware = new TestControllerMiddlewareStub();
 

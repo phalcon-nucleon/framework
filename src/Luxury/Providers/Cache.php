@@ -4,7 +4,6 @@ namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Interfaces\Providable;
-use Phalcon\Cache\Frontend\None as CacheAdapter;
 use Phalcon\DiInterface;
 
 /**
@@ -26,7 +25,12 @@ class Cache implements Providable
             /** @var \Phalcon\Di $this */
             $cache = $this->getShared(Services::CONFIG)->cache;
 
-            switch ($driverName = $cache->driver) {
+            // Acceptable Driver (Backend)
+            $driver = $cache->driver;
+            if (empty($driver)) {
+                $driver = $cache->backend;
+            }
+            switch ($driver = ucfirst($driver)) {
                 case 'Aerospike':
                 case 'Apc':
                 case 'Database':
@@ -43,9 +47,31 @@ class Cache implements Providable
                     throw new \RuntimeException;
             }
 
-            $driverClass = "\\Phalcon\\Cache\\Backend\\$driverName";
+            // Acceptable Adapter (Frontend)
+            $adapter = $cache->adapter;
+            if (empty($driver)) {
+                $adapter = $cache->frontend;
+            }
+            switch ($adapter = ucfirst($adapter)) {
+                case 'Data':
+                case 'Json':
+                case 'File':
+                case 'Base64':
+                case 'Output':
+                case 'Igbinary':
+                case 'None':
+                    break;
+                case null:
+                    $adapter = 'None';
+                    break;
+                default:
+                    throw new \RuntimeException;
+            }
 
-            return new $driverClass(new CacheAdapter(), $cache->options);
+            $adapterClass = "\\Phalcon\\Cache\\Frontend\\$adapter";
+            $driverClass  = "\\Phalcon\\Cache\\Backend\\$driver";
+
+            return new $driverClass(new $adapterClass($cache->options), $cache->options);
         });
     }
 }

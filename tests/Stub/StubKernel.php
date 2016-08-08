@@ -26,6 +26,7 @@ class StubKernel extends HttpApplication
         //RouterProvider::class,
         //ViewProvider::class,
         DispatcherProvider::class,
+        StubCacheFileProvider::class,
         //DatabaseProvider::class,
         /*
          * Service provided by the Phalcon\Di\FactoryDefault

@@ -20,7 +20,7 @@ abstract class Controller extends Middleware
     /**
      * ControllerMiddleware constructor.
      */
-    final public function __construct()
+    public function __construct()
     {
         if ($this instanceof BeforeMiddleware) {
             $this->listen[Dispatch::BEFORE_EXECUTE_ROUTE] = 'before';

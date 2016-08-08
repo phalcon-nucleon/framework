@@ -60,7 +60,7 @@ abstract class Listener extends Injectable
                 }
 
                 $closure = function (Event $event, $handler, $data = null) use ($callback) {
-                    $this->$callback($event, $handler, $data);
+                    return $this->$callback($event, $handler, $data);
                 };
 
                 $em->attach($event, \Closure::bind($closure, $this));

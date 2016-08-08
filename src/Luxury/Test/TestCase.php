@@ -6,6 +6,7 @@ use Luxury\Foundation\Kernelize;
 use Mockery;
 use Phalcon\Application;
 use Phalcon\Config;
+use Phalcon\Config as PhConfig;
 use Phalcon\Di;
 use Phalcon\Di\FactoryDefault;
 use Phalcon\Di\InjectionAwareInterface;
@@ -60,7 +61,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         $this->checkExtension('phalcon');
 
         // Creating the application
-        $this->lxApp = new \Luxury\Foundation\Application();
+        $this->lxApp = new \Luxury\Foundation\Application(new PhConfig);
         $this->app   = $this->lxApp->make($this->kernel());
     }
 
@@ -75,7 +76,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     protected function globalApp()
     {
         if (self::$appGlobal == null) {
-            self::$lxAppGlobal = new \Luxury\Foundation\Application();
+            self::$lxAppGlobal = new \Luxury\Foundation\Application(new PhConfig);
             self::$appGlobal   = self::$lxAppGlobal->make($this->kernel());
         }
 

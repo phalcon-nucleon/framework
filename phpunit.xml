@@ -10,12 +10,15 @@
          processIsolation="false"
          stopOnFailure="false"
          syntaxCheck="true">
-  <testsuite name="Phalcon - Testsuite">
-    <directory>./tests/</directory>
-  </testsuite>
-  <filter>
-    <whitelist processUncoveredFilesFromWhitelist="true">
-      <directory suffix=".php">./src</directory>
-    </whitelist>
-  </filter>
+    <testsuite name="Luxury - Testsuite">
+        <directory>./tests/</directory>
+    </testsuite>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src</directory>
+        </whitelist>
+    </filter>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+    </php>
 </phpunit>

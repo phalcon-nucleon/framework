@@ -15,6 +15,7 @@ use Phalcon\Http\Response\StatusCode;
  * @package Luxury\Middleware
  *
  * @property-read \Phalcon\Cache\BackendInterface cache
+ * @property-read \Phalcon\Mvc\Application        app
  */
 class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMiddleware
 {
@@ -74,6 +75,8 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
         }
 
         $this->limiter->hit($signature, $this->decay);
+
+        return true;
     }
 
     /**
@@ -123,14 +126,18 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
 
         $response->setHeader('X-RateLimit-Limit', $this->max);
         $response->setHeader('X-RateLimit-Remaining',
-            $this->limiter->retriesLeft($key, $this->max));
+            $this->limiter->retriesLeft($key, $this->max, $this->decay));
 
-        if (!is_null($tooManyAttempts)) {
+        if ($tooManyAttempts) {
+            $response->setHeader('X-RateLimit-Remaining', 0);
+
             $msg = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
 
             $response->setContent($msg);
             $response->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg);
-            $response->setHeader('Retry-After', $this->limiter->availableIn($key));
+            $response->setHeader('Retry-After', $this->limiter->availableIn($key, $this->decay));
+
+            return $response;
         }
     }
 }

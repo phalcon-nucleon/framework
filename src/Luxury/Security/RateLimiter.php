@@ -20,17 +20,18 @@ class RateLimiter extends Plugin
      *
      * @param  string $key
      * @param  int    $maxAttempts
-     * @param  int    $decayMinutes
+     * @param  int    $decaySeconds
      *
      * @return bool
      */
-    public function tooManyAttempts($key, $maxAttempts, $decayMinutes = 1)
+    public function tooManyAttempts($key, $maxAttempts, $decaySeconds = 1)
     {
-        if ($this->cache->exists($key . ':lockout')) {
+        if ($this->cache->exists($key . '_lockout', $decaySeconds)) {
             return true;
         }
-        if ($this->attempts($key) > $maxAttempts) {
-            $this->cache->save($key . ':lockout', time() + ($decayMinutes * 60), $decayMinutes);
+        if ($this->attempts($key, $decaySeconds) > $maxAttempts) {
+            $this->cache->save($key . '_lockout', time() + ($decaySeconds), $decaySeconds);
+
             $this->resetAttempts($key);
 
             return true;
@@ -43,19 +44,20 @@ class RateLimiter extends Plugin
      * Increment the counter for a given key for a given decay time.
      *
      * @param  string $key
-     * @param  int    $decayMinutes
+     * @param  int    $decaySeconds
      *
      * @return int
      */
-    public function hit($key, $decayMinutes = 1)
+    public function hit($key, $decaySeconds = 1)
     {
-        if (!$this->cache->exists($key, $decayMinutes)) {
-            $this->cache->save($key, 1, $decayMinutes);
+        if (!$this->cache->exists($key, $decaySeconds)) {
+            $this->cache->save($key, 1, $decaySeconds);
         }
-        $value = (int)$this->cache->get($key, $decayMinutes);
+
+        $value = (int)$this->cache->get($key, $decaySeconds);
 
         $value++;
-        $this->cache->save($key, $value, $decayMinutes);
+        $this->cache->save($key, $value, $decaySeconds);
 
         return $value;
     }
@@ -64,12 +66,13 @@ class RateLimiter extends Plugin
      * Get the number of attempts for the given key.
      *
      * @param  string $key
+     * @param  int    $decaySeconds
      *
      * @return mixed
      */
-    public function attempts($key)
+    public function attempts($key, $decaySeconds = 1)
     {
-        return is_null($value = $this->cache->get($key)) ? 0 : $value;
+        return is_null($value = $this->cache->get($key, $decaySeconds)) ? 0 : (int)$value;
     }
 
     /**
@@ -89,12 +92,13 @@ class RateLimiter extends Plugin
      *
      * @param  string $key
      * @param  int    $maxAttempts
+     * @param         $decaySeconds
      *
      * @return int
      */
-    public function retriesLeft($key, $maxAttempts)
+    public function retriesLeft($key, $maxAttempts, $decaySeconds)
     {
-        $attempts = $this->attempts($key);
+        $attempts = $this->attempts($key, $decaySeconds);
 
         return $attempts === 0 ? $maxAttempts : $maxAttempts - $attempts + 1;
     }
@@ -109,18 +113,22 @@ class RateLimiter extends Plugin
     public function clear($key)
     {
         $this->resetAttempts($key);
-        $this->cache->delete($key . ':lockout');
+
+        $this->cache->delete($key . '_lockout');
     }
 
     /**
      * Get the number of seconds until the "key" is accessible again.
      *
      * @param  string $key
+     * @param  int    $decaySeconds
      *
      * @return int
      */
-    public function availableIn($key)
+    public function availableIn($key, $decaySeconds)
     {
-        return $this->cache->get($key . ':lockout') - time();
+        $time = $this->cache->get($key . '_lockout', $decaySeconds);
+
+        return $time - time();
     }
 }

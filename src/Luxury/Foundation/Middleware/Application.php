@@ -19,7 +19,7 @@ abstract class Application extends Middleware
     /**
      * ApplicationMiddleware constructor.
      */
-    final public function __construct()
+    public function __construct()
     {
         if ($this instanceof BeforeMiddleware) {
             $this->listen[AppEvent::BEFORE_HANDLE_REQUEST] = 'before';

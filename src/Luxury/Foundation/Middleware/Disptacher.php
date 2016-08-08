@@ -19,7 +19,7 @@ abstract class Disptacher extends Middleware
     /**
      * DisptacherMiddleware constructor.
      */
-    final public function __construct()
+    public function __construct()
     {
         if ($this instanceof InitMiddleware) {
             $this->listen[Dispatch::BEFORE_DISPATCH_LOOP] = 'init';

@@ -3,16 +3,20 @@
 namespace Luxury\Http\Middleware;
 
 use Luxury\Constants\Events as EventSpaces;
-use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
+use Luxury\Middleware\AfterMiddleware;
 use Luxury\Middleware\BeforeMiddleware;
+use Luxury\Security\RateLimiter;
+use Phalcon\Http\Response\StatusCode;
 
 /**
  * Class Throttle
  *
- * @package     Luxury\Middleware
+ * @package Luxury\Middleware
+ *
+ * @property-read \Phalcon\Cache\BackendInterface cache
  */
-class Throttle extends ControllerMiddleware implements BeforeMiddleware
+class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMiddleware
 {
     /**
      * Number of max request by $decay
@@ -29,6 +33,26 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware
     private $decay;
 
     /**
+     * @var RateLimiter
+     */
+    private $limiter;
+
+    /**
+     * Throttle constructor.
+     *
+     * @param     $max
+     * @param int $decay
+     */
+    public function __construct($max, $decay = 60)
+    {
+        parent::__construct();
+
+        $this->max     = $max;
+        $this->decay   = $decay;
+        $this->limiter = new RateLimiter();
+    }
+
+    /**
      * Called before the execution of handler
      *
      * @param \Phalcon\Events\Event|mixed $event
@@ -42,29 +66,32 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware
     {
         $signature = $this->resolveRequestSignature();
 
-        /** @var \Phalcon\Cache\BackendInterface $cache */
-        $cache = $this->{Services::CACHE};
-
-        $attempts = $cache->get($signature);
-
-        $attempts = intval($attempts);
-
-        if ($attempts > $this->max) {
-            $this->buildResponse($attempts, true);
-            // TODO
+        if ($this->limiter->tooManyAttempts($signature, $this->max, $this->decay)) {
+            $this->buildResponse($signature, true);
             throw new \Exception;
         }
 
-        $attempts++;
+        $this->limiter->hit($signature, $this->decay);
+    }
 
-        $this->buildResponse($attempts, false);
-
-        $cache->save($signature, $attempts, $this->decay * 60);
+    /**
+     * Called after the execution of handler
+     *
+     * @param \Phalcon\Events\Event|mixed $event
+     * @param \Phalcon\Dispatcher|mixed   $source
+     * @param mixed|null                  $data
+     *
+     * @throws \Exception
+     * @return bool
+     */
+    public function after($event, $source, $data = null)
+    {
+        $this->buildResponse($this->resolveRequestSignature(), false);
     }
 
     /**
      * Resolve the request signature based on :
-     *  HOST . URI . ClientIP
+     *  Module : Namespace : Controller : Action | HOST | URI | ClientIP
      *
      * @return string
      */
@@ -84,15 +111,21 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware
         );
     }
 
-    private function buildResponse($attempts, $retry = null)
+    /**
+     * @param string $key
+     * @param bool   $tooManyAttempts
+     */
+    private function buildResponse($key, $tooManyAttempts = false)
     {
         $response = $this->response;
 
         $response->setHeader('X-RateLimit-Limit', $this->max);
-        $response->setHeader('X-RateLimit-Remaining', $this->max - $attempts);
+        $response->setHeader('X-RateLimit-Remaining', $this->limiter->retriesLeft($key, $this->max));
 
-        if (!is_null($retry)) {
-            $response->setHeader('Retry-After', $this->decay);
+        if (!is_null($tooManyAttempts)) {
+            $response->setStatusCode(StatusCode::TOO_MANY_REQUESTS);
+            $response->setContent('Too Many Attempts.');
+            $response->setHeader('Retry-After', $this->limiter->availableIn($key));
         }
     }
 }

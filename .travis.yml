@@ -3,19 +3,17 @@ language: php
 sudo: required
 
 php:
-  - 5.5
-  - 5.6
   - 7.0
 
-before_install:
-  - sudo apt-add-repository ppa:phalcon/stable
-  - sudo apt-get -qq update
-  - sudo apt-get install php7.0-phalcon -y
-
+install:
+  - composer self-update
+  - '[[ -z "3.0.x" ]] || git clone -q --depth=1 https://github.com/phalcon/cphalcon.git -b 3.0.x'
+  - '[[ ! -z "3.0.x" ]] || git clone -q --depth=1 https://github.com/phalcon/cphalcon.git'
+  - '(cd cphalcon/build; bash install &>/dev/null && phpenv config-add ../tests/_ci/phalcon.ini &> /dev/null && cd ../..;)'
+  - php -r 'echo \Phalcon\Version::get() . PHP_EOL;'
+  - travis_retry composer install --no-interaction --prefer-source --dev
 
 before_script:
-  - composer self-update
-  - composer update --no-interaction --prefer-source --dev
   - composer dump-autoload -o
 
 script:

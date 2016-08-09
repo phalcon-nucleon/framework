@@ -21,10 +21,14 @@ class Client
 
     /**
      * Client constructor.
+     *
+     * @param null $provider
+     *
+     * @throws \Phalcon\Http\Client\Provider\Exception
      */
-    public function __construct()
+    public function __construct($provider = null)
     {
-        $this->provider = Request::getProvider();
+        $this->provider = $provider ? $provider : Request::getProvider();
     }
 
     /**
@@ -195,11 +199,6 @@ class Client
             }
         }
 
-        if ($statusCode >= StatusCode::BAD_REQUEST) {
-            // TODO
-            throw new \Exception($response->body, $statusCode);
-        }
-
         return $response;
     }
 
@@ -242,7 +241,7 @@ class Client
     {
         $code = $response->header->statusCode;
 
-        return $code >= StatusCode::BAD_REQUEST && $code < StatusCode::BAD_REQUEST;
+        return $code >= StatusCode::MULTIPLE_CHOICES && $code < StatusCode::BAD_REQUEST;
     }
 
     /**

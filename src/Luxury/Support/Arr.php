@@ -301,10 +301,16 @@ final class Arr
         if (is_null($key)) {
             return $array;
         }
-        if (static::exists($array, $key)) {
-            return $array[$key];
+        if (!is_array($key)) {
+            if (static::exists($array, $key)) {
+                return $array[$key];
+            }
+
+            $keys = explode('.', $key);
+        } else {
+            $keys = $key;
         }
-        foreach (explode('.', $key) as $segment) {
+        foreach ($keys as $segment) {
             if (static::accessible($array) && static::exists($array, $segment)) {
                 $array = $array[$segment];
             } else {
@@ -390,7 +396,7 @@ final class Arr
         list($value, $key) = static::explodePluckParameters($value, $key);
 
         foreach ($array as $item) {
-            $itemValue = Obj::get($item, $value);
+            $itemValue = Arr::get($item, $value);
 
             // If the key is "null", we will just append the value to the array and keep
             // looping. Otherwise we will key the array using the value of the key we
@@ -398,7 +404,7 @@ final class Arr
             if (is_null($key)) {
                 $results[] = $itemValue;
             } else {
-                $itemKey = Obj::get($item, $key);
+                $itemKey = Arr::get($item, $key);
 
                 $results[$itemKey] = $itemValue;
             }

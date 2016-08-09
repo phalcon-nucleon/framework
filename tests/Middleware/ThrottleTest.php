@@ -11,10 +11,18 @@ use TestCase\TestCase;
  */
 class ThrottleTest extends TestCase
 {
-    public function testThrottle()
+    public function setUp()
     {
+        parent::setUp();
+
+        $dir = __DIR__ . '/../.data';
+        if (!is_dir($dir)) {
+            if (!mkdir($dir)) {
+                exit(255);
+            }
+        }
         // Clear File Cache
-        $files = glob(__DIR__ . '/../.data/*'); // get all file names
+        $files = glob($dir . '/*'); // get all file names
         foreach ($files as $file) { // iterate files
             if (is_file($file)) {
                 clearstatcache(null, $file);
@@ -26,7 +34,10 @@ class ThrottleTest extends TestCase
         clearstatcache();
         clearstatcache(false);
         clearstatcache(true);
+    }
 
+    public function testThrottle()
+    {
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [

@@ -31,7 +31,7 @@ class ThrottleTest extends TestCase
 
         $this->app->router->addGet('/', [
             'namespace'  => 'Stub',
-            'controller' => 'StubThrottled',
+            'controller' => 'Stubthrottled',
             'action'     => 'index'
         ]);
 

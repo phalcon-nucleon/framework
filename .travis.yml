@@ -14,7 +14,7 @@ install:
   - travis_retry composer install --no-interaction --prefer-source --dev
 
 before_script:
-  - composer dump-autoload -o
+  - composer dump-autoload
 
 script:
   - mkdir -p build/logs

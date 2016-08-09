@@ -35,7 +35,7 @@ class Obj
      */
     public static function read($object, $property, $default = null)
     {
-        if (is_null($object)) {
+        if (is_null($object) || is_null($property)) {
             return self::value($default);
         }
 
@@ -55,7 +55,7 @@ class Obj
      */
     public static function fetch($object, $property, $default = null)
     {
-        if (is_null($object)) {
+        if (is_null($object) || is_null($property)) {
             return self::value($default);
         }
 
@@ -126,6 +126,10 @@ class Obj
      */
     public static function set(&$target, $key, $value, $overwrite = true)
     {
+        if (is_null($key)) {
+            return $target;
+        }
+
         $segments = is_array($key) ? $key : explode('.', $key);
 
         if (($segment = array_shift($segments)) === '*') {

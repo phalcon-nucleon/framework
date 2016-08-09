@@ -10,7 +10,7 @@ use Luxury\Http\Middleware\Throttle as ThrottleMiddleware;
  *
  * @package     Stub
  */
-class StubThrottledController extends Controller
+class StubthrottledController extends Controller
 {
     /**
      * Event called on controller construction

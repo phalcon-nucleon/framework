@@ -77,37 +77,24 @@ class Obj
      */
     public static function get($target, $key, $default = null)
     {
-        if (is_null($key)) {
-            return $target;
+        if (is_null($key) || !is_object($target)) {
+            return Obj::value($default);
         }
 
-        $key = is_array($key) ? $key : explode('.', $key);
-
-        while (($segment = array_shift($key)) !== null) {
-            if ($segment === '*') {
-                if (!Arr::accessible($target)) {
-                    return self::value($default);
-                }
-
-                $result = Arr::pluck($target, $key);
-
-                return in_array('*', $key) ? Arr::collapse($result) : $result;
+        if (!is_array($key)) {
+            if (isset($target->{$key}) || property_exists($target, $key)) {
+                return $target->{$key};
             }
 
-            if (Arr::accessible($target)) {
-                if (!Arr::exists($target, $segment)) {
-                    return self::value($default);
-                }
-
-                $target = $target[$segment];
-            } elseif (is_object($target)) {
-                if (!isset($target->{$segment})) {
-                    return self::value($default);
-                }
-
+            $keys = explode('.', $key);
+        } else {
+            $keys = $key;
+        }
+        foreach ($keys as $segment) {
+            if (is_object($target) && isset($target->{$segment})) {
                 $target = $target->{$segment};
             } else {
-                return self::value($default);
+                return Obj::value($default);
             }
         }
 
@@ -130,45 +117,44 @@ class Obj
             return $target;
         }
 
-        $segments = is_array($key) ? $key : explode('.', $key);
-
-        if (($segment = array_shift($segments)) === '*') {
-            if (!Arr::accessible($target)) {
-                $target = [];
-            }
-
-            if ($segments) {
-                foreach ($target as &$inner) {
-                    self::set($inner, $segments, $value, $overwrite);
-                }
-            } elseif ($overwrite) {
-                foreach ($target as &$inner) {
-                    $inner = $value;
-                }
-            }
-        } elseif (Arr::accessible($target)) {
-            if ($segments) {
-                if (!Arr::exists($target, $segment)) {
-                    $target[$segment] = [];
+        if (!is_array($key)) {
+            if (isset($target->{$key}) || property_exists($target, $key)) {
+                if ($overwrite) {
+                    $target->{$key} = self::value($value);
                 }
 
-                self::set($target[$segment], $segments, $value, $overwrite);
-            } elseif ($overwrite || !Arr::exists($target, $segment)) {
-                $target[$segment] = $value;
+                return $target;
             }
-        } elseif (is_object($target)) {
-            if ($segments) {
-                if (!isset($target->{$segment})) {
-                    $target->{$segment} = [];
-                }
 
-                self::set($target->{$segment}, $segments, $value, $overwrite);
-            } elseif ($overwrite || !isset($target->{$segment})) {
-                $target->{$segment} = $value;
-            }
+            $keys = explode('.', $key);
+        } else {
+            $keys = $key;
         }
 
-        return $target;
+        $keep = $target;
+
+        while (count($keys) > 1) {
+            $key = array_shift($keys);
+
+            // If the key doesn't exist at this depth, we will just create an empty array
+            // to hold the next value, allowing us to create the arrays to hold final
+            // values at the correct depth. Then we'll keep digging into the array.
+            if (!isset($target->{$key}) || !is_object($target->{$key}) && $overwrite) {
+                $target->{$key} = new \stdClass;
+            } elseif (!is_object($target->{$key})) {
+                return $target;
+            }
+
+            $target = &$target->{$key};
+        }
+
+
+        $key = array_shift($keys);
+        if (!isset($target->{$key}) || $overwrite) {
+            $target->{$key} = self::value($value);
+        }
+
+        return $keep;
     }
 
     /**

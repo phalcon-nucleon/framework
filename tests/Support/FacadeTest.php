@@ -23,6 +23,14 @@ class FacadeTest extends \PHPUnit_Framework_TestCase
         m::close();
     }
 
+    public function testFacadeOverriderFacadeAccessor()
+    {
+        $this->setExpectedExceptionRegExp(\RuntimeException::class,
+            '/Facade does not implement getFacadeAccessor method\\./');
+
+        FakeFacadeStub::some();
+    }
+
     public function testFacadeCallsUnderlyingApplication()
     {
         $app = new ApplicationStub;
@@ -60,6 +68,11 @@ class FacadeTest extends \PHPUnit_Framework_TestCase
         FacadeStub::shouldReceive('foo')->once()->andReturn('bar');
         $this->assertEquals('bar', FacadeStub::foo());
     }
+}
+
+class FakeFacadeStub extends Facade
+{
+
 }
 
 class FacadeStub extends Facade

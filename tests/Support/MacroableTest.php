@@ -43,6 +43,20 @@ class MacroableTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Taylor', $macroable->{__CLASS__}());
     }
 
+    public function testRegisterMacroAndCallWithoutStaticCallable()
+    {
+        $obj       = new class
+        {
+            function __invoke()
+            {
+                return 'Taylor';
+            }
+        };
+        $macroable = $this->macroable;
+        $macroable::macro(__CLASS__, $obj);
+        $this->assertEquals('Taylor', $macroable->{__CLASS__}());
+    }
+
     public function testNotFoundMethod()
     {
         $method = __CLASS__;
@@ -51,6 +65,15 @@ class MacroableTest extends \PHPUnit_Framework_TestCase
             "Method {$method} does not exist.");
 
         $this->macroable->{$method}();
+    }
+
+    public function testNotFoundMethodStatic()
+    {
+        $macroable = $this->macroable;
+        $this->setExpectedException(\BadMethodCallException::class,
+            "Method " . __CLASS__ . " does not exist.");
+
+        $this->assertEquals('Taylor', $macroable::{__CLASS__}());
     }
 
     public function testWhenCallingMacroClosureIsBoundToObject()

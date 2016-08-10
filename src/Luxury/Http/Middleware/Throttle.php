@@ -27,7 +27,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     private $max;
 
     /**
-     * TODO
+     * Decay time (seconds)
      *
      * @var int
      */
@@ -41,8 +41,8 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     /**
      * Throttle constructor.
      *
-     * @param     $max
-     * @param int $decay
+     * @param int $max   Number of max request by $decay
+     * @param int $decay Decay time (seconds)
      */
     public function __construct($max, $decay = 60)
     {
@@ -117,8 +117,10 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     }
 
     /**
+     * Add the limit header information to the response.
+     *
      * @param string $key
-     * @param bool   $tooManyAttempts
+     * @param bool   $tooManyAttempts Bind specific values when there are too many attempts
      *
      * @return \Phalcon\Http\Response|\Phalcon\Http\ResponseInterface
      */

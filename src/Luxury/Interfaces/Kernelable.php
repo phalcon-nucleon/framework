@@ -3,22 +3,25 @@
 namespace Luxury\Interfaces;
 
 use Phalcon\Application;
+use Phalcon\Config;
 
 /**
  * Interface KernelInterface
  *
  * @package Luxury\Interfaces
  *
- * @property-read \Phalcon\Config|\stdClass|array config
+ * @property-read Config|\stdClass|array config
  */
 interface Kernelable
 {
     /**
      * Application starter
      *
+     * @param Config $config
+     *
      * @return void
      */
-    public function bootstrap();
+    public function bootstrap(Config $config);
 
     /**
      * Register the services.

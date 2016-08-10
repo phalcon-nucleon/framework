@@ -2,7 +2,6 @@
 
 namespace Luxury\Foundation;
 
-use Luxury\Constants\Services;
 use Phalcon\Config;
 
 /**
@@ -37,9 +36,7 @@ class Application
         /** @var \Phalcon\Application|\Luxury\Interfaces\Kernelable $kernel */
         $kernel = new $kernelClass;
 
-        $kernel->bootstrap();
-
-        $kernel->getDI()->setShared(Services::CONFIG, $this->config);
+        $kernel->bootstrap($this->config);
 
         $kernel->registerServices();
         $kernel->registerMiddlewares();

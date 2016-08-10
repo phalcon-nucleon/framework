@@ -9,7 +9,7 @@ use Phalcon\Application;
  *
  * @package Luxury\Interfaces
  */
-interface Kernel
+interface Kernelable
 {
     /**
      * Application starter

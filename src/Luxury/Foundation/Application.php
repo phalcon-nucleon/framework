@@ -34,7 +34,7 @@ class Application
      */
     public function make($kernelClass)
     {
-        /** @var \Phalcon\Application|\Luxury\Interfaces\Kernel $kernel */
+        /** @var \Phalcon\Application|\Luxury\Interfaces\Kernelable $kernel */
         $kernel = new $kernelClass;
 
         $kernel->bootstrap();

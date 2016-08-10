@@ -3,7 +3,7 @@
 namespace Luxury\Foundation\Application;
 
 use Luxury\Foundation\Kernelize;
-use Luxury\Interfaces\Kernel;
+use Luxury\Interfaces\Kernelable;
 use Phalcon\Cli\Console;
 use \Phalcon\Di\FactoryDefault\Cli as Di;
 
@@ -14,7 +14,7 @@ use \Phalcon\Di\FactoryDefault\Cli as Di;
  *
  * @property-read \Phalcon\Config|\stdClass|array
  */
-abstract class Cli extends Console implements Kernel
+abstract class Cli extends Console implements Kernelable
 {
     use Kernelize;
 

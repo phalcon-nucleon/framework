@@ -11,8 +11,6 @@ use Phalcon\Mvc\Application as PhApplication;
  * Class Http
  *
  * @package Luxury\Foundation\Application
- *
- * @property-read \Phalcon\Config|\stdClass|array
  */
 abstract class Http extends PhApplication implements Kernelable
 {

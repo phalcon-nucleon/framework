@@ -11,8 +11,6 @@ use \Phalcon\Di\FactoryDefault\Cli as Di;
  * Class Cli
  *
  * @package Luxury\Foundation\Application
- *
- * @property-read \Phalcon\Config|\stdClass|array
  */
 abstract class Cli extends Console implements Kernelable
 {

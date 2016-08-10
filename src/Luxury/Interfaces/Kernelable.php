@@ -8,6 +8,8 @@ use Phalcon\Application;
  * Interface KernelInterface
  *
  * @package Luxury\Interfaces
+ *
+ * @property-read \Phalcon\Config|\stdClass|array config
  */
 interface Kernelable
 {

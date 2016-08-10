@@ -43,7 +43,10 @@ class Cache implements Providable
                 case 'Xcache':
                     break;
                 default:
-                    throw new \RuntimeException;
+                    $msg = empty($driver)
+                        ? 'Cache driver not set.'
+                        : "Cache driver $driver not implemented.";
+                    throw new \RuntimeException($msg);
             }
 
             // Acceptable Adapter (Frontend)
@@ -64,7 +67,7 @@ class Cache implements Providable
                     $adapter = 'None';
                     break;
                 default:
-                    throw new \RuntimeException;
+                    throw new \RuntimeException("Cache driver $adapter not implemented.");
             }
 
             $adapterClass = "\\Phalcon\\Cache\\Frontend\\$adapter";

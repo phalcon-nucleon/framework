@@ -53,6 +53,27 @@ class Client
     }
 
     /**
+     * HTTP HEAD Method
+     *
+     * @param string        $url
+     * @param array         $params
+     * @param array         $header
+     * @param callable|bool $autoRedirectCallback
+     *
+     * @return \Phalcon\Http\Client\Response
+     * @throws \Exception
+     * @throws \Phalcon\Http\Client\Provider\Exception
+     */
+    public function head(
+        $url,
+        array $params = [],
+        array $header = [],
+        $autoRedirectCallback = false
+    ) {
+        return self::call(Method::HEAD, $url, $params, $header, $autoRedirectCallback);
+    }
+
+    /**
      * HTTP POST Method
      *
      * @param string        $url
@@ -158,6 +179,9 @@ class Client
     ) {
 
         switch (strtoupper($method)) {
+            case Method::HEAD:
+                $response = $this->provider->head($url, $params, $header);
+                break;
             case Method::GET:
                 $response = $this->provider->get($url, $params, $header);
                 break;

@@ -238,8 +238,11 @@ final class Str
             $size = $length - $len;
 
             $bytes = random_bytes($size);
-            $string .= static::substr(str_replace(['/', '+', '='], '', base64_encode($bytes)), 0,
-                $size);
+            $string .= static::substr(
+                str_replace(['/', '+', '='], '', base64_encode($bytes)),
+                0,
+                $size
+            );
         }
 
         return $string;

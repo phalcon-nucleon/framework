@@ -6,6 +6,7 @@ use Luxury\Constants\Services;
 use Luxury\Events\Listener;
 use Luxury\Middleware\Middleware;
 use Luxury\Support\Facades\Facade;
+use Phalcon\Config;
 use Phalcon\Di;
 use Phalcon\Di\Service;
 use Phalcon\Events\Manager as EventsManager;
@@ -71,7 +72,14 @@ trait Kernelize
         $this->attach($middleware);
     }
 
-    public function bootstrap()
+    /**
+     * Application starter
+     *
+     * @param \Phalcon\Config $config
+     *
+     * @return void
+     */
+    public function bootstrap(Config $config)
     {
         $diClass = $this->dependencyInjection;
 
@@ -85,7 +93,8 @@ trait Kernelize
         /** @var Di $di */
         $di = new $diClass;
 
-        $di->setShared('app', $this);
+        $di->setShared(Services::APP, $this);
+        $di->setShared(Services::CONFIG, $config);
 
         $di->setInternalEventsManager($em);
 

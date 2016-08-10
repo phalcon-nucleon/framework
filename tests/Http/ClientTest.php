@@ -19,6 +19,7 @@ class ClientTest extends TestCase
     public function data()
     {
         $methods = [
+            Method::HEAD,
             Method::GET,
             Method::POST,
             Method::PUT,
@@ -170,6 +171,11 @@ class RequestProviderStub
     }
 
     public function get($uri)
+    {
+        return $this->makeResponse($uri);
+    }
+
+    public function head($uri)
     {
         return $this->makeResponse($uri);
     }

@@ -28,7 +28,85 @@ class FacadeTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedExceptionRegExp(\RuntimeException::class,
             '/Facade does not implement getFacadeAccessor method\\./');
 
-        FakeFacadeStub::some();
+        WrongImplementFacadeStub::some();
+    }
+
+    public function testFacadeRootDiNotSet()
+    {
+        $this->setExpectedExceptionRegExp(\Phalcon\Di\Exception::class,
+            "/Service '' wasn't found in the dependency injection container/");
+
+        $app = new ApplicationStub;
+
+        WrongRootFacadeStub::setDependencyInjection($app);
+        WrongRootFacadeStub::some();
+    }
+
+
+    public function testFacadeWrongRoot()
+    {
+        $this->setExpectedExceptionRegExp(\RuntimeException::class,
+            '/A facade root has not been set\\./');
+
+        $app = new ApplicationStub;
+        $app->setShared(null, function () {
+            return null;
+        });
+
+        WrongRootFacadeStub::setDependencyInjection($app);
+        WrongRootFacadeStub::some();
+    }
+
+    public function testFacadeMockWrongAccessor()
+    {
+        $app = new ApplicationStub;
+        $app->setShared(null, function () {
+            return null;
+        });
+        WrongRootFacadeStub::setDependencyInjection($app);
+
+        WrongRootFacadeStub::shouldReceive('foo')->once()->andReturn(null);
+
+        $this->assertNull(WrongRootFacadeStub::foo());
+    }
+
+    public function testFacadeOnAnonymousClass()
+    {
+        $this->assertEquals('AnonymousClassFacadeStub', AnonymousClassFacadeStub::get());
+        AnonymousClassFacadeStub::set('foo/bar');
+        $this->assertEquals('AnonymousClassFacadeStub', AnonymousClassFacadeStub::get());
+    }
+
+    public function testFacadeOnSingletonAnonymousClass()
+    {
+        $this->assertEquals('SingletonAnonymousClassFacadeStub', SingletonAnonymousClassFacadeStub::get());
+        SingletonAnonymousClassFacadeStub::set('foo/bar');
+        $this->assertEquals('foo/bar', SingletonAnonymousClassFacadeStub::get());
+    }
+
+    public function testFacadeSwap()
+    {
+        $app = new ApplicationStub;
+        $app->setShared('foo', new class
+        {
+            public function foo()
+            {
+                return 'bar';
+            }
+        });
+        FacadeStub::setDependencyInjection($app);
+
+        $this->assertEquals('bar', FacadeStub::foo());
+
+        FacadeStub::swap(new class
+        {
+            public function foo()
+            {
+                return 'baz';
+            }
+        });
+
+        $this->assertEquals('baz', FacadeStub::foo());
     }
 
     public function testFacadeCallsUnderlyingApplication()
@@ -70,9 +148,17 @@ class FacadeTest extends \PHPUnit_Framework_TestCase
     }
 }
 
-class FakeFacadeStub extends Facade
+class WrongImplementFacadeStub extends Facade
 {
 
+}
+
+class WrongRootFacadeStub extends Facade
+{
+    protected static function getFacadeAccessor()
+    {
+        return null;
+    }
 }
 
 class FacadeStub extends Facade
@@ -80,6 +166,59 @@ class FacadeStub extends Facade
     protected static function getFacadeAccessor()
     {
         return 'foo';
+    }
+}
+
+class AnonymousClassFacadeStub extends Facade
+{
+    protected static function getFacadeAccessor()
+    {
+        return new class
+        {
+            private $value = 'AnonymousClassFacadeStub';
+
+            public function get()
+            {
+                return $this->value;
+            }
+
+            public function set($value = null)
+            {
+                $this->value = $value;
+            }
+        };
+    }
+}
+
+class SingletonAnonymousClassFacadeStub extends Facade
+{
+    private static $instance;
+
+    private static function getInstance()
+    {
+        if (self::$instance == null) {
+            self::$instance = new class
+            {
+                private $value = 'SingletonAnonymousClassFacadeStub';
+
+                public function get()
+                {
+                    return $this->value;
+                }
+
+                public function set($value = null)
+                {
+                    $this->value = $value;
+                }
+            };
+        }
+
+        return self::$instance;
+    }
+
+    protected static function getFacadeAccessor()
+    {
+        return self::getInstance();
     }
 }
 

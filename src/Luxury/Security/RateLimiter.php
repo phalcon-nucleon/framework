@@ -16,6 +16,13 @@ use Phalcon\Mvc\User\Plugin;
 class RateLimiter extends Plugin
 {
     /**
+     * Cache key suffix for the flag "too many attempts"
+     *
+     * @var string
+     */
+    private $klock = '.lockout';
+
+    /**
      * Determine if the given key has been "accessed" too many times.
      *
      * @param  string $key
@@ -26,11 +33,11 @@ class RateLimiter extends Plugin
      */
     public function tooManyAttempts($key, $maxAttempts, $decaySeconds = 1)
     {
-        if ($this->cache->exists($key . '_lockout', $decaySeconds)) {
+        if ($this->cache->exists($key . $this->klock, $decaySeconds)) {
             return true;
         }
         if ($this->attempts($key, $decaySeconds) > $maxAttempts) {
-            $this->cache->save($key . '_lockout', time() + ($decaySeconds), $decaySeconds);
+            $this->cache->save($key . $this->klock, time() + ($decaySeconds), $decaySeconds);
 
             $this->resetAttempts($key);
 
@@ -114,7 +121,7 @@ class RateLimiter extends Plugin
     {
         $this->resetAttempts($key);
 
-        $this->cache->delete($key . '_lockout');
+        $this->cache->delete($key . $this->klock);
     }
 
     /**
@@ -127,7 +134,7 @@ class RateLimiter extends Plugin
      */
     public function availableIn($key, $decaySeconds)
     {
-        $time = $this->cache->get($key . '_lockout', $decaySeconds);
+        $time = $this->cache->get($key . $this->klock, $decaySeconds);
 
         return $time - time();
     }

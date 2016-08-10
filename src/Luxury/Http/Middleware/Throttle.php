@@ -119,14 +119,18 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     /**
      * @param string $key
      * @param bool   $tooManyAttempts
+     *
+     * @return \Phalcon\Http\Response|\Phalcon\Http\ResponseInterface
      */
     private function buildResponse($key, $tooManyAttempts = false)
     {
         $response = $this->response;
 
         $response->setHeader('X-RateLimit-Limit', $this->max);
-        $response->setHeader('X-RateLimit-Remaining',
-            $this->limiter->retriesLeft($key, $this->max, $this->decay));
+        $response->setHeader(
+            'X-RateLimit-Remaining',
+            $this->limiter->retriesLeft($key, $this->max, $this->decay)
+        );
 
         if ($tooManyAttempts) {
             $response->setHeader('X-RateLimit-Remaining', 0);
@@ -136,8 +140,8 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
             $response->setContent($msg);
             $response->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg);
             $response->setHeader('Retry-After', $this->limiter->availableIn($key, $this->decay));
-
-            return $response;
         }
+
+        return $response;
     }
 }

@@ -48,6 +48,13 @@ abstract class Http extends PhApplication implements Kernelable
         parent::__construct(null);
     }
 
+    /**
+     * Application starter
+     *
+     * @param \Phalcon\Config $config
+     *
+     * @return void
+     */
     public function bootstrap(Config $config)
     {
         $this->kernelizeBootstrap($config);

@@ -72,6 +72,13 @@ trait Kernelize
         $this->attach($middleware);
     }
 
+    /**
+     * Application starter
+     *
+     * @param \Phalcon\Config $config
+     *
+     * @return void
+     */
     public function bootstrap(Config $config)
     {
         $diClass = $this->dependencyInjection;

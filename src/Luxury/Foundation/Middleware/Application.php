@@ -2,10 +2,10 @@
 
 namespace Luxury\Foundation\Middleware;
 
+use Luxury\Constants\Events\Application as AppEvent;
 use Luxury\Middleware\AfterMiddleware;
 use Luxury\Middleware\BeforeMiddleware;
 use Luxury\Middleware\Middleware;
-use Luxury\Constants\Events\Application as AppEvent;
 
 /**
  * ApplicationMiddleware

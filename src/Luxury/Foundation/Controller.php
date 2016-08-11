@@ -2,7 +2,7 @@
 
 namespace Luxury\Foundation;
 
-use Luxury\Middleware\Middleware;
+use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
 
 /**
  * Class Controller
@@ -21,12 +21,16 @@ abstract class Controller extends \Phalcon\Mvc\Controller
     abstract protected function onConstruct();
 
     /**
-     * Attach a middleware
+     * Attach a ControllerMiddleware
      *
-     * @param Middleware $middleware
+     * @param ControllerMiddleware $middleware
+     *
+     * @return ControllerMiddleware
      */
-    protected function middleware(Middleware $middleware)
+    protected function middleware(ControllerMiddleware $middleware)
     {
         $this->app->attachMiddleware($middleware);
+
+        return $middleware;
     }
 }

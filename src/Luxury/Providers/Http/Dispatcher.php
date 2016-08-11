@@ -5,7 +5,6 @@ namespace Luxury\Providers\Http;
 use Luxury\Constants\Services;
 use Luxury\Interfaces\Providable;
 use Phalcon\DiInterface;
-use Phalcon\Security;
 
 /**
  * Class Dispatcher

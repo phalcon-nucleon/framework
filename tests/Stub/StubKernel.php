@@ -3,7 +3,8 @@
 namespace Stub;
 
 use Luxury\Foundation\Application\Http as HttpApplication;
-use Luxury\Providers\Http\Dispatcher as DispatcherProvider;
+use Luxury\Http\Filter\ThrottleFilter;
+use Luxury\Providers;
 
 /**
  * Class TestKernel
@@ -23,9 +24,9 @@ class StubKernel extends HttpApplication
         //UrlProvider::class,
         //FlashProvider::class,
         //SessionProvider::class,
-        //RouterProvider::class,
+        Providers\Http\Router::class,
         //ViewProvider::class,
-        DispatcherProvider::class,
+        Providers\Http\Dispatcher::class,
         StubCacheFileProvider::class,
         //DatabaseProvider::class,
         /*

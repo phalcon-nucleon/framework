@@ -3,6 +3,7 @@
 namespace Luxury\Http\Middleware;
 
 use Luxury\Constants\Events as EventSpaces;
+use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
 use Luxury\Middleware\AfterMiddleware;
 use Luxury\Middleware\BeforeMiddleware;
@@ -13,9 +14,6 @@ use Phalcon\Http\Response\StatusCode;
  * Class Throttle
  *
  * @package Luxury\Middleware
- *
- * @property-read \Phalcon\Cache\BackendInterface cache
- * @property-read \Phalcon\Mvc\Application        app
  */
 class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMiddleware
 {
@@ -34,6 +32,8 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     private $decay;
 
     /**
+     * The Rate Limiter
+     *
      * @var RateLimiter
      */
     private $limiter;
@@ -48,10 +48,8 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     {
         parent::__construct();
 
-        $this->max     = $max;
-        $this->decay   = $decay;
-        $this->limiter = new RateLimiter();
-        $this->limiter->setDI($this->getDI());
+        $this->max   = $max;
+        $this->decay = $decay;
     }
 
     /**
@@ -68,13 +66,15 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     {
         $signature = $this->resolveRequestSignature();
 
-        if ($this->limiter->tooManyAttempts($signature, $this->max, $this->decay)) {
-            $this->buildResponse($signature, true);
+        $limiter = $this->getLimiter();
+
+        if ($limiter->tooManyAttempts($signature, $this->max, $this->decay)) {
+            $this->addHeader($signature, true);
 
             return false;
         }
 
-        $this->limiter->hit($signature, $this->decay);
+        $limiter->hit($signature, $this->decay);
 
         return true;
     }
@@ -91,7 +91,21 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
      */
     public function after($event, $source, $data = null)
     {
-        $this->buildResponse($this->resolveRequestSignature(), false);
+        $this->addHeader($this->resolveRequestSignature(), false);
+    }
+
+    /**
+     * Bind and return the limiter instance.
+     *
+     * @return \Luxury\Security\RateLimiter
+     */
+    private function getLimiter()
+    {
+        if ($this->limiter == null) {
+            $this->limiter = new RateLimiter();
+        }
+
+        return $this->limiter;
     }
 
     /**
@@ -102,8 +116,8 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
      */
     private function resolveRequestSignature()
     {
-        $request = $this->request;
-        $router  = $this->router;
+        $request = $this->getDI()->getShared(Services::REQUEST);
+        $router  = $this->getDI()->getShared(Services::ROUTER);
 
         return sha1(
             $router->getModuleName() .
@@ -119,19 +133,19 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     /**
      * Add the limit header information to the response.
      *
-     * @param string $key
+     * @param string $signature
      * @param bool   $tooManyAttempts Bind specific values when there are too many attempts
-     *
-     * @return \Phalcon\Http\Response|\Phalcon\Http\ResponseInterface
      */
-    private function buildResponse($key, $tooManyAttempts = false)
+    private function addHeader($signature, $tooManyAttempts = false)
     {
-        $response = $this->response;
+        $response = $this->getDI()->getShared(Services::RESPONSE);
+
+        $limiter = $this->getLimiter();
 
         $response->setHeader('X-RateLimit-Limit', $this->max);
         $response->setHeader(
             'X-RateLimit-Remaining',
-            $this->limiter->retriesLeft($key, $this->max, $this->decay)
+            $limiter->retriesLeft($signature, $this->max, $this->decay)
         );
 
         if ($tooManyAttempts) {
@@ -141,9 +155,10 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
 
             $response->setContent($msg);
             $response->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg);
-            $response->setHeader('Retry-After', $this->limiter->availableIn($key, $this->decay));
+            $response->setHeader(
+                'Retry-After',
+                $limiter->availableIn($signature, $this->decay)
+            );
         }
-
-        return $response;
     }
 }

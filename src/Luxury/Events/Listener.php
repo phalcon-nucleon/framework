@@ -2,7 +2,7 @@
 
 namespace Luxury\Events;
 
-use Phalcon\Di\Injectable;
+use Luxury\Di\Injectable;
 use Phalcon\Events\Event;
 
 /**

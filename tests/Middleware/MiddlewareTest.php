@@ -10,6 +10,7 @@ use Luxury\Middleware\AfterMiddleware;
 use Luxury\Middleware\BeforeMiddleware;
 use Luxury\Middleware\FinishMiddleware;
 use Luxury\Middleware\InitMiddleware;
+use Stub\StubController;
 use TestCase\TestCase;
 use TestCase\TestListenable;
 use TestCase\TestListenize;
@@ -29,9 +30,9 @@ class MiddlewareTest extends TestCase
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [
-            'namespace' => 'Stub',
+            'namespace'  => 'Stub',
             'controller' => 'Stub',
-            'action' => 'index'
+            'action'     => 'index'
         ]);
 
         $this->app->attach($middleware);
@@ -51,6 +52,60 @@ class MiddlewareTest extends TestCase
         $this->assertEquals(1, count($middleware->getView('finish')));
     }
 
+    public function dataFiltereControllerMiddleware()
+    {
+        return [
+            ['only', ['indexAction'], 0, 1, 1, 1],
+            ['except', ['indexAction'], 0, 0, 0, 0],
+            ['only', ['index'], 0, 0, 0, 0],
+            ['except', ['index'], 0, 1, 1, 1],
+        ];
+    }
+
+    /**
+     * @dataProvider dataFiltereControllerMiddleware
+     *
+     * @param $filter
+     * @param $methods
+     * @param $init
+     * @param $before
+     * @param $after
+     * @param $finish
+     */
+    public function testFilteredControllerMiddleware(
+        $filter,
+        $methods,
+        $init,
+        $before,
+        $after,
+        $finish
+    ) {
+        // GIVEN
+        $middleware = new TestControllerMiddlewareStub();
+
+        StubController::$middlewares[] = [
+            'middleware' => $middleware,
+            'params'     => [$filter => $methods]
+        ];
+
+        $this->app->useImplicitView(false);
+
+        $this->app->router->addGet('/', [
+            'namespace'  => 'Stub',
+            'controller' => 'Stub',
+            'action'     => 'index'
+        ]);
+
+        // WHEN
+        $this->app->handle('/');
+
+        // THEN
+        $this->assertEquals($init, count($middleware->getView('init')));
+        $this->assertEquals($before, count($middleware->getView('before')));
+        $this->assertEquals($after, count($middleware->getView('after')));
+        $this->assertEquals($finish, count($middleware->getView('finish')));
+    }
+
     public function testDispatchMiddleware()
     {
         // GIVEN
@@ -59,9 +114,9 @@ class MiddlewareTest extends TestCase
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [
-            'namespace' => 'Stub',
+            'namespace'  => 'Stub',
             'controller' => 'Stub',
-            'action' => 'index'
+            'action'     => 'index'
         ]);
 
         $this->app->attach($middleware);
@@ -87,11 +142,11 @@ class MiddlewareTest extends TestCase
         $middleware = new TestApplicationMiddlewareStub();
 
         $this->app->useImplicitView(false);
-        
+
         $this->app->router->addGet('/', [
-            'namespace' => 'Stub',
+            'namespace'  => 'Stub',
             'controller' => 'Stub',
-            'action' => 'index'
+            'action'     => 'index'
         ]);
 
         $this->app->attach($middleware);

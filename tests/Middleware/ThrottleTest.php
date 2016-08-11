@@ -1,7 +1,8 @@
 <?php
 namespace Middleware;
 
-use Luxury\Http\Filter\ThrottleFilter;
+use Luxury\Constants\Services;
+use Phalcon\Http\Response;
 use Phalcon\Http\Response\StatusCode;
 use TestCase\TestCase;
 
@@ -19,7 +20,7 @@ class ThrottleTest extends TestCase
         $dir = __DIR__ . '/../.data';
         if (!is_dir($dir)) {
             if (!mkdir($dir)) {
-                exit(255);
+                throw new \RuntimeException("Can't made .data directory.");
             }
         }
         // Clear File Cache
@@ -35,6 +36,23 @@ class ThrottleTest extends TestCase
         clearstatcache();
         clearstatcache(false);
         clearstatcache(true);
+    }
+
+    public function tearDown()
+    {
+        parent::tearDown();
+
+        $dir = __DIR__ . '/../.data/';
+
+        foreach (scandir($dir) as $item) {
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+
+            unlink($dir . $item);
+        }
+
+        rmdir($dir);
     }
 
     public function testThrottle()
@@ -79,5 +97,73 @@ class ThrottleTest extends TestCase
         $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
         $this->assertEquals(59, $response->getHeaders()->get('Retry-After'));
     }
-}
 
+    public function testThrottleFiltered()
+    {
+        $this->app->useImplicitView(false);
+
+        $this->app->router->addGet('/', [
+            'namespace'  => 'Stub',
+            'controller' => 'Stubthrottled',
+            'action'     => 'index'
+        ]);
+
+        $this->app->router->addGet('/throttled', [
+            'namespace'  => 'Stub',
+            'controller' => 'Stubthrottled',
+            'action'     => 'throttled'
+        ]);
+
+        $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
+        $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        for ($i = 0; $i < 10; $i++) {
+            // WHEN
+            $this->app->handle('/');
+            $response = $this->app->getDI()->getShared(Services::RESPONSE);
+
+            $this->assertNotEquals($status, $response->getStatusCode());
+            $this->assertNotEquals($msg, $response->getContent());
+            $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
+            $this->assertEquals(9 - $i, $response->getHeaders()->get('X-RateLimit-Remaining'));
+            $this->assertEquals(null, $response->getHeaders()->get('Retry-After'));
+        }
+
+        usleep(1000000);
+
+        $this->app->getDI()->remove(Services::RESPONSE);
+        $this->app->getDI()->setShared(Services::RESPONSE, function () {
+            $response = new Response();
+            $response->setHeaders(new Response\Headers());
+
+            return $response;
+        });
+
+        $this->app->handle('/throttled');
+
+        $response = $this->app->getDI()->getShared(Services::RESPONSE);
+
+        $this->assertEquals('200 OK', $response->getStatusCode());
+        $this->assertEquals('', $response->getContent());
+        $this->assertEquals(false, $response->getHeaders()->get('X-RateLimit-Limit'));
+        $this->assertEquals(false, $response->getHeaders()->get('X-RateLimit-Remaining'));
+        $this->assertEquals(false, $response->getHeaders()->get('Retry-After'));
+
+        $this->app->getDI()->remove(Services::RESPONSE);
+        $this->app->getDI()->setShared(Services::RESPONSE, function () {
+            $response = new Response();
+            $response->setHeaders(new Response\Headers());
+
+            return $response;
+        });
+
+        $this->app->handle('/');
+
+        $response = $this->app->getDI()->getShared(Services::RESPONSE);
+
+        $this->assertEquals($status, $response->getStatusCode());
+        $this->assertEquals($msg, $response->getContent());
+        $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
+        $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
+        $this->assertEquals(60, $response->getHeaders()->get('Retry-After'));
+    }
+}

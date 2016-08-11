@@ -7,7 +7,6 @@ use Luxury\Middleware\AfterMiddleware;
 use Luxury\Middleware\BeforeMiddleware;
 use Luxury\Middleware\FinishMiddleware;
 use Luxury\Middleware\Middleware;
-use Luxury\Support\Arr;
 
 /**
  * ControllerMiddleware
@@ -25,79 +24,125 @@ abstract class Controller extends Middleware
      */
     private $filter = [];
 
-    private $enable = true;
-
     /**
      * ControllerMiddleware constructor.
+     *
+     * @param array $params [only => [methodAllowed], except => [notAllowed]]
      */
-    public function __construct()
+    public function __construct(array $params = [])
     {
         parent::__construct();
 
-        $this->listen[Events\Dispatch::BEFORE_DISPATCH] = 'init';
-
         if ($this instanceof BeforeMiddleware) {
-            $this->listen[Events\Dispatch::BEFORE_EXECUTE_ROUTE] = 'callBefore';
+            $this->listen[Events\Dispatch::BEFORE_EXECUTE_ROUTE] = 'checkBefore';
         }
         if ($this instanceof AfterMiddleware) {
-            $this->listen[Events\Dispatch::AFTER_EXECUTE_ROUTE] = 'callAfter';
+            $this->listen[Events\Dispatch::AFTER_EXECUTE_ROUTE] = 'checkAfter';
         }
         if ($this instanceof FinishMiddleware) {
-            $this->listen[Events\Dispatch::AFTER_DISPATCH] = 'callFinish';
+            $this->listen[Events\Dispatch::AFTER_DISPATCH] = 'checkFinish';
         }
     }
 
-    final public function init($event, $source, $data)
+    /**
+     * @return bool
+     */
+    public function check()
     {
-        $action = $this->dispatcher->getActionName() . $this->dispatcher->getActionSuffix();
+        $dispatcher = $this->dispatcher;
 
-        $only = $this->filter['only'] ?? null;
-        if (!empty($only)) {
-            $this->enable = in_array($action, $only);
+        $action = $dispatcher->getActionName() . $dispatcher->getActionSuffix();
 
-            return;
+        $enable = true;
+        if (isset($this->filter['only'])) {
+            $enable = in_array($action, $this->filter['only']);
         }
 
-        $except = $this->filter['except'] ?? null;
-
-        if (!empty($except)) {
-            $this->enable = !in_array($action, $except);
+        if ($enable && isset($this->filter['except'])) {
+            $enable = !in_array($action, $this->filter['except']);
         }
 
-        return;
+        return $enable;
     }
 
-    final public function callBefore($event, $source, $data)
-    {
-        if ($this->enable) {
-            return $this->before($event, $source, $data);
-        }
-    }
-
-    final public function callAfter($event, $source, $data)
-    {
-        if ($this->enable) {
-            return $this->after($event, $source, $data);
-        }
-    }
-
-    final public function callFinish($event, $source, $data)
-    {
-        if ($this->enable) {
-            return $this->finish($event, $source, $data);
-        }
-    }
-
+    /**
+     * Allowed Method.
+     *
+     * @param array|null $filters
+     *
+     * @return \Luxury\Foundation\Middleware\Controller
+     */
     public function only(array $filters = null)
     {
-        return $this->filters(__FUNCTION__, $filters);
+        return $this->filters('only', $filters);
     }
 
+    /**
+     * Excepted Method.
+     *
+     * @param array|null $filters
+     *
+     * @return \Luxury\Foundation\Middleware\Controller
+     */
     public function except(array $filters = null)
     {
-        return $this->filters(__FUNCTION__, $filters);
+        return $this->filters('except', $filters);
     }
 
+    /**
+     * @param $event
+     * @param $source
+     * @param $data
+     *
+     * @return mixed
+     */
+    public function checkBefore($event, $source, $data)
+    {
+        if ($this->check()) {
+            return $this->before($event, $source, $data);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param $event
+     * @param $source
+     * @param $data
+     *
+     * @return mixed
+     */
+    public function checkAfter($event, $source, $data)
+    {
+        if ($this->check()) {
+            return $this->after($event, $source, $data);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param $event
+     * @param $source
+     * @param $data
+     *
+     * @return mixed
+     */
+    public function checkFinish($event, $source, $data)
+    {
+        if ($this->check()) {
+            return $this->finish($event, $source, $data);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param            $type
+     * @param array|null $filters
+     *
+     * @return $this
+     */
     private function filters($type, array $filters = null)
     {
         if ($filters == null) {

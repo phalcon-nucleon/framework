@@ -2,8 +2,9 @@
 
 namespace Stub;
 
+use Luxury\Constants\Services;
 use Luxury\Foundation\Controller;
-use Luxury\Http\Middleware\ThrottleMiddleware as ThrottleMiddleware;
+use Luxury\Http\Middleware\Throttle as ThrottleMiddleware;
 
 /**
  * Class StubThrottledController
@@ -19,10 +20,16 @@ class StubthrottledController extends Controller
      */
     protected function onConstruct()
     {
-        $this->middleware(new ThrottleMiddleware(10, 60));
+        $this->middleware(new ThrottleMiddleware(10, 60))->only(['indexAction']);
     }
 
     public function indexAction()
     {
+        $this->getDI()->getShared(Services::RESPONSE)->setStatusCode(200);
+    }
+
+    public function throttledAction()
+    {
+        $this->getDI()->getShared(Services::RESPONSE)->setStatusCode(200);
     }
 }

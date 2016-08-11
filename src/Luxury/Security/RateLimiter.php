@@ -2,12 +2,13 @@
 
 namespace Luxury\Security;
 
+use Luxury\Constants\Services;
 use Luxury\Di\Injectable;
 
 /**
  * Class RateLimiter
  *
- * @see     https://github.com/laravel/framework/blob/5.2/src/Illuminate/Cache/RateLimiter.php
+ * @see https://github.com/laravel/framework/blob/5.2/src/Illuminate/Cache/RateLimiter.php
  *
  * @package Luxury\Security
  *
@@ -33,11 +34,13 @@ class RateLimiter extends Injectable
      */
     public function tooManyAttempts($key, $maxAttempts, $decaySeconds = 1)
     {
-        if ($this->cache->exists($key . $this->klock, $decaySeconds)) {
+        $cache = $this->getDI()->getShared(Services::CACHE);
+
+        if ($cache->exists($key . $this->klock, $decaySeconds)) {
             return true;
         }
         if ($this->attempts($key, $decaySeconds) > $maxAttempts) {
-            $this->cache->save($key . $this->klock, time() + ($decaySeconds), $decaySeconds);
+            $cache->save($key . $this->klock, time() + ($decaySeconds), $decaySeconds);
 
             $this->resetAttempts($key);
 
@@ -57,14 +60,16 @@ class RateLimiter extends Injectable
      */
     public function hit($key, $decaySeconds = 1)
     {
-        if (!$this->cache->exists($key, $decaySeconds)) {
-            $this->cache->save($key, 1, $decaySeconds);
+        $cache = $this->getDI()->getShared(Services::CACHE);
+
+        if (!$cache->exists($key, $decaySeconds)) {
+            $cache->save($key, 1, $decaySeconds);
         }
 
-        $value = (int)$this->cache->get($key, $decaySeconds);
+        $value = (int)$cache->get($key, $decaySeconds);
 
         $value++;
-        $this->cache->save($key, $value, $decaySeconds);
+        $cache->save($key, $value, $decaySeconds);
 
         return $value;
     }
@@ -79,7 +84,9 @@ class RateLimiter extends Injectable
      */
     public function attempts($key, $decaySeconds = 1)
     {
-        return is_null($value = $this->cache->get($key, $decaySeconds)) ? 0 : (int)$value;
+        return is_null(
+            $value = $this->getDI()->getShared(Services::CACHE)->get($key, $decaySeconds)) ? 0
+            : (int)$value;
     }
 
     /**
@@ -91,7 +98,7 @@ class RateLimiter extends Injectable
      */
     public function resetAttempts($key)
     {
-        return $this->cache->delete($key);
+        return $this->getDI()->getShared(Services::CACHE)->delete($key);
     }
 
     /**
@@ -121,7 +128,7 @@ class RateLimiter extends Injectable
     {
         $this->resetAttempts($key);
 
-        $this->cache->delete($key . $this->klock);
+        $this->getDI()->getShared(Services::CACHE)->delete($key . $this->klock);
     }
 
     /**
@@ -134,7 +141,7 @@ class RateLimiter extends Injectable
      */
     public function availableIn($key, $decaySeconds)
     {
-        $time = $this->cache->get($key . $this->klock, $decaySeconds);
+        $time = $this->getDI()->getShared(Services::CACHE)->get($key . $this->klock, $decaySeconds);
 
         return $time - time();
     }

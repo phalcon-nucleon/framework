@@ -3,7 +3,7 @@
 namespace Stub;
 
 use Luxury\Foundation\Controller;
-use Luxury\Http\Middleware\Throttle as ThrottleMiddleware;
+use Luxury\Http\Middleware\ThrottleMiddleware as ThrottleMiddleware;
 
 /**
  * Class StubThrottledController

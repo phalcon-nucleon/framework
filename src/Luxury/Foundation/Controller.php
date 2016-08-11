@@ -29,4 +29,8 @@ abstract class Controller extends \Phalcon\Mvc\Controller
     {
         $this->app->attachMiddleware($middleware);
     }
+    
+    public function beforeException(){
+        $args = func_get_args();
+    }
 }

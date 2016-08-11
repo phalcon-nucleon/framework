@@ -4,6 +4,7 @@ namespace Luxury\Http\Middleware;
 
 use Luxury\Constants\Events as EventSpaces;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
+use Luxury\Http\Routing\ThrottleRequest;
 use Luxury\Middleware\AfterMiddleware;
 use Luxury\Middleware\BeforeMiddleware;
 use Luxury\Security\RateLimiter;
@@ -13,30 +14,15 @@ use Phalcon\Http\Response\StatusCode;
  * Class Throttle
  *
  * @package Luxury\Middleware
- *
- * @property-read \Phalcon\Cache\BackendInterface cache
- * @property-read \Phalcon\Mvc\Application        app
  */
-class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMiddleware
+class ThrottleMiddleware extends ControllerMiddleware implements BeforeMiddleware, AfterMiddleware
 {
     /**
-     * Number of max request by $decay
+     * The throttle handler
      *
-     * @var int
+     * @var ThrottleRequest
      */
-    private $max;
-
-    /**
-     * Decay time (seconds)
-     *
-     * @var int
-     */
-    private $decay;
-
-    /**
-     * @var RateLimiter
-     */
-    private $limiter;
+    private $throttler;
 
     /**
      * Throttle constructor.
@@ -48,10 +34,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     {
         parent::__construct();
 
-        $this->max     = $max;
-        $this->decay   = $decay;
-        $this->limiter = new RateLimiter();
-        $this->limiter->setDI($this->getDI());
+        $this->throttler = new ThrottleRequest($max, $decay);
     }
 
     /**
@@ -67,14 +50,11 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     public function before($event, $source, $data = null)
     {
         $signature = $this->resolveRequestSignature();
-
-        if ($this->limiter->tooManyAttempts($signature, $this->max, $this->decay)) {
-            $this->buildResponse($signature, true);
+        if (!$this->throttler->handle($signature)) {
+            $this->throttler->addHeader($signature, true);
 
             return false;
         }
-
-        $this->limiter->hit($signature, $this->decay);
 
         return true;
     }
@@ -91,7 +71,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
      */
     public function after($event, $source, $data = null)
     {
-        $this->buildResponse($this->resolveRequestSignature(), false);
+        $this->throttler->addHeader($this->resolveRequestSignature(), false);
     }
 
     /**
@@ -105,45 +85,15 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
         $request = $this->request;
         $router  = $this->router;
 
-        return sha1(
+        $signature =
             $router->getModuleName() .
             ':' . $router->getNamespaceName() .
             ':' . $router->getControllerName() .
             ':' . $router->getActionName() .
             '|' . $request->getHttpHost() .
             '|' . $request->getURI() .
-            '|' . $request->getClientAddress()
-        );
-    }
+            '|' . $request->getClientAddress();
 
-    /**
-     * Add the limit header information to the response.
-     *
-     * @param string $key
-     * @param bool   $tooManyAttempts Bind specific values when there are too many attempts
-     *
-     * @return \Phalcon\Http\Response|\Phalcon\Http\ResponseInterface
-     */
-    private function buildResponse($key, $tooManyAttempts = false)
-    {
-        $response = $this->response;
-
-        $response->setHeader('X-RateLimit-Limit', $this->max);
-        $response->setHeader(
-            'X-RateLimit-Remaining',
-            $this->limiter->retriesLeft($key, $this->max, $this->decay)
-        );
-
-        if ($tooManyAttempts) {
-            $response->setHeader('X-RateLimit-Remaining', 0);
-
-            $msg = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-
-            $response->setContent($msg);
-            $response->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg);
-            $response->setHeader('Retry-After', $this->limiter->availableIn($key, $this->decay));
-        }
-
-        return $response;
+        return sha1($signature);
     }
 }

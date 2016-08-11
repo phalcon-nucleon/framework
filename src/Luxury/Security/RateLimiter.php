@@ -2,7 +2,7 @@
 
 namespace Luxury\Security;
 
-use Phalcon\Mvc\User\Plugin;
+use Luxury\Di\Injectable;
 
 /**
  * Class RateLimiter
@@ -13,7 +13,7 @@ use Phalcon\Mvc\User\Plugin;
  *
  * @property-read \Phalcon\Cache\BackendInterface cache
  */
-class RateLimiter extends Plugin
+class RateLimiter extends Injectable
 {
     /**
      * Cache key suffix for the flag "too many attempts"

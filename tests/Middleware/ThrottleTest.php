@@ -1,6 +1,7 @@
 <?php
 namespace Middleware;
 
+use Luxury\Http\Filter\ThrottleFilter;
 use Phalcon\Http\Response\StatusCode;
 use TestCase\TestCase;
 

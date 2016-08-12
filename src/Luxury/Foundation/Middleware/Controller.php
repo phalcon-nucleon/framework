@@ -3,10 +3,12 @@
 namespace Luxury\Foundation\Middleware;
 
 use Luxury\Constants\Events;
-use Luxury\Middleware\AfterMiddleware;
-use Luxury\Middleware\BeforeMiddleware;
-use Luxury\Middleware\FinishMiddleware;
-use Luxury\Middleware\Middleware;
+use Luxury\Middleware\{
+    AfterMiddleware,
+    BeforeMiddleware,
+    FinishMiddleware,
+    Middleware
+};
 
 /**
  * ControllerMiddleware
@@ -26,10 +28,8 @@ abstract class Controller extends Middleware
 
     /**
      * ControllerMiddleware constructor.
-     *
-     * @param array $params [only => [methodAllowed], except => [notAllowed]]
      */
-    public function __construct(array $params = [])
+    final public function __construct()
     {
         parent::__construct();
 
@@ -47,7 +47,7 @@ abstract class Controller extends Middleware
     /**
      * @return bool
      */
-    public function check()
+    final public function check()
     {
         $dispatcher = $this->dispatcher;
 
@@ -72,7 +72,7 @@ abstract class Controller extends Middleware
      *
      * @return \Luxury\Foundation\Middleware\Controller
      */
-    public function only(array $filters = null)
+    final public function only(array $filters = null)
     {
         return $this->filters('only', $filters);
     }
@@ -84,7 +84,7 @@ abstract class Controller extends Middleware
      *
      * @return \Luxury\Foundation\Middleware\Controller
      */
-    public function except(array $filters = null)
+    final public function except(array $filters = null)
     {
         return $this->filters('except', $filters);
     }
@@ -96,9 +96,10 @@ abstract class Controller extends Middleware
      *
      * @return mixed
      */
-    public function checkBefore($event, $source, $data)
+    final public function checkBefore($event, $source, $data)
     {
         if ($this->check()) {
+            /** @var BeforeMiddleware $this */
             return $this->before($event, $source, $data);
         }
 
@@ -112,9 +113,10 @@ abstract class Controller extends Middleware
      *
      * @return mixed
      */
-    public function checkAfter($event, $source, $data)
+    final public function checkAfter($event, $source, $data)
     {
         if ($this->check()) {
+            /** @var AfterMiddleware $this */
             return $this->after($event, $source, $data);
         }
 
@@ -128,9 +130,10 @@ abstract class Controller extends Middleware
      *
      * @return mixed
      */
-    public function checkFinish($event, $source, $data)
+    final public function checkFinish($event, $source, $data)
     {
         if ($this->check()) {
+            /** @var FinishMiddleware $this */
             return $this->finish($event, $source, $data);
         }
 

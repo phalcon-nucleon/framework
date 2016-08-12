@@ -21,16 +21,24 @@ abstract class Controller extends \Phalcon\Mvc\Controller
     abstract protected function onConstruct();
 
     /**
-     * Attach a ControllerMiddleware
+     * Attach a ControllerMiddleware.
+     *
+     * On controllers, only ControllerMiddleware are attachable,
+     * because the middleware registration, passed by the controller, will made at the controller instantiation.
+     * Because of this, the events
+     *  "Application::boot"
+     *  "Dispatch::beforeDispatchLoop"
+     *  "Dispatch::BeforeDispatch"
+     * can not be caught.
      *
      * @param ControllerMiddleware $middleware
      *
-     * @return ControllerMiddleware
+     * @return Controller
      */
     protected function middleware(ControllerMiddleware $middleware)
     {
         $this->app->attachMiddleware($middleware);
 
-        return $middleware;
+        return $this;
     }
 }

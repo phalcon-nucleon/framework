@@ -39,17 +39,21 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     private $limiter;
 
     /**
-     * Throttle constructor.
+     * Throttle factory.
      *
      * @param int $max   Number of max request by $decay
      * @param int $decay Decay time (seconds)
+     *
+     * @return Throttle
      */
-    public function __construct($max, $decay = 60)
+    public static function create($max, $decay = 60)
     {
-        parent::__construct();
+        $throttle = new static;
 
-        $this->max   = $max;
-        $this->decay = $decay;
+        $throttle->max   = $max;
+        $throttle->decay = $decay;
+
+        return $throttle;
     }
 
     /**

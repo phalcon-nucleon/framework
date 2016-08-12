@@ -25,7 +25,7 @@ class StubController extends Controller
     {
         foreach (self::$middlewares as $middleware) {
             foreach ($middleware['params'] as $key => $method) {
-                $this->middleware($middleware['middleware'])->$key($method);
+                $this->middleware($middleware['middleware']->$key($method));
             }
         }
     }

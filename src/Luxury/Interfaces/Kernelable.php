@@ -43,4 +43,11 @@ interface Kernelable
      * @return void
      */
     public function registerMiddlewares();
+
+    /**
+     * Register the events listeners.
+     *
+     * @return void
+     */
+    public function registerListeners();
 }

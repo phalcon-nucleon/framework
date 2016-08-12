@@ -28,7 +28,6 @@ trait Kernelize
             /* @var \Luxury\Interfaces\Providable $prv */
             $prv = new $provider();
 
-            /** @var \Phalcon\Application $this */
             $prv->register($this->getDI());
         }
     }
@@ -40,6 +39,16 @@ trait Kernelize
     {
         foreach ($this->middlewares as $middleware) {
             $this->attachMiddleware(new $middleware);
+        }
+    }
+
+    /**
+     * This methods registers the middlewares to be used by the application
+     */
+    public function registerListeners()
+    {
+        foreach ($this->listeners as $listener) {
+            $this->attach(new $listener);
         }
     }
 

@@ -186,8 +186,6 @@ final class Arr
         $result = [];
 
         foreach ($array as $item) {
-            //$item = $item instanceof Collection ? $item->all() : $item;
-
             if (is_array($item)) {
                 if ($depth === 1) {
                     $result = array_merge($result, $item);
@@ -277,11 +275,7 @@ final class Arr
             return $default;
         }
 
-        if (isset($array[$key])) {
-            return $array[$key];
-        }
-
-        return $default;
+        return $array[$key] ?? $default;
     }
 
     /**

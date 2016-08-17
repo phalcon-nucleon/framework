@@ -59,11 +59,7 @@ class Obj
             return self::value($default);
         }
 
-        if (isset($object->$property)) {
-            return $object->$property;
-        }
-
-        return self::value($default);
+        return $object->$property ?? self::value($default);
     }
 
     /**

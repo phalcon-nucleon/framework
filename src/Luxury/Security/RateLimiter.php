@@ -8,7 +8,7 @@ use Luxury\Di\Injectable;
 /**
  * Class RateLimiter
  *
- * @see https://github.com/laravel/framework/blob/5.2/src/Illuminate/Cache/RateLimiter.php
+ * @see     https://github.com/laravel/framework/blob/5.2/src/Illuminate/Cache/RateLimiter.php
  *
  * @package Luxury\Security
  */

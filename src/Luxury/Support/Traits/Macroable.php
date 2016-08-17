@@ -60,10 +60,9 @@ trait Macroable
     {
         if (static::hasMacro($method)) {
             if (static::$macros[$method] instanceof Closure) {
-                return call_user_func_array(
-                    Closure::bind(static::$macros[$method], null, get_called_class()),
-                    $parameters
-                );
+                $closure = Closure::bind(static::$macros[$method], null, get_called_class());
+
+                return $closure(...$parameters);
             } else {
                 return call_user_func_array(static::$macros[$method], $parameters);
             }
@@ -87,7 +86,9 @@ trait Macroable
         if (static::hasMacro($method)) {
             $macro = static::$macros[$method];
             if ($macro instanceof Closure) {
-                return call_user_func_array($macro->bindTo($this, get_class($this)), $parameters);
+                $closure = $macro->bindTo($this, get_class($this));
+
+                return $closure(...$parameters);
             } else {
                 return call_user_func_array($macro, $parameters);
             }

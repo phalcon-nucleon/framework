@@ -10,13 +10,6 @@ namespace Luxury\Auth;
 interface Authenticable
 {
     /**
-     * Get the name of the unique identifier for the user.
-     *
-     * @return string
-     */
-    public function getAuthIdentifierName();
-
-    /**
      * Get the unique identifier for the user.
      *
      * @return mixed
@@ -47,9 +40,23 @@ interface Authenticable
     public function setRememberToken($value);
 
     /**
+     * Get the name of the unique identifier for the user.
+     *
+     * @return string
+     */
+    public static function getAuthIdentifierName();
+
+    /**
+     * Get the name of the password for the user.
+     *
+     * @return string
+     */
+    public static function getAuthPasswordName();
+
+    /**
      * Get the column name for the "remember me" token.
      *
      * @return string
      */
-    public function getRememberTokenName();
+    public static function getRememberTokenName();
 }

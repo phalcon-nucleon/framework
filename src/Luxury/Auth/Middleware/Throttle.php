@@ -2,6 +2,7 @@
 
 namespace Luxury\Auth\Middleware;
 
+use Luxury\Constants\Services;
 use Luxury\Middleware\Throttle as ThrottleMiddleware;
 
 /**
@@ -11,5 +12,5 @@ use Luxury\Middleware\Throttle as ThrottleMiddleware;
  */
 class Throttle extends ThrottleMiddleware
 {
-    protected $name = 'auth';
+    protected $name = Services::AUTH;
 }

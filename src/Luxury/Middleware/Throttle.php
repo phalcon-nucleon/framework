@@ -5,6 +5,7 @@ namespace Luxury\Middleware;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
 use Luxury\Security\RateLimiter;
+use Phalcon\Events\Event;
 use Phalcon\Http\Response\StatusCode;
 
 /**
@@ -75,7 +76,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeMiddleware
      * @throws \Exception
      * @return bool
      */
-    public function before($event, $source, $data = null)
+    public function before(Event $event, $source, $data = null)
     {
         $signature = $this->resolveRequestSignature();
 
@@ -102,7 +103,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeMiddleware
      * @throws \Exception
      * @return bool
      */
-    public function after($event, $source, $data = null)
+    public function after(Event $event, $source, $data = null)
     {
         $this->addHeader($this->resolveRequestSignature(), false);
     }

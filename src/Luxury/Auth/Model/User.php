@@ -15,9 +15,9 @@ class User extends Model implements Authenticable
     /**
      * Get the unique identifier for the user.
      *
-     * @return mixed
+     * @return string
      */
-    public function getAuthIdentifier()
+    public function getAuthIdentifier() : string
     {
         return $this->{static::getAuthIdentifierName()};
     }
@@ -27,7 +27,7 @@ class User extends Model implements Authenticable
      *
      * @return string
      */
-    public function getAuthPassword()
+    public function getAuthPassword() : string
     {
         return $this->{static::getAuthPasswordName()};
     }
@@ -37,7 +37,7 @@ class User extends Model implements Authenticable
      *
      * @return string
      */
-    public function getRememberToken()
+    public function getRememberToken() : string
     {
         return $this->{static::getRememberTokenName()};
     }
@@ -49,7 +49,7 @@ class User extends Model implements Authenticable
      *
      * @return void
      */
-    public function setRememberToken($value)
+    public function setRememberToken(string $value)
     {
         $this->{static::getRememberTokenName()} = $value;
     }
@@ -59,7 +59,7 @@ class User extends Model implements Authenticable
      *
      * @return string
      */
-    public static function getAuthIdentifierName()
+    public static function getAuthIdentifierName() : string
     {
         return 'email';
     }
@@ -69,7 +69,7 @@ class User extends Model implements Authenticable
      *
      * @return string
      */
-    public static function getAuthPasswordName()
+    public static function getAuthPasswordName() : string
     {
         return 'password';
     }
@@ -79,7 +79,7 @@ class User extends Model implements Authenticable
      *
      * @return string
      */
-    public static function getRememberTokenName()
+    public static function getRememberTokenName() : string
     {
         return 'remember_token';
     }

@@ -29,7 +29,7 @@ trait Macroable
      *
      * @return void
      */
-    public static function macro($name, callable $macro)
+    public static function macro(string $name, callable $macro)
     {
         static::$macros[$name] = $macro;
     }
@@ -41,7 +41,7 @@ trait Macroable
      *
      * @return bool
      */
-    public static function hasMacro($name)
+    public static function hasMacro(string $name)
     {
         return isset(static::$macros[$name]);
     }

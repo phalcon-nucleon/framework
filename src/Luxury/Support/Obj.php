@@ -9,7 +9,7 @@ use Closure;
  *
  * @package Luxury\Support
  */
-class Obj
+final class Obj
 {
 
     /**
@@ -35,7 +35,7 @@ class Obj
      */
     public static function read($object, $property, $default = null)
     {
-        if (is_null($object) || is_null($property)) {
+        if (is_null($object)) {
             return self::value($default);
         }
 
@@ -55,7 +55,7 @@ class Obj
      */
     public static function fetch($object, $property, $default = null)
     {
-        if (is_null($object) || is_null($property)) {
+        if (is_null($object)) {
             return self::value($default);
         }
 

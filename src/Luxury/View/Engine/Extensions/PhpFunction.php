@@ -2,8 +2,6 @@
 
 namespace Luxury\View\Engine\Extensions;
 
-use Luxury\Support\Facades\Log;
-
 /**
  * Class PhpFunctions
  *
@@ -21,7 +19,6 @@ class PhpFunction
      */
     public function compileFunction($name, $arguments)
     {
-        Log::debug('compileFunction:' . $name . '(' . $arguments . ')');
         if (function_exists($name)) {
             return $name . '(' . $arguments . ')';
         }

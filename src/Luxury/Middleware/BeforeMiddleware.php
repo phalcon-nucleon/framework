@@ -2,6 +2,8 @@
 
 namespace Luxury\Middleware;
 
+use Phalcon\Events\Event;
+
 /**
  * Interface BeforeMiddleware
  *
@@ -14,12 +16,12 @@ interface BeforeMiddleware
     /**
      * Called before the execution of handler
      *
-     * @param \Phalcon\Events\Event|mixed $event
+     * @param \Phalcon\Events\Event $event
      * @param \Phalcon\Dispatcher|mixed   $source
      * @param mixed|null                  $data
      *
      * @throws \Exception
      * @return bool
      */
-    public function before($event, $source, $data = null);
+    public function before(Event $event, $source, $data = null);
 }

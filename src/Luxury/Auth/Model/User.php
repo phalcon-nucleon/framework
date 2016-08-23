@@ -3,6 +3,8 @@
 namespace Luxury\Auth\Model;
 
 use Luxury\Auth\Authenticable;
+use Luxury\Auth\Authorizable;
+use Phalcon\Acl\RoleInterface;
 use Phalcon\Mvc\Model;
 
 /**
@@ -10,8 +12,15 @@ use Phalcon\Mvc\Model;
  *
  * @package Luxury\Auth\Model
  */
-class User extends Model implements Authenticable
+class User extends Model implements Authenticable, Authorizable
 {
+    /**
+     * User Role.
+     *
+     * @var RoleInterface
+     */
+    private $role;
+
     /**
      * Get the unique identifier for the user.
      *
@@ -82,5 +91,25 @@ class User extends Model implements Authenticable
     public static function getRememberTokenName() : string
     {
         return 'remember_token';
+    }
+
+    /**
+     * @return RoleInterface
+     */
+    public function getRole() : RoleInterface
+    {
+        return $this->role;
+    }
+
+    /**
+     * @param RoleInterface $role
+     *
+     * @return Authorizable
+     */
+    public function setRole(RoleInterface $role) : Authorizable
+    {
+        $this->role = $role;
+
+        return $this;
     }
 }

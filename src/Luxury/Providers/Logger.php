@@ -4,7 +4,6 @@ namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Interfaces\Providable;
-use Luxury\Support\Arr;
 use Phalcon\DiInterface;
 
 /**
@@ -26,17 +25,17 @@ class Logger implements Providable
             /** @var \Phalcon\Config|\stdClass $config */
             $config = $this->getShared(Services::CONFIG);
 
-            switch (ucfirst($adapter = Arr::fetch($config->log, 'adapter'))) {
+            switch (ucfirst($adapter = ($config->log['adapter'] ?? null))) {
                 case null:
                 case 'Multiple':
                     $adapter = \Phalcon\Logger\Adapter\File\Multiple::class;
 
-                    $name = Arr::fetch($config->log, 'path');
+                    $name = $config->log['path'] ?? null;
                     break;
                 case 'File':
                     $adapter = \Phalcon\Logger\Adapter\File::class;
 
-                    $name = Arr::fetch($config->log, 'path');
+                    $name = $config->log['path'] ?? null;
                     break;
                 case 'Database':
                 case 'Firelogger':
@@ -45,7 +44,7 @@ class Logger implements Providable
                 case 'Udplogger':
                     $adapter = '\Phalcon\Logger\Adapter' . $adapter;
 
-                    $name = Arr::fetch($config->log, 'name', 'phalcon');
+                    $name = $config->log['name'] ?? 'phalcon';
                     break;
                 default:
                     throw new \RuntimeException("Logger adapter $adapter not implemented.");
@@ -55,7 +54,7 @@ class Logger implements Providable
                 throw new \RuntimeException('Required parameter {name|path} missing.');
             }
 
-            return new $adapter($name, (array)Arr::fetch($config->log, 'options', []));
+            return new $adapter($name, (array)($config->log['options'] ?? []));
         });
     }
 }

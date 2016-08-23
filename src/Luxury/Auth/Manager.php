@@ -4,7 +4,6 @@ namespace Luxury\Auth;
 
 use Luxury\Auth\Model\User;
 use Luxury\Constants\Services;
-use Luxury\Support\Arr;
 use Phalcon\Di\Injectable as Injector;
 
 /**
@@ -12,7 +11,7 @@ use Phalcon\Di\Injectable as Injector;
  *
  * @package Luxury\Auth
  */
-class AuthManager extends Injector
+class Manager extends Injector
 {
     /**
      * User Authenticable
@@ -89,8 +88,8 @@ class AuthManager extends Injector
     public function attempt(array $credentials = [])
     {
         $user = User::findFirst([
-            User::getAuthIdentifierName() => Arr::get($credentials, User::getAuthIdentifierName()),
-            User::getAuthPasswordName()   => Arr::get($credentials, User::getAuthPasswordName()),
+            User::getAuthIdentifierName() => $credentials[User::getAuthIdentifierName()] ?? null,
+            User::getAuthPasswordName()   => $credentials[User::getAuthPasswordName()] ?? null,
         ]);
 
         if (!is_null($user)) {
@@ -168,6 +167,8 @@ class AuthManager extends Injector
     }
 
     /**
+     * Find and return a user by his id.
+     *
      * @param int $id
      *
      * @return User

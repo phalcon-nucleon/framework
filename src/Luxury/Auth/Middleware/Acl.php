@@ -2,7 +2,7 @@
 
 namespace Luxury\Auth\Middleware;
 
-use Luxury\Auth\AuthManager;
+use Luxury\Auth\Manager;
 use Luxury\Auth\Authorizable;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
@@ -48,12 +48,12 @@ class Acl extends ControllerMiddleware implements BeforeMiddleware
      */
     public static function create(string $controller, array $resources) : Acl
     {
-        $acl = new static;
+        $aclThrottle = new static;
 
-        $acl->controller = $controller;
-        $acl->resources  = $resources;
+        $aclThrottle->controller = $controller;
+        $aclThrottle->resources  = $resources;
 
-        return $acl;
+        return $aclThrottle;
     }
 
     /**
@@ -74,21 +74,55 @@ class Acl extends ControllerMiddleware implements BeforeMiddleware
 
         /** @var \Phalcon\Mvc\Dispatcher $dispatcher */
         $dispatcher = $di->getShared(Services::DISPATCHER);
-        /** @var AuthManager $auth */
+        /** @var Manager $auth */
         $auth = $di->getShared(Services::AUTH);
 
-        if (isset($this->resources[$action = $dispatcher->getActionName()])) {
-            if (is_null($user = $auth->user()) || !($user instanceof Authorizable)) {
+        $action = $dispatcher->getActionName();
+        if (in_array($action, $this->resources)) {
+            $user = $auth->user();
+
+            if (is_null($user) || !($user instanceof Authorizable)) {
                 return false;
             }
 
-            $controller = $dispatcher->getControllerName();
-            if (!$this->acl->isAllowed($user->getRole(), $controller, $action)) {
+            if (!$this->acl->isAllowed($user->getRole()->getName(), $dispatcher->getControllerName(), $action)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Allow an list of actions to a role.
+     *
+     * @param string   $role
+     * @param array    $actions
+     * @param callable $callback
+     *
+     * @return $this
+     */
+    public function allow($role, array $actions, callable $callback = null)
+    {
+        $this->acl->allow($role, $this->controller, $actions, $callback);
+
+        return $this;
+    }
+
+    /**
+     * Deny an list of actions to a role.
+     *
+     * @param string   $role
+     * @param array    $actions
+     * @param callable $callback
+     *
+     * @return $this
+     */
+    public function deny($role, array $actions, callable $callback = null)
+    {
+        $this->acl->deny($role, $this->controller, $actions, $callback);
+
+        return $this;
     }
 
     /**
@@ -103,10 +137,10 @@ class Acl extends ControllerMiddleware implements BeforeMiddleware
         /** @var \Phalcon\Cache\BackendInterface $cache */
         $cache = $this->getDI()->getShared(Services::CACHE);
 
+        /** @var \Phalcon\Acl\Adapter $acl */
         $acl = $cache->get(Services::ACL);
 
         if (empty($acl)) {
-            /** @var \Phalcon\Acl\Adapter $acl */
             $acl = $this->getDI()->getShared(Services::ACL);
         }
 

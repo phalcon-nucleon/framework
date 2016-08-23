@@ -2,7 +2,7 @@
 
 namespace Luxury\Auth;
 
-use Phalcon\Acl\Role;
+use Phalcon\Acl\RoleInterface;
 
 /**
  * interface Authorizable
@@ -12,7 +12,14 @@ use Phalcon\Acl\Role;
 interface Authorizable
 {
     /**
-     * @return Role
+     * @return RoleInterface
      */
-    public function getRole() : Role;
+    public function getRole() : RoleInterface;
+
+    /**
+     * @param RoleInterface $role
+     *
+     * @return Authorizable
+     */
+    public function setRole(RoleInterface $role) : Authorizable;
 }

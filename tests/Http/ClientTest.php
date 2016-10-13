@@ -44,7 +44,7 @@ class ClientTest extends TestCase
 
         foreach ($methods as $method) {
             foreach ($statuses as $status) {
-                $call[] = array_merge([$method], $status);
+                $call[$method . '.' . $status[0]] = array_merge([$method], $status);
             }
         }
 

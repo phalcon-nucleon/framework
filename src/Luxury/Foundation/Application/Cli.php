@@ -24,11 +24,18 @@ abstract class Cli extends Console implements Kernelable
     protected $providers = [];
 
     /**
-     * Return the Middleware List to load.
+     * Return the Middlewares to attach onto the application.
      *
      * @var string[]
      */
     protected $middlewares = [];
+
+    /**
+     * Return the Events Listeners to attach onto the application.
+     *
+     * @var string[]
+     */
+    protected $listeners = [];
 
     /**
      * The DependencyInjection class to use.

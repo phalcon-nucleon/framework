@@ -8,6 +8,7 @@ use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
 use Luxury\Middleware\AfterMiddleware;
 use Luxury\Middleware\BeforeMiddleware;
 use Luxury\Security\RateLimiter;
+use Phalcon\Events\Event;
 use Phalcon\Http\Response\StatusCode;
 
 /**
@@ -46,7 +47,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
      *
      * @return Throttle
      */
-    public static function create($max, $decay = 60)
+    public static function create(int $max, int $decay = 60)
     {
         $throttle = new static;
 
@@ -66,7 +67,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
      * @throws \Exception
      * @return bool
      */
-    public function before($event, $source, $data = null)
+    public function before(Event $event, $source, $data = null)
     {
         $signature = $this->resolveRequestSignature();
 
@@ -86,14 +87,14 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
     /**
      * Called after the execution of handler
      *
-     * @param \Phalcon\Events\Event|mixed $event
+     * @param \Phalcon\Events\Event $event
      * @param \Phalcon\Dispatcher|mixed   $source
      * @param mixed|null                  $data
      *
      * @throws \Exception
      * @return bool
      */
-    public function after($event, $source, $data = null)
+    public function after(Event $event, $source, $data = null)
     {
         $this->addHeader($this->resolveRequestSignature(), false);
     }
@@ -103,7 +104,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
      *
      * @return \Luxury\Security\RateLimiter
      */
-    private function getLimiter()
+    private function getLimiter() : RateLimiter
     {
         if ($this->limiter == null) {
             $this->limiter = new RateLimiter();
@@ -118,7 +119,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
      *
      * @return string
      */
-    private function resolveRequestSignature()
+    private function resolveRequestSignature() : string
     {
         $request = $this->getDI()->getShared(Services::REQUEST);
         $router  = $this->getDI()->getShared(Services::ROUTER);
@@ -140,7 +141,7 @@ class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMi
      * @param string $signature
      * @param bool   $tooManyAttempts Bind specific values when there are too many attempts
      */
-    private function addHeader($signature, $tooManyAttempts = false)
+    private function addHeader(string $signature, bool $tooManyAttempts = false)
     {
         $response = $this->getDI()->getShared(Services::RESPONSE);
 

@@ -8,6 +8,8 @@ $loader->registerDirs([__DIR__], true);
 
 $loader->register();
 
+$config = [];
+
 /*
 |--------------------------------------------------------------------------
 | Register The Composer Auto Loader

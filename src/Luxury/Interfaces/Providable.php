@@ -16,5 +16,5 @@ interface Providable
      *
      * @return void
      */
-    public function register(DiInterface $di);
+    public function registering(DiInterface $di);
 }

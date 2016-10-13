@@ -71,7 +71,7 @@ abstract class Facade
             $mock = static::createFreshMockInstance();
         }
 
-        return call_user_func_array([$mock, 'shouldReceive'], func_get_args());
+        return $mock->shouldReceive(...func_get_args());
     }
 
     /**
@@ -104,7 +104,7 @@ abstract class Facade
         if (empty($args)) {
             return $instance->$method();
         } else {
-            return call_user_func_array([$instance, $method], $args);
+            return $instance->$method(...$args);
         }
     }
 

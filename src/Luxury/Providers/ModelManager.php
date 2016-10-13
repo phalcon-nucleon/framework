@@ -11,13 +11,17 @@ use Phalcon\DiInterface;
  *
  * @package Luxury\Bootstrap\Services
  */
-class ModelManager implements Providable
+class ModelManager extends Provider
 {
+    protected $name = Services::MODELS_MANAGER;
+
+    protected $shared = true;
+
     /**
      * @param \Phalcon\DiInterface $di
      */
-    public function register(DiInterface $di)
+    protected function register(DiInterface $di)
     {
-        $di->setShared(Services::MODELS_MANAGER, \Phalcon\Mvc\Model\Manager::class);
+        return new \Phalcon\Mvc\Model\Manager;
     }
 }

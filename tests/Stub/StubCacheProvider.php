@@ -4,6 +4,7 @@ namespace Stub;
 
 use Luxury\Constants\Services;
 use Luxury\Interfaces\Providable;
+use Luxury\Providers\Provider;
 use Phalcon\DiInterface;
 
 /**
@@ -11,8 +12,12 @@ use Phalcon\DiInterface;
  *
  * @package     Stub
  */
-class StubCacheProvider implements Providable
+class StubCacheProvider extends Provider
 {
+
+    protected $name = Services::CACHE;
+
+    protected $shared = true;
 
     /**
      * @param \Phalcon\DiInterface $di
@@ -21,8 +26,8 @@ class StubCacheProvider implements Providable
      */
     public function register(DiInterface $di)
     {
-        $di->setShared(Services::CACHE, function () {
+       // $di->setShared(Services::CACHE, function () {
             return new StubCache();
-        });
+       // });
     }
 }

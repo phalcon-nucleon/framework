@@ -55,10 +55,10 @@ class MiddlewareTest extends TestCase
     public function dataFiltereControllerMiddleware()
     {
         return [
-            ['only', ['indexAction'], 0, 1, 1, 1],
-            ['except', ['indexAction'], 0, 0, 0, 0],
-            ['only', ['index'], 0, 0, 0, 0],
-            ['except', ['index'], 0, 1, 1, 1],
+            'only.indexAction'   => ['only', ['indexAction'], 0, 1, 1, 1],
+            'except.indexAction' => ['except', ['indexAction'], 0, 0, 0, 0],
+            'only.index'         => ['only', ['index'], 0, 0, 0, 0],
+            'except.index'       => ['except', ['index'], 0, 1, 1, 1],
         ];
     }
 

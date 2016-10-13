@@ -56,12 +56,14 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
      */
     protected function setUp()
     {
+        global $config;
+
         parent::setUp();
 
         $this->checkExtension('phalcon');
 
         // Creating the application
-        $this->lxApp = new \Luxury\Foundation\Application(new PhConfig);
+        $this->lxApp = new \Luxury\Foundation\Application(new PhConfig($config));
         $this->app   = $this->lxApp->make($this->kernel());
     }
 
@@ -75,8 +77,10 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
      */
     protected function globalApp()
     {
+        global $config;
+
         if (self::$appGlobal == null) {
-            self::$lxAppGlobal = new \Luxury\Foundation\Application(new PhConfig);
+            $this->lxApp = new \Luxury\Foundation\Application(new PhConfig($config));
             self::$appGlobal   = self::$lxAppGlobal->make($this->kernel());
         }
 

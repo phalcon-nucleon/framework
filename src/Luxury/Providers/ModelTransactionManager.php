@@ -6,23 +6,21 @@ use Luxury\Constants\Services;
 use Phalcon\DiInterface;
 
 /**
- * Class Security
+ * Class Model
  *
  * @package Luxury\Bootstrap\Services
  */
-class Security extends Provider
+class ModelTransactionManager extends Provider
 {
-    protected $name = Services::SECURITY;
+    protected $name = Services::TRANSACTION_MANAGER;
 
     protected $shared = true;
 
     /**
      * @param \Phalcon\DiInterface $di
-     *
-     * @return \Luxury\Security\SecurityPlugin|mixed
      */
     protected function register(DiInterface $di)
     {
-        return new \Luxury\Security\SecurityPlugin;
+        return new \Phalcon\Mvc\Model\Transaction\Manager;
     }
 }

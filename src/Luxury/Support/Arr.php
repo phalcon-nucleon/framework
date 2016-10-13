@@ -19,7 +19,7 @@ final class Arr
      *
      * @return bool
      */
-    public static function accessible($value)
+    public static function accessible($value) : bool
     {
         return is_array($value) || $value instanceof ArrayAccess;
     }
@@ -49,7 +49,7 @@ final class Arr
      *
      * @return array
      */
-    public static function collapse($array)
+    public static function collapse($array) : array
     {
         $results = [];
 
@@ -71,7 +71,7 @@ final class Arr
      *
      * @return array
      */
-    public static function divide($array)
+    public static function divide($array) : array
     {
         return [array_keys($array), array_values($array)];
     }
@@ -84,7 +84,7 @@ final class Arr
      *
      * @return array
      */
-    public static function dot($array, $prepend = '')
+    public static function dot($array, $prepend = '') : array
     {
         $results = [];
 
@@ -186,8 +186,6 @@ final class Arr
         $result = [];
 
         foreach ($array as $item) {
-            //$item = $item instanceof Collection ? $item->all() : $item;
-
             if (is_array($item)) {
                 if ($depth === 1) {
                     $result = array_merge($result, $item);
@@ -277,11 +275,7 @@ final class Arr
             return $default;
         }
 
-        if (isset($array[$key])) {
-            return $array[$key];
-        }
-
-        return $default;
+        return $array[$key] ?? $default;
     }
 
     /**
@@ -360,7 +354,7 @@ final class Arr
      *
      * @return bool
      */
-    public static function isAssoc(array $array)
+    public static function isAssoc(array $array) : bool
     {
         $keys = array_keys($array);
 
@@ -375,7 +369,7 @@ final class Arr
      *
      * @return array
      */
-    public static function only($array, $keys)
+    public static function only($array, $keys) : array
     {
         return array_intersect_key($array, array_flip((array)$keys));
     }
@@ -389,7 +383,7 @@ final class Arr
      *
      * @return array
      */
-    public static function pluck($array, $value, $key = null)
+    public static function pluck($array, $value, $key = null) : array
     {
         $results = [];
 
@@ -533,7 +527,7 @@ final class Arr
      *
      * @return array
      */
-    public static function where($array, callable $callback)
+    public static function where($array, callable $callback) : array
     {
         $filtered = [];
 
@@ -554,7 +548,7 @@ final class Arr
      *
      * @return array
      */
-    protected static function explodePluckParameters($value, $key)
+    protected static function explodePluckParameters($value, $key) : array
     {
         $value = is_string($value) ? explode('.', $value) : $value;
 

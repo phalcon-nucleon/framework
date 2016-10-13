@@ -27,7 +27,7 @@ class ClientTest extends TestCase
             Method::DELETE
         ];
 
-        $status = [
+        $statuses = [
             [200, '', true, true, false, false, false],
             [201, '', true, true, false, false, false],
             [301, '', false, false, true, false, false],
@@ -43,8 +43,8 @@ class ClientTest extends TestCase
         $call = [];
 
         foreach ($methods as $method) {
-            foreach ($status as $statu) {
-                $call[] = array_merge([$method], $statu);
+            foreach ($statuses as $status) {
+                $call[$method . '.' . $status[0]] = array_merge([$method], $status);
             }
         }
 

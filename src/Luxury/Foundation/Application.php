@@ -31,7 +31,7 @@ class Application
      *
      * @return \Phalcon\Application
      */
-    public function make($kernelClass)
+    public function make($kernelClass) : \Phalcon\Application
     {
         /** @var \Phalcon\Application|\Luxury\Interfaces\Kernelable $kernel */
         $kernel = new $kernelClass;

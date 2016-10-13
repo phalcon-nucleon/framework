@@ -4,6 +4,7 @@ namespace Stub;
 
 use Luxury\Constants\Services;
 use Luxury\Interfaces\Providable;
+use Luxury\Providers\Provider;
 use Phalcon\Cache\Backend\File;
 use Phalcon\Cache\Frontend\Data;
 use Phalcon\DiInterface;
@@ -13,8 +14,12 @@ use Phalcon\DiInterface;
  *
  * @package     Stub
  */
-class StubCacheFileProvider implements Providable
+class StubCacheFileProvider extends Provider
 {
+
+    protected $name = Services::CACHE;
+
+    protected $shared = true;
 
     /**
      * @param \Phalcon\DiInterface $di
@@ -23,8 +28,8 @@ class StubCacheFileProvider implements Providable
      */
     public function register(DiInterface $di)
     {
-        $di->setShared(Services::CACHE, function () {
+       // $di->setShared(Services::CACHE, function () {
             return new File(new Data(['lifetime' => 3600]), ['cacheDir' => __DIR__ . '/../.data/']);
-        });
+        //});
     }
 }

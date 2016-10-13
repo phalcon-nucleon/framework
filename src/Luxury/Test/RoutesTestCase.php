@@ -82,11 +82,11 @@ abstract class RoutesTestCase extends FuncTestCase
             'Action'     => $action
         ];
 
-        foreach ($controls as $key => $controller) {
+        foreach ($controls as $key => $value) {
             $key = 'get' . $key . 'Name';
 
-            if (!$expected || ($expected && !is_null($controller))) {
-                $this->assertEquals($controller, $router->$key());
+            if (!$expected || ($expected && !is_null($value))) {
+                $this->assertEquals($value, $router->$key());
             } elseif ($expected) {
                 $this->assertTrue(is_string($router->$key()));
             }

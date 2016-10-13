@@ -6,23 +6,23 @@ use Luxury\Constants\Services;
 use Phalcon\DiInterface;
 
 /**
- * Class Security
+ * Class FlashSession
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
-class Security extends Provider
+class FlashSession extends Provider
 {
-    protected $name = Services::SECURITY;
+    protected $name = Services::FLASH_SESSION;
 
     protected $shared = true;
 
     /**
      * @param \Phalcon\DiInterface $di
      *
-     * @return \Luxury\Security\SecurityPlugin|mixed
+     * @return mixed
      */
     protected function register(DiInterface $di)
     {
-        return new \Luxury\Security\SecurityPlugin;
+        return new \Phalcon\Flash\Session;
     }
 }

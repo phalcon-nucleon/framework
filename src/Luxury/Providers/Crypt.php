@@ -11,13 +11,19 @@ use Phalcon\DiInterface;
  *
  * @package Luxury\Bootstrap\Services
  */
-class Crypt implements Providable
+class Crypt extends Provider
 {
+    protected $name = Services::CRYPT;
+
+    protected $shared = true;
+
     /**
      * @param \Phalcon\DiInterface $di
+     *
+     * @return \Phalcon\Crypt
      */
-    public function register(DiInterface $di)
+    protected function register(DiInterface $di)
     {
-        $di->setShared(Services::CRYPT, \Phalcon\Crypt::class);
+        return new \Phalcon\Crypt;
     }
 }

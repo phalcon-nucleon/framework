@@ -11,13 +11,17 @@ use Phalcon\DiInterface;
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class ModelsMetaData implements Providable
+class ModelsMetaData extends Provider
 {
+    protected $name = Services::MODELS_METADATA;
+
+    protected $shared = true;
+
     /**
      * @param \Phalcon\DiInterface $di
      */
-    public function register(DiInterface $di)
+    protected function register(DiInterface $di)
     {
-        $di->setShared(Services::MODELS_METADATA, \Phalcon\Mvc\Model\Metadata\Memory::class);
+        return new \Phalcon\Mvc\Model\Metadata\Memory;
     }
 }

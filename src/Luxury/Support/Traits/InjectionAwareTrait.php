@@ -3,6 +3,7 @@
 namespace Luxury\Support\Traits;
 
 use Phalcon\Di;
+use Phalcon\DiInterface;
 
 /**
  * Class InjectionAwarable
@@ -21,7 +22,7 @@ trait InjectionAwareTrait
      *
      * @param mixed $dependencyInjector
      */
-    public function setDI(\Phalcon\DiInterface $dependencyInjector)
+    public function setDI(DiInterface $dependencyInjector)
     {
         $this->_dependencyInjector = $dependencyInjector;
     }
@@ -29,7 +30,7 @@ trait InjectionAwareTrait
     /**
      * Returns the internal dependency injector
      *
-     * @return \Phalcon\DiInterface
+     * @return DiInterface
      */
     public function getDI()
     {

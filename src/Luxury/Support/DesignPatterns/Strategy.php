@@ -71,7 +71,8 @@ abstract class Strategy
      *
      * @return mixed
      */
-    protected function make($use){
+    protected function make($use)
+    {
         return new $use;
     }
 }

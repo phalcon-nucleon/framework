@@ -12,7 +12,7 @@ use Phalcon\Di\InjectionAwareInterface;
  *
  * @package Luxury\Cache
  *
- * @method \Phalcon\Cache\BackendInterface uses(string $use = null)
+ * @method BackendInterface uses(string $use = null)
  */
 class CacheStrategy extends Strategy implements InjectionAwareInterface, BackendInterface
 {
@@ -20,6 +20,9 @@ class CacheStrategy extends Strategy implements InjectionAwareInterface, Backend
 
     protected $default = 'default';
 
+    /**
+     * CacheStrategy constructor.
+     */
     public function __construct()
     {
         $caches = $this->getDI()->getShared(Services::CONFIG)->cache;

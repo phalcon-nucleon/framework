@@ -13,6 +13,33 @@ use TestCase\TestCase;
  */
 class ThrottleTest extends TestCase
 {
+
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        global $config;
+
+        $config = array_merge($config, [
+            'cache' => [
+                'default' => [
+                    'adapter' => 'Data', // Files, Memcache, Libmemcached, Redis
+                    'driver'  => 'File', // Files, Memcache, Libmemcached, Redis
+                    'options' => ['cacheDir' => __DIR__ . '/../.data/'],
+                ]
+            ]
+        ]);
+    }
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        global $config;
+
+        $config = [];
+    }
+
     public function setUp()
     {
         parent::setUp();

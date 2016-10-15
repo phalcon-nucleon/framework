@@ -11,6 +11,9 @@ use Phalcon\Di;
  */
 trait InjectionAwareTrait
 {
+    /**
+     * @var Di
+     */
     protected $_dependencyInjector;
 
     /**

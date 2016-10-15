@@ -17,12 +17,20 @@ class Cache extends Provider
 
     protected $shared = true;
 
+    /**
+     * @param \Phalcon\DiInterface $di
+     */
     public function registering(DiInterface $di)
     {
+        // Registering CacheStrategy
+        $di->setShared($this->name, CacheStrategy::class);
+
+        // Registering All Cache Driver
         $caches = $di->getShared(Services::CONFIG)->cache;
 
         foreach ($caches as $name => $cache) {
-            $di->setShared($this->name . '.' . $name,
+            $di->setShared(
+                $this->name . '.' . $name,
                 function () use ($cache) {
                     // Acceptable Driver (Backend)
                     $driver = $cache->driver;
@@ -79,8 +87,6 @@ class Cache extends Provider
                 }
             );
         }
-
-        $di->setShared($this->name, CacheStrategy::class);
     }
 
     /**
@@ -90,6 +96,5 @@ class Cache extends Provider
      */
     protected function register(DiInterface $di)
     {
-        return;
     }
 }

@@ -4,6 +4,8 @@ namespace Luxury\Providers;
 
 use Luxury\Cache\CacheStrategy;
 use Luxury\Constants\Services;
+use Phalcon\Cache\BackendInterface;
+use Phalcon\Cache\FrontendInterface;
 use Phalcon\DiInterface;
 
 /**
@@ -49,12 +51,17 @@ class Cache extends Provider
                         case 'Redis':
                         case 'Wincache':
                         case 'Xcache':
+                            $driverClass = '\Phalcon\Cache\Backend\\' . $driver;
                             break;
                         default:
-                            $msg = empty($driver)
-                                ? 'Cache driver not set.'
-                                : "Cache driver $driver not implemented.";
-                            throw new \RuntimeException($msg);
+                            $driverClass = $driver;
+                    }
+
+                    if (!class_exists($driverClass)) {
+                        $msg = empty($driver)
+                            ? 'Cache driver not set.'
+                            : "Cache driver $driver not implemented.";
+                        throw new \RuntimeException($msg);
                     }
 
                     // Acceptable Adapter (Frontend)
@@ -70,20 +77,34 @@ class Cache extends Provider
                         case 'Output':
                         case 'Igbinary':
                         case 'None':
+                            $adapterClass = '\Phalcon\Cache\Frontend\\' . $adapter;
                             break;
                         case null:
-                            $adapter = 'None';
+                            $adapterClass = '\Phalcon\Cache\Frontend\None';
                             break;
                         default:
-                            throw new \RuntimeException("Cache driver $adapter not implemented.");
+                            $adapterClass = $adapter;
                     }
 
-                    $adapterClass = '\Phalcon\Cache\Frontend\\' . $adapter;
-                    $driverClass  = '\Phalcon\Cache\Backend\\' . $driver;
+                    if (!class_exists($adapterClass)) {
+                        throw new \RuntimeException("Cache adapter $adapter not implemented.");
+                    }
 
                     $options = isset($cache->options) ? (array)$cache->options : [];
 
-                    return new $driverClass(new $adapterClass($options), $options);
+                    $adapterInstance = new $adapterClass($options);
+
+                    if (!($adapterInstance instanceof FrontendInterface)) {
+                        throw new \RuntimeException("Cache adapter $adapter not implemente FrontendInterface.");
+                    }
+
+                    $driverInstance = new $driverClass($adapterInstance, $options);
+
+                    if (!($driverInstance instanceof BackendInterface)) {
+                        throw new \RuntimeException("Cache driver $adapter not implemente BackendInterface.");
+                    }
+
+                    return $driverInstance;
                 }
             );
         }

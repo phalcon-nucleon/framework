@@ -5,6 +5,7 @@ use Luxury\Constants\Services;
 use Phalcon\Http\Response;
 use Phalcon\Http\Response\StatusCode;
 use Test\TestCase\TestCase;
+use Test\TestCase\UseCaches;
 
 /**
  * Trait ThrottleTest
@@ -13,74 +14,7 @@ use Test\TestCase\TestCase;
  */
 class ThrottleTest extends TestCase
 {
-
-    public static function setUpBeforeClass()
-    {
-        parent::setUpBeforeClass();
-
-        global $config;
-
-        $config = array_merge($config, [
-            'cache' => [
-                'default' => [
-                    'adapter' => 'Data', // Files, Memcache, Libmemcached, Redis
-                    'driver'  => 'File', // Files, Memcache, Libmemcached, Redis
-                    'options' => ['cacheDir' => __DIR__ . '/../.data/'],
-                ]
-            ]
-        ]);
-    }
-
-    public static function tearDownAfterClass()
-    {
-        parent::tearDownAfterClass();
-
-        global $config;
-
-        $config = [];
-    }
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $dir = __DIR__ . '/../.data';
-        if (!is_dir($dir)) {
-            if (!mkdir($dir)) {
-                throw new \RuntimeException("Can't made .data directory.");
-            }
-        }
-        // Clear File Cache
-        $files = glob($dir . '/*'); // get all file names
-        foreach ($files as $file) { // iterate files
-            if (is_file($file)) {
-                clearstatcache(null, $file);
-                clearstatcache(false, $file);
-                clearstatcache(true, $file);
-                unlink($file); // delete file
-            }
-        }
-        clearstatcache();
-        clearstatcache(false);
-        clearstatcache(true);
-    }
-
-    public function tearDown()
-    {
-        parent::tearDown();
-
-        $dir = __DIR__ . '/../.data/';
-
-        foreach (scandir($dir) as $item) {
-            if ($item == '.' || $item == '..') {
-                continue;
-            }
-
-            unlink($dir . $item);
-        }
-
-        rmdir($dir);
-    }
+    use UseCaches;
 
     public function testThrottle()
     {

@@ -28,7 +28,7 @@ class CacheStrategy extends Strategy implements InjectionAwareInterface, Backend
         $caches = $this->getDI()->getShared(Services::CONFIG)->cache;
 
         foreach ($caches as $name => $cache) {
-            $this->supported[] = Services::CACHE . '.' . $name;
+            $this->supported[] = $name;
         }
     }
 

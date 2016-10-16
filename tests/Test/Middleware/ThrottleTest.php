@@ -1,10 +1,10 @@
 <?php
-namespace Middleware;
+namespace Test\Middleware;
 
 use Luxury\Constants\Services;
 use Phalcon\Http\Response;
 use Phalcon\Http\Response\StatusCode;
-use TestCase\TestCase;
+use Test\TestCase\TestCase;
 
 /**
  * Trait ThrottleTest
@@ -87,7 +87,7 @@ class ThrottleTest extends TestCase
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [
-            'namespace'  => 'Stub',
+            'namespace'  => 'Test\Stub',
             'controller' => 'Stubthrottled',
             'action'     => 'index'
         ]);
@@ -130,13 +130,13 @@ class ThrottleTest extends TestCase
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [
-            'namespace'  => 'Stub',
+            'namespace'  => 'Test\Stub',
             'controller' => 'Stubthrottled',
             'action'     => 'index'
         ]);
 
         $this->app->router->addGet('/throttled', [
-            'namespace'  => 'Stub',
+            'namespace'  => 'Test\Stub',
             'controller' => 'Stubthrottled',
             'action'     => 'throttled'
         ]);

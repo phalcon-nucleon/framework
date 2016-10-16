@@ -43,8 +43,6 @@ class CacheStrategyTest extends TestCase
 
             $this->assertTrue($instance->hasView($func));
         }
-
-        Cache::uses('default');
     }
 
     public function testUses()
@@ -93,7 +91,9 @@ class CacheStrategyTest extends TestCase
             $this->assertEquals($datas[$k], Cache::get($key));
         }
 
-        $this->assertEquals($keys, Cache::queryKeys('test'));
+        $cacheKeys = Cache::queryKeys('test');
+        sort($cacheKeys);
+        $this->assertEquals($keys, $cacheKeys);
 
         for ($i = 0; $i < 5; $i++) {
             Cache::delete('test' . $i);

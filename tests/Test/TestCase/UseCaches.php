@@ -2,6 +2,7 @@
 
 namespace Test\TestCase;
 
+use Luxury\Support\Facades\Cache;
 use Test\Cache\StubBackend;
 
 /**
@@ -83,6 +84,8 @@ trait UseCaches
 
     public function tearDown()
     {
+        Cache::uses('default');
+
         parent::tearDown();
 
         $dir = static::$cache_dir;

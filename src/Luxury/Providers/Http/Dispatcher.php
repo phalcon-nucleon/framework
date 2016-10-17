@@ -4,7 +4,7 @@ namespace Luxury\Providers\Http;
 
 use Luxury\Constants\Services;
 use Luxury\Providers\Provider;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Dispatcher
@@ -18,13 +18,12 @@ class Dispatcher extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Mvc\Dispatcher
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
-        /* @var \Phalcon\Di $this */
+        $di = $this->getDI();
+
         $dispatcher = new \Phalcon\Mvc\Dispatcher();
 
         // Create an events manager

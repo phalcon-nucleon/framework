@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Escaper
@@ -17,11 +17,9 @@ class Escaper extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Escaper
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new \Phalcon\Escaper;
     }

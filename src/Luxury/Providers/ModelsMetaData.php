@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 use Phalcon\Mvc\Model\Metadata\Memory;
 
 /**
@@ -18,11 +18,9 @@ class ModelsMetaData extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return Memory
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new Memory;
     }

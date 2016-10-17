@@ -4,7 +4,7 @@ namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Security\SecurityPlugin;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Security
@@ -18,11 +18,9 @@ class Security extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Luxury\Security\SecurityPlugin
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new SecurityPlugin;
     }

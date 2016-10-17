@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Filter
@@ -17,11 +17,9 @@ class Filter extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return mixed|\Phalcon\Filter
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new \Phalcon\Filter;
     }

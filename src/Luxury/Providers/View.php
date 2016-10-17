@@ -18,37 +18,47 @@ class View extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Mvc\View
      */
-    protected function register(DiInterface $di)
+    public function registering()
     {
-        // TODO Move it to new providers or override registering
+        $di = $this->getDI();
+
         $di->setShared(Services::TAG, \Phalcon\Tag::class);
         $di->setShared(Services::ASSETS, \Phalcon\Assets\Manager::class);
-        // End todo
 
-        $view = new \Phalcon\Mvc\View();
+        $di->setShared($this->name, function () {
+            /** @var DiInterface $this */
 
-        $view->setViewsDir($di->getShared(Services::CONFIG)->view->viewsDir);
+            $view = new \Phalcon\Mvc\View();
 
-        $view->registerEngines([
-            '.volt'  => function ($view, $di) {
-                /* @var \Phalcon\Di $di */
-                $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
+            $view->setViewsDir($this->getShared(Services::CONFIG)->view->viewsDir);
 
-                $volt->setOptions([
-                    'compiledPath'      => $di->getShared(Services::CONFIG)->view->compiledPath,
-                    'compiledSeparator' => '_'
-                ]);
-                $volt->getCompiler()->addExtension(new PhpFunctionExtension());
+            $view->registerEngines([
+                '.volt'  => function ($view, $di) {
+                    /* @var \Phalcon\Di $di */
+                    $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
 
-                return $volt;
-            },
-            '.phtml' => 'Phalcon\Mvc\View\Engine\Php'
-        ]);
+                    $volt->setOptions([
+                        'compiledPath'      => $di->getShared(Services::CONFIG)->view->compiledPath,
+                        'compiledSeparator' => '_'
+                    ]);
+                    $volt->getCompiler()->addExtension(new PhpFunctionExtension());
 
-        return $view;
+                    return $volt;
+                },
+                '.phtml' => 'Phalcon\Mvc\View\Engine\Php'
+            ]);
+
+            return $view;
+        });
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function register()
+    {
+        return;
     }
 }

@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Cookies
@@ -18,11 +18,9 @@ class Cookies extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Http\Response\Cookies
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new \Phalcon\Http\Response\Cookies;
     }

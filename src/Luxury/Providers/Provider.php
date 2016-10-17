@@ -5,7 +5,6 @@ namespace Luxury\Providers;
 use Luxury\Interfaces\Providable;
 use Luxury\Support\Traits\InjectionAwareTrait;
 use Phalcon\Di\InjectionAwareInterface;
-use Phalcon\DiInterface;
 
 /**
  * Class Provider
@@ -37,21 +36,19 @@ abstract class Provider implements Providable, InjectionAwareInterface
     }
 
     /**
-     * @param \Phalcon\DiInterface $di
+     *
      */
-    public function registering(DiInterface $di)
+    public function registering()
     {
         $self = $this;
 
-        $this->getDI()->set($this->name, function () use ($self, $di) {
-            return $self->register($di);
+        $this->getDI()->set($this->name, function () use ($self) {
+            return $self->register();
         }, $this->shared);
     }
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return mixed
      */
-    abstract protected function register(DiInterface $di);
+    abstract protected function register();
 }

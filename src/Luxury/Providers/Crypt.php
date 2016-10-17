@@ -3,7 +3,6 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
 
 /**
  * Class Crypt
@@ -17,11 +16,9 @@ class Crypt extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Crypt
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new \Phalcon\Crypt;
     }

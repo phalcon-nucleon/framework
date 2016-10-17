@@ -9,7 +9,6 @@
 namespace Test\Providers;
 
 use Luxury\Providers\Provider;
-use Phalcon\DiInterface;
 use Test\TestCase\TestCase;
 
 class ProviderTest extends TestCase
@@ -24,11 +23,9 @@ class ProviderTest extends TestCase
         {
 
             /**
-             * @param \Phalcon\DiInterface $di
-             *
              * @return mixed
              */
-            protected function register(DiInterface $di)
+            protected function register()
             {
                 return;
             }
@@ -42,11 +39,9 @@ class ProviderTest extends TestCase
             protected $name = 'test';
 
             /**
-             * @param \Phalcon\DiInterface $di
-             *
              * @return mixed
              */
-            protected function register(DiInterface $di)
+            protected function register()
             {
                 return 'test';
             }
@@ -64,24 +59,28 @@ class ProviderTest extends TestCase
         {
             protected $name = 'test';
 
-            public function registering(DiInterface $di)
+            public function registering()
             {
-                $di->set('test', function(){return 'test';});
-                $di->set('test.1', function(){return 'test.1';});
+                $di = $this->getDI();
+
+                $di->set('test', function () {
+                    return 'test';
+                });
+                $di->set('test.1', function () {
+                    return 'test.1';
+                });
             }
 
             /**
-             * @param \Phalcon\DiInterface $di
-             *
              * @return mixed
              */
-            protected function register(DiInterface $di)
+            protected function register()
             {
                 return;
             }
         };
 
-        $provider->registering($this->getDI());
+        $provider->registering();
 
         $this->assertTrue($this->getDI()->has('test'));
         $this->assertTrue($this->getDI()->has('test.1'));

@@ -4,7 +4,6 @@ namespace Luxury\Providers;
 
 use Luxury\Auth\AuthManager;
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
 
 /**
  * Class Auth
@@ -19,11 +18,9 @@ class Auth extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Luxury\Auth\AuthManager
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new AuthManager();
     }

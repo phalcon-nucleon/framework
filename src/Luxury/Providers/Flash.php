@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 use Phalcon\Flash\Direct as FlashDirect;
 
 /**
@@ -18,11 +18,9 @@ class Flash extends Provider
     protected $shared = false;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Flash\Direct
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new FlashDirect([
             'error'   => 'alert alert-danger',

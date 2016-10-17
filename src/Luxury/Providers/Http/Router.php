@@ -4,7 +4,7 @@ namespace Luxury\Providers\Http;
 
 use Luxury\Constants\Services;
 use Luxury\Providers\Provider;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Router
@@ -18,11 +18,9 @@ class Router extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Mvc\Router
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         $router = new \Phalcon\Mvc\Router(false);
 

@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 use Phalcon\Mvc\Model\Transaction\Manager;
 
 /**
@@ -18,11 +18,9 @@ class ModelTransactionManager extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Mvc\Model\Transaction\Manager
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new Manager;
     }

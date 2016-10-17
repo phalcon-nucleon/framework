@@ -4,7 +4,6 @@ namespace Luxury\Providers\Cli;
 
 use Luxury\Constants\Services;
 use Luxury\Providers\Provider;
-use Phalcon\DiInterface;
 use Phalcon\Security;
 
 /**
@@ -19,17 +18,14 @@ class Dispatcher extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Cli\Dispatcher
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
-        /* @var \Phalcon\Di $this */
         $dispatcher = new \Phalcon\Cli\Dispatcher();
 
         // Create an events manager
-        $eventsManager = $di->getShared(Services::EVENTS_MANAGER);
+        $eventsManager = $this->getDI()->getShared(Services::EVENTS_MANAGER);
 
         // Assign the events manager to the dispatcher
         $dispatcher->setEventsManager($eventsManager);

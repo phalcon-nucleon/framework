@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 use Phalcon\Flash\Session;
 
 /**
@@ -18,11 +18,9 @@ class FlashSession extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Flash\Session
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new Session;
     }

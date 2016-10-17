@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Database
@@ -19,13 +19,11 @@ class Database extends Provider
     /**
      * Database connection is created based in the parameters defined in the configuration file
      *
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Db\Adapter\Pdo
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
-        $dbConfig = $di->getShared(Services::CONFIG)->database->toArray();
+        $dbConfig = $this->getDI()->getShared(Services::CONFIG)->database->toArray();
 
         $adapter = $dbConfig['adapter'];
         unset($dbConfig['adapter']);

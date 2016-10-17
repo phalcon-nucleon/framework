@@ -3,7 +3,7 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Url
@@ -19,15 +19,13 @@ class Url extends Provider
     /**
      * The URL component is used to generate all kind of urls in the application
      *
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Mvc\Url
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         $url = new \Phalcon\Mvc\Url();
 
-        $url->setBaseUri($di->getShared(Services::CONFIG)->application->baseUri);
+        $url->setBaseUri($this->getDI()->getShared(Services::CONFIG)->application->baseUri);
 
         return $url;
     }

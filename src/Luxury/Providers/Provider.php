@@ -3,15 +3,18 @@
 namespace Luxury\Providers;
 
 use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+use Luxury\Support\Traits\InjectionAwareTrait;
+use Phalcon\Di\InjectionAwareInterface;
 
 /**
  * Class Provider
  *
  * @package     Luxury\Providers
  */
-abstract class Provider implements Providable
+abstract class Provider implements Providable, InjectionAwareInterface
 {
+    use InjectionAwareTrait;
+
     /**
      * @var string
      */
@@ -33,21 +36,19 @@ abstract class Provider implements Providable
     }
 
     /**
-     * @param \Phalcon\DiInterface $di
+     *
      */
-    public function registering(DiInterface $di)
+    public function registering()
     {
         $self = $this;
 
-        $di->set($this->name, function () use ($self, $di) {
-            return $self->register($di);
+        $this->getDI()->set($this->name, function () use ($self) {
+            return $self->register();
         }, $this->shared);
     }
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return mixed
      */
-    abstract protected function register(DiInterface $di);
+    abstract protected function register();
 }

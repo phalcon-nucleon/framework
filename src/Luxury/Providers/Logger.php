@@ -4,7 +4,6 @@ namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Support\Arr;
-use Phalcon\DiInterface;
 
 /**
  * Class Logger
@@ -20,14 +19,12 @@ class Logger extends Provider
     /**
      * Register the logger
      *
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Phalcon\Logger\AdapterInterface
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         /** @var \Phalcon\Config|\stdClass $config */
-        $config = $di->getShared(Services::CONFIG);
+        $config = $this->getDI()->getShared(Services::CONFIG);
 
         switch (ucfirst($adapter = Arr::fetch($config->log, 'adapter'))) {
             case null:

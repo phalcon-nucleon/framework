@@ -6,7 +6,6 @@ use Luxury\Cache\CacheStrategy;
 use Luxury\Constants\Services;
 use Phalcon\Cache\BackendInterface;
 use Phalcon\Cache\FrontendInterface;
-use Phalcon\DiInterface;
 
 /**
  * Class Cache
@@ -20,10 +19,12 @@ class Cache extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
+     *
      */
-    public function registering(DiInterface $di)
+    public function registering()
     {
+        $di = $this->getDI();
+
         // Registering CacheStrategy
         $di->setShared($this->name, CacheStrategy::class);
 
@@ -111,11 +112,9 @@ class Cache extends Provider
     }
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return void
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
     }
 }

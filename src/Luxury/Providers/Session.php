@@ -4,7 +4,7 @@ namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Exceptions\SessionAdapterNotFound;
-use Phalcon\DiInterface;
+use Phalcon\Session\Bag;
 
 /**
  * Class Session
@@ -20,26 +20,37 @@ class Session extends Provider
     /**
      * Start the session the first time some component request the session service
      *
-     * @param \Phalcon\DiInterface $di
-     *
      * @throws \Luxury\Exceptions\SessionAdapterNotFound
      *
      * @return mixed|\Phalcon\Session\Adapter|\Phalcon\Session\AdapterInterface
      */
-    protected function register(DiInterface $di)
+    public function registering()
     {
-        $di->set(Services::SESSION_BAG, \Phalcon\Session\Bag::class);
+        $di = $this->getDI();
 
-        /* @var \Phalcon\Session\Adapter|\Phalcon\Session\AdapterInterface $session */
-        $class = 'Phalcon\Session\Adapter\\' . $di->getShared(Services::CONFIG)->session->adapter;
-        try {
-            $session = new $class();
-        } catch (\Exception $e) {
-            throw new SessionAdapterNotFound($e);
-        }
+        $di->set(Services::SESSION_BAG, Bag::class);
+        $di->setShared($this->name, function () {
+            /** @var \Phalcon\DiInterface $this */
+            /** @var \Phalcon\Session\Adapter|\Phalcon\Session\AdapterInterface $session */
+            $class =
+                'Phalcon\Session\Adapter\\' . $this->getShared(Services::CONFIG)->session->adapter;
+            try {
+                $session = new $class();
+            } catch (\Exception $e) {
+                throw new SessionAdapterNotFound($e);
+            }
 
-        $session->start();
+            $session->start();
 
-        return $session;
+            return $session;
+        });
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function register()
+    {
+        return;
     }
 }

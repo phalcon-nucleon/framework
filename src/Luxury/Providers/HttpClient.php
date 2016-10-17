@@ -4,7 +4,7 @@ namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Http\Client;
-use Phalcon\DiInterface;
+
 
 /**
  * Class HttpClient
@@ -18,11 +18,9 @@ class HttpClient extends Provider
     protected $shared = true;
 
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return \Luxury\Http\Client
      */
-    protected function register(DiInterface $di)
+    protected function register()
     {
         return new Client;
     }

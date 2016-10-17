@@ -3,13 +3,14 @@ namespace Test\Design;
 
 use Luxury\Support\DesignPatterns\Strategy;
 use Phalcon\Registry;
+use Test\TestCase\TestCase;
 
 /**
  * Trait StrategyTest
  *
  * @package Test\Design
  */
-class StrategyTest extends \PHPUnit_Framework_TestCase
+class StrategyTest extends TestCase
 {
 
     public function testWrong()

@@ -10,7 +10,7 @@ trait TestListenize
     /**
      * @var array
      */
-    protected $views;
+    public $views;
 
     /**
      * @param string     $seek

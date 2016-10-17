@@ -33,4 +33,22 @@ class StubController extends Controller
     public function indexAction()
     {
     }
+
+    public function returnAction()
+    {
+        return __METHOD__;
+    }
+
+    public function redirectAction()
+    {
+        $this->response->redirect('/');
+    }
+
+    public function forwardedAction()
+    {
+        $this->dispatcher->forward([
+            "controller" => "Stub",
+            "action"     => "index",
+        ]);
+    }
 }

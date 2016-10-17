@@ -4,13 +4,14 @@ namespace Test\Support;
 use Luxury\Support\Facades\Facade;
 use Mockery as m;
 use Phalcon\Di\FactoryDefault;
+use Test\TestCase\TestCase;
 
 /**
  * Class FacadeTest
  *
  * @package Support
  */
-class FacadeTest extends \PHPUnit_Framework_TestCase
+class FacadeTest extends TestCase
 {
     public function setUp()
     {

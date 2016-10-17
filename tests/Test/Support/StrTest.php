@@ -2,13 +2,14 @@
 namespace Test\Support;
 
 use Luxury\Support\Str;
+use Test\TestCase\TestCase;
 
 /**
  * Class StrTest
  *
  * @package Support
  */
-class StrTest extends \PHPUnit_Framework_TestCase
+class StrTest extends TestCase
 {
 
     /**

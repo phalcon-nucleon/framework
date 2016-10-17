@@ -2,13 +2,14 @@
 namespace Test\Support;
 
 use Luxury\Support\Obj;
+use Test\TestCase\TestCase;
 
 /**
  * Class ObjTest
  *
  * @package Support
  */
-class ObjTest extends \PHPUnit_Framework_TestCase
+class ObjTest extends TestCase
 {
 
     public function testValue()

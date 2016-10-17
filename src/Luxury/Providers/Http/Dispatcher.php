@@ -5,7 +5,6 @@ namespace Luxury\Providers\Http;
 use Luxury\Constants\Services;
 use Luxury\Providers\Provider;
 
-
 /**
  * Class Dispatcher
  *

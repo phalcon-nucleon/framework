@@ -40,6 +40,7 @@ class Application
 
         $kernel->registerServices();
         $kernel->registerMiddlewares();
+        $kernel->registerListeners();
         $kernel->registerRoutes();
 
         return $kernel;

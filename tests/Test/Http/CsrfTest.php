@@ -16,7 +16,7 @@ class CsrfTest extends TestCase
 
         StubController::$middlewares[] = [
             'middleware' => new Csrf(),
-            'params' => [
+            'params'     => [
                 'only' => ['indexAction']
             ]
         ];
@@ -51,7 +51,7 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/', 'GET', [$security->getTokenKey() => $security->getToken()]);
 
-        $this->assertTrue(TRUE);
+        $this->assertTrue(true);
     }
 
     public function testCsrfOk_Post()
@@ -60,6 +60,30 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/', 'POST', [$security->getTokenKey() => $security->getToken()]);
 
-        $this->assertTrue(TRUE);
+        $this->assertTrue(true);
+    }
+
+    public function testCsrfOk_Ajax()
+    {
+        $security = $this->getDI()->getShared(Services::SECURITY);
+
+        $_SERVER["HTTP_X_REQUESTED_WITH"]              = "XMLHttpRequest";
+        $_SERVER['HTTP_X_CSRF_' . strtoupper($security->getTokenKey())] = $security->getToken();
+
+        $this->dispatch('/', 'POST', []);
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @expectedException \Luxury\Exceptions\TokenMismatchException
+     */
+    public function testCsrfFail_Ajax()
+    {
+        $_SERVER["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest";
+
+        $this->dispatch('/', 'POST', []);
+
+        $this->assertTrue(true);
     }
 }

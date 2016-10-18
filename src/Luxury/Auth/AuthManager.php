@@ -93,7 +93,7 @@ class AuthManager extends Injector
         $password = User::getAuthPasswordName();
 
         $user = User::findFirst([
-            'conditions' => "$identifier = ?identifier AND $password = ?password",
+            'conditions' => "$identifier = :identifier: AND $password = :password:",
             'bind' => [
                 'identifier' =>  Arr::fetch($credentials, $identifier),
                 'password' => $this->security->hash(Arr::fetch($credentials, $password)),
@@ -156,6 +156,8 @@ class AuthManager extends Injector
         $this->regenerateSessionId();
 
         Session::set($this->sessionKey(), $user->id);
+
+        $this->user = $user;
 
         return true;
     }

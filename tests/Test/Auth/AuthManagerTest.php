@@ -131,7 +131,6 @@ class AuthManagerTest extends TestCase
 
         Session::shouldReceive('regenerateId')->once()->andReturn(1);
         Session::shouldReceive('set')->once()->with('unittest', 1);
-        Session::shouldReceive('get')->once()->with('unittest')->andReturn(1);
 
         $this->assertInstanceOf(User::class, Auth::attempt([
             'email' => '', 'password' => ''

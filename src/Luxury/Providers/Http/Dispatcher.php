@@ -21,21 +21,10 @@ class Dispatcher extends Provider
      */
     protected function register()
     {
-        $di = $this->getDI();
-
         $dispatcher = new \Phalcon\Mvc\Dispatcher();
 
-        // Create an events manager
-        $eventsManager = $di->getShared(Services::EVENTS_MANAGER);
-
-        // Listen for events produced in the dispatcher using the Security plugin
-        $eventsManager->attach(
-            'dispatch:beforeExecuteRoute',
-            $di->getShared(Services::SECURITY)
-        );
-
         // Assign the events manager to the dispatcher
-        $dispatcher->setEventsManager($eventsManager);
+        $dispatcher->setEventsManager($this->getDI()->getShared(Services::EVENTS_MANAGER));
 
         return $dispatcher;
     }

@@ -24,11 +24,8 @@ class Dispatcher extends Provider
     {
         $dispatcher = new \Phalcon\Cli\Dispatcher();
 
-        // Create an events manager
-        $eventsManager = $this->getDI()->getShared(Services::EVENTS_MANAGER);
-
         // Assign the events manager to the dispatcher
-        $dispatcher->setEventsManager($eventsManager);
+        $dispatcher->setEventsManager($this->getDI()->getShared(Services::EVENTS_MANAGER));
 
         $dispatcher->setDefaultNamespace('\App\Cli\Tasks');
 

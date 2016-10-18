@@ -5,6 +5,7 @@ namespace Test\Stub;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Application\Http as HttpApplication;
 use Luxury\Providers;
+use Phalcon\Mvc\Router;
 
 /**
  * Class TestKernel
@@ -65,9 +66,15 @@ class StubKernel extends HttpApplication
      */
     public function registerRoutes()
     {
+        /** @var Router $router */
         $router = $this->getDI()->getShared(Services::ROUTER);
 
         $router->addGet('/', [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'index'
+        ]);
+        $router->addPost('/', [
             'namespace'  => 'Test\Stub',
             'controller' => 'Stub',
             'action'     => 'index'

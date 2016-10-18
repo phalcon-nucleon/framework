@@ -214,12 +214,38 @@ abstract class FuncTestCase extends TestCase
     /**
      * Dispatches a given url and sets the response object accordingly
      *
-     * @param  string $url The request url
-     *
-     * @return void
+     * @param string $url    request url
+     * @param string $method request method
+     * @param array  $params request params
      */
-    protected function dispatch($url)
+    protected function dispatch($url, $method = 'GET', $params = [])
     {
+        $_SERVER['REQUEST_METHOD'] = $method;
+
+        foreach ($params as $key => $param) {
+            switch ($method){
+                case 'GET':
+                case 'PATCH':
+                    $_GET[$key] = $param;
+                    break;
+                case 'POST':
+                case 'PUT':
+                    $_POST[$key] = $param;
+            }
+        }
+
         $this->getDI()->setShared(Services::RESPONSE, $this->app->handle($url));
+
+        foreach ($params as $key => $param) {
+            switch ($method){
+                case 'GET':
+                case 'PATCH':
+                    unset($_GET[$key]);
+                    break;
+                case 'POST':
+                case 'PUT':
+                    unset($_POST[$key]);
+            }
+        }
     }
 }

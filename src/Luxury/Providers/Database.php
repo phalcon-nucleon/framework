@@ -3,32 +3,33 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Database
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class Database implements Providable
+class Database extends Provider
 {
+    protected $name = Services::DB;
+
+    protected $shared = true;
+
     /**
      * Database connection is created based in the parameters defined in the configuration file
      *
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Db\Adapter\Pdo
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::DB, function () {
-            /* @var \Phalcon\Di $this */
-            $dbConfig = $this->getShared(Services::CONFIG)->database->toArray();
-            $adapter  = $dbConfig['adapter'];
-            unset($dbConfig['adapter']);
+        $dbConfig = $this->getDI()->getShared(Services::CONFIG)->database->toArray();
 
-            $class = 'Phalcon\Db\Adapter\Pdo\\' . $adapter;
+        $adapter = $dbConfig['adapter'];
+        unset($dbConfig['adapter']);
 
-            return new $class($dbConfig);
-        });
+        $class = 'Phalcon\Db\Adapter\Pdo\\' . $adapter;
+
+        return new $class($dbConfig);
     }
 }

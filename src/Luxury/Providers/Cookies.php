@@ -3,21 +3,25 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Cookies
  *
  * @package Luxury\Bootstrap\Services
  */
-class Cookies implements Providable
+class Cookies extends Provider
 {
+
+    protected $name = Services::COOKIES;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Http\Response\Cookies
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::COOKIES, \Phalcon\Http\Response\Cookies::class);
+        return new \Phalcon\Http\Response\Cookies;
     }
 }

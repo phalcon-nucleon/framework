@@ -25,10 +25,10 @@ trait Kernelize
     public function registerServices()
     {
         foreach ($this->providers as $provider) {
-            /* @var \Luxury\Interfaces\Providable $prv */
+            /* @var \Luxury\Providers\Provider $prv */
             $prv = new $provider();
 
-            $prv->register($this->getDI());
+            $prv->registering();
         }
     }
 

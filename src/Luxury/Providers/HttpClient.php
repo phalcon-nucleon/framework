@@ -3,21 +3,25 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+use Luxury\Http\Client;
+
 
 /**
  * Class HttpClient
  *
  * @package     Luxury\Providers
  */
-class HttpClient implements Providable
+class HttpClient extends Provider
 {
+    protected $name = Services::HTTP_CLIENT;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Luxury\Http\Client
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::HTTP_CLIENT, \Luxury\Http\Client::class);
+        return new Client;
     }
 }

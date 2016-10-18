@@ -8,7 +8,7 @@
 
 namespace Luxury\Test;
 
-use Luxury\Constants\Services;
+use Luxury\Test\Helpers\RoutesTrait;
 
 /**
  * Class RoutesTestCase
@@ -17,7 +17,9 @@ use Luxury\Constants\Services;
  */
 abstract class RoutesTestCase extends FuncTestCase
 {
-    private static $testedRoutes = [];
+    use RoutesTrait;
+    
+    protected static $testedRoutes = [];
 
     /**
      * @return array
@@ -53,64 +55,7 @@ abstract class RoutesTestCase extends FuncTestCase
         $action = null,
         array $params = null
     ) {
-        // GIVEN
-        $di = $this->getDI();
-        /** @var \Phalcon\Mvc\Router $router */
-        $router = $di->getShared(Services::ROUTER);
-
-        $base = $di->getShared(Services::CONFIG)->application->baseUri;
-
-        $route = preg_replace('#^/(.+)#', '$1', $route);
-
-        $uri = $base . $route;
-
-        // WHEN
-        $_SERVER['REQUEST_METHOD'] = $method;
-        $router->handle($uri);
-
-        // THEN
-        $this->assertEquals($expected, $router->wasMatched());
-
-        if ($expected && $router->wasMatched()) {
-            $matchedRoute = $router->getMatchedRoute();
-
-            self::$testedRoutes[$matchedRoute->getPattern()] = $matchedRoute;
-        }
-
-        $controls = [
-            'Controller' => $controller,
-            'Action'     => $action
-        ];
-
-        foreach ($controls as $key => $controller) {
-            $key = 'get' . $key . 'Name';
-
-            if (!$expected || ($expected && !is_null($controller))) {
-                $this->assertEquals($controller, $router->$key());
-            } elseif ($expected) {
-                $this->assertTrue(is_string($router->$key()));
-            }
-        }
-
-        $routeParams = $router->getParams();
-        if ($expected && $router->wasMatched() && $params) {
-            foreach ($params as $key => $value) {
-                $this->assertArrayHasKey($key, $routeParams);
-                $this->assertEquals($value, $routeParams[$key]);
-            }
-            foreach ($routeParams as $key => $value) {
-                $this->assertArrayHasKey($key, $params);
-                $this->assertEquals($value, $params[$key]);
-            }
-        }
-
-        $dispatcher = $this->app->dispatcher;
-
-        $dispatcher->setNamespaceName('App\Http\Controllers');
-        $dispatcher->setControllerName($controller);
-        $dispatcher->setActionName($action);
-
-        $dispatcher->dispatch();
+        $this->assertRoute($route, $method, $expected, $controller, $action, $params);
     }
 
     /**
@@ -119,7 +64,7 @@ abstract class RoutesTestCase extends FuncTestCase
     public function getRoutes()
     {
         $routes = [];
-        foreach ($this->globalApp()->router->getRoutes() as $route) {
+        foreach (self::staticKernel()->router->getRoutes() as $route) {
             /** @var \Phalcon\Mvc\Router\Route $route */
             $routes[$route->getPattern()] = [$route];
         }
@@ -153,7 +98,7 @@ abstract class RoutesTestCase extends FuncTestCase
     /**
      * @return array[]
      */
-    abstract protected function routes();
+    abstract protected function routes(): array;
 
     /**
      * @param \Phalcon\Mvc\Router\RouteInterface $route

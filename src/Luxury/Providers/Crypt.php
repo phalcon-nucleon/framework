@@ -3,21 +3,23 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
 
 /**
  * Class Crypt
  *
  * @package Luxury\Bootstrap\Services
  */
-class Crypt implements Providable
+class Crypt extends Provider
 {
+    protected $name = Services::CRYPT;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Crypt
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::CRYPT, \Phalcon\Crypt::class);
+        return new \Phalcon\Crypt;
     }
 }

@@ -3,21 +3,24 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Filter
  *
  * @package Luxury\Bootstrap\Services
  */
-class Filter implements Providable
+class Filter extends Provider
 {
+    protected $name = Services::FILTER;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return mixed|\Phalcon\Filter
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::FILTER, \Phalcon\Filter::class);
+        return new \Phalcon\Filter;
     }
 }

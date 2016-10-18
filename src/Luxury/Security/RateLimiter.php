@@ -8,11 +8,9 @@ use Luxury\Di\Injectable;
 /**
  * Class RateLimiter
  *
- * @see     https://github.com/laravel/framework/blob/5.2/src/Illuminate/Cache/RateLimiter.php
+ * @see https://github.com/laravel/framework/blob/5.2/src/Illuminate/Cache/RateLimiter.php
  *
  * @package Luxury\Security
- *
- * @property-read \Phalcon\Cache\BackendInterface cache
  */
 class RateLimiter extends Injectable
 {
@@ -53,6 +51,7 @@ class RateLimiter extends Injectable
      */
     public function tooManyAttempts($key, $maxAttempts, $decaySeconds = 1)
     {
+        /** @var \Luxury\Cache\CacheStrategy $cache */
         $cache = $this->getDI()->getShared(Services::CACHE);
 
         if ($cache->exists($this->name . $key . $this->klock, $decaySeconds)) {
@@ -85,6 +84,7 @@ class RateLimiter extends Injectable
     {
         $key = $this->name . $key;
 
+        /** @var \Luxury\Cache\CacheStrategy $cache */
         $cache = $this->getDI()->getShared(Services::CACHE);
 
         if (!$cache->exists($key, $decaySeconds)) {

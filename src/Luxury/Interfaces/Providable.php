@@ -2,8 +2,6 @@
 
 namespace Luxury\Interfaces;
 
-use Phalcon\DiInterface;
-
 /**
  * Class Providable
  *
@@ -12,9 +10,7 @@ use Phalcon\DiInterface;
 interface Providable
 {
     /**
-     * @param \Phalcon\DiInterface $di
-     *
      * @return void
      */
-    public function register(DiInterface $di);
+    public function registering();
 }

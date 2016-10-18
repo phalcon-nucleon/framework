@@ -3,8 +3,7 @@
 namespace Luxury\Providers\Cli;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+use Luxury\Providers\Provider;
 use Phalcon\Security;
 
 /**
@@ -12,29 +11,27 @@ use Phalcon\Security;
  *
  * @package Luxury\Bootstrap\Services
  */
-class Dispatcher implements Providable
+class Dispatcher extends Provider
 {
+    protected $name = Services::DISPATCHER;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Cli\Dispatcher
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(
-            Services::DISPATCHER,
-            function () {
-                /* @var \Phalcon\Di $this */
-                $dispatcher = new \Phalcon\Cli\Dispatcher();
+        $dispatcher = new \Phalcon\Cli\Dispatcher();
 
-                // Create an events manager
-                $eventsManager = $this->getShared(Services::EVENTS_MANAGER);
+        // Create an events manager
+        $eventsManager = $this->getDI()->getShared(Services::EVENTS_MANAGER);
 
-                // Assign the events manager to the dispatcher
-                $dispatcher->setEventsManager($eventsManager);
+        // Assign the events manager to the dispatcher
+        $dispatcher->setEventsManager($eventsManager);
 
-                $dispatcher->setDefaultNamespace('\App\Cli\Tasks');
+        $dispatcher->setDefaultNamespace('\App\Cli\Tasks');
 
-                return $dispatcher;
-            }
-        );
+        return $dispatcher;
     }
 }

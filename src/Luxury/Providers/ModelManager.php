@@ -3,21 +3,25 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+
+use Phalcon\Mvc\Model\Manager;
 
 /**
  * Class ModelManager
  *
  * @package Luxury\Bootstrap\Services
  */
-class ModelManager implements Providable
+class ModelManager extends Provider
 {
+    protected $name = Services::MODELS_MANAGER;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Mvc\Model\Manager
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::MODELS_MANAGER, \Phalcon\Mvc\Model\Manager::class);
+        return new Manager;
     }
 }

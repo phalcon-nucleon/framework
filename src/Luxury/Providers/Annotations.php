@@ -3,21 +3,25 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+use Phalcon\Annotations\Adapter\Memory as AnnotationsMemory;
+
 
 /**
  * Class Annotations
  *
  * @package Luxury\Bootstrap\Services
  */
-class Annotations implements Providable
+class Annotations extends Provider
 {
+    protected $name = Services::ANNOTATIONS;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Annotations\Adapter\Memory
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::ANNOTATIONS, \Phalcon\Annotations\Adapter\Memory::class);
+        return new AnnotationsMemory;
     }
 }

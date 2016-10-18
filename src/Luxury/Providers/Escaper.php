@@ -3,21 +3,24 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Escaper
  *
  * @package Luxury\Bootstrap\Services
  */
-class Escaper implements Providable
+class Escaper extends Provider
 {
+    protected $name = Services::ESCAPER;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Escaper
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::ESCAPER, \Phalcon\Escaper::class);
+        return new \Phalcon\Escaper;
     }
 }

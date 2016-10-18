@@ -3,30 +3,30 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+
+use Phalcon\Flash\Direct as FlashDirect;
 
 /**
  * Class Flash
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class Flash implements Providable
+class Flash extends Provider
 {
-    /**
-     * @param \Phalcon\DiInterface $di
-     */
-    public function register(DiInterface $di)
-    {
-        $di->set(Services::FLASH, function () {
-            return new \Phalcon\Flash\Direct([
-                'error'   => 'alert alert-danger',
-                'success' => 'alert alert-success',
-                'notice'  => 'alert alert-info',
-                'warning' => 'alert alert-warning'
-            ]);
-        });
+    protected $name = Services::FLASH;
 
-        $di->setShared(Services::FLASH_SESSION, \Phalcon\Flash\Session::class);
+    protected $shared = false;
+
+    /**
+     * @return \Phalcon\Flash\Direct
+     */
+    protected function register()
+    {
+        return new FlashDirect([
+            'error'   => 'alert alert-danger',
+            'success' => 'alert alert-success',
+            'notice'  => 'alert alert-info',
+            'warning' => 'alert alert-warning'
+        ]);
     }
 }

@@ -3,29 +3,30 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+
 
 /**
  * Class Url
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class Url implements Providable
+class Url extends Provider
 {
+    protected $name = Services::URL;
+
+    protected $shared = true;
+
     /**
      * The URL component is used to generate all kind of urls in the application
      *
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Mvc\Url
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::URL, function () {
-            /* @var \Phalcon\Di $this */
-            $url = new \Phalcon\Mvc\Url();
-            $url->setBaseUri($this->getShared(Services::CONFIG)->application->baseUri);
+        $url = new \Phalcon\Mvc\Url();
 
-            return $url;
-        });
+        $url->setBaseUri($this->getDI()->getShared(Services::CONFIG)->application->baseUri);
+
+        return $url;
     }
 }

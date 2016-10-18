@@ -3,26 +3,27 @@
 namespace Luxury\Providers\Cli;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+use Luxury\Providers\Provider;
+
 
 /**
  * Class Router
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class Router implements Providable
+class Router extends Provider
 {
-    /**
-     * @param \Phalcon\DiInterface $di
-     */
-    public function register(DiInterface $di)
-    {
-        //Registering the Router
-        $di->setShared(Services::ROUTER, function () {
-            $router = new \Phalcon\Cli\Router(false);
+    protected $name = Services::ROUTER;
 
-            return $router;
-        });
+    protected $shared = true;
+
+    /**
+     * @return \Phalcon\Cli\Router
+     */
+    protected function register()
+    {
+        $router = new \Phalcon\Cli\Router(false);
+
+        return $router;
     }
 }

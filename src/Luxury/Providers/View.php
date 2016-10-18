@@ -3,7 +3,6 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
 use Luxury\View\Engine\Extensions\PhpFunction as PhpFunctionExtension;
 use Phalcon\DiInterface;
 
@@ -12,17 +11,24 @@ use Phalcon\DiInterface;
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class View implements Providable
+class View extends Provider
 {
+    protected $name = Services::VIEW;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Mvc\View
      */
-    public function register(DiInterface $di)
+    public function registering()
     {
+        $di = $this->getDI();
+
         $di->setShared(Services::TAG, \Phalcon\Tag::class);
         $di->setShared(Services::ASSETS, \Phalcon\Assets\Manager::class);
-        $di->setShared(Services::VIEW, function () {
-            /* @var \Phalcon\Di $this */
+
+        $di->setShared($this->name, function () {
+            /** @var DiInterface $this */
 
             $view = new \Phalcon\Mvc\View();
 
@@ -46,5 +52,13 @@ class View implements Providable
 
             return $view;
         });
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function register()
+    {
+        return;
     }
 }

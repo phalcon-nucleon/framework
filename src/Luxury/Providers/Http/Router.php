@@ -3,28 +3,29 @@
 namespace Luxury\Providers\Http;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+use Luxury\Providers\Provider;
+
 
 /**
  * Class Router
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class Router implements Providable
+class Router extends Provider
 {
+    protected $name = Services::ROUTER;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Phalcon\Mvc\Router
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        //Registering the Router
-        $di->setShared(Services::ROUTER, function () {
-            $router = new \Phalcon\Mvc\Router(false);
+        $router = new \Phalcon\Mvc\Router(false);
 
-            $router->setUriSource(\Phalcon\Mvc\Router::URI_SOURCE_SERVER_REQUEST_URI);
+        $router->setUriSource(\Phalcon\Mvc\Router::URI_SOURCE_SERVER_REQUEST_URI);
 
-            return $router;
-        });
+        return $router;
     }
 }

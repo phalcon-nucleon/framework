@@ -2,27 +2,26 @@
 
 namespace Luxury\Providers;
 
+use Luxury\Auth\AuthManager;
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
 
 /**
  * Class Auth
  *
  * @package     Luxury\Providers
  */
-class Auth implements Providable
+class Auth extends Provider
 {
 
+    protected $name = Services::AUTH;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
-     *
-     * @return void
+     * @return \Luxury\Auth\AuthManager
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::AUTH, function () {
-            return new \Luxury\Auth\AuthManager();
-        });
+        return new AuthManager();
     }
 }

@@ -3,21 +3,25 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+
+use Phalcon\Mvc\Model\Metadata\Memory;
 
 /**
  * Class ModelsMetaData
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class ModelsMetaData implements Providable
+class ModelsMetaData extends Provider
 {
+    protected $name = Services::MODELS_METADATA;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return Memory
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::MODELS_METADATA, \Phalcon\Mvc\Model\Metadata\Memory::class);
+        return new Memory;
     }
 }

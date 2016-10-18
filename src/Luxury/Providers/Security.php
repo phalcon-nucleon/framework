@@ -3,21 +3,25 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Phalcon\DiInterface;
+use Luxury\Security\SecurityPlugin;
+
 
 /**
  * Class Security
  *
  * @package Luxury\Bootstrap\Services
  */
-class Security implements Providable
+class Security extends Provider
 {
+    protected $name = Services::SECURITY;
+
+    protected $shared = true;
+
     /**
-     * @param \Phalcon\DiInterface $di
+     * @return \Luxury\Security\SecurityPlugin
      */
-    public function register(DiInterface $di)
+    protected function register()
     {
-        $di->setShared(Services::SECURITY, \Luxury\Security\SecurityPlugin::class);
+        return new SecurityPlugin;
     }
 }

@@ -32,7 +32,7 @@ class MiddlewareTest extends TestCase
         $this->app->attach($middleware);
 
         // WHEN
-        $this->app->handle('/');
+        $this->dispatch('/');
 
         // THEN
         $this->assertFalse($middleware->hasView('init'));
@@ -88,7 +88,7 @@ class MiddlewareTest extends TestCase
         $this->app->useImplicitView(false);
 
         // WHEN
-        $this->app->handle('/');
+        $this->dispatch('/');
 
         // THEN
         $this->assertEquals($init, count($middleware->getView('init')));
@@ -107,7 +107,7 @@ class MiddlewareTest extends TestCase
         $this->app->attach($middleware);
 
         // WHEN
-        $this->app->handle('/');
+        $this->dispatch('/');
 
         // THEN
         $this->assertTrue($middleware->hasView('init'));
@@ -131,7 +131,7 @@ class MiddlewareTest extends TestCase
         $this->app->attach($middleware);
 
         // WHEN
-        $this->app->handle('/');
+        $this->dispatch('/');
 
         // THEN
         $this->assertTrue($middleware->hasView('init'));

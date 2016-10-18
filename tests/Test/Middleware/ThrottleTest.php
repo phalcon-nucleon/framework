@@ -30,25 +30,26 @@ class ThrottleTest extends TestCase
         $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
         for ($i = 0; $i < 11; $i++) {
             // WHEN
-            $this->app->handle('/');
+            $this->dispatch('/');
             $response = $this->app->response;
+            $headers = $response->getHeaders();
             if ($i < 10) {
-                $this->assertNotEquals($status, $response->getStatusCode());
-                $this->assertNotEquals($msg, $response->getContent());
-                $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
-                $this->assertEquals(9 - $i, $response->getHeaders()->get('X-RateLimit-Remaining'));
-                $this->assertEquals(null, $response->getHeaders()->get('Retry-After'));
+                $this->assertNotEquals($status, $response->getStatusCode(), "status:$i");
+                $this->assertNotEquals($msg, $response->getContent(), "content:$i");
+                $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
+                $this->assertEquals(9 - $i, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
+                $this->assertEquals(null, $headers->get('Retry-After'), "Retry-After:$i");
             } else {
-                $this->assertEquals($status, $response->getStatusCode());
-                $this->assertEquals($msg, $response->getContent());
-                $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
-                $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
-                $this->assertEquals(60, $response->getHeaders()->get('Retry-After'));
+                $this->assertEquals($status, $response->getStatusCode(), "status:$i");
+                $this->assertEquals($msg, $response->getContent(), "content:$i");
+                $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
+                $this->assertEquals(0, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
+                $this->assertEquals(60, $headers->get('Retry-After'), "Retry-After:$i");
             }
         }
 
         usleep(1000000);
-        $this->app->handle('/');
+        $this->dispatch('/');
 
         $response = $this->app->response;
 
@@ -79,7 +80,7 @@ class ThrottleTest extends TestCase
         $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
         for ($i = 0; $i < 10; $i++) {
             // WHEN
-            $this->app->handle('/');
+            $this->dispatch('/');
             $response = $this->app->getDI()->getShared(Services::RESPONSE);
 
             $this->assertNotEquals($status, $response->getStatusCode());
@@ -99,7 +100,7 @@ class ThrottleTest extends TestCase
             return $response;
         });
 
-        $this->app->handle('/throttled');
+        $this->dispatch('/throttled');
 
         $response = $this->app->getDI()->getShared(Services::RESPONSE);
 
@@ -117,7 +118,7 @@ class ThrottleTest extends TestCase
             return $response;
         });
 
-        $this->app->handle('/');
+        $this->dispatch('/');
 
         $response = $this->app->getDI()->getShared(Services::RESPONSE);
 

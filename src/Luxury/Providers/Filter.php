@@ -8,7 +8,7 @@ use Luxury\Constants\Services;
 /**
  * Class Filter
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class Filter extends Provider
 {

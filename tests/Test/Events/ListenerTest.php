@@ -29,7 +29,7 @@ class ListenerTest extends TestCase
         ];
 
         // WHEN
-        $this->app->handle('/');
+        $this->dispatch('/');
 
         $viewed = StubListener::$instance->views;
 

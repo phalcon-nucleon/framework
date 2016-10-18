@@ -12,17 +12,17 @@ class Csrf extends Controller implements BeforeMiddleware
     /**
      * Called before the execution of handler
      *
-     * @param \Phalcon\Events\Event $event
+     * @param \Phalcon\Events\Event     $event
      * @param \Phalcon\Dispatcher|mixed $source
-     * @param mixed|null $data
+     * @param mixed|null                $data
      *
      * @throws \Exception
      * @return bool
      */
     public function before(Event $event, $source, $data = null)
     {
-        $security = $this->security;
-        $request = $this->request;
+        $security     = $this->security;
+        $request      = $this->request;
         $tokenChecked = false;
 
         // Prevent unsetted token session
@@ -34,15 +34,11 @@ class Csrf extends Controller implements BeforeMiddleware
         if ($request->isAjax()) {
             $tokenChecked = $security->checkToken(
                 $security->getTokenKey(),
-                $request->getHeader('X-' . $security->getTokenKey())
+                $request->getHeader('X_CSRF_' . strtoupper($security->getTokenKey()))
             );
-        }
-
-        if ($request->isPost() || $request->isPut()) {
+        } elseif ($request->isPost() || $request->isPut()) {
             $tokenChecked = $security->checkToken();
-        }
-
-        if ($request->isGet() || $request->isDelete()) {
+        } elseif ($request->isGet() || $request->isDelete()) {
             $tokenChecked = $security->checkToken(
                 $security->getTokenKey(),
                 $request->getQuery($security->getTokenKey())

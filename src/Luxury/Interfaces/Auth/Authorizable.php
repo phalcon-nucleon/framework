@@ -1,6 +1,6 @@
 <?php
 
-namespace Luxury\Auth;
+namespace Luxury\Interfaces\Auth;
 
 use Phalcon\Acl\Role;
 

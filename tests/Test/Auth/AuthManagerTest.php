@@ -10,8 +10,8 @@ namespace Test\Auth;
 
 
 use Luxury\Auth\AuthManager;
-use Luxury\Auth\Model\User;
 use Luxury\Constants\Services;
+use Luxury\Foundation\Auth\User;
 use Luxury\Support\Facades\Auth;
 use Luxury\Support\Facades\Session;
 use Phalcon\Db\Column;
@@ -23,6 +23,7 @@ class AuthManagerTest extends TestCase
         global $config;
 
         $config['session']['id'] = 'unittest';
+        $config['auth']['model'] = User::class;
 
         parent::setUp();
     }

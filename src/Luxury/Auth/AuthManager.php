@@ -2,8 +2,8 @@
 
 namespace Luxury\Auth;
 
-use Luxury\Auth\Model\User;
 use Luxury\Constants\Services;
+use Luxury\Interfaces\Auth\Authenticable;
 use Luxury\Support\Arr;
 use Luxury\Support\Facades\Session;
 use Phalcon\Di\Injectable as Injector;
@@ -18,16 +18,9 @@ class AuthManager extends Injector
     /**
      * User Authenticable
      *
-     * @var User
+     * @var \Luxury\Foundation\Auth\User
      */
     protected $user;
-
-    /**
-     * Authorization Gate
-     *
-     * @var Authorize
-     */
-    private $adapter;
 
     /**
      * Indicates if the logout method has been called.
@@ -37,19 +30,14 @@ class AuthManager extends Injector
     protected $loggedOut = false;
 
     /**
-     * Auth constructor.
-     *
-     * @param Authorize $adapter
+     * @var string
      */
-    public function __construct(Authorize $adapter = null)
-    {
-        $this->adapter = $adapter;
-    }
+    protected $model;
 
     /**
      * Return the user authenticated
      *
-     * @return \Luxury\Auth\Model\User|null
+     * @return \Luxury\Foundation\Auth\User|null
      */
     public function user()
     {
@@ -85,18 +73,20 @@ class AuthManager extends Injector
      *
      * @param  array $credentials
      *
-     * @return User
+     * @return \Luxury\Foundation\Auth\User
      */
     public function attempt(array $credentials = [])
     {
-        $identifier = User::getAuthIdentifierName();
-        $password = User::getAuthPasswordName();
+        $class = $this->modelClass();
 
-        $user = User::findFirst([
+        $identifier = $class::getAuthIdentifierName();
+        $password   = $class::getAuthPasswordName();
+
+        $user = $class::findFirst([
             'conditions' => "$identifier = :identifier: AND $password = :password:",
-            'bind' => [
-                'identifier' =>  Arr::fetch($credentials, $identifier),
-                'password' => $this->security->hash(Arr::fetch($credentials, $password)),
+            'bind'       => [
+                'identifier' => Arr::fetch($credentials, $identifier),
+                'password'   => $this->security->hash(Arr::fetch($credentials, $password)),
             ],
         ]);
 
@@ -143,11 +133,11 @@ class AuthManager extends Injector
     /**
      * Log a user into the application
      *
-     * @param $user
+     * @param Authenticable $user
      *
      * @return bool
      */
-    public function login($user)
+    public function login(Authenticable $user)
     {
         if (!$user) {
             return false;
@@ -167,7 +157,7 @@ class AuthManager extends Injector
      *
      * @param int $id
      *
-     * @return User
+     * @return Authenticable|\Phalcon\Mvc\Model
      */
     public function loginUsingId($id)
     {
@@ -179,11 +169,13 @@ class AuthManager extends Injector
     /**
      * @param int $id
      *
-     * @return User
+     * @return Authenticable|\Phalcon\Mvc\Model
      */
     protected function retrieveUserById($id)
     {
-        return User::findFirst($id);
+        $class = $this->modelClass();
+
+        return $class::findFirst($id);
     }
 
     /**
@@ -202,5 +194,17 @@ class AuthManager extends Injector
     private function sessionKey()
     {
         return $this->getDI()->getShared(Services::CONFIG)->session->id;
+    }
+
+    /**
+     * @return string|\Luxury\Foundation\Auth\User
+     */
+    private function modelClass()
+    {
+        if (!isset($this->model)) {
+            $this->model = '\\' . $this->getDI()->getShared(Services::CONFIG)->auth->model;
+        }
+
+        return $this->model;
     }
 }

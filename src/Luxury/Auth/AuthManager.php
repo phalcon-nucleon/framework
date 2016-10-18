@@ -5,6 +5,7 @@ namespace Luxury\Auth;
 use Luxury\Auth\Model\User;
 use Luxury\Constants\Services;
 use Luxury\Support\Arr;
+use Luxury\Support\Facades\Session;
 use Phalcon\Di\Injectable as Injector;
 
 /**
@@ -84,16 +85,22 @@ class AuthManager extends Injector
      *
      * @param  array $credentials
      *
-     * @return User|static
+     * @return User
      */
     public function attempt(array $credentials = [])
     {
+        $identifier = User::getAuthIdentifierName();
+        $password = User::getAuthPasswordName();
+
         $user = User::findFirst([
-            User::getAuthIdentifierName() => Arr::get($credentials, User::getAuthIdentifierName()),
-            User::getAuthPasswordName()   => Arr::get($credentials, User::getAuthPasswordName()),
+            'conditions' => "$identifier = ?identifier AND $password = ?password",
+            'bind' => [
+                'identifier' =>  Arr::fetch($credentials, $identifier),
+                'password' => $this->security->hash(Arr::fetch($credentials, $password)),
+            ],
         ]);
 
-        if (!is_null($user)) {
+        if (!empty($user)) {
             $this->login($user);
 
             return $user;
@@ -120,7 +127,7 @@ class AuthManager extends Injector
         $this->user      = null;
         $this->loggedOut = true;
 
-        $this->getDI()->getShared(Services::SESSION)->destroy();
+        Session::destroy();
     }
 
     /**
@@ -130,7 +137,7 @@ class AuthManager extends Injector
      */
     public function retrieveId()
     {
-        return $this->getDI()->getShared(Services::SESSION)->get($this->sessionKey());
+        return Session::get($this->sessionKey());
     }
 
     /**
@@ -148,7 +155,7 @@ class AuthManager extends Injector
 
         $this->regenerateSessionId();
 
-        $this->getDI()->getShared(Services::SESSION)->set($this->sessionKey(), $user->id);
+        Session::set($this->sessionKey(), $user->id);
 
         return true;
     }
@@ -174,7 +181,7 @@ class AuthManager extends Injector
      */
     protected function retrieveUserById($id)
     {
-        return User::find(['id' => $id]);
+        return User::findFirst($id);
     }
 
     /**
@@ -182,7 +189,7 @@ class AuthManager extends Injector
      */
     protected function regenerateSessionId()
     {
-        $this->getDI()->getShared(Services::SESSION)->regenerateId();
+        Session::regenerateId();
     }
 
     /**

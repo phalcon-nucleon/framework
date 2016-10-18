@@ -2,8 +2,10 @@
 
 namespace Test\Stub;
 
+use Luxury\Constants\Services;
 use Luxury\Foundation\Application\Http as HttpApplication;
 use Luxury\Providers;
+use Phalcon\Mvc\Router;
 
 /**
  * Class TestKernel
@@ -20,7 +22,7 @@ class StubKernel extends HttpApplication
          * Basic Configuration
          */
         //LoggerProvider::class,
-        //UrlProvider::class,
+        Providers\Url::class,
         //FlashProvider::class,
         //SessionProvider::class,
         Providers\Http\Router::class,
@@ -42,16 +44,62 @@ class StubKernel extends HttpApplication
     ];
 
     /**
+     * Return the Events Listeners to attach onto the application.
+     *
+     * @var string[]
+     */
+    protected $listeners = [
+        StubListener::class
+    ];
+
+    /**
      * Return the Middleware List to load.
      *
      * @var string[]
      */
-    protected $middlewares = [];
+    protected $middlewares = [
+        StubMiddleware::class
+    ];
 
     /**
      * Register the routes of the application.
      */
     public function registerRoutes()
     {
+        /** @var Router $router */
+        $router = $this->getDI()->getShared(Services::ROUTER);
+
+        $router->addGet('/', [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'index'
+        ]);
+        $router->addPost('/', [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'index'
+        ]);
+        $router->addGet('/return', [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'return'
+        ]);
+        $router->addGet('/redirect', [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'redirect'
+        ]);
+        $router->addGet('/parameted/([\w_-]+)(?:/:int)?', [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'index',
+            'tags'   => 1,
+            'page'   => 2,
+        ]);
+        $router->addGet('/forwarded', [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'forwarded'
+        ]);
     }
 }

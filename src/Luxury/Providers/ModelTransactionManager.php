@@ -9,7 +9,7 @@ use Phalcon\Mvc\Model\Transaction\Manager;
 /**
  * Class Model
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class ModelTransactionManager extends Provider
 {

@@ -8,7 +8,7 @@ use Luxury\Constants\Services;
 /**
  * Class Escaper
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class Escaper extends Provider
 {

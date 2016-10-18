@@ -28,7 +28,7 @@ trait Kernelize
             /* @var \Luxury\Providers\Provider $prv */
             $prv = new $provider();
 
-            $prv->registering($this->getDI());
+            $prv->registering();
         }
     }
 

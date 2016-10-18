@@ -2,13 +2,14 @@
 namespace Test\Support;
 
 use Luxury\Support\Traits\Macroable;
+use Test\TestCase\TestCase;
 
 /**
  * Trait MacroableTest
  *
  * @package Support
  */
-class MacroableTest extends \PHPUnit_Framework_TestCase
+class MacroableTest extends TestCase
 {
     /**
      * @var Macroable
@@ -17,6 +18,8 @@ class MacroableTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        parent::setUp();
+        
         $this->macroable = $this->createObjectForTrait();
     }
 

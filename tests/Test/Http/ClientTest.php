@@ -138,6 +138,16 @@ class ClientTest extends TestCase
     }
 
     /**
+     * @expectedException \BadMethodCallException
+     */
+    public function testWrongHttpMethod()
+    {
+        $client = new Client;
+
+        $this->invokeMethod($client, 'call', ["i'm not an http method", '']);
+    }
+
+    /**
      * @return RequestProviderStub
      */
     private function getRequestProvider()

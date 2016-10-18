@@ -1,6 +1,7 @@
 <?php
 namespace Test\Cache;
 
+use Luxury\Cache\CacheStrategy;
 use Luxury\Support\Facades\Cache;
 use Phalcon\Cache\Frontend\Base64;
 use Phalcon\Cache\Frontend\Data;

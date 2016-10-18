@@ -3,13 +3,11 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Security\SecurityPlugin;
-
 
 /**
  * Class Security
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class Security extends Provider
 {
@@ -18,10 +16,10 @@ class Security extends Provider
     protected $shared = true;
 
     /**
-     * @return \Luxury\Security\SecurityPlugin
+     * @return \Phalcon\Security
      */
     protected function register()
     {
-        return new SecurityPlugin;
+        return new \Phalcon\Security;
     }
 }

@@ -44,12 +44,12 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     /**
      * @var Application|Kernelize
      */
-    protected static $appGlobal;
+    protected static $kernelClassInstance;
 
     /**
      * @var \Luxury\Foundation\Application
      */
-    protected static $lxAppGlobal;
+    protected static $appClassInstance;
 
     /**
      * This method is called before a test is executed.
@@ -70,21 +70,35 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     /**
      * @return string
      */
-    abstract protected function kernel();
+    protected function kernel()
+    {
+        return static::kernelClassInstance();
+    }
 
     /**
-     * @return Application
+     * @return string
      */
-    protected function globalApp()
+    protected static function kernelClassInstance()
+    {
+        throw new \RuntimeException("kernelClassInstance not implemented.");
+    }
+
+    /**
+     * @return \Luxury\Foundation\Kernelize|\Phalcon\Application
+     */
+    protected static function staticKernel()
     {
         global $config;
-
-        if (self::$appGlobal == null) {
-            self::$lxAppGlobal = new \Luxury\Foundation\Application(new PhConfig($config));
-            self::$appGlobal   = self::$lxAppGlobal->make($this->kernel());
+        if (self::$appClassInstance == null) {
+            self::$appClassInstance = new \Luxury\Foundation\Application(new PhConfig($config));
         }
 
-        return self::$appGlobal;
+        if (self::$kernelClassInstance == null) {
+            self::$kernelClassInstance =
+                self::$appClassInstance->make(static::kernelClassInstance());
+        }
+
+        return self::$kernelClassInstance;
     }
 
     protected function tearDown()
@@ -92,6 +106,9 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         Mockery::close();
         $this->app->getDI()->reset();
         $this->app = null;
+
+        self::$appClassInstance    = null;
+        self::$kernelClassInstance = null;
 
         parent::tearDown();
     }
@@ -205,5 +222,23 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     public function getDI()
     {
         return $this->app->getDI();
+    }
+
+    /**
+     * Call protected/private method of a class.
+     *
+     * @param object &$object    Instantiated object that we will run method on.
+     * @param string $methodName Method name to call
+     * @param array  $parameters Array of parameters to pass into method.
+     *
+     * @return mixed Method return.
+     */
+    public function invokeMethod(&$object, $methodName, array $parameters = [])
+    {
+        $reflection = new \ReflectionClass(get_class($object));
+        $method     = $reflection->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($object, $parameters);
     }
 }

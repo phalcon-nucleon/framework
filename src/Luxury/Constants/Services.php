@@ -9,6 +9,7 @@ namespace Luxury\Constants;
  */
 final class Services
 {
+    const ACL                 = 'acl';
     const ANNOTATIONS         = 'annotations';
     const APP                 = 'app';
     const ASSETS              = 'assets';

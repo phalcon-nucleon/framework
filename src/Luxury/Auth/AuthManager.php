@@ -2,31 +2,25 @@
 
 namespace Luxury\Auth;
 
+use Luxury\Constants\Services;
+use Luxury\Interfaces\Auth\Authenticable;
 use Luxury\Support\Arr;
+use Luxury\Support\Facades\Session;
 use Phalcon\Di\Injectable as Injector;
 
 /**
  * Class Auth
  *
  * @package Luxury\Auth
- *
- * @property \Phalcon\Config|\stdClass config
  */
 class AuthManager extends Injector
 {
     /**
      * User Authenticable
      *
-     * @var Authenticable
+     * @var \Luxury\Foundation\Auth\User
      */
     protected $user;
-
-    /**
-     * Authorization Gate
-     *
-     * @var Authorize
-     */
-    private $adapter;
 
     /**
      * Indicates if the logout method has been called.
@@ -36,19 +30,14 @@ class AuthManager extends Injector
     protected $loggedOut = false;
 
     /**
-     * Auth constructor.
-     *
-     * @param Authorize $adapter
+     * @var string
      */
-    public function __construct(Authorize $adapter = null)
-    {
-        $this->adapter = $adapter;
-    }
+    protected $model;
 
     /**
      * Return the user authenticated
      *
-     * @return \Luxury\Auth\Authenticable|null
+     * @return \Luxury\Foundation\Auth\User|null
      */
     public function user()
     {
@@ -60,9 +49,7 @@ class AuthManager extends Injector
             return $this->user;
         }
 
-        $id = $this->retrieveId();
-
-        if (is_null($id)) {
+        if (is_null($id = $this->retrieveId())) {
             return null;
         }
 
@@ -86,18 +73,24 @@ class AuthManager extends Injector
      *
      * @param  array $credentials
      *
-     * @return \Phalcon\Mvc\Model\User|static
+     * @return \Luxury\Foundation\Auth\User
      */
     public function attempt(array $credentials = [])
     {
-        $user = User::findFirst(
-            [
-                'email'    => Arr::get($credentials, 'email'),
-                'password' => Arr::get($credentials, 'password'),
-            ]
-        );
+        $class = $this->modelClass();
 
-        if (!is_null($user)) {
+        $identifier = $class::getAuthIdentifierName();
+        $password   = $class::getAuthPasswordName();
+
+        $user = $class::findFirst([
+            'conditions' => "$identifier = :identifier: AND $password = :password:",
+            'bind'       => [
+                'identifier' => Arr::fetch($credentials, $identifier),
+                'password'   => $this->security->hash(Arr::fetch($credentials, $password)),
+            ],
+        ]);
+
+        if (!empty($user)) {
             $this->login($user);
 
             return $user;
@@ -124,7 +117,7 @@ class AuthManager extends Injector
         $this->user      = null;
         $this->loggedOut = true;
 
-        $this->session->destroy();
+        Session::destroy();
     }
 
     /**
@@ -134,17 +127,17 @@ class AuthManager extends Injector
      */
     public function retrieveId()
     {
-        return $this->session->get($this->sessionKey());
+        return Session::get($this->sessionKey());
     }
 
     /**
      * Log a user into the application
      *
-     * @param $user
+     * @param Authenticable $user
      *
      * @return bool
      */
-    public function login($user)
+    public function login(Authenticable $user)
     {
         if (!$user) {
             return false;
@@ -152,7 +145,9 @@ class AuthManager extends Injector
 
         $this->regenerateSessionId();
 
-        $this->session->set($this->sessionKey(), $user->id);
+        Session::set($this->sessionKey(), $user->id);
+
+        $this->user = $user;
 
         return true;
     }
@@ -162,7 +157,7 @@ class AuthManager extends Injector
      *
      * @param int $id
      *
-     * @return User
+     * @return Authenticable|\Phalcon\Mvc\Model
      */
     public function loginUsingId($id)
     {
@@ -174,11 +169,13 @@ class AuthManager extends Injector
     /**
      * @param int $id
      *
-     * @return Authenticable
+     * @return Authenticable|\Phalcon\Mvc\Model
      */
     protected function retrieveUserById($id)
     {
-        return User::find(['id' => $id]);
+        $class = $this->modelClass();
+
+        return $class::findFirst($id);
     }
 
     /**
@@ -186,7 +183,7 @@ class AuthManager extends Injector
      */
     protected function regenerateSessionId()
     {
-        $this->session->regenerateId();
+        Session::regenerateId();
     }
 
     /**
@@ -196,6 +193,18 @@ class AuthManager extends Injector
      */
     private function sessionKey()
     {
-        return $this->config->session->id;
+        return $this->getDI()->getShared(Services::CONFIG)->session->id;
+    }
+
+    /**
+     * @return string|\Luxury\Foundation\Auth\User
+     */
+    private function modelClass()
+    {
+        if (!isset($this->model)) {
+            $this->model = '\\' . $this->getDI()->getShared(Services::CONFIG)->auth->model;
+        }
+
+        return $this->model;
     }
 }

@@ -9,7 +9,7 @@ use Phalcon\Annotations\Adapter\Memory as AnnotationsMemory;
 /**
  * Class Annotations
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class Annotations extends Provider
 {

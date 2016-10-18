@@ -7,7 +7,7 @@ use Luxury\Constants\Services;
 /**
  * Class Crypt
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class Crypt extends Provider
 {

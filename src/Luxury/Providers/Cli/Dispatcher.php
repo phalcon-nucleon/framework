@@ -9,7 +9,7 @@ use Phalcon\Security;
 /**
  * Class Dispatcher
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class Dispatcher extends Provider
 {

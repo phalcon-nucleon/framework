@@ -9,7 +9,7 @@ use Luxury\Security\SecurityPlugin;
 /**
  * Class Security
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class Security extends Provider
 {

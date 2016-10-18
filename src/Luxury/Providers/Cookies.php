@@ -8,7 +8,7 @@ use Luxury\Constants\Services;
 /**
  * Class Cookies
  *
- * @package Luxury\Bootstrap\Services
+ * @package Luxury\Providers
  */
 class Cookies extends Provider
 {

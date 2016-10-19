@@ -93,6 +93,11 @@ class AuthManagerTest extends TestCase
                     "size" => 64,
                     "notNull" => true
                 ]),
+                new Column('my_user_name', [
+                    "type" => Column::TYPE_VARCHAR,
+                    "size" => 64,
+                    "notNull" => true
+                ]),
                 new Column('email', [
                     "type" => Column::TYPE_VARCHAR,
                     "size" => 64,
@@ -103,10 +108,14 @@ class AuthManagerTest extends TestCase
                     "size" => 32,
                     "notNull" => true
                 ]),
+                new Column('my_user_password', [
+                    "type" => Column::TYPE_VARCHAR,
+                    "size" => 32,
+                    "notNull" => true
+                ]),
             ]));
 
         $this->getDI()->set('db', $con);
-
     }
 
     public function testNoAttemps()
@@ -133,11 +142,56 @@ class AuthManagerTest extends TestCase
         Session::shouldReceive('regenerateId')->once()->andReturn(1);
         Session::shouldReceive('set')->once()->with('unittest', 1);
 
-        $this->assertInstanceOf(User::class, Auth::attempt([
+        /** @var User $user */
+        $user = Auth::attempt([
             'email' => '', 'password' => ''
-        ]));
+        ]);
+        $this->assertInstanceOf(User::class, $user);
 
         $this->assertTrue($authManager->check());
         $this->assertFalse($authManager->guest());
+        $this->assertEquals('test@email.com', $user->getAuthIdentifier());
+        $this->assertEquals('1a2b3c4d5e', $user->getAuthPassword());
+    }
+
+    public function testAttempsCustomModel()
+    {
+        $this->getDI()->getShared(Services::CONFIG)->auth->model = CustomUser::class;
+
+        $this->mockDb(1, [['id' => 1, 'my_user_name' => 'test@email.com', 'my_user_password' => '1a2b3c4d5e']]);
+        /** @var AuthManager $authManager */
+        $authManager = new AuthManager();
+        $this->getDI()->setShared(Services::AUTH, $authManager);
+
+        Session::shouldReceive('regenerateId')->once()->andReturn(1);
+        Session::shouldReceive('set')->once()->with('unittest', 1);
+
+        /** @var CustomUser $user */
+        $user = Auth::attempt([
+            'my_user_name' => '', 'my_user_password' => ''
+        ]);
+        $this->assertInstanceOf(CustomUser::class, $user);
+
+        $this->assertTrue($authManager->check());
+        $this->assertFalse($authManager->guest());
+        $this->assertEquals('test@email.com', $user->getAuthIdentifier());
+        $this->assertEquals('1a2b3c4d5e', $user->getAuthPassword());
+    }
+}
+
+class CustomUser extends User {
+    public static function getAuthIdentifierName() : string
+    {
+        return 'my_user_name';
+    }
+
+    public static function getAuthPasswordName() : string
+    {
+        return 'my_user_password';
+    }
+
+    public static function getRememberTokenName() : string
+    {
+        return 'my_user_remember';
     }
 }

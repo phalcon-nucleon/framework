@@ -3,7 +3,7 @@
 namespace Luxury\Auth;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Auth\Authenticable;
+use Luxury\Interfaces\Auth\Authenticable as AuthenticableInterface;
 use Luxury\Support\Arr;
 use Luxury\Support\Facades\Session;
 use Phalcon\Di\Injectable as Injector;
@@ -16,7 +16,7 @@ use Phalcon\Di\Injectable as Injector;
 class AuthManager extends Injector
 {
     /**
-     * User Authenticable
+     * User AuthenticableInterface
      *
      * @var \Luxury\Foundation\Auth\User
      */
@@ -133,11 +133,11 @@ class AuthManager extends Injector
     /**
      * Log a user into the application
      *
-     * @param Authenticable $user
+     * @param AuthenticableInterface $user
      *
      * @return bool
      */
-    public function login(Authenticable $user)
+    public function login(AuthenticableInterface $user)
     {
         if (!$user) {
             return false;
@@ -157,7 +157,7 @@ class AuthManager extends Injector
      *
      * @param int $id
      *
-     * @return Authenticable|\Phalcon\Mvc\Model
+     * @return AuthenticableInterface|\Phalcon\Mvc\Model
      */
     public function loginUsingId($id)
     {
@@ -169,7 +169,7 @@ class AuthManager extends Injector
     /**
      * @param int $id
      *
-     * @return Authenticable|\Phalcon\Mvc\Model
+     * @return AuthenticableInterface|\Phalcon\Mvc\Model
      */
     protected function retrieveUserById($id)
     {

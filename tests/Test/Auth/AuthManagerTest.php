@@ -134,48 +134,68 @@ class AuthManagerTest extends TestCase
 
     public function testAttemps()
     {
-        $this->mockDb(1, [['id' => 1, 'email' => 'test@email.com', 'password' => '1a2b3c4d5e']]);
+        $this->mockDb(1, [['id' => 1, 'email' => 'test@email.com', 'password' => $this->getDI()->getShared(Services::SECURITY)->hash('1a2b3c4d5e')]]);
         /** @var AuthManager $authManager */
         $authManager = new AuthManager();
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
         Session::shouldReceive('regenerateId')->once()->andReturn(1);
-        Session::shouldReceive('set')->once()->with('unittest', 1);
+        Session::shouldReceive('set')->once()->with('unittest', 'test@email.com');
 
         /** @var User $user */
         $user = Auth::attempt([
-            'email' => '', 'password' => ''
+            'email' => 'test@email.com', 'password' => '1a2b3c4d5e'
         ]);
         $this->assertInstanceOf(User::class, $user);
+        $this->assertEquals($user, Auth::user());
 
-        $this->assertTrue($authManager->check());
-        $this->assertFalse($authManager->guest());
+        $this->assertTrue(Auth::check());
+        $this->assertFalse(Auth::guest());
         $this->assertEquals('test@email.com', $user->getAuthIdentifier());
-        $this->assertEquals('1a2b3c4d5e', $user->getAuthPassword());
+        $this->assertTrue($this->getDI()->getShared(Services::SECURITY)->checkHash('1a2b3c4d5e',$user->getAuthPassword()));
+    }
+
+    public function testAttempsFail()
+    {
+        $this->mockDb(1, [['id' => 1, 'email' => 'test@email.com', 'password' => $this->getDI()->getShared(Services::SECURITY)->hash('1a2b3c4d5e')]]);
+        /** @var AuthManager $authManager */
+        $authManager = new AuthManager();
+        $this->getDI()->setShared(Services::AUTH, $authManager);
+
+        /** @var User $user */
+        $user = Auth::attempt([
+            'email' => 'test@email.com', 'password' => '1a2b3c4ddadaaddad5e'
+        ]);
+        $this->assertNull($user);
+        $this->assertNull(Auth::user());
+
+        $this->assertFalse(Auth::check());
+        $this->assertTrue(Auth::guest());
     }
 
     public function testAttempsCustomModel()
     {
         $this->getDI()->getShared(Services::CONFIG)->auth->model = CustomUser::class;
 
-        $this->mockDb(1, [['id' => 1, 'my_user_name' => 'test@email.com', 'my_user_password' => '1a2b3c4d5e']]);
+        $this->mockDb(1, [['id' => 1, 'my_user_name' => 'test@email.com', 'my_user_password' => $this->getDI()->getShared(Services::SECURITY)->hash('1a2b3c4d5e')]]);
         /** @var AuthManager $authManager */
         $authManager = new AuthManager();
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
         Session::shouldReceive('regenerateId')->once()->andReturn(1);
-        Session::shouldReceive('set')->once()->with('unittest', 1);
+        Session::shouldReceive('set')->once()->with('unittest', 'test@email.com');
 
         /** @var CustomUser $user */
         $user = Auth::attempt([
-            'my_user_name' => '', 'my_user_password' => ''
+            'my_user_name' => '', 'my_user_password' => '1a2b3c4d5e'
         ]);
         $this->assertInstanceOf(CustomUser::class, $user);
+        $this->assertEquals($user, Auth::user());
 
-        $this->assertTrue($authManager->check());
-        $this->assertFalse($authManager->guest());
+        $this->assertTrue(Auth::check());
+        $this->assertFalse(Auth::guest());
         $this->assertEquals('test@email.com', $user->getAuthIdentifier());
-        $this->assertEquals('1a2b3c4d5e', $user->getAuthPassword());
+        $this->assertTrue($this->getDI()->getShared(Services::SECURITY)->checkHash('1a2b3c4d5e',$user->getAuthPassword()));
     }
 }
 

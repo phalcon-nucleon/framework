@@ -276,7 +276,6 @@ class AuthManagerTest extends TestCase
         $this->assertEquals('test@email.com', explode('|', $cookieValue)[0]);
     }
 
-
     public function testAttempsViaRemember()
     {
         /** @var Cookies $cookies */
@@ -310,6 +309,50 @@ class AuthManagerTest extends TestCase
         $this->assertFalse(Auth::guest());
         $this->assertEquals('test@email.com', $user->getAuthIdentifier());
         $this->assertTrue($security->checkHash('1a2b3c4d5e', $user->getAuthPassword()));
+    }
+
+    public function testAttempsViaSession()
+    {
+        /** @var Security $security */
+        $security = $this->getDI()->getShared(Services::SECURITY);
+        $this->mockDb(1, [
+            [
+                'id'             => 1,
+                'email'          => 'test@email.com',
+                'password'       => $security->hash('1a2b3c4d5e')
+            ]
+        ]);
+
+        /** @var AuthManager $authManager */
+        $authManager = new AuthManager();
+        $this->getDI()->setShared(Services::AUTH, $authManager);
+
+        Session::shouldReceive('get')->once()->with('unittest')->andReturn('test@email.com');
+
+        /** @var User $user */
+        $user = Auth::user();
+        $this->assertInstanceOf(User::class, $user);
+        $this->assertEquals($user, Auth::user());
+
+        $this->assertTrue(Auth::check());
+        $this->assertFalse(Auth::guest());
+        $this->assertEquals('test@email.com', $user->getAuthIdentifier());
+        $this->assertTrue($security->checkHash('1a2b3c4d5e', $user->getAuthPassword()));
+    }
+
+    public function testLogout(){
+
+        /** @var AuthManager $authManager */
+        $authManager = new AuthManager();
+        $this->getDI()->setShared(Services::AUTH, $authManager);
+
+        Session::shouldReceive('destroy')->once();
+
+        Auth::logout();
+
+        $this->assertNull(Auth::user());
+        $this->assertFalse(Auth::check());
+        $this->assertTrue(Auth::guest());
     }
 }
 

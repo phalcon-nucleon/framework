@@ -7,8 +7,9 @@ namespace Luxury\Di;
  *
  * @package Luxury\Di
  *
- * @property-read \Phalcon\Cache\BackendInterface cache
- * @property-read \Phalcon\Mvc\Application        app
+ * @property-read \Phalcon\Cache\BackendInterface        $cache
+ * @property-read \Phalcon\Mvc\Application               $app
+ * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
  */
 abstract class Injectable extends \Phalcon\Di\Injectable
 {
@@ -19,6 +20,22 @@ abstract class Injectable extends \Phalcon\Di\Injectable
      */
     public function __construct()
     {
-        $this->setDI($this->getDI());
+    }
+
+    /**
+     * Override Magic method __get
+     *  \_ break the default forced cache value of registered component founded on the Di.
+     *
+     * @param string $propertyName
+     *
+     * @return mixed|null
+     */
+    public function __get($propertyName)
+    {
+        if (($di = $this->getDI()) && $di->has($propertyName)) {
+            return $di->get($propertyName);
+        }
+
+        return null;
     }
 }

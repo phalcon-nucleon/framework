@@ -282,7 +282,7 @@ class AuthManagerTest extends TestCase
         $cookies = $this->getDI()->getShared(Services::COOKIES);
         /** @var Security $security */
         $security = $this->getDI()->getShared(Services::SECURITY);
-        $token = Str::random(60);
+        $token    = Str::random(60);
 
         $this->mockDb(1, [
             [
@@ -299,6 +299,7 @@ class AuthManagerTest extends TestCase
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
         Session::shouldReceive('get')->once()->with('unittest')->andReturn(null);
+        Session::shouldReceive('set')->once();
 
         /** @var User $user */
         $user = Auth::user();
@@ -317,9 +318,9 @@ class AuthManagerTest extends TestCase
         $security = $this->getDI()->getShared(Services::SECURITY);
         $this->mockDb(1, [
             [
-                'id'             => 1,
-                'email'          => 'test@email.com',
-                'password'       => $security->hash('1a2b3c4d5e')
+                'id'       => 1,
+                'email'    => 'test@email.com',
+                'password' => $security->hash('1a2b3c4d5e')
             ]
         ]);
 
@@ -340,7 +341,8 @@ class AuthManagerTest extends TestCase
         $this->assertTrue($security->checkHash('1a2b3c4d5e', $user->getAuthPassword()));
     }
 
-    public function testLogout(){
+    public function testLogout()
+    {
 
         /** @var AuthManager $authManager */
         $authManager = new AuthManager();

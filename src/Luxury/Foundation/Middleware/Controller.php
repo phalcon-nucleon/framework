@@ -148,7 +148,7 @@ abstract class Controller extends Middleware
      */
     private function filters($type, array $filters = null)
     {
-        if ($filters == null) {
+        if ($filters === null) {
             return $this;
         }
         if (empty($filters)) {

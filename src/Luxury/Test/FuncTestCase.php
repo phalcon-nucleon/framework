@@ -223,7 +223,7 @@ abstract class FuncTestCase extends TestCase
         $_SERVER['REQUEST_METHOD'] = $method;
 
         foreach ($params as $key => $param) {
-            switch ($method){
+            switch ($method) {
                 case 'GET':
                 case 'PATCH':
                     $_GET[$key] = $param;
@@ -237,7 +237,7 @@ abstract class FuncTestCase extends TestCase
         $this->getDI()->setShared(Services::RESPONSE, $this->app->handle($url));
 
         foreach ($params as $key => $param) {
-            switch ($method){
+            switch ($method) {
                 case 'GET':
                 case 'PATCH':
                     unset($_GET[$key]);

@@ -16,9 +16,9 @@ final class SessionAdapterNotFound extends Exception
      * SessionAdapterNotFound constructor.
      *
      * @param string          $class
-     * @param \Exception|null $previous
+     * @param \Throwable|null $previous
      */
-    public function __construct($class, \Exception $previous = null)
+    public function __construct($class, \Throwable $previous = null)
     {
         \Exception::__construct("", 448, $previous);
     }

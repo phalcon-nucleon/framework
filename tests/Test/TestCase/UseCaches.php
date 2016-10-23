@@ -60,46 +60,10 @@ trait UseCaches
         $config = [];
     }
 
-    public function setUp()
-    {
-        parent::setUp();
-
-        $dir = static::$cache_dir;
-        if (!is_dir($dir)) {
-            if (!mkdir($dir)) {
-                throw new \RuntimeException("Can't made .data directory.");
-            }
-        }
-        // Clear File Cache
-        $files = glob($dir . '/*'); // get all file names
-        foreach ($files as $file) { // iterate files
-            if (is_file($file)) {
-                clearstatcache(true, $file);
-                unlink($file); // delete file
-            }
-        }
-
-        clearstatcache(true);
-    }
-
     public function tearDown()
     {
         Cache::uses('default');
 
         parent::tearDown();
-
-        $dir = static::$cache_dir;
-
-        foreach (scandir($dir) as $item) {
-            if ($item == '.' || $item == '..') {
-                continue;
-            }
-
-            clearstatcache(true, $dir . $item);
-            unlink($dir . $item);
-        }
-
-        clearstatcache(true);
-        rmdir($dir);
     }
 }

@@ -66,6 +66,10 @@ class AuthManager extends Injectable
 
             if ($identifier && $token) {
                 $user = $this->retrieveUserByToken($identifier, $token);
+
+                if ($user) {
+                    Session::set($this->sessionKey(), $user->getAuthIdentifier());
+                }
             }
         }
 
@@ -212,7 +216,7 @@ class AuthManager extends Injectable
 
         return $class::findFirst([
             'condition' => $class::getAuthIdentifierName() . ' = :auth_identifier:',
-            'bind' => [
+            'bind'      => [
                 'auth_identifier' => $id
             ]
         ]);
@@ -253,7 +257,8 @@ class AuthManager extends Injectable
 
         $user = $this->retrieveUserByIdentifier(Arr::fetch($credentials, $identifier));
 
-        if ($user && $this->security->checkHash(Arr::fetch($credentials, $password), $user->getAuthPassword())
+        if ($user && $this->security->checkHash(Arr::fetch($credentials, $password),
+                $user->getAuthPassword())
         ) {
             return $user;
         }

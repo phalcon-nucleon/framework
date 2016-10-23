@@ -36,7 +36,7 @@ class Session extends Provider
                 'Phalcon\Session\Adapter\\' . $this->getShared(Services::CONFIG)->session->adapter;
             try {
                 $session = new $class();
-            } catch (\Exception $e) {
+            } catch (\Error $e) {
                 throw new SessionAdapterNotFound($e);
             }
 

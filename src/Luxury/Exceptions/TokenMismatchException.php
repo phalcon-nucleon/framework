@@ -6,9 +6,15 @@ use Phalcon\Exception;
 
 class TokenMismatchException extends Exception
 {
-    public function __construct($message = 'Token mismatch', $code = 403, \Exception $previous = null)
+    /**
+     * TokenMismatchException constructor.
+     *
+     * @param string          $message
+     * @param int             $code
+     * @param \Throwable|null $previous
+     */
+    public function __construct($message = 'Token mismatch', $code = 403, \Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
-
 }

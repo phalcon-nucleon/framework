@@ -245,7 +245,7 @@ class Handler
                 return 'E_USER_DEPRECATED';
         }
 
-        return $code;
+        return (string)$code;
     }
 
     /**

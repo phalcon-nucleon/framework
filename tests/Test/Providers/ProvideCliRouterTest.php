@@ -3,8 +3,7 @@ namespace Test\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Providers\Cli\Router;
-use Test\Stub\StubKernelCli;
-use Test\Stub\StubKernelEmpty;
+use Test\Stub\StubKernelCliEmpty;
 use Test\TestCase\TestCase;
 
 /**
@@ -16,7 +15,7 @@ class ProvideCliRouterTest extends TestCase
 {
     protected function kernel()
     {
-        return StubKernelEmpty::class;
+        return StubKernelCliEmpty::class;
     }
 
     public function testRegister()

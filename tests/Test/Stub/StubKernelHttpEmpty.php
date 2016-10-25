@@ -10,7 +10,7 @@ use Phalcon\Di;
  *
  * @package     Test\Stub
  */
-class StubKernelEmpty extends HttpApplication
+class StubKernelHttpEmpty extends HttpApplication
 {
 
     protected $dependencyInjection = Di::class;
@@ -29,6 +29,5 @@ class StubKernelEmpty extends HttpApplication
      */
     public function registerRoutes()
     {
-        // TODO: Implement registerRoutes() method.
     }
 }

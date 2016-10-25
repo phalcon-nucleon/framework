@@ -18,8 +18,20 @@ use Luxury\Test\Helpers\RoutesTrait;
 abstract class RoutesTestCase extends FuncTestCase
 {
     use RoutesTrait;
-    
-    protected static $testedRoutes = [];
+
+    /**
+     * @param string $route      Route Url
+     * @param string $method     Http Method
+     * @param bool   $expected   Route match excepted
+     * @param string $controller Controller excepted
+     * @param string $action     Action excepted
+     * @param array  $params     Params passed to the route
+     *
+     * @return array
+     */
+    public function formatDataRoute($route, $method, $expected, $controller = null, $action = null, array $params = null){
+        return [$route, $method, $expected, $controller, $action, $params];
+    }
 
     /**
      * @return array
@@ -30,7 +42,9 @@ abstract class RoutesTestCase extends FuncTestCase
 
         $_routes = [];
         foreach ($routes as $route) {
-            $_routes[$route[0]] = $route;
+            $key = $route[1] . '-' . $route[0] . '-' . ($route[2] ? 'true' : 'false') . substr(md5(uniqid('*')), 0, 6);
+
+            $_routes[$key] = $route;
         }
 
         return $_routes;
@@ -59,7 +73,9 @@ abstract class RoutesTestCase extends FuncTestCase
     }
 
     /**
-     * @return mixed
+     * Return the application route
+     *
+     * @return array
      */
     public function getRoutes()
     {
@@ -78,7 +94,6 @@ abstract class RoutesTestCase extends FuncTestCase
      * @depends           testRoutes
      *
      * @param \Phalcon\Mvc\Router\RouteInterface $route
-     *
      */
     public function testRoutesTested($route = null)
     {
@@ -96,6 +111,8 @@ abstract class RoutesTestCase extends FuncTestCase
     }
 
     /**
+     * Return the routes to test
+     *
      * @return array[]
      */
     abstract protected function routes(): array;

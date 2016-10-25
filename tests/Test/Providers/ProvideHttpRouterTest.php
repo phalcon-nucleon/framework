@@ -3,7 +3,7 @@ namespace Test\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Providers\Http\Router;
-use Test\Stub\StubKernelEmpty;
+use Test\Stub\StubKernelHttpEmpty;
 use Test\TestCase\TestCase;
 
 /**
@@ -15,7 +15,7 @@ class ProvideHttpRouterTest extends TestCase
 {
     protected function kernel()
     {
-        return StubKernelEmpty::class;
+        return StubKernelHttpEmpty::class;
     }
 
     public function testRegister()

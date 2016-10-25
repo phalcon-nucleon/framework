@@ -6,7 +6,7 @@ use Luxury\Constants\Services;
 use Luxury\Providers\Session;
 use Phalcon\Session\Adapter\Files;
 use Phalcon\Session\Bag;
-use Test\Stub\StubKernelEmpty;
+use Test\Stub\StubKernelHttpEmpty;
 use Test\TestCase\TestCase;
 
 /**
@@ -18,7 +18,7 @@ class ProviderSessionTest extends TestCase
 {
     protected function kernel()
     {
-        return StubKernelEmpty::class;
+        return StubKernelHttpEmpty::class;
     }
 
     public function testRegister()

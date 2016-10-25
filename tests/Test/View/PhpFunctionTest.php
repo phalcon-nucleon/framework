@@ -28,8 +28,8 @@ class PhpFunctionTest extends TestCase
     /**
      * @dataProvider dataCompile
      */
-    public function testCompileFunction($function, $args, $excepted)
+    public function testCompileFunction($function, $args, $expected)
     {
-        $this->assertEquals($excepted, (new PhpFunction())->compileFunction($function, $args));
+        $this->assertEquals($expected, (new PhpFunction())->compileFunction($function, $args));
     }
 }

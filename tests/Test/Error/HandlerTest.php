@@ -122,7 +122,7 @@ class HandlerTest extends TestCase
         return $datas;
     }
 
-    public function mockLogger($exceptedLogger, $exceptedMessage)
+    public function mockLogger($expectedLogger, $expectedMessage)
     {
         $logger = $this->getMockBuilder(Logger\Adapter\File::class)
             ->disableOriginalConstructor()
@@ -131,7 +131,7 @@ class HandlerTest extends TestCase
 
         $logger->expects($this->any())->method('setFormatter');
 
-        $logger->expects($this->any())->method('log')->with($exceptedLogger, $exceptedMessage);
+        $logger->expects($this->any())->method('log')->with($expectedLogger, $expectedMessage);
 
         $this->getDI()->setShared(Services::LOGGER, $logger);
     }
@@ -139,13 +139,13 @@ class HandlerTest extends TestCase
     /**
      * @dataProvider dataHandleError
      */
-    public function testHandleErrorWithoutView($errorCode, $exceptedLogger, $exceptedMessage)
+    public function testHandleErrorWithoutView($errorCode, $expectedLogger, $expectedMessage)
     {
-        $exceptedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $exceptedMessage);
+        $expectedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $expectedMessage);
 
-        $this->mockLogger($exceptedLogger, $exceptedMessage);
+        $this->mockLogger($expectedLogger, $expectedMessage);
 
-        $this->expectOutputString($exceptedMessage);
+        $this->expectOutputString($expectedMessage);
 
         Handler::handle(new Error([
             'type'    => $errorCode,
@@ -159,11 +159,11 @@ class HandlerTest extends TestCase
     /**
      * @dataProvider dataHandleError
      */
-    public function testHandleErrorWithView($errorCode, $exceptedLogger, $exceptedMessage)
+    public function testHandleErrorWithView($errorCode, $expectedLogger, $expectedMessage)
     {
-        $exceptedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $exceptedMessage);
+        $expectedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $expectedMessage);
 
-        $this->mockLogger($exceptedLogger, $exceptedMessage);
+        $this->mockLogger($expectedLogger, $expectedMessage);
 
         $view = $this->getMockBuilder(\Phalcon\Mvc\View::class)
             ->disableOriginalConstructor()
@@ -172,11 +172,11 @@ class HandlerTest extends TestCase
         $view->expects($this->any())->method('start');
         $view->expects($this->any())->method('render');
         $view->expects($this->any())->method('finish');
-        $view->expects($this->any())->method('getContent')->willReturn($exceptedMessage);
+        $view->expects($this->any())->method('getContent')->willReturn($expectedMessage);
 
         $this->getDI()->setShared(Services::VIEW, $view);
 
-        $this->expectOutputString($exceptedMessage);
+        $this->expectOutputString($expectedMessage);
 
         $response = Handler::handle(new Error([
             'type'    => $errorCode,
@@ -187,7 +187,7 @@ class HandlerTest extends TestCase
         ]));
 
         $this->assertTrue($response->isSent());
-        $this->assertEquals($exceptedMessage, $response->getContent());
+        $this->assertEquals($expectedMessage, $response->getContent());
     }
 
     public function dataHandleWarning()
@@ -215,9 +215,9 @@ class HandlerTest extends TestCase
     /**
      * @dataProvider dataHandleWarning
      */
-    public function testHandleWarning($errorCode, $exceptedLogger, $exceptedMessage)
+    public function testHandleWarning($errorCode, $expectedLogger, $expectedMessage)
     {
-        $this->mockLogger($exceptedLogger, $exceptedMessage);
+        $this->mockLogger($expectedLogger, $expectedMessage);
 
         $this->expectOutputString('');
 
@@ -232,11 +232,11 @@ class HandlerTest extends TestCase
 
     public function testTriggerError()
     {
-        $exceptedMsg = 'E_USER_ERROR: msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8);
+        $expectedMsg = 'E_USER_ERROR: msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8);
 
-        $this->expectOutputString($exceptedMsg);
+        $this->expectOutputString($expectedMsg);
 
-        $this->mockLogger(Logger::ERROR, $exceptedMsg);
+        $this->mockLogger(Logger::ERROR, $expectedMsg);
 
         Handler::register();
 

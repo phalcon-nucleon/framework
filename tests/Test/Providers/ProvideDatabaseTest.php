@@ -4,7 +4,7 @@ namespace Test\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Providers\Database;
-use Test\Stub\StubKernelEmpty;
+use Test\Stub\StubKernelHttpEmpty;
 use Test\TestCase\TestCase;
 
 /**
@@ -33,7 +33,7 @@ class ProvideDatabaseTest extends TestCase
 
     protected function kernel()
     {
-        return StubKernelEmpty::class;
+        return StubKernelHttpEmpty::class;
     }
 
     /**

@@ -3,20 +3,22 @@
 namespace Luxury\Auth;
 
 use Luxury\Constants\Services;
-use Luxury\Interfaces\Auth\Authenticable;
+use Luxury\Di\Injectable;
+use Luxury\Foundation\Auth\User;
+use Luxury\Interfaces\Auth\Authenticable as AuthenticableInterface;
 use Luxury\Support\Arr;
 use Luxury\Support\Facades\Session;
-use Phalcon\Di\Injectable as Injector;
+use Luxury\Support\Str;
 
 /**
  * Class Auth
  *
  * @package Luxury\Auth
  */
-class AuthManager extends Injector
+class AuthManager extends Injectable
 {
     /**
-     * User Authenticable
+     * User AuthenticableInterface
      *
      * @var \Luxury\Foundation\Auth\User
      */
@@ -30,6 +32,8 @@ class AuthManager extends Injector
     protected $loggedOut = false;
 
     /**
+     * Model Class used. Defined in config->auth->model
+     *
      * @var string
      */
     protected $model;
@@ -49,11 +53,27 @@ class AuthManager extends Injector
             return $this->user;
         }
 
-        if (is_null($id = $this->retrieveId())) {
-            return null;
+        $user = null;
+
+        if (!is_null($id = $this->retrieveIdentifier())) {
+            $user = $this->retrieveUserByIdentifier($id);
         }
 
-        $this->user = $this->retrieveUserById($id);
+        $cookies = $this->getDI()->getShared(Services::COOKIES);
+        if (empty($user) && $cookies->has('remember_me')) {
+            $recaller = $cookies->get('remember_me');
+            list($identifier, $token) = explode('|', $recaller);
+
+            if ($identifier && $token) {
+                $user = $this->retrieveUserByToken($identifier, $token);
+
+                if ($user) {
+                    Session::set($this->sessionKey(), $user->getAuthIdentifier());
+                }
+            }
+        }
+
+        $this->user = $user;
 
         return $this->user;
     }
@@ -71,27 +91,17 @@ class AuthManager extends Injector
     /**
      * authenticate user
      *
-     * @param  array $credentials
+     * @param array $credentials
+     * @param bool  $remember
      *
      * @return \Luxury\Foundation\Auth\User
      */
-    public function attempt(array $credentials = [])
+    public function attempt(array $credentials = [], bool $remember = false)
     {
-        $class = $this->modelClass();
-
-        $identifier = $class::getAuthIdentifierName();
-        $password   = $class::getAuthPasswordName();
-
-        $user = $class::findFirst([
-            'conditions' => "$identifier = :identifier: AND $password = :password:",
-            'bind'       => [
-                'identifier' => Arr::fetch($credentials, $identifier),
-                'password'   => $this->security->hash(Arr::fetch($credentials, $password)),
-            ],
-        ]);
+        $user = $this->retrieveUserByCredentials($credentials);
 
         if (!empty($user)) {
-            $this->login($user);
+            $this->login($user, $remember);
 
             return $user;
         }
@@ -125,7 +135,7 @@ class AuthManager extends Injector
      *
      * @return mixed|null
      */
-    public function retrieveId()
+    public function retrieveIdentifier()
     {
         return Session::get($this->sessionKey());
     }
@@ -133,11 +143,12 @@ class AuthManager extends Injector
     /**
      * Log a user into the application
      *
-     * @param Authenticable $user
+     * @param User $user
+     * @param bool $remember
      *
      * @return bool
      */
-    public function login(Authenticable $user)
+    public function login(User $user, bool $remember = false)
     {
         if (!$user) {
             return false;
@@ -145,7 +156,19 @@ class AuthManager extends Injector
 
         $this->regenerateSessionId();
 
-        Session::set($this->sessionKey(), $user->id);
+        Session::set($this->sessionKey(), $user->getAuthIdentifier());
+
+        if ($remember) {
+            $rememberToken = Str::random(60);
+
+            /** @var \Phalcon\Http\Response\Cookies|\Phalcon\Http\Response\CookiesInterface $cookies */
+            $cookies = $this->getDI()->getShared(Services::COOKIES);
+            $cookies->set('remember_me', $user->getAuthIdentifier() . '|' . $rememberToken);
+
+            $user->setRememberToken($rememberToken);
+
+            $user->save();
+        }
 
         $this->user = $user;
 
@@ -157,7 +180,7 @@ class AuthManager extends Injector
      *
      * @param int $id
      *
-     * @return Authenticable|\Phalcon\Mvc\Model
+     * @return AuthenticableInterface|\Phalcon\Mvc\Model
      */
     public function loginUsingId($id)
     {
@@ -167,15 +190,80 @@ class AuthManager extends Injector
     }
 
     /**
+     * Retrieve a user by his id
+     *
      * @param int $id
      *
-     * @return Authenticable|\Phalcon\Mvc\Model
+     * @return User
      */
     protected function retrieveUserById($id)
     {
         $class = $this->modelClass();
 
         return $class::findFirst($id);
+    }
+
+    /**
+     * Retrieve a user by his identifier
+     *
+     * @param int $id
+     *
+     * @return User
+     */
+    protected function retrieveUserByIdentifier($id)
+    {
+        $class = $this->modelClass();
+
+        return $class::findFirst([
+            'condition' => $class::getAuthIdentifierName() . ' = :auth_identifier:',
+            'bind'      => [
+                'auth_identifier' => $id
+            ]
+        ]);
+    }
+
+    /**
+     * Retrieve a user by his identifier & remember token.
+     *
+     * @param string $identifier
+     * @param string $token
+     *
+     * @return AuthenticableInterface|\Phalcon\Mvc\Model
+     */
+    protected function retrieveUserByToken($identifier, $token)
+    {
+        $user = $this->retrieveUserByIdentifier($identifier);
+
+        if (!empty($user) && $user->getRememberToken() === $token) {
+            return $user;
+        }
+
+        return null;
+    }
+
+    /**
+     * Retrieve a user by credentials
+     *
+     * @param array $credentials
+     *
+     * @return \Luxury\Foundation\Auth\User
+     */
+    protected function retrieveUserByCredentials(array $credentials)
+    {
+        $class = $this->modelClass();
+
+        $identifier = $class::getAuthIdentifierName();
+        $password   = $class::getAuthPasswordName();
+
+        $user = $this->retrieveUserByIdentifier(Arr::fetch($credentials, $identifier));
+
+        if ($user && $this->security->checkHash(Arr::fetch($credentials, $password),
+                $user->getAuthPassword())
+        ) {
+            return $user;
+        }
+
+        return null;
     }
 
     /**

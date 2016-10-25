@@ -2,8 +2,6 @@
 
 namespace Luxury\Support;
 
-use RuntimeException;
-
 /**
  * Class Str
  *
@@ -35,6 +33,13 @@ final class Str
      * @var array
      */
     protected static $studlyCache = [];
+
+    /**
+     * The cache of capitalize-cased words.
+     *
+     * @var array
+     */
+    protected static $capitalizeCache = [];
 
     /**
      * Transliterate a UTF-8 value to ASCII.
@@ -409,6 +414,24 @@ final class Str
         $value = ucwords(str_replace(['-', '_'], ' ', $value));
 
         return static::$studlyCache[$key] = str_replace(' ', '', $value);
+    }
+
+    /**
+     * Convert a value to Capitalize case.
+     *
+     * @param  string $value
+     *
+     * @return string
+     */
+    public static function capitalize(string $value) : string
+    {
+        $key = $value;
+
+        if (isset(static::$capitalizeCache[$key])) {
+            return static::$capitalizeCache[$key];
+        }
+
+        return static::$capitalizeCache[$key] = ucwords(strtolower($value));
     }
 
     /**

@@ -1,8 +1,11 @@
 <?php
 namespace Test\Assert;
 
+use Luxury\Constants\Services;
 use Luxury\Foundation\Kernelize;
 use Luxury\Interfaces\Kernelable;
+use Luxury\Support\Str;
+use Phalcon\Http\Response;
 use Phalcon\Kernel;
 use Phalcon\Mvc\Application;
 use Test\TestCase\TestCase;
@@ -24,6 +27,43 @@ class FuncTestCaseTest extends TestCase
         parent::setUp();
 
         $this->app->useImplicitView(false);
+    }
+
+    public function dataDispatch()
+    {
+        return [
+            'GET' => ['GET', '/dispatch'],
+            'PATCH' => ['PATCH', '/dispatch'],
+            'POST' => ['POST', '/dispatch'],
+            'PUT' => ['PUT', '/dispatch'],
+            'GET.withParams' => ['GET', '/dispatch', ['data' => 'test']],
+            'PATCH.withParams' => ['PATCH', '/dispatch', ['data' => 'test']],
+            'POST.withParams' => ['POST', '/dispatch', ['data' => 'test']],
+            'PUT.withParams' => ['PUT', '/dispatch', ['data' => 'test']],
+        ];
+    }
+
+    /**
+     * @dataProvider dataDispatch
+     */
+    public function testDispatch($method, $url, $params = [])
+    {
+        $this->app->router->{'add' . Str::capitalize($method)}($url, [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'data'
+        ]);
+
+        $this->dispatch($url, $method, $params);
+
+        /** @var Response $response */
+        $response = $this->app->getDI()->getShared(Services::RESPONSE);
+        $this->assertInstanceOf(Response::class, $response);
+        $content = $response->getContent();
+        $this->assertNotEmpty($content);
+        $content = json_decode($content, true);
+        $this->assertEquals($method, $content['method']);
+        $this->assertEquals($params, $content['queries']);
     }
 
     public function testAssertController()
@@ -68,7 +108,7 @@ class FuncTestCaseTest extends TestCase
         $this->assertAction('Blablabla');
     }
 
-    public function testResponseContentContains()
+    public function testAssertResponseContentContains()
     {
         // GIVEN
         // WHEN
@@ -80,7 +120,7 @@ class FuncTestCaseTest extends TestCase
     /**
      * @expectedException \PHPUnit_Framework_ExpectationFailedException
      */
-    public function testResponseContentContainsFail()
+    public function testAssertResponseContentContainsFail()
     {
         // GIVEN
         // WHEN
@@ -141,7 +181,7 @@ class FuncTestCaseTest extends TestCase
 
         $this->assertHeader([
             'Location' => '/',
-            'Status'   => '302 Found',
+            'Status' => '302 Found',
         ]);
     }
 

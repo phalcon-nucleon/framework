@@ -3,16 +3,13 @@
 namespace Luxury\Test;
 
 use Luxury\Foundation\Kernelize;
+use Luxury\Support\Facades\Facade;
 use Mockery;
 use Phalcon\Application;
 use Phalcon\Config;
 use Phalcon\Config as PhConfig;
-use Phalcon\Di;
-use Phalcon\Di\FactoryDefault;
 use Phalcon\Di\InjectionAwareInterface;
 use Phalcon\DiInterface;
-use Phalcon\Escaper;
-use Phalcon\Mvc\Url;
 use PHPUnit_Framework_TestCase as UnitTestCase;
 
 /**
@@ -104,6 +101,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     protected function tearDown()
     {
         Mockery::close();
+        Facade::clearResolvedInstances();
         $this->app->getDI()->reset();
         $this->app = null;
 
@@ -225,6 +223,38 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     }
 
     /**
+     * @param string $className
+     * @param string $propertyName
+     *
+     * @return \ReflectionProperty
+     */
+    public function getPrivateProperty($className, $propertyName)
+    {
+        $reflector = new \ReflectionClass($className);
+        $property  = $reflector->getProperty($propertyName);
+
+        $property->setAccessible(true);
+
+        return $property;
+    }
+
+    /**
+     * @param string $className
+     * @param string $methodName
+     *
+     * @return \ReflectionMethod
+     */
+    public function getPrivateMethod($className, $methodName)
+    {
+        $reflection = new \ReflectionClass($className);
+        $method     = $reflection->getMethod($methodName);
+
+        $method->setAccessible(true);
+
+        return $method;
+    }
+
+    /**
      * Call protected/private method of a class.
      *
      * @param object &$object    Instantiated object that we will run method on.
@@ -235,10 +265,25 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
      */
     public function invokeMethod(&$object, $methodName, array $parameters = [])
     {
-        $reflection = new \ReflectionClass(get_class($object));
-        $method     = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
+        return $this->getPrivateMethod(
+            get_class($object),
+            $methodName
+        )->invokeArgs($object, $parameters);
+    }
 
-        return $method->invokeArgs($object, $parameters);
+    /**
+     * @param object $object
+     * @param string $propertyName
+     * @param null   $className
+     *
+     * @return mixed
+     */
+    public function valueProperty(&$object, $propertyName, $className = null)
+    {
+        return $this->getPrivateProperty(
+            $className ? $className : get_class($object),
+            $propertyName,
+            $className
+        )->getValue($object);
     }
 }

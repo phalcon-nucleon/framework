@@ -56,8 +56,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeMiddleware
         $throttle = new static;
 
         if (!isset($throttle->name)) {
-            // TODO Throttle creation exception
-            throw new \RuntimeException;
+            throw new \RuntimeException(static::class . '->name is empty.');
         }
 
         $throttle->max   = $max;

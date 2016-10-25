@@ -10,7 +10,7 @@ use Phalcon\Mvc\Router;
 /**
  * Class TestKernel
  */
-class StubKernel extends HttpApplication
+class StubKernelHttp extends HttpApplication
 {
     /**
      * Return the Provider List to load.

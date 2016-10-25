@@ -39,6 +39,26 @@ class StubController extends Controller
         return __METHOD__;
     }
 
+    public function dataAction()
+    {
+        $method = $this->request->getMethod();
+        $queries = [];
+        switch ($method) {
+            case 'GET':
+            case 'PATCH':
+                $queries = $_GET;
+                break;
+            case 'POST':
+            case 'PUT':
+                $queries = $_POST;
+        }
+
+        return json_encode([
+            'method' => $method,
+            'queries' => $queries
+        ]);
+    }
+
     public function redirectAction()
     {
         $this->response->redirect('/');
@@ -48,7 +68,7 @@ class StubController extends Controller
     {
         $this->dispatcher->forward([
             "controller" => "Stub",
-            "action"     => "index",
+            "action" => "index",
         ]);
     }
 }

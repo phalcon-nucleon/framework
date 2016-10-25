@@ -23,6 +23,7 @@ namespace Luxury\Error;
 use Luxury\Constants\Env;
 use Luxury\Constants\Services;
 use Phalcon\Di;
+use Phalcon\Http\Response;
 use Phalcon\Logger;
 use Phalcon\Logger\Adapter\File as FileLogger;
 use Phalcon\Logger\Formatter;
@@ -42,7 +43,7 @@ class Handler
      */
     public static function register()
     {
-        switch (APP_ENV) {
+        switch (getenv('APP_ENV')) {
             case Env::TEST:
             case Env::DEVELOPMENT:
             case Env::STAGING:
@@ -56,47 +57,41 @@ class Handler
                 break;
         }
 
-        set_error_handler(
-            function ($errno, $errstr, $errfile, $errline) {
-                if (!($errno & error_reporting())) {
-                    return;
-                }
+        set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+            if (!($errno & error_reporting())) {
+                return;
+            }
 
-                $options = [
-                    'type'    => $errno,
-                    'message' => $errstr,
-                    'file'    => $errfile,
-                    'line'    => $errline,
-                    'isError' => true,
-                ];
+            $options = [
+                'type'    => $errno,
+                'message' => $errstr,
+                'file'    => $errfile,
+                'line'    => $errline,
+                'isError' => true,
+            ];
 
+            static::handle(new Error($options));
+        });
+
+        set_exception_handler(function ($e) {
+            /** @var \Error|\Exception $e */
+            $options = [
+                'type'        => $e->getCode(),
+                'message'     => $e->getMessage(),
+                'file'        => $e->getFile(),
+                'line'        => $e->getLine(),
+                'isException' => true,
+                'exception'   => $e,
+            ];
+
+            static::handle(new Error($options));
+        });
+
+        register_shutdown_function(function () {
+            if (!is_null($options = error_get_last())) {
                 static::handle(new Error($options));
             }
-        );
-
-        set_exception_handler(
-            function ($e) {
-                /** @var \Error|\Exception $e */
-                $options = [
-                    'type'        => $e->getCode(),
-                    'message'     => $e->getMessage(),
-                    'file'        => $e->getFile(),
-                    'line'        => $e->getLine(),
-                    'isException' => true,
-                    'exception'   => $e,
-                ];
-
-                static::handle(new Error($options));
-            }
-        );
-
-        register_shutdown_function(
-            function () {
-                if (!is_null($options = error_get_last())) {
-                    static::handle(new Error($options));
-                }
-            }
-        );
+        });
     }
 
     /**
@@ -104,7 +99,7 @@ class Handler
      *
      * @param  \Luxury\Error\Error $error
      *
-     * @return null|mixed
+     * @return null|Response
      */
     public static function handle(Error $error)
     {
@@ -245,7 +240,7 @@ class Handler
                 return 'E_USER_DEPRECATED';
         }
 
-        return $code;
+        return (string)$code;
     }
 
     /**

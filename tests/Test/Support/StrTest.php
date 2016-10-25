@@ -176,6 +176,13 @@ class StrTest extends TestCase
         $this->assertEquals('laravelPhPFramework', Str::camel('Laravel-phP-framework'));
         $this->assertEquals('laravelPhpFramework', Str::camel('Laravel  -_-  php   -_-   framework   '));
     }
+    public function testCapitalize()
+    {
+        $this->assertEquals('Laravel Framework', Str::capitalize('LARAVEL framework'));
+        $this->assertEquals('Laravel Framework', Str::capitalize('LARAVEL framework'));
+        $this->assertEquals('Laravel', Str::capitalize('laravel'));
+        $this->assertEquals('Laravel', Str::capitalize('lArAVeL'));
+    }
     public function testSubstr()
     {
         $this->assertEquals('Ё', Str::substr('БГДЖИЛЁ', -1));

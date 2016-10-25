@@ -27,9 +27,7 @@ class Database extends Provider
 
         $adapter = $dbConfig['adapter'];
         unset($dbConfig['adapter']);
-
-        $class = 'Phalcon\Db\Adapter\Pdo\\' . $adapter;
-
-        return new $class($dbConfig);
+        
+        return new $adapter($dbConfig);
     }
 }

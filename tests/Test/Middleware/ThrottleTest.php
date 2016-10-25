@@ -2,6 +2,7 @@
 namespace Test\Middleware;
 
 use Luxury\Constants\Services;
+use Luxury\Middleware\Throttle;
 use Phalcon\Http\Response;
 use Phalcon\Http\Response\StatusCode;
 use Test\TestCase\TestCase;
@@ -128,4 +129,14 @@ class ThrottleTest extends TestCase
         $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
         $this->assertEquals(60, $response->getHeaders()->get('Retry-After'));
     }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testWrongImplementedMiddleware()
+    {
+        StubThrolledWrongImplemented::create(0);
+    }
 }
+
+class StubThrolledWrongImplemented extends Throttle{}

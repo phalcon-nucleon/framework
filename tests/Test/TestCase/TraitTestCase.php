@@ -2,7 +2,7 @@
 
 namespace Test\TestCase;
 
-use Test\Stub\StubKernel;
+use Test\Stub\StubKernelHttp;
 
 /**
  * Class TraitTestCase
@@ -14,7 +14,7 @@ trait TraitTestCase
      */
     protected static function kernelClassInstance()
     {
-        return StubKernel::class;
+        return StubKernelHttp::class;
     }
 
     public static function setUpBeforeClass()

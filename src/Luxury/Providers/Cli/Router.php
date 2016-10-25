@@ -5,7 +5,6 @@ namespace Luxury\Providers\Cli;
 use Luxury\Constants\Services;
 use Luxury\Providers\Provider;
 
-
 /**
  * Class Router
  *

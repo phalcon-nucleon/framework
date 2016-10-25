@@ -8,13 +8,13 @@ use Luxury\Constants\Services;
  * Class Auth
  *
  * @package Luxury\Support\Facades
- * @method static mixed user()
- * @method static mixed guest()
- * @method static mixed attempt(array $credentials)
- * @method static mixed check()
- * @method static mixed logout()
+ * @method static \Luxury\Foundation\Auth\User|null user()
+ * @method static bool guest()
+ * @method static \Luxury\Foundation\Auth\User|null attempt(array $credentials, bool $remember = false)
+ * @method static bool check()
+ * @method static void logout()
  * @method static mixed id()
- * @method static mixed login()
+ * @method static bool login()
  * @method static mixed loginUsingId()
  */
 class Auth extends Facade

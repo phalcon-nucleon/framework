@@ -1,8 +1,8 @@
 <?php
 namespace Test;
 
+use Luxury\Events\Listener;
 use Test\Stub\StubListener;
-use Test\Stub\StubMiddleware;
 use Test\TestCase\TestCase;
 
 /**
@@ -12,6 +12,19 @@ use Test\TestCase\TestCase;
  */
 class ListenerTest extends TestCase
 {
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testAttach()
+    {
+        /** @var Listener $listener */
+        $listener = new class extends Listener
+        {
+            protected $listen = ['test'];
+        };
+
+        $listener->attach();
+    }
 
     public function testApplicationLifeCycle()
     {

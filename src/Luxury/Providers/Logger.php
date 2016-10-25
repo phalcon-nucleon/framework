@@ -26,26 +26,31 @@ class Logger extends Provider
         /** @var \Phalcon\Config|\stdClass $config */
         $config = $this->getDI()->getShared(Services::CONFIG);
 
-        switch (ucfirst($adapter = Arr::fetch($config->log, 'adapter'))) {
+        switch (ucfirst($adapter = $config->log->adapter ?? 'empty')) {
             case null:
             case 'Multiple':
                 $adapter = \Phalcon\Logger\Adapter\File\Multiple::class;
 
-                $name = Arr::fetch($config->log, 'path');
+                $name = $config->log->path ?? null;
                 break;
             case 'File':
                 $adapter = \Phalcon\Logger\Adapter\File::class;
 
-                $name = Arr::fetch($config->log, 'path');
+                $name = $config->log->path ?? null;
                 break;
             case 'Database':
+                $adapter = \Phalcon\Logger\Adapter\Database::class;
+
+                $config->log->options->db = $this->getDI()->getShared(Services::DB);
+                $name = $config->log->name ?? 'phalcon';
+                break;
             case 'Firelogger':
             case 'Stream':
             case 'Syslog':
             case 'Udplogger':
-                $adapter = '\Phalcon\Logger\Adapter' . $adapter;
+                $adapter = '\Phalcon\Logger\Adapter\\' . $adapter;
 
-                $name = Arr::fetch($config->log, 'name', 'phalcon');
+                $name = $config->log->name ?? 'phalcon';
                 break;
             default:
                 throw new \RuntimeException("Logger adapter $adapter not implemented.");
@@ -55,6 +60,10 @@ class Logger extends Provider
             throw new \RuntimeException('Required parameter {name|path} missing.');
         }
 
-        return new $adapter($name, (array)Arr::fetch($config->log, 'options', []));
+        if (empty($config->log->options)) {
+            throw new \RuntimeException('Required parameter {options} missing.');
+        }
+
+        return new $adapter($name, $config->log->options->toArray());
     }
 }

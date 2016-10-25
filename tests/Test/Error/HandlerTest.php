@@ -16,6 +16,22 @@ use Test\TestCase\TestCase;
  */
 class HandlerTest extends TestCase
 {
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->getDI()->getShared(Services::CONFIG)->error = [
+            'formatter'  => [
+                'formatter'  => \Phalcon\Logger\Formatter\Line::class,
+                'format'     => '[%date%][%type%] %message%',
+                'dateFormat' => 'Y-m-d H:i:s O'
+            ],
+            'namespace'  => __NAMESPACE__,
+            'controller' => 'Stuberror',
+            'action'     => 'index',
+        ];
+    }
+
     /**
      * @return array
      */
@@ -99,19 +115,15 @@ class HandlerTest extends TestCase
         ];
 
         foreach ($datas as &$data) {
-            $data[] = Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::{{__FUNCTION__}} in ' . __FILE__ . ' on line 120';
+            $data[] =
+                Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::{{__FUNCTION__}} in ' . __FILE__ . ' on line 120';
         }
 
         return $datas;
     }
 
-    /**
-     * @dataProvider dataHandleError
-     */
-    public function testHandleErrorWithoutView($errorCode, $exceptedLogger, $exceptedMessage)
+    public function mockLogger($exceptedLogger, $exceptedMessage)
     {
-        $exceptedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $exceptedMessage);
-
         $logger = $this->getMockBuilder(Logger\Adapter\File::class)
             ->disableOriginalConstructor()
             ->setMethods(['setFormatter', 'log'])
@@ -122,17 +134,16 @@ class HandlerTest extends TestCase
         $logger->expects($this->any())->method('log')->with($exceptedLogger, $exceptedMessage);
 
         $this->getDI()->setShared(Services::LOGGER, $logger);
+    }
 
-        $this->getDI()->getShared(Services::CONFIG)->error = [
-            'formatter'  => [
-                'formatter'  => \Phalcon\Logger\Formatter\Line::class,
-                'format'     => '[%date%][%type%] %message%',
-                'dateFormat' => 'Y-m-d H:i:s O'
-            ],
-            'namespace'  => __NAMESPACE__,
-            'controller' => 'Stuberror',
-            'action'     => 'index',
-        ];
+    /**
+     * @dataProvider dataHandleError
+     */
+    public function testHandleErrorWithoutView($errorCode, $exceptedLogger, $exceptedMessage)
+    {
+        $exceptedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $exceptedMessage);
+
+        $this->mockLogger($exceptedLogger, $exceptedMessage);
 
         $this->expectOutputString($exceptedMessage);
 
@@ -152,14 +163,7 @@ class HandlerTest extends TestCase
     {
         $exceptedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $exceptedMessage);
 
-        $logger = $this->getMockBuilder(Logger\Adapter\File::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['setFormatter', 'log'])
-            ->getMock();
-        $logger->expects($this->any())->method('setFormatter');
-        $logger->expects($this->any())->method('log')->with($exceptedLogger, $exceptedMessage);
-
-        $this->getDI()->setShared(Services::LOGGER, $logger);
+        $this->mockLogger($exceptedLogger, $exceptedMessage);
 
         $view = $this->getMockBuilder(\Phalcon\Mvc\View::class)
             ->disableOriginalConstructor()
@@ -171,17 +175,6 @@ class HandlerTest extends TestCase
         $view->expects($this->any())->method('getContent')->willReturn($exceptedMessage);
 
         $this->getDI()->setShared(Services::VIEW, $view);
-
-        $this->getDI()->getShared(Services::CONFIG)->error = [
-            'formatter'  => [
-                'formatter'  => \Phalcon\Logger\Formatter\Line::class,
-                'format'     => '[%date%][%type%] %message%',
-                'dateFormat' => 'Y-m-d H:i:s O'
-            ],
-            'namespace'  => __NAMESPACE__,
-            'controller' => 'Stuberror',
-            'action'     => 'index',
-        ];
 
         $this->expectOutputString($exceptedMessage);
 
@@ -212,7 +205,8 @@ class HandlerTest extends TestCase
         ];
 
         foreach ($datas as &$data) {
-            $data[] = Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::testHandleWarning in ' . __FILE__ . ' on line 120';
+            $data[] =
+                Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::testHandleWarning in ' . __FILE__ . ' on line 120';
         }
 
         return $datas;
@@ -223,27 +217,7 @@ class HandlerTest extends TestCase
      */
     public function testHandleWarning($errorCode, $exceptedLogger, $exceptedMessage)
     {
-        $logger = $this->getMockBuilder(Logger\Adapter\File::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['setFormatter', 'log'])
-            ->getMock();
-
-        $logger->expects($this->any())->method('setFormatter');
-
-        $logger->expects($this->any())->method('log')->with($exceptedLogger, $exceptedMessage);
-
-        $this->getDI()->setShared(Services::LOGGER, $logger);
-
-        $this->getDI()->getShared(Services::CONFIG)->error = [
-            'formatter'  => [
-                'formatter'  => \Phalcon\Logger\Formatter\Line::class,
-                'format'     => '[%date%][%type%] %message%',
-                'dateFormat' => 'Y-m-d H:i:s O'
-            ],
-            'namespace'  => __NAMESPACE__,
-            'controller' => 'Stuberror',
-            'action'     => 'index',
-        ];
+        $this->mockLogger($exceptedLogger, $exceptedMessage);
 
         $this->expectOutputString('');
 
@@ -255,15 +229,22 @@ class HandlerTest extends TestCase
             'isError' => true,
         ]));
     }
+
+    public function testTriggerError()
+    {
+        $this->mockLogger(
+            Logger::ERROR,
+            'E_USER_ERROR: msg in ' . __FILE__ . ' on line ' . (__LINE__ + 5)
+        );
+
+        Handler::register();
+
+        trigger_error('msg', E_USER_ERROR);
+    }
 }
 
 class StuberrorController extends Controller
 {
-    /**
-     * Event called on controller construction
-     *
-     * Register middleware here.
-     */
     protected function onConstruct()
     {
     }

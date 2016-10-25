@@ -23,6 +23,7 @@ namespace Luxury\Error;
 use Luxury\Constants\Env;
 use Luxury\Constants\Services;
 use Phalcon\Di;
+use Phalcon\Http\Response;
 use Phalcon\Logger;
 use Phalcon\Logger\Adapter\File as FileLogger;
 use Phalcon\Logger\Formatter;
@@ -104,7 +105,7 @@ class Handler
      *
      * @param  \Luxury\Error\Error $error
      *
-     * @return null|mixed
+     * @return null|Response
      */
     public static function handle(Error $error)
     {

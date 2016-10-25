@@ -86,15 +86,40 @@ class HandlerTest extends TestCase
         $this->assertEquals($type, Handler::getErrorType($code));
     }
 
-    public function testHandle()
+    public function dataHandleError()
     {
+        $datas = [
+            'null'                => [null, Logger::ERROR],
+            'E_PARSE'             => [E_PARSE, Logger::CRITICAL],
+            'E_COMPILE_ERROR'     => [E_COMPILE_ERROR, Logger::EMERGENCY],
+            'E_CORE_ERROR'        => [E_CORE_ERROR, Logger::EMERGENCY],
+            'E_ERROR'             => [E_ERROR, Logger::EMERGENCY],
+            'E_RECOVERABLE_ERROR' => [E_RECOVERABLE_ERROR, Logger::ERROR],
+            'E_USER_ERROR'        => [E_USER_ERROR, Logger::ERROR],
+        ];
+
+        foreach ($datas as &$data) {
+            $data[] = Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::{{__FUNCTION__}} in ' . __FILE__ . ' on line 120';
+        }
+
+        return $datas;
+    }
+
+    /**
+     * @dataProvider dataHandleError
+     */
+    public function testHandleErrorWithoutView($errorCode, $exceptedLogger, $exceptedMessage)
+    {
+        $exceptedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $exceptedMessage);
+
         $logger = $this->getMockBuilder(Logger\Adapter\File::class)
             ->disableOriginalConstructor()
             ->setMethods(['setFormatter', 'log'])
             ->getMock();
 
         $logger->expects($this->any())->method('setFormatter');
-        $logger->expects($this->any())->method('log');
+
+        $logger->expects($this->any())->method('log')->with($exceptedLogger, $exceptedMessage);
 
         $this->getDI()->setShared(Services::LOGGER, $logger);
 
@@ -109,11 +134,124 @@ class HandlerTest extends TestCase
             'action'     => 'index',
         ];
 
+        $this->expectOutputString($exceptedMessage);
+
         Handler::handle(new Error([
-            'type'    => E_ERROR,
+            'type'    => $errorCode,
             'message' => __METHOD__,
             'file'    => __FILE__,
-            'line'    => __LINE__,
+            'line'    => 120,
+            'isError' => true,
+        ]));
+    }
+
+    /**
+     * @dataProvider dataHandleError
+     */
+    public function testHandleErrorWithView($errorCode, $exceptedLogger, $exceptedMessage)
+    {
+        $exceptedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $exceptedMessage);
+
+        $logger = $this->getMockBuilder(Logger\Adapter\File::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['setFormatter', 'log'])
+            ->getMock();
+        $logger->expects($this->any())->method('setFormatter');
+        $logger->expects($this->any())->method('log')->with($exceptedLogger, $exceptedMessage);
+
+        $this->getDI()->setShared(Services::LOGGER, $logger);
+
+        $view = $this->getMockBuilder(\Phalcon\Mvc\View::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['start', 'render', 'finish', 'getContent'])
+            ->getMock();
+        $view->expects($this->any())->method('start');
+        $view->expects($this->any())->method('render');
+        $view->expects($this->any())->method('finish');
+        $view->expects($this->any())->method('getContent')->willReturn($exceptedMessage);
+
+        $this->getDI()->setShared(Services::VIEW, $view);
+
+        $this->getDI()->getShared(Services::CONFIG)->error = [
+            'formatter'  => [
+                'formatter'  => \Phalcon\Logger\Formatter\Line::class,
+                'format'     => '[%date%][%type%] %message%',
+                'dateFormat' => 'Y-m-d H:i:s O'
+            ],
+            'namespace'  => __NAMESPACE__,
+            'controller' => 'Stuberror',
+            'action'     => 'index',
+        ];
+
+        $this->expectOutputString($exceptedMessage);
+
+        $response = Handler::handle(new Error([
+            'type'    => $errorCode,
+            'message' => __METHOD__,
+            'file'    => __FILE__,
+            'line'    => 120,
+            'isError' => true,
+        ]));
+
+        $this->assertTrue($response->isSent());
+        $this->assertEquals($exceptedMessage, $response->getContent());
+    }
+
+    public function dataHandleWarning()
+    {
+        $datas = [
+            'E_WARNING'         => [E_WARNING, Logger::WARNING],
+            'E_USER_WARNING'    => [E_USER_WARNING, Logger::WARNING],
+            'E_CORE_WARNING'    => [E_CORE_WARNING, Logger::WARNING],
+            'E_COMPILE_WARNING' => [E_COMPILE_WARNING, Logger::WARNING],
+            'E_NOTICE'          => [E_NOTICE, Logger::NOTICE],
+            'E_USER_NOTICE'     => [E_USER_NOTICE, Logger::NOTICE],
+            'E_STRICT'          => [E_STRICT, Logger::INFO],
+            'E_DEPRECATED'      => [E_DEPRECATED, Logger::INFO],
+            'E_USER_DEPRECATED' => [E_USER_DEPRECATED, Logger::INFO],
+        ];
+
+        foreach ($datas as &$data) {
+            $data[] = Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::testHandleWarning in ' . __FILE__ . ' on line 120';
+        }
+
+        return $datas;
+    }
+
+    /**
+     * @dataProvider dataHandleWarning
+     */
+    public function testHandleWarning($errorCode, $exceptedLogger, $exceptedMessage)
+    {
+        $logger = $this->getMockBuilder(Logger\Adapter\File::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['setFormatter', 'log'])
+            ->getMock();
+
+        $logger->expects($this->any())->method('setFormatter');
+
+        $logger->expects($this->any())->method('log')->with($exceptedLogger, $exceptedMessage);
+
+        $this->getDI()->setShared(Services::LOGGER, $logger);
+
+        $this->getDI()->getShared(Services::CONFIG)->error = [
+            'formatter'  => [
+                'formatter'  => \Phalcon\Logger\Formatter\Line::class,
+                'format'     => '[%date%][%type%] %message%',
+                'dateFormat' => 'Y-m-d H:i:s O'
+            ],
+            'namespace'  => __NAMESPACE__,
+            'controller' => 'Stuberror',
+            'action'     => 'index',
+        ];
+
+        $this->expectOutputString('');
+
+        Handler::handle(new Error([
+            'type'    => $errorCode,
+            'message' => __METHOD__,
+            'file'    => __FILE__,
+            'line'    => 120,
             'isError' => true,
         ]));
     }

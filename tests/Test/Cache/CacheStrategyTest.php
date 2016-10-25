@@ -105,6 +105,8 @@ class CacheStrategyTest extends TestCase
 
     public function testStartSave()
     {
+        $this->expectOutputString('test');
+        
         Cache::uses('output');
 
         $test = Cache::start('test');

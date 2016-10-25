@@ -232,10 +232,11 @@ class HandlerTest extends TestCase
 
     public function testTriggerError()
     {
-        $this->mockLogger(
-            Logger::ERROR,
-            'E_USER_ERROR: msg in ' . __FILE__ . ' on line ' . (__LINE__ + 5)
-        );
+        $exceptedMsg = 'E_USER_ERROR: msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8);
+
+        $this->expectOutputString($exceptedMsg);
+
+        $this->mockLogger(Logger::ERROR, $exceptedMsg);
 
         Handler::register();
 

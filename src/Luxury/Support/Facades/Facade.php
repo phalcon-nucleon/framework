@@ -1,4 +1,9 @@
 <?php
+/**
+ * @author Taylor Otwell
+ *
+ * Adapted for Phalcon
+ */
 
 namespace Luxury\Support\Facades;
 
@@ -9,8 +14,6 @@ use RuntimeException;
 
 /**
  * Class Facade
- *
- * @see Laravel 5.2 Illuminate\Support\Facades\Facade
  *
  * @package Luxury\Support\Facades
  */

@@ -6,10 +6,10 @@ use Luxury\Constants\Events;
 use Luxury\Foundation\Middleware\Application as ApplicationMiddleware;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
 use Luxury\Foundation\Middleware\Disptacher as DisptacherMiddleware;
-use Luxury\Middleware\AfterMiddleware;
-use Luxury\Middleware\BeforeMiddleware;
-use Luxury\Middleware\FinishMiddleware;
-use Luxury\Middleware\InitMiddleware;
+use Luxury\Interfaces\Middleware\AfterInterface;
+use Luxury\Interfaces\Middleware\BeforeInterface;
+use Luxury\Interfaces\Middleware\FinishInterface;
+use Luxury\Interfaces\Middleware\InitInterface;
 use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 use Test\TestCase\TestListenable;
@@ -148,29 +148,29 @@ class MiddlewareTest extends TestCase
 
 class TestControllerMiddlewareStub extends ControllerMiddleware implements
     TestListenable,
-    BeforeMiddleware,
-    AfterMiddleware,
-    FinishMiddleware
+    BeforeInterface,
+    AfterInterface,
+    FinishInterface
 {
     use TestListenize, Middlewarize;
 }
 
 class TestDispatchMiddlewareStub extends DisptacherMiddleware implements
     TestListenable,
-    InitMiddleware,
-    BeforeMiddleware,
-    AfterMiddleware,
-    FinishMiddleware
+    InitInterface,
+    BeforeInterface,
+    AfterInterface,
+    FinishInterface
 {
     use TestListenize, Middlewarize;
 }
 
 class TestApplicationMiddlewareStub extends ApplicationMiddleware implements
     TestListenable,
-    InitMiddleware,
-    BeforeMiddleware,
-    AfterMiddleware,
-    FinishMiddleware
+    InitInterface,
+    BeforeInterface,
+    AfterInterface,
+    FinishInterface
 {
     use TestListenize, Middlewarize;
 }

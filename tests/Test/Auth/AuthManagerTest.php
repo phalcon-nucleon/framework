@@ -34,25 +34,11 @@ class AuthManagerTest extends TestCase
 
     public function mockDb($numRows, $fetchall)
     {
-        $con = $this->getMockBuilder(\Phalcon\Db\Adapter\Pdo\Mysql::class)
-            ->disableOriginalConstructor()
-            //->setMockClassName(\Phalcon\Db\Adapter\Pdo\Mysql::class)
-            ->setMethods(['getDialect', 'query', 'execute', 'tableExists', 'describeColumns'])
-            ->getMock();
+        $con = $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
 
-        $dialect = $this->getMockBuilder(\Phalcon\Db\Dialect\Mysql::class)
-            ->disableOriginalConstructor()
-            //->setMockClassName(\Phalcon\Db\Dialect\Mysql::class)
-            ->setMethods(['select'])
-            ->getMock();
-        //$dialect = $this->getMock('\\Phalcon\\Db\\Dialect\\Mysql', array('select'), array(), '', false);
+        $dialect = $this->createMock(\Phalcon\Db\Dialect\Mysql::class);
 
-        $results = $this->getMockBuilder(\Phalcon\Db\Result\Pdo::class)
-            ->disableOriginalConstructor()
-            //->setMockClassName(\Phalcon\Db\Result\Pdo::class)
-            ->setMethods(['numRows', 'setFetchMode', 'fetchall'])
-            ->getMock();
-        //$results = $this->getMock('\\Phalcon\\Db\\Result\\Pdo', array('numRows', 'setFetchMode', 'fetchall'), array(), '', false);
+        $results = $this->createMock(\Phalcon\Db\Result\Pdo::class);
 
         $results->expects($this->any())
             ->method('numRows')
@@ -123,8 +109,6 @@ class AuthManagerTest extends TestCase
                     "notNull" => true
                 ]),
             ]));
-
-        $this->getDI()->set('db', $con);
     }
 
     public function testNoAttemps()

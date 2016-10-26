@@ -282,8 +282,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     {
         return $this->getPrivateProperty(
             $className ? $className : get_class($object),
-            $propertyName,
-            $className
+            $propertyName
         )->getValue($object);
     }
 }

@@ -5,6 +5,8 @@ namespace Luxury\Auth;
 /**
  * Interface Authenticable
  *
+ * Provide all necessary functions to authenticate.
+ *
  * @package Luxury\Auth
  */
 trait Authenticable

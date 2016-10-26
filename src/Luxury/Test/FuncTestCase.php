@@ -13,6 +13,26 @@ abstract class FuncTestCase extends TestCase
 {
 
     /**
+     * @param string $service
+     * @param string $class
+     * @param bool   $shared
+     *
+     * @return \PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockService($service, $class, $shared)
+    {
+        if ($this->getDI()->has($service)) {
+            $this->getDI()->remove($service);
+        }
+
+        $instance = $this->createMock($class);
+
+        $this->getDI()->set($service, $instance, $shared);
+
+        return $instance;
+    }
+
+    /**
      * Assert that the last dispatched controller matches the given controller class name
      *
      * @param  string $expected The expected controller name

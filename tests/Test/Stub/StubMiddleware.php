@@ -4,10 +4,10 @@ namespace Test\Stub;
 
 use Luxury\Constants\Events\Application as AppEvent;
 use Luxury\Foundation\Middleware\Application as ApplicationMiddleware;
-use Luxury\Middleware\AfterMiddleware;
-use Luxury\Middleware\BeforeMiddleware;
-use Luxury\Middleware\FinishMiddleware;
-use Luxury\Middleware\InitMiddleware;
+use Luxury\Interfaces\Middleware\AfterInterface;
+use Luxury\Interfaces\Middleware\BeforeInterface;
+use Luxury\Interfaces\Middleware\FinishInterface;
+use Luxury\Interfaces\Middleware\InitInterface;
 use Phalcon\Events\Event;
 use Test\TestCase\TestListenable;
 use Test\TestCase\TestListenize;
@@ -17,7 +17,7 @@ use Test\TestCase\TestListenize;
  *
  * @package     Test\Stub
  */
-class StubMiddleware extends ApplicationMiddleware implements InitMiddleware, BeforeMiddleware, AfterMiddleware, FinishMiddleware, TestListenable
+class StubMiddleware extends ApplicationMiddleware implements InitInterface, BeforeInterface, AfterInterface, FinishInterface, TestListenable
 {
     use TestListenize;
 
@@ -27,10 +27,10 @@ class StubMiddleware extends ApplicationMiddleware implements InitMiddleware, Be
     {
         parent::__construct();
 
-        if ($this instanceof InitMiddleware) {
+        if ($this instanceof InitInterface) {
             $this->listen[AppEvent::BOOT] = 'init';
         }
-        if ($this instanceof FinishMiddleware) {
+        if ($this instanceof FinishInterface) {
             $this->listen[AppEvent::BEFORE_SEND_RESPONSE] = 'finish';
         }
         $this->listen[AppEvent::VIEW_RENDER] = 'viewRender';

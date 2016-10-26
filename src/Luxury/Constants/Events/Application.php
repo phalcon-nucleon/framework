@@ -5,9 +5,9 @@ namespace Luxury\Constants\Events;
 /**
  * Class Application
  *
- * @package Luxury\Constants\Events
- *
  * Contains a list of events related to the area 'application'
+ *
+ * @package Luxury\Constants\Events
  */
 final class Application
 {

@@ -4,6 +4,8 @@ namespace Luxury\Middleware;
 
 use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
+use Luxury\Interfaces\Middleware\AfterInterface;
+use Luxury\Interfaces\Middleware\BeforeInterface;
 use Luxury\Security\RateLimiter;
 use Phalcon\Events\Event;
 use Phalcon\Http\Response\StatusCode;
@@ -13,7 +15,7 @@ use Phalcon\Http\Response\StatusCode;
  *
  * @package     Luxury\Middleware
  */
-abstract class Throttle extends ControllerMiddleware implements BeforeMiddleware, AfterMiddleware
+abstract class Throttle extends ControllerMiddleware implements BeforeInterface, AfterInterface
 {
     /**
      * Name of the throttle limiter.

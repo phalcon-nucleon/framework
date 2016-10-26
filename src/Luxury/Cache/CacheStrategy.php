@@ -10,6 +10,9 @@ use Phalcon\Di\InjectionAwareInterface;
 /**
  * Class CacheService
  *
+ * Provides access to all caches saved through the Strategy Design Pattern
+ * and thus easily change the storage algorithm.
+ *
  * @package Luxury\Cache
  *
  * @method BackendInterface uses(string $use = null)

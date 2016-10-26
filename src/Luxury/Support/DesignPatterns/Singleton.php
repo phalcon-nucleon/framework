@@ -5,6 +5,8 @@ namespace Luxury\Support\DesignPatterns;
 /**
  * Class Singleton
  *
+ * Singleton Design Pattern
+ * 
  * @package  Luxury\Support\DesignPatterns
  */
 abstract class Singleton

@@ -5,9 +5,9 @@ namespace Luxury\Constants\Events;
 /**
  * Class Loader
  *
- * @package Luxury\Constants\Events
- *
  * Contains a list of events related to the area 'loader'
+ *
+ * @package Luxury\Constants\Events
  */
 final class Loader
 {

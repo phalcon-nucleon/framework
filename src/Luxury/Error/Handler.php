@@ -146,51 +146,41 @@ class Handler
 
         $logger->log(static::getLogType($error->type), $message);
 
-        switch ($error->type) {
-            case E_WARNING:
-            case E_NOTICE:
-            case E_CORE_WARNING:
-            case E_COMPILE_WARNING:
-            case E_USER_WARNING:
-            case E_USER_NOTICE:
-            case E_STRICT:
-            case E_DEPRECATED:
-            case E_USER_DEPRECATED:
-            case E_ALL:
-                break;
-            case 0:
-            case E_ERROR:
-            case E_PARSE:
-            case E_CORE_ERROR:
-            case E_COMPILE_ERROR:
-            case E_USER_ERROR:
-            case E_RECOVERABLE_ERROR:
-                if ($di->has(Services::VIEW)) {
-                    /* @var \Phalcon\Mvc\Dispatcher $dispatcher */
-                    $dispatcher = $di->getShared(Services::DISPATCHER);
-                    /* @var \Phalcon\Mvc\View $view */
-                    $view = $di->getShared(Services::VIEW);
-                    /* @var \Phalcon\Http\Response $response */
-                    $response = $di->getShared(Services::RESPONSE);
+        $i = $error->type;
+        if ($i == 0 ||
+            $i == E_ERROR ||
+            $i == E_PARSE ||
+            $i == E_CORE_ERROR ||
+            $i == E_COMPILE_ERROR ||
+            $i == E_USER_ERROR ||
+            $i == E_RECOVERABLE_ERROR
+        ) {
+            if ($di->has(Services::VIEW)) {
+                /* @var \Phalcon\Mvc\Dispatcher $dispatcher */
+                $dispatcher = $di->getShared(Services::DISPATCHER);
+                /* @var \Phalcon\Mvc\View $view */
+                $view = $di->getShared(Services::VIEW);
+                /* @var \Phalcon\Http\Response $response */
+                $response = $di->getShared(Services::RESPONSE);
 
-                    $dispatcher->setNamespaceName($config['namespace']);
-                    $dispatcher->setControllerName($config['controller']);
-                    $dispatcher->setActionName($config['action']);
-                    $dispatcher->setParams(['error' => $error]);
+                $dispatcher->setNamespaceName($config['namespace']);
+                $dispatcher->setControllerName($config['controller']);
+                $dispatcher->setActionName($config['action']);
+                $dispatcher->setParams(['error' => $error]);
 
-                    $view->start();
-                    $dispatcher->dispatch();
-                    $view->render(
-                        $config['controller'],
-                        $config['action'],
-                        $dispatcher->getParams()
-                    );
-                    $view->finish();
+                $view->start();
+                $dispatcher->dispatch();
+                $view->render(
+                    $config['controller'],
+                    $config['action'],
+                    $dispatcher->getParams()
+                );
+                $view->finish();
 
-                    return $response->setContent($view->getContent())->send();
-                } else {
-                    echo $message;
-                }
+                return $response->setContent($view->getContent())->send();
+            } else {
+                echo $message;
+            }
         }
 
         return null;

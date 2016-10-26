@@ -3,19 +3,23 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
+use Luxury\Interfaces\Providable;
+use Luxury\Support\Traits\InjectionAwareTrait;
 use Luxury\View\Engine\Extensions\PhpFunction as PhpFunctionExtension;
+use Phalcon\Assets\Manager as AssetsManager;
+use Phalcon\Di\InjectionAwareInterface;
 use Phalcon\DiInterface;
+use Phalcon\Mvc\View\Engine\Volt as VoltEngine;
+use Phalcon\Tag;
 
 /**
  * Class View
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class View extends Provider
+class View implements Providable, InjectionAwareInterface
 {
-    protected $name = Services::VIEW;
-
-    protected $shared = true;
+    use InjectionAwareTrait;
 
     /**
      * @return \Phalcon\Mvc\View
@@ -24,10 +28,10 @@ class View extends Provider
     {
         $di = $this->getDI();
 
-        $di->setShared(Services::TAG, \Phalcon\Tag::class);
-        $di->setShared(Services::ASSETS, \Phalcon\Assets\Manager::class);
+        $di->setShared(Services::TAG, Tag::class);
+        $di->setShared(Services::ASSETS, AssetsManager::class);
 
-        $di->setShared($this->name, function () {
+        $di->setShared(Services::VIEW, function () {
             /** @var DiInterface $this */
 
             $view = new \Phalcon\Mvc\View();
@@ -37,7 +41,7 @@ class View extends Provider
             $view->registerEngines([
                 '.volt'  => function ($view, $di) {
                     /* @var \Phalcon\Di $di */
-                    $volt = new \Phalcon\Mvc\View\Engine\Volt($view, $di);
+                    $volt = new VoltEngine($view, $di);
 
                     $volt->setOptions([
                         'compiledPath'      => $di->getShared(Services::CONFIG)->view->compiledPath,
@@ -52,13 +56,5 @@ class View extends Provider
 
             return $view;
         });
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function register()
-    {
-        return;
     }
 }

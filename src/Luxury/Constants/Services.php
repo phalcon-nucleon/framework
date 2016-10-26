@@ -5,6 +5,8 @@ namespace Luxury\Constants;
 /**
  * Class Services
  *
+ * List of Services available in Di
+ *
  * @package Luxury\Constants
  */
 final class Services

@@ -6,13 +6,19 @@ use Phalcon\Di;
 use Phalcon\DiInterface;
 
 /**
- * Class InjectionAwarable
+ * Trait InjectionAwareTrait
  *
  * @package Luxury\Support\Traits
+ *
+ * @property-read \Luxury\Cache\CacheStrategy            $cache
+ * @property-read \Phalcon\Mvc\Application               $app
+ * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
  */
 trait InjectionAwareTrait
 {
     /**
+     * The Services Container
+     *
      * @var Di
      */
     protected $_dependencyInjector;
@@ -42,7 +48,8 @@ trait InjectionAwareTrait
     }
 
     /**
-     * Magic method __get
+     * Magic method __get allows to access services in the services container by just
+     * only accessing a public property with the same name of a registered service
      *
      * @param string $propertyName
      *

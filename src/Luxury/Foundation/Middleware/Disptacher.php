@@ -3,18 +3,18 @@
 namespace Luxury\Foundation\Middleware;
 
 use Luxury\Constants\Events\Dispatch;
-use Luxury\Middleware\AfterMiddleware;
-use Luxury\Middleware\BeforeMiddleware;
-use Luxury\Middleware\FinishMiddleware;
-use Luxury\Middleware\InitMiddleware;
-use Luxury\Middleware\Middleware;
+use Luxury\Events\Listener;
+use Luxury\Interfaces\Middleware\AfterInterface;
+use Luxury\Interfaces\Middleware\BeforeInterface;
+use Luxury\Interfaces\Middleware\FinishInterface;
+use Luxury\Interfaces\Middleware\InitInterface;
 
 /**
  * Class DisptacherMiddleware
  *
  * @package Luxury\Middleware
  */
-abstract class Disptacher extends Middleware
+abstract class Disptacher extends Listener
 {
     /**
      * DisptacherMiddleware constructor.
@@ -23,16 +23,16 @@ abstract class Disptacher extends Middleware
     {
         parent::__construct();
 
-        if ($this instanceof InitMiddleware) {
+        if ($this instanceof InitInterface) {
             $this->listen[Dispatch::BEFORE_DISPATCH_LOOP] = 'init';
         }
-        if ($this instanceof BeforeMiddleware) {
+        if ($this instanceof BeforeInterface) {
             $this->listen[Dispatch::BEFORE_DISPATCH] = 'before';
         }
-        if ($this instanceof AfterMiddleware) {
+        if ($this instanceof AfterInterface) {
             $this->listen[Dispatch::AFTER_DISPATCH] = 'after';
         }
-        if ($this instanceof FinishMiddleware) {
+        if ($this instanceof FinishInterface) {
             $this->listen[Dispatch::AFTER_DISPATCH_LOOP] = 'finish';
         }
     }

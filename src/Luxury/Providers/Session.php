@@ -4,14 +4,17 @@ namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Exceptions\SessionAdapterNotFound;
-use Phalcon\Session\Adapter\Aerospike;
-use Phalcon\Session\Adapter\Database;
-use Phalcon\Session\Adapter\Files;
-use Phalcon\Session\Adapter\HandlerSocket;
-use Phalcon\Session\Adapter\Libmemcached;
-use Phalcon\Session\Adapter\Memcache;
-use Phalcon\Session\Adapter\Mongo;
-use Phalcon\Session\Adapter\Redis;
+use Phalcon\Session\Adapter\Aerospike as AerospikeAdapter;
+use Phalcon\Session\Adapter\Database as DatabaseAdapter;
+use Phalcon\Session\Adapter\Files as FilesAdapter;
+use Phalcon\Session\Adapter\HandlerSocket as HandlerSocketAdapter;
+use Phalcon\Session\Adapter\Libmemcached as LibmemcachedAdapter;
+use Phalcon\Session\Adapter\Memcache as MemcacheAdapter;
+use Phalcon\Session\Adapter\Mongo as MongoAdapter;
+use Phalcon\Session\Adapter\Redis as RedisAdapter;
+use Luxury\Interfaces\Providable;
+use Luxury\Support\Traits\InjectionAwareTrait;
+use Phalcon\Di\InjectionAwareInterface;
 use Phalcon\Session\Bag;
 
 /**
@@ -19,11 +22,9 @@ use Phalcon\Session\Bag;
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class Session extends Provider
+class Session implements Providable, InjectionAwareInterface
 {
-    protected $name = Services::SESSION;
-
-    protected $shared = true;
+    use InjectionAwareTrait;
 
     /**
      * Start the session the first time some component request the session service
@@ -37,7 +38,7 @@ class Session extends Provider
         $di = $this->getDI();
 
         $di->set(Services::SESSION_BAG, Bag::class);
-        $di->setShared($this->name, function () {
+        $di->setShared(Services::SESSION, function () {
             /** @var \Phalcon\DiInterface $this */
 
             $adapter = $this->getShared(Services::CONFIG)->session->adapter;
@@ -53,14 +54,14 @@ class Session extends Provider
                 case 'Redis':
                     $class = 'Phalcon\Session\Adapter\\' . $adapter;
                     break;
-                case Aerospike::class:
-                case Database::class:
-                case HandlerSocket::class:
-                case Mongo::class:
-                case Files::class:
-                case Libmemcached::class:
-                case Memcache::class:
-                case Redis::class:
+                case AerospikeAdapter::class:
+                case DatabaseAdapter::class:
+                case HandlerSocketAdapter::class:
+                case MongoAdapter::class:
+                case FilesAdapter::class:
+                case LibmemcachedAdapter::class:
+                case MemcacheAdapter::class:
+                case RedisAdapter::class:
                     $class = $adapter;
                     break;
                 default:
@@ -84,13 +85,5 @@ class Session extends Provider
 
             return $session;
         });
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function register()
-    {
-        return;
     }
 }

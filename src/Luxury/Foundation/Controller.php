@@ -37,7 +37,7 @@ abstract class Controller extends \Phalcon\Mvc\Controller
      */
     protected function middleware(ControllerMiddleware $middleware) : Controller
     {
-        $this->app->attachMiddleware($middleware);
+        $this->app->attach($middleware);
 
         return $this;
     }

@@ -5,6 +5,8 @@ namespace Luxury\Constants;
 /**
  * Class Events
  *
+ * List of event Space listenable
+ *
  * @package Luxury\Constants
  */
 final class Events

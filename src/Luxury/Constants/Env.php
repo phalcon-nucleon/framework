@@ -5,6 +5,8 @@ namespace Luxury\Constants;
 /**
  * Class Env
  *
+ * List of environnement
+ *
  * @package     Luxury\Constants
  */
 final class Env

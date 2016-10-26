@@ -3,11 +3,11 @@
 namespace Luxury\Foundation\Middleware;
 
 use Luxury\Constants\Events\Application as AppEvent;
-use Luxury\Middleware\AfterMiddleware;
-use Luxury\Middleware\BeforeMiddleware;
-use Luxury\Middleware\FinishMiddleware;
-use Luxury\Middleware\InitMiddleware;
-use Luxury\Middleware\Middleware;
+use Luxury\Events\Listener;
+use Luxury\Interfaces\Middleware\AfterInterface;
+use Luxury\Interfaces\Middleware\BeforeInterface;
+use Luxury\Interfaces\Middleware\FinishInterface;
+use Luxury\Interfaces\Middleware\InitInterface;
 
 /**
  * ApplicationMiddleware
@@ -16,7 +16,7 @@ use Luxury\Middleware\Middleware;
  *
  * @package Luxury\Foundation\Middleware
  */
-abstract class Application extends Middleware
+abstract class Application extends Listener
 {
     /**
      * ApplicationMiddleware constructor.
@@ -25,16 +25,16 @@ abstract class Application extends Middleware
     {
         parent::__construct();
 
-        if ($this instanceof InitMiddleware) {
+        if ($this instanceof InitInterface) {
             $this->listen[AppEvent::BOOT] = 'init';
         }
-        if ($this instanceof BeforeMiddleware) {
+        if ($this instanceof BeforeInterface) {
             $this->listen[AppEvent::BEFORE_HANDLE_REQUEST] = 'before';
         }
-        if ($this instanceof AfterMiddleware) {
+        if ($this instanceof AfterInterface) {
             $this->listen[AppEvent::AFTER_HANDLE_REQUEST] = 'after';
         }
-        if ($this instanceof FinishMiddleware) {
+        if ($this instanceof FinishInterface) {
             $this->listen[AppEvent::BEFORE_SEND_RESPONSE] = 'finish';
         }
     }

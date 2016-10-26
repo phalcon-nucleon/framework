@@ -3,7 +3,9 @@
 namespace Luxury\Support\DesignPatterns;
 
 /**
- * Class Adapter
+ * Class Strategy
+ *
+ * Strategy Design Pattern
  *
  * @package Luxury
  */

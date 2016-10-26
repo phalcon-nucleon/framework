@@ -124,16 +124,10 @@ class HandlerTest extends TestCase
 
     public function mockLogger($expectedLogger, $expectedMessage)
     {
-        $logger = $this->getMockBuilder(Logger\Adapter\File::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['setFormatter', 'log'])
-            ->getMock();
-
+        $logger = $this->mockService(Services::LOGGER, Logger\Adapter\File::class, true);
+        
         $logger->expects($this->any())->method('setFormatter');
-
         $logger->expects($this->any())->method('log')->with($expectedLogger, $expectedMessage);
-
-        $this->getDI()->setShared(Services::LOGGER, $logger);
     }
 
     /**
@@ -165,16 +159,12 @@ class HandlerTest extends TestCase
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
-        $view = $this->getMockBuilder(\Phalcon\Mvc\View::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['start', 'render', 'finish', 'getContent'])
-            ->getMock();
+        $view = $this->mockService(Services::VIEW, \Phalcon\Mvc\View::class, true);
+
         $view->expects($this->any())->method('start');
         $view->expects($this->any())->method('render');
         $view->expects($this->any())->method('finish');
         $view->expects($this->any())->method('getContent')->willReturn($expectedMessage);
-
-        $this->getDI()->setShared(Services::VIEW, $view);
 
         $this->expectOutputString($expectedMessage);
 

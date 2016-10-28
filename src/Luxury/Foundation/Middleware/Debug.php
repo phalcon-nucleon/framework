@@ -10,7 +10,7 @@ use Phalcon\Events\Event;
 /**
  * Class Debug
  *
- * @package Luxury\Middleware
+ * @package Luxury\Foundation\Middleware
  */
 class Debug extends Listener
 {

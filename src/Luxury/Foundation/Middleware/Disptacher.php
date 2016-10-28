@@ -12,7 +12,7 @@ use Luxury\Interfaces\Middleware\InitInterface;
 /**
  * Class DisptacherMiddleware
  *
- * @package Luxury\Middleware
+ * @package Luxury\Foundation\Middleware
  */
 abstract class Disptacher extends Listener
 {

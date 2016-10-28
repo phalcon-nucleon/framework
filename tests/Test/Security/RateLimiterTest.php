@@ -73,4 +73,88 @@ class RateLimiterTest extends TestCase
 
         $this->assertEquals($excepted, $rateLimiter->availableIn('', 1));
     }
+
+    /**
+     * @return array
+     */
+    public function dataRetriesLeft()
+    {
+        return [
+            [1, 10, 9],
+            [10, 10, 0],
+            [5, 10, 5],
+            [0, 10, 10],
+        ];
+    }
+
+    /**
+     * @dataProvider dataRetriesLeft
+     *
+     * @param $cache
+     * @param $max
+     * @param $excepted
+     */
+    public function testRetriesLeft($cache, $max, $excepted)
+    {
+        $mock = $this->mockService(Services::CACHE, CacheStrategy::class, true);
+
+        $mock->expects($this->any())
+            ->method('get')
+            ->willReturn($cache);
+
+        $rateLimiter = new RateLimiter('testing');
+
+        $this->assertEquals($excepted, $rateLimiter->retriesLeft('', $max, 1));
+    }
+
+    public function testHit()
+    {
+        $mock = $this->mockService(Services::CACHE, CacheStrategy::class, true);
+
+        $mock->expects($this->any())
+            ->method('exists')
+            ->will($this->returnValue(false));
+
+        $mock->expects($this->any())
+            ->method('save')
+            ->withConsecutive(
+                ['testing', 0],
+                ['testing', 1]
+            );
+
+        $mock->expects($this->any())
+            ->method('get')
+            ->willReturn(0);
+
+        $rateLimiter = new RateLimiter('testing');
+
+        $this->assertEquals(1, $rateLimiter->hit('', 1));
+    }
+
+    public function testTooManyAttempts()
+    {
+        $mock = $this->mockService(Services::CACHE, CacheStrategy::class, true);
+
+        $mock->expects($this->any())
+            ->method('exists')
+            ->will($this->onConsecutiveCalls(true, false, false));
+
+        $mock->expects($this->any())
+            ->method('get')
+            ->will($this->onConsecutiveCalls(0, 10));
+
+        $mock->expects($this->once())
+            ->method('save');
+
+        $mock->expects($this->once())
+            ->method('delete');
+
+        $rateLimiter = new RateLimiter('testing');
+
+        $this->assertEquals(true, $rateLimiter->tooManyAttempts('', 10, 1));
+
+        $this->assertEquals(false, $rateLimiter->tooManyAttempts('', 10, 1));
+
+        $this->assertEquals(true, $rateLimiter->tooManyAttempts('', 10, 1));
+    }
 }

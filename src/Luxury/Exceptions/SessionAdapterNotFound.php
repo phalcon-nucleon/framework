@@ -20,6 +20,6 @@ final class SessionAdapterNotFound extends Exception
      */
     public function __construct($class, \Throwable $previous = null)
     {
-        \Exception::__construct("", 448, $previous);
+        parent::__construct("Session Adapter $class not found", 448, $previous);
     }
 }

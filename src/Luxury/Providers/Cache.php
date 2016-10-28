@@ -5,6 +5,7 @@ namespace Luxury\Providers;
 use Luxury\Cache\CacheStrategy;
 use Luxury\Constants\Services;
 use Phalcon\Cache\BackendInterface;
+use Phalcon\Cache\Frontend\None as FrontendNone;
 use Phalcon\Cache\FrontendInterface;
 
 /**
@@ -56,13 +57,12 @@ class Cache extends Provider
                             break;
                         default:
                             $driverClass = $driver;
-                    }
-
-                    if (!class_exists($driverClass)) {
-                        $msg = empty($driver)
-                            ? 'Cache driver not set.'
-                            : "Cache driver $driver not implemented.";
-                        throw new \RuntimeException($msg);
+                            if (!class_exists($driverClass)) {
+                                $msg = empty($driver)
+                                    ? 'Cache driver not set.'
+                                    : "Cache driver $driver not implemented.";
+                                throw new \RuntimeException($msg);
+                            }
                     }
 
                     // Acceptable Adapter (Frontend)
@@ -81,14 +81,14 @@ class Cache extends Provider
                             $adapterClass = '\Phalcon\Cache\Frontend\\' . $adapter;
                             break;
                         case null:
-                            $adapterClass = '\Phalcon\Cache\Frontend\None';
+                            $adapterClass = FrontendNone::class;
                             break;
                         default:
                             $adapterClass = $adapter;
-                    }
 
-                    if (!class_exists($adapterClass)) {
-                        throw new \RuntimeException("Cache adapter $adapter not implemented.");
+                            if (!class_exists($adapterClass)) {
+                                throw new \RuntimeException("Cache adapter $adapter not implemented.");
+                            }
                     }
 
                     $options = isset($cache->options) ? (array)$cache->options : [];

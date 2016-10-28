@@ -40,7 +40,7 @@ trait RoutesTrait
         /** @var \Phalcon\Mvc\Router $router */
         $router = $di->getShared(Services::ROUTER);
 
-        $base = $di->getShared(Services::CONFIG)->application->baseUri;
+        $base = $di->getShared(Services::CONFIG)->app->base_uri;
 
         $route = preg_replace('#^/(.+)#', '$1', $route);
 

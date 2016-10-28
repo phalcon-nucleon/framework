@@ -36,7 +36,7 @@ class View implements Providable, InjectionAwareInterface
 
             $view = new \Phalcon\Mvc\View();
 
-            $view->setViewsDir($this->getShared(Services::CONFIG)->view->viewsDir);
+            $view->setViewsDir($this->getShared(Services::CONFIG)->view->views_dir);
 
             $view->registerEngines([
                 '.volt'  => function ($view, $di) {
@@ -44,7 +44,7 @@ class View implements Providable, InjectionAwareInterface
                     $volt = new VoltEngine($view, $di);
 
                     $volt->setOptions([
-                        'compiledPath'      => $di->getShared(Services::CONFIG)->view->compiledPath,
+                        'compiledPath'      => $di->getShared(Services::CONFIG)->view->compiled_path,
                         'compiledSeparator' => '_'
                     ]);
                     $volt->getCompiler()->addExtension(new PhpFunctionExtension());

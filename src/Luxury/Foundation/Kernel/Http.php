@@ -66,6 +66,6 @@ abstract class Http extends PhApplication implements Kernelable
     {
         $this->kernelizeBootstrap($config);
 
-        $this->useImplicitView($config->application->useImplicitView ?? false);
+        $this->useImplicitView($config->app->useImplicitView ?? false);
     }
 }

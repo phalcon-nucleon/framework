@@ -220,8 +220,8 @@ class AllProvidersTest extends TestCase
                 'path'    => __DIR__ . '/../../.data/'
             ],
             'view'     => [
-                'viewsDir'     => '',
-                'compiledPath' => ''
+                'views_dir'     => '',
+                'compiled_path' => ''
             ]
         ]);
 

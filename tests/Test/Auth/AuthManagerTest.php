@@ -141,8 +141,10 @@ class AuthManagerTest extends TestCase
         $authManager = new AuthManager();
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
-        Session::shouldReceive('regenerateId')->once()->andReturn(1);
-        Session::shouldReceive('set')->once()->with('unittest', 'test@email.com');
+        $sessionService = $this->mockService(Services::SESSION, \Phalcon\Session\Adapter\Files::class, true);
+
+        $sessionService->expects($this->once())->method('regenerateId')->willReturn(1);
+        $sessionService->expects($this->once())->method('set')->with('unittest', 'test@email.com');
 
         /** @var User $user */
         $user = Auth::attempt([
@@ -202,8 +204,10 @@ class AuthManagerTest extends TestCase
         $authManager = new AuthManager();
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
-        Session::shouldReceive('regenerateId')->once()->andReturn(1);
-        Session::shouldReceive('set')->once()->with('unittest', 'test@email.com');
+        $sessionService = $this->mockService(Services::SESSION, \Phalcon\Session\Adapter\Files::class, true);
+
+        $sessionService->expects($this->once())->method('regenerateId')->willReturn(1);
+        $sessionService->expects($this->once())->method('set')->with('unittest', 'test@email.com');
 
         /** @var CustomUser $user */
         $user = Auth::attempt([
@@ -234,8 +238,10 @@ class AuthManagerTest extends TestCase
         $authManager = new AuthManager();
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
-        Session::shouldReceive('regenerateId')->once()->andReturn(1);
-        Session::shouldReceive('set')->once()->with('unittest', 'test@email.com');
+        $sessionService = $this->mockService(Services::SESSION, \Phalcon\Session\Adapter\Files::class, true);
+
+        $sessionService->expects($this->once())->method('regenerateId')->willReturn(1);
+        $sessionService->expects($this->once())->method('set')->with('unittest', 'test@email.com');
 
         /** @var User $user */
         $user = Auth::attempt([
@@ -282,8 +288,10 @@ class AuthManagerTest extends TestCase
         $authManager = new AuthManager();
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
-        Session::shouldReceive('get')->once()->with('unittest')->andReturn(null);
-        Session::shouldReceive('set')->once();
+        $sessionService = $this->mockService(Services::SESSION, \Phalcon\Session\Adapter\Files::class, true);
+
+        $sessionService->expects($this->once())->method('get')->with('unittest')->willReturn(null);
+        $sessionService->expects($this->once())->method('set');
 
         /** @var User $user */
         $user = Auth::user();
@@ -312,7 +320,9 @@ class AuthManagerTest extends TestCase
         $authManager = new AuthManager();
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
-        Session::shouldReceive('get')->once()->with('unittest')->andReturn('test@email.com');
+        $sessionService = $this->mockService(Services::SESSION, \Phalcon\Session\Adapter\Files::class, true);
+
+        $sessionService->expects($this->once())->method('get')->with('unittest')->willReturn('test@email.com');
 
         /** @var User $user */
         $user = Auth::user();
@@ -332,7 +342,9 @@ class AuthManagerTest extends TestCase
         $authManager = new AuthManager();
         $this->getDI()->setShared(Services::AUTH, $authManager);
 
-        Session::shouldReceive('destroy')->once();
+        $sessionService = $this->mockService(Services::SESSION, \Phalcon\Session\Adapter\Files::class, true);
+
+        $sessionService->expects($this->once())->method('destroy');
 
         Auth::logout();
 

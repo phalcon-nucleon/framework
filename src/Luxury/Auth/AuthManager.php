@@ -68,7 +68,7 @@ class AuthManager extends Injectable
                 $user = $this->retrieveUserByToken($identifier, $token);
 
                 if ($user) {
-                    Session::set($this->sessionKey(), $user->getAuthIdentifier());
+                    $this->getDI()->getShared(Services::SESSION)->set($this->sessionKey(), $user->getAuthIdentifier());
                 }
             }
         }
@@ -127,7 +127,7 @@ class AuthManager extends Injectable
         $this->user      = null;
         $this->loggedOut = true;
 
-        Session::destroy();
+        $this->getDI()->getShared(Services::SESSION)->destroy();
     }
 
     /**
@@ -137,7 +137,7 @@ class AuthManager extends Injectable
      */
     public function retrieveIdentifier()
     {
-        return Session::get($this->sessionKey());
+        return $this->getDI()->getShared(Services::SESSION)->get($this->sessionKey());
     }
 
     /**
@@ -156,7 +156,7 @@ class AuthManager extends Injectable
 
         $this->regenerateSessionId();
 
-        Session::set($this->sessionKey(), $user->getAuthIdentifier());
+        $this->getDI()->getShared(Services::SESSION)->set($this->sessionKey(), $user->getAuthIdentifier());
 
         if ($remember) {
             $rememberToken = Str::random(60);
@@ -257,10 +257,12 @@ class AuthManager extends Injectable
 
         $user = $this->retrieveUserByIdentifier(Arr::fetch($credentials, $identifier));
 
-        if ($user && $this->security->checkHash(Arr::fetch($credentials, $password),
-                $user->getAuthPassword())
-        ) {
-            return $user;
+        if ($user) {
+            $security = $this->getDI()->getShared(Services::SECURITY);
+
+            if($security->checkHash(Arr::fetch($credentials, $password), $user->getAuthPassword())){
+                return $user;
+            }
         }
 
         return null;
@@ -271,7 +273,7 @@ class AuthManager extends Injectable
      */
     protected function regenerateSessionId()
     {
-        Session::regenerateId();
+        $this->getDI()->getShared(Services::SESSION)->regenerateId();
     }
 
     /**

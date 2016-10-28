@@ -29,7 +29,7 @@ class Session implements Providable, InjectionAwareInterface
     /**
      * Start the session the first time some component request the session service
      *
-     * @throws \Luxury\Exceptions\SessionAdapterNotFound
+     * @throws \RuntimeException
      *
      * @return void
      */
@@ -38,6 +38,7 @@ class Session implements Providable, InjectionAwareInterface
         $di = $this->getDI();
 
         $di->set(Services::SESSION_BAG, Bag::class);
+
         $di->setShared(Services::SESSION, function () {
             /** @var \Phalcon\DiInterface $this */
 
@@ -68,17 +69,15 @@ class Session implements Providable, InjectionAwareInterface
                     $class = $adapter;
 
                     if(!class_exists($adapter)){
-                        throw new SessionAdapterNotFound($adapter);
+                        throw new \RuntimeException("Session Adapter $class not found.");
                     }
             }
 
             try {
                 /** @var \Phalcon\Session\Adapter|\Phalcon\Session\AdapterInterface $session */
                 $session = new $class();
-            } catch (\Error $e) {
-                throw new SessionAdapterNotFound($class, $e);
-            } catch (\Exception $e) {
-                throw new SessionAdapterNotFound($class, $e);
+            } catch (\Throwable $e) {
+                throw new \RuntimeException("Session Adapter $class construction fail.", $e);
             }
 
             $session->start();

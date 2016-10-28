@@ -50,7 +50,7 @@ class ProviderSessionTest extends TestCase
     }
 
     /**
-     * @expectedException \Luxury\Exceptions\SessionAdapterNotFound
+     * @expectedException \RuntimeException
      */
     public function testFailRegister()
     {

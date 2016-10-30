@@ -21,7 +21,7 @@ class CacheStrategy extends Strategy implements InjectionAwareInterface, Backend
 {
     use InjectionAwareTrait;
 
-    protected $default = 'default';
+    protected $default;
 
     /**
      * CacheStrategy constructor.
@@ -31,6 +31,10 @@ class CacheStrategy extends Strategy implements InjectionAwareInterface, Backend
         $caches = $this->getDI()->getShared(Services::CONFIG)->cache;
 
         foreach ($caches as $name => $cache) {
+            if (!isset($this->default)) {
+                $this->default = $name;
+            }
+
             $this->supported[] = $name;
         }
     }

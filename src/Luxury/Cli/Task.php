@@ -2,6 +2,8 @@
 
 namespace Luxury\Cli;
 
+use Luxury\Cli\Output\ConsoleOutput;
+use Luxury\Cli\Output\Table;
 use Luxury\Support\Arr;
 use Phalcon\Cli\Task as PhalconTask;
 
@@ -15,6 +17,51 @@ use Phalcon\Cli\Task as PhalconTask;
  */
 class Task extends PhalconTask
 {
+    /**
+     * @var ConsoleOutput
+     */
+    protected $output;
+
+    public function onConstruct()
+    {
+        $this->output = new ConsoleOutput();
+    }
+
+    public function info($str)
+    {
+        $this->line($this->output->info($str));
+    }
+
+    public function notice($str)
+    {
+        $this->line($this->output->notice($str));
+    }
+
+    public function warn($str)
+    {
+        $this->line($this->output->warn($str));
+    }
+
+    public function error($str)
+    {
+        $this->line($this->output->error($str));
+    }
+
+    public function question($str)
+    {
+        $this->line($this->output->question($str));
+    }
+
+    public function table(array $datas)
+    {
+        (new Table($this->output, $datas))->display();
+    }
+
+    public function line($str)
+    {
+        $this->output->write($str, true);
+    }
+
     /**
      * Return all agruments pass to the cli
      *

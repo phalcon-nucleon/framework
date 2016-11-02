@@ -53,23 +53,4 @@ abstract class Cli extends Console implements Kernelable
     {
         parent::__construct(null);
     }
-
-    /**
-     * Handle the whole command-line tasks
-     *
-     * @param array|null $arguments
-     */
-    public function handle(array $arguments = null)
-    {
-        if ($arguments === null) {
-            $arguments = $this->_arguments;
-        }
-
-        // Default namespace change to handle the luxury command
-        if (in_array($arguments['task'], ['list', 'optimize'])) {
-            $this->dispatcher->setDefaultNamespace('\Luxury\Foundation\Cli');
-        }
-
-        parent::handle($arguments);
-    }
 }

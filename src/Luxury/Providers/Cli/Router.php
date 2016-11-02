@@ -3,6 +3,9 @@
 namespace Luxury\Providers\Cli;
 
 use Luxury\Constants\Services;
+use Luxury\Foundation\Cli\ListTask;
+use Luxury\Foundation\Cli\OptimizeTask;
+use Luxury\Foundation\Cli\RouteListTask;
 use Luxury\Providers\Provider;
 
 /**
@@ -21,17 +24,13 @@ class Router extends Provider
      */
     protected function register()
     {
-        $router = new \Phalcon\Cli\Router(true);
+        $router = new \Luxury\Cli\Router(false);
 
-        $router->setDefaultTask('list');
+        $router->setDefaultTask($router->classToTask(ListTask::class));
 
-        $router->add('list', [
-            'task' => 'list'
-        ]);
-
-        $router->add('optimize', [
-            'task' => 'optimize'
-        ]);
+        $router->addTask('list', ListTask::class);
+        $router->addTask('optimize', OptimizeTask::class);
+        $router->addTask('route:list', RouteListTask::class);
 
         return $router;
     }

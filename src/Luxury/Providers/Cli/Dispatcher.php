@@ -27,8 +27,6 @@ class Dispatcher extends Provider
         // Assign the events manager to the dispatcher
         $dispatcher->setEventsManager($this->getDI()->getShared(Services::EVENTS_MANAGER));
 
-        $dispatcher->setDefaultNamespace('\App\Cli\Tasks');
-
         return $dispatcher;
     }
 }

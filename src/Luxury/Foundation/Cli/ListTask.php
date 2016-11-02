@@ -5,6 +5,7 @@ namespace Luxury\Foundation\Cli;
 use Luxury\Cli\Task;
 use Luxury\Support\Arr;
 use Luxury\Support\Str;
+use Phalcon\Cli\Router\Route;
 
 /**
  * Class ListTask
@@ -15,12 +16,14 @@ class ListTask extends Task
 {
     protected $reflections = [];
     protected $scanned     = [];
+    protected $describes   = [];
 
+    /**
+     * List all command available.
+     */
     public function mainAction()
     {
         $routes = $this->router->getRoutes();
-
-        $actionSuffix = $this->dispatcher->getActionSuffix();
 
         $delimiter = \Phalcon\Cli\Router\Route::getDelimiter();
         foreach ($routes as $route) {
@@ -32,23 +35,58 @@ class ListTask extends Task
                 continue;
             }
 
-            $params = $route->getPaths();
-
-            $this->describe(Str::lower($params['task']), Arr::fetch($params, 'action', 'main'));
+            $this->describeRoute($route);
         }
 
-        $taskPath = $this->config->paths->app . 'Cli' . DIRECTORY_SEPARATOR . 'Tasks' . DIRECTORY_SEPARATOR;
+        // $taskPath = $this->config->paths->app . 'Cli' . DIRECTORY_SEPARATOR . 'Tasks' . DIRECTORY_SEPARATOR;
 
-        $files = scandir($taskPath);
+       // $this->scanDir($taskPath);
+
+        $this->table($this->describes);
+    }
+
+    protected function describeRoute(Route $route)
+    {
+        $pattern = $route->getPattern();
+
+        $paths = $route->getPaths();
+
+        $class = $paths['task'] . 'Task';
+
+        $action = Arr::fetch($paths, 'action', 'main') . $this->dispatcher->getActionSuffix();
+
+        $this->scanned[$class . '::' . $action] = true;
+
+        $patternParams = '/' . preg_quote('([[:alnum:]]+)', '/') . '/';
+        preg_match_all($patternParams, $pattern, $matches);
+
+        foreach ($matches[0] as $k => $match) {
+            $param = array_search($k + 1, $paths);
+            if (!empty($param)) {
+                $pattern = preg_replace($patternParams, ':' . $param . ':', $pattern, 1);
+            }
+        }
+
+        $this->describe($pattern, $class, $action);
+    }
+
+    /*
+    protected function scanDir($dir, $subnamespace = '')
+    {
+        $actionSuffix = $this->dispatcher->getActionSuffix();
+
+        $files = array_diff(scandir($dir), ['.', '..']);
 
         foreach ($files as $file) {
-            if ($file === '.' || $file === '..') {
+            if (is_dir($dir . DIRECTORY_SEPARATOR . $file)) {
+                continue;
+            }
+            if (!Str::endsWith($file, 'Task.php')) {
                 continue;
             }
 
             $class     = str_replace('.php', '', $file);
-            $fullClass = 'App\Cli\Tasks\\' . $class;
-            echo $fullClass . PHP_EOL;
+            $fullClass = 'App\Cli\Tasks\\' . (!empty($subnamespace) ? $subnamespace . '\\' : '') . $class;
 
             $reflection = new \ReflectionClass($fullClass);
 
@@ -58,20 +96,20 @@ class ListTask extends Task
                     continue;
                 }
 
-                $task = Str::lower(substr($class, 0, strlen($class) - 4));
-                $action     = substr($methodName, 0, strlen($methodName) - strlen($actionSuffix));
+                $task   = Str::lower(substr($class, 0, strlen($class) - 4));
+                $action = substr($methodName, 0, strlen($methodName) - strlen($actionSuffix));
 
-                $this->describe($task, $action);
+                $this->describeParsed($fullClass, $action);
             }
         }
     }
 
-    protected function describe($task, $action)
+    protected function describeParsed($fullClass, $action)
     {
-        if (Arr::has($this->scanned, $task . '.' . $action)) {
+        if (Arr::has($this->scanned, $fullClass . '::' . $action)) {
             return;
         }
-        $this->scanned[$task . '.' . $action] = true;
+        $this->scanned[$fullClass . '::' . $action] = true;
 
         $delimiter = \Phalcon\Cli\Router\Route::getDelimiter();
 
@@ -79,15 +117,42 @@ class ListTask extends Task
 
         $fullClass = 'App\Cli\Tasks\\' . Str::capitalize($task) . 'Task';
 
-        $reflection = $this->getReflection($fullClass);
+        $this->describe($task . ($action !== 'main' ? $delimiter . $action : ''), $fullClass, $action . $actionSuffix);
+    }
+*/
+    protected function describe($pattern, $class, $action)
+    {
+        $reflection = $this->getReflection($class);
 
-        $method = $reflection->getMethod($action . $actionSuffix);
+        try {
+            $method = $reflection->getMethod($action);
+        } catch (\Exception $e) {
 
-        if ($action === 'main') {
-            echo $task . PHP_EOL;
-        } else {
-            echo $task . $delimiter . $action . PHP_EOL;
         }
+        $description = '';
+        $params      = [];
+        if (!empty($method)) {
+            $docBlock = $method->getDocComment();
+
+            preg_match_all('/\*\s*@(\w+)(.*)/', $docBlock, $annotations);
+            $docBlock = preg_replace('/\*\s*@(\w+)(.*)/', '', $docBlock);
+
+
+            preg_match_all('/\*([^\n\r]+)/', $docBlock, $lines);
+
+            foreach ($lines[1] as $line) {
+                $line = trim($line);
+                if ($line == '*' || $line == '/') {
+                    continue;
+                }
+                $description .= $line . ' ';
+            }
+        }
+
+        $this->describes[] = [
+            'cmd'  => $pattern,
+            'desc' => $description
+        ];
     }
 
     /**

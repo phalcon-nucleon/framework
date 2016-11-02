@@ -14,7 +14,9 @@ use Symfony\Component\Process\ProcessUtils;
  */
 class OptimizeTask extends Task
 {
-
+    /**
+     * Optimize the loader.
+     */
     public function mainAction()
     {
         if ($this->hasOption('memory')) {

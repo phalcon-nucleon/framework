@@ -129,7 +129,9 @@ class ConsoleOutput
      */
     public function write($message, $newline)
     {
-        if (false === @fwrite($this->getStream(), $message) || ($newline && (false === @fwrite($this->getStream(), PHP_EOL)))) {
+        if (false === @fwrite($this->getStream(), $message) || ($newline && (false === @fwrite($this->getStream(),
+                        PHP_EOL)))
+        ) {
             // should never happen
             throw new \RuntimeException('Unable to write output.');
         }
@@ -208,4 +210,12 @@ class ConsoleOutput
 
         return false !== stripos(implode(';', $checks), 'OS400');
     }
+
+    function __destruct()
+    {
+        if ($this->stream != null) {
+            fclose($this->stream);
+        }
+    }
+
 }

@@ -33,7 +33,7 @@ class OptimizeTask extends Task
 
         $files      = $this->getAutoload('files');
         $namespaces = $this->getAutoload('namespaces');
-        $psr        = $this->getAutoload('psr4.php');
+        $psr        = $this->getAutoload('psr4');
 
         $_namespaces = [];
 

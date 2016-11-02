@@ -11,6 +11,8 @@ use Phalcon\Di\FactoryDefault\Cli as Di;
  * Class Cli
  *
  * @package Luxury\Foundation\Kernel
+ *
+ * @property-read \Phalcon\Cli\Router $router
  */
 abstract class Cli extends Console implements Kernelable
 {
@@ -50,5 +52,24 @@ abstract class Cli extends Console implements Kernelable
     public function __construct()
     {
         parent::__construct(null);
+    }
+
+    /**
+     * Handle the whole command-line tasks
+     *
+     * @param array|null $arguments
+     */
+    public function handle(array $arguments = null)
+    {
+        if ($arguments === null) {
+            $arguments = $this->_arguments;
+        }
+
+        // Default namespace change to handle the luxury command
+        if (in_array($arguments['task'], ['list', 'optimize'])) {
+            $this->dispatcher->setDefaultNamespace('\Luxury\Foundation\Cli');
+        }
+
+        parent::handle($arguments);
     }
 }

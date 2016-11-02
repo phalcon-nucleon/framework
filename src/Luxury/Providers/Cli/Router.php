@@ -21,7 +21,17 @@ class Router extends Provider
      */
     protected function register()
     {
-        $router = new \Phalcon\Cli\Router(false);
+        $router = new \Phalcon\Cli\Router(true);
+
+        $router->setDefaultTask('list');
+
+        $router->add('list', [
+            'task' => 'list'
+        ]);
+
+        $router->add('optimize', [
+            'task' => 'optimize'
+        ]);
 
         return $router;
     }

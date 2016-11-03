@@ -3,6 +3,7 @@
 namespace Luxury\Foundation\Cli;
 
 use Luxury\Cli\Output\Group;
+use Luxury\Cli\Output\Helper;
 use Luxury\Cli\Task;
 use Luxury\Support\Arr;
 use Phalcon\Cli\Router\Route;
@@ -15,8 +16,8 @@ use Phalcon\Cli\Router\Route;
 class ListTask extends Task
 {
     protected $reflections = [];
-    protected $scanned = [];
-    protected $describes = [];
+    protected $scanned     = [];
+    protected $describes   = [];
 
     /**
      * List all command available.
@@ -78,7 +79,7 @@ class ListTask extends Task
 
     protected function describe($pattern, $class, $action)
     {
-        $infos = $this->getInfos($class, $action);
+        $infos = Helper::getTaskInfos($class, $action);
 
         if (!empty($infos['options'])) {
             $infos['options'] = implode(', ', $infos['options']);
@@ -90,72 +91,5 @@ class ListTask extends Task
         $infos['cmd'] = $this->output->info($pattern);
 
         $this->describes[] = $infos;
-    }
-
-    /**
-     * @param $class
-     * @param $methodName
-     *
-     * @return array
-     */
-    protected function getInfos($class, $methodName)
-    {
-        $infos = [];
-        $reflection = $this->getReflection($class);
-
-        try {
-            $method = $reflection->getMethod($methodName);
-        } catch (\Exception $e) {
-
-        }
-        $description = '';
-        if (!empty($method)) {
-            $docBlock = $method->getDocComment();
-
-            preg_match_all('/\*\s*@(\w+)(.*)/', $docBlock, $annotations);
-            $docBlock = preg_replace('/\*\s*@(\w+)(.*)/', '', $docBlock);
-
-            foreach ($annotations[1] as $k => $annotation) {
-                switch ($annotation) {
-                    case 'description':
-                        $infos['description'] = trim($annotations[2][$k]);
-                        break;
-                    case 'argument':
-                    case 'option':
-                        $infos[$annotation . 's'][] = trim($annotations[2][$k]);
-                        break;
-                }
-            }
-
-            if (empty($infos['description'])) {
-                preg_match_all('/\*([^\n\r]+)/', $docBlock, $lines);
-
-                foreach ($lines[1] as $line) {
-                    $line = trim($line);
-                    if ($line == '*' || $line == '/') {
-                        continue;
-                    }
-                    $description .= $line . ' ';
-                }
-
-                $infos['description'] = trim($description);
-            }
-        }
-
-        return $infos;
-    }
-
-    /**
-     * @param string $class
-     *
-     * @return \ReflectionClass
-     */
-    protected function getReflection($class)
-    {
-        if (!Arr::has($this->reflections, $class)) {
-            $this->reflections[$class] = new \ReflectionClass($class);
-        }
-
-        return $this->reflections[$class];
     }
 }

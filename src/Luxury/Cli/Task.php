@@ -4,6 +4,7 @@ namespace Luxury\Cli;
 
 use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Output\Table;
+use Luxury\Foundation\Cli\HelperTask;
 use Luxury\Support\Arr;
 use Phalcon\Cli\Task as PhalconTask;
 
@@ -12,7 +13,7 @@ use Phalcon\Cli\Task as PhalconTask;
  *
  * @package Luxury\Cli
  *
- * @property-read \Luxury\Cli\Router $router
+ * @property-read \Luxury\Cli\Router      $router
  * @property-read \Phalcon\Cli\Dispatcher $dispatcher
  */
 class Task extends PhalconTask
@@ -25,6 +26,28 @@ class Task extends PhalconTask
     public function onConstruct()
     {
         $this->output = new ConsoleOutput($this->hasOption('q') || $this->hasOption('quiet'));
+    }
+
+    /**
+     * Handle help option & forward to HelperTask
+     *
+     * @return bool
+     */
+    public function beforeExecuteRoute()
+    {
+        if ($this->hasOption('h') || $this->hasOption('help')) {
+            $this->dispatcher->forward([
+                'task'   => $this->router->classToTask(HelperTask::class),
+                'params' => [
+                    'task' => $this->dispatcher->getHandlerClass(),
+                    'action' => $this->dispatcher->getActionName(),
+                ]
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 
     public function info($str)

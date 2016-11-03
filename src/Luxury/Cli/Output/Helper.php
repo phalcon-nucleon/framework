@@ -9,8 +9,12 @@
 namespace Luxury\Cli\Output;
 
 
+use Luxury\Support\Arr;
+
 final class Helper
 {
+    private static $reflections = [];
+
     private function __construct()
     {
     }
@@ -65,6 +69,7 @@ final class Helper
         switch ($type) {
             case STR_PAD_BOTH:
                 $m = $size - $washLen;
+
                 return str_repeat($pad, floor($m / 2)) . $str . str_repeat($pad, ceil($m / 2));
             case STR_PAD_LEFT:
                 return str_repeat($pad, $size - $washLen) . $str;
@@ -72,5 +77,72 @@ final class Helper
             default:
                 return $str . str_repeat($pad, $size - $washLen);
         }
+    }
+
+    /**
+     * @param $class
+     * @param $methodName
+     *
+     * @return array
+     */
+    public static function getTaskInfos($class, $methodName)
+    {
+        $infos      = [];
+        $reflection = self::getReflection($class);
+
+        try {
+            $method = $reflection->getMethod($methodName);
+        } catch (\Exception $e) {
+
+        }
+        $description = '';
+        if (!empty($method)) {
+            $docBlock = $method->getDocComment();
+
+            preg_match_all('/\*\s*@(\w+)(.*)/', $docBlock, $annotations);
+            $docBlock = preg_replace('/\*\s*@(\w+)(.*)/', '', $docBlock);
+
+            foreach ($annotations[1] as $k => $annotation) {
+                switch ($annotation) {
+                    case 'description':
+                        $infos['description'] = trim($annotations[2][$k]);
+                        break;
+                    case 'argument':
+                    case 'option':
+                        $infos[$annotation . 's'][] = trim($annotations[2][$k]);
+                        break;
+                }
+            }
+
+            if (empty($infos['description'])) {
+                preg_match_all('/\*([^\n\r]+)/', $docBlock, $lines);
+
+                foreach ($lines[1] as $line) {
+                    $line = trim($line);
+                    if ($line == '*' || $line == '/') {
+                        continue;
+                    }
+                    $description .= $line . ' ';
+                }
+
+                $infos['description'] = trim($description);
+            }
+        }
+
+        return $infos;
+    }
+
+    /**
+     * @param string $class
+     *
+     * @return \ReflectionClass
+     */
+    private static function getReflection($class)
+    {
+        if (!Arr::has(self::$reflections, $class)) {
+            self::$reflections[$class] = new \ReflectionClass($class);
+        }
+
+        return self::$reflections[$class];
     }
 }

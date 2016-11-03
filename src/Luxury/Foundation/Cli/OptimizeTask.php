@@ -19,13 +19,15 @@ class OptimizeTask extends Task
      *
      * @description Optimize the loader.
      *
-     * @option --memory: Optimize memory.
+     * @option      --memory: Optimize memory.
      */
     public function mainAction()
     {
         if ($this->hasOption('memory')) {
+            $this->info('Generating memory optimized auto-loader');
             $this->optimizeMemory();
         } else {
+            $this->info('Generating optimized auto-loader');
             $this->optimizeProcess();
         }
     }
@@ -127,7 +129,7 @@ class OptimizeTask extends Task
         $output = '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL;
 
         if (!empty($files)) {
-            $output .= '$loader->registerFiles(' . var_export($files, true) . ');' . PHP_EOL;
+            $output .= '$loader->registerFiles(' . var_export(array_values($files), true) . ');' . PHP_EOL;
         }
         if (!empty($namespaces)) {
             $output .= '$loader->registerNamespaces(' . var_export($namespaces, true) . ');' . PHP_EOL;

@@ -1,0 +1,76 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: xlzi590
+ * Date: 03/11/2016
+ * Time: 16:30
+ */
+
+namespace Luxury\Cli\Output;
+
+
+final class Helper
+{
+    private function __construct()
+    {
+    }
+
+    /**
+     * Remove the decoration of a string
+     *
+     * @param $string
+     *
+     * @return mixed
+     */
+    public static function removeDecoration($string)
+    {
+        return preg_replace("/\033\\[[^m]*m/", '', $string);
+    }
+
+    /**
+     * Return the real len of a string (without decoration)
+     *
+     * @param $string
+     *
+     * @return int
+     */
+    public static function strlenWithoutDecoration($string)
+    {
+        return self::strlen(self::removeDecoration($string));
+    }
+
+    public static function strlen($string)
+    {
+        if (false === $encoding = mb_detect_encoding($string, null, true)) {
+            return strlen($string);
+        }
+
+        return mb_strwidth($string, $encoding);
+    }
+
+    /**
+     * Correct str_pad wrong output when str is decorate
+     *
+     * @param string $str
+     * @param int    $size
+     * @param string $pad
+     * @param int    $type
+     *
+     * @return string
+     */
+    public static function strPad($str, $size, $pad, $type = STR_PAD_RIGHT)
+    {
+        $washLen = self::strlenWithoutDecoration($str);
+
+        switch ($type) {
+            case STR_PAD_BOTH:
+                $m = $size - $washLen;
+                return str_repeat($pad, floor($m / 2)) . $str . str_repeat($pad, ceil($m / 2));
+            case STR_PAD_LEFT:
+                return str_repeat($pad, $size - $washLen) . $str;
+            case STR_PAD_RIGHT:
+            default:
+                return $str . str_repeat($pad, $size - $washLen);
+        }
+    }
+}

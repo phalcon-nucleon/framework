@@ -43,7 +43,7 @@ class RouteListTask extends Task
                 if ($compiled !== $route->getPattern()) {
                     foreach ($reverses as $key => $reverse) {
                         if (is_int($key)) {
-                            $compiled = preg_replace('/\([^\/\)]+\)/', '{' . $reverse . '}', $compiled, 1);
+                            $compiled = preg_replace('/\([^\/\)]+\)/', $this->output->notice('{' . $reverse . '}'), $compiled, 1);
                         }
                     }
                     $compiled = substr($compiled, 2, strlen($compiled) - 5);

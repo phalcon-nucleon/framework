@@ -19,6 +19,11 @@ class ConsoleOutput
      */
     private $stream;
 
+    /**
+     * @var bool
+     */
+    private $quiet;
+
     private static $availableForegroundColors = [
         'black'   => ['set' => 30, 'unset' => 39],
         'red'     => ['set' => 31, 'unset' => 39],
@@ -48,6 +53,19 @@ class ConsoleOutput
         'reverse'    => ['set' => 7, 'unset' => 27],
         'conceal'    => ['set' => 8, 'unset' => 28],
     ];
+
+    /**
+     * ConsoleOutput constructor.
+     *
+     * @param bool $quiet
+     */
+    public function __construct($quiet = false)
+    {
+        $this->quiet = $quiet;
+        if($this->quiet){
+            ob_start();
+        }
+    }
 
     public function info($str)
     {
@@ -83,7 +101,7 @@ class ConsoleOutput
      */
     public function apply($text, $foreground = null, $background = null, array $options = [])
     {
-        if (!$this->hasColorSupport()) {
+        if (!$this->hasColorSupport() || $this->quiet) {
             return $text;
         }
 
@@ -129,16 +147,25 @@ class ConsoleOutput
      */
     public function write($message, $newline)
     {
-        if (false === @fwrite($this->getStream(), $message) || ($newline && (false === @fwrite($this->getStream(),
-                        PHP_EOL)))
-        ) {
+        if($this->quiet){
+            return;
+        }
+
+        $stream = $this->getStream();
+
+        if (false === @fwrite($stream, $message) || ($newline && (false === @fwrite($stream, PHP_EOL)))) {
             // should never happen
             throw new \RuntimeException('Unable to write output.');
         }
 
-        fflush($this->getStream());
+        fflush($stream);
     }
 
+    /**
+     * Check if console has color support
+     *
+     * @return bool
+     */
     protected function hasColorSupport()
     {
         if (DIRECTORY_SEPARATOR === '\\') {
@@ -216,6 +243,8 @@ class ConsoleOutput
         if ($this->stream != null) {
             fclose($this->stream);
         }
+        if($this->quiet){
+            while (@ob_get_clean());
+        }
     }
-
 }

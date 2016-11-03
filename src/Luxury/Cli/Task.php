@@ -24,7 +24,7 @@ class Task extends PhalconTask
 
     public function onConstruct()
     {
-        $this->output = new ConsoleOutput();
+        $this->output = new ConsoleOutput($this->hasOption('q') || $this->hasOption('quiet'));
     }
 
     public function info($str)
@@ -52,9 +52,9 @@ class Task extends PhalconTask
         $this->line($this->output->question($str));
     }
 
-    public function table(array $datas, array $headers = [])
+    public function table(array $datas, array $headers = [], $style = Table::STYLE_DEFAULT)
     {
-        (new Table($this->output, $datas, $headers))->display();
+        (new Table($this->output, $datas, $headers, $style))->display();
     }
 
     public function line($str)

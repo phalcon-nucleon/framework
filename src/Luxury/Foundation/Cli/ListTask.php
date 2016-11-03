@@ -2,6 +2,7 @@
 
 namespace Luxury\Foundation\Cli;
 
+use Luxury\Cli\Output\Group;
 use Luxury\Cli\Task;
 use Luxury\Support\Arr;
 use Phalcon\Cli\Router\Route;
@@ -26,9 +27,9 @@ class ListTask extends Task
     {
         $routes = $this->router->getRoutes();
 
-        $delimiter = \Phalcon\Cli\Router\Route::getDelimiter();
+        $delimiter = Route::getDelimiter();
         foreach ($routes as $route) {
-            /** @var \Phalcon\Cli\Router\Route $route */
+            /** @var Route $route */
             // Default route
             if ($route->getPattern() === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)[$delimiter]{0,1}$#" ||
                 $route->getPattern() === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)$delimiter([a-zA-Z0-9\\.\\_]+)($delimiter.*)*$#"
@@ -39,7 +40,15 @@ class ListTask extends Task
             $this->describeRoute($route);
         }
 
-        $this->table($this->describes, ['cmd', 'description', 'arguments', 'options']);
+        $datas = [];
+
+        foreach ($this->describes as $describe) {
+            $datas[$describe['cmd']] = $describe['description'];
+        }
+
+        $this->line('Available Commands:');
+
+        (new Group($this->output, $datas))->display();
     }
 
     protected function describeRoute(Route $route)
@@ -60,7 +69,7 @@ class ListTask extends Task
         foreach ($matches[0] as $k => $match) {
             $param = array_search($k + 1, $paths);
             if (!empty($param)) {
-                $pattern = preg_replace($patternParams, ':' . $param . ':', $pattern, 1);
+                $pattern = preg_replace($patternParams, '<' . $param . '>', $pattern, 1);
             }
         }
 
@@ -78,7 +87,7 @@ class ListTask extends Task
             $infos['arguments'] = implode(', ', $infos['arguments']);
         }
 
-        $infos['cmd'] = $pattern;
+        $infos['cmd'] = $this->output->info($pattern);
 
         $this->describes[] = $infos;
     }

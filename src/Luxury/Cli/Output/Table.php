@@ -12,11 +12,17 @@ use Luxury\Support\Str;
  */
 class Table
 {
+    const STYLE_DEFAULT = 'default';
+
+    const NO_STYLE = 'no-style';
+
     protected $output;
 
     protected $datas;
 
     protected $columns = [];
+
+    protected $style;
 
     /**
      * Table constructor.
@@ -24,65 +30,88 @@ class Table
      * @param ConsoleOutput $output
      * @param array         $datas
      * @param array         $headers
+     * @param string        $style
      */
-    public function __construct(ConsoleOutput $output, array $datas = [], array $headers = [])
+    public function __construct(ConsoleOutput $output, array $datas = [], array $headers = [], $style = self::STYLE_DEFAULT)
     {
         $this->output = $output;
         $this->datas = $datas;
+        $this->style = $style;
 
         foreach ($headers as $header) {
             $this->columns[$header] = [];
         }
     }
 
-    protected function generateColumns()
+    /**
+     * @param array $datas
+     *
+     * @return $this
+     */
+    public function setDatas(array $datas)
+    {
+        $this->datas = $datas;
+
+        return $this;
+    }
+
+    public function generateColumns()
     {
         foreach ($this->datas as $data) {
             foreach ($data as $column => $value) {
-                if (!Arr::has($this->columns, $column)) {
+                if (!Arr::has($this->columns, $column) || !Arr::has($this->columns[$column], 'size')) {
                     $this->columns[$column] = [
-                        'size' => max(strlen($column), strlen($value))
+                        'size' => max(Helper::strlenWithoutDecoration($column), Helper::strlenWithoutDecoration($value))
                     ];
                     continue;
                 }
 
-                $this->columns[$column]['size'] = max($this->columns[$column]['size'], strlen($value));
+                $this->columns[$column]['size'] = max($this->columns[$column]['size'], Helper::strlenWithoutDecoration($value));
             }
         }
+
+        return $this;
     }
 
     protected function separator()
     {
+        if ($this->style === self::NO_STYLE) {
+            return;
+        }
         $line = '+';
         foreach ($this->columns as $column => $opts) {
-            $line .= '-' . str_pad('-', $opts['size'], '-') . '-+';
+            $line .= '-' . Helper::strPad('-', $opts['size'], '-') . '-+';
         }
         $this->output->write($line, true);
     }
 
     protected function header()
     {
-        $line = '|';
+        $closure = $this->style === self::NO_STYLE ? '' : '|';
+        $line = $closure;
         foreach ($this->columns as $column => $opts) {
-            $line .= ' ' . str_pad(Str::upper($column), $opts['size'], ' ') . ' |';
+            $line .= ' ' . Helper::strPad(Str::upper($column), $opts['size'], ' ') . ' ' . $closure;
         }
         $this->output->write($line, true);
     }
 
-    public function display()
+    public function display($header = true)
     {
         $this->generateColumns();
 
         $this->separator();
 
-        $this->header();
+        if ($header) {
+            $this->header();
+        }
 
         $this->separator();
 
+        $closure = $this->style === self::NO_STYLE ? '' : '|';
         foreach ($this->datas as $data) {
-            $line = '|';
+            $line = $closure;
             foreach ($this->columns as $column => $opts) {
-                $line .= ' ' . str_pad(Arr::fetch($data, $column, ''), $opts['size'], ' ') . ' |';
+                $line .= ' ' . Helper::strPad(Arr::fetch($data, $column, ''), $opts['size'], ' ') . ' ' . $closure;
             }
             $this->output->write($line, true);
         }

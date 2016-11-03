@@ -18,6 +18,10 @@ class RouteListTask extends Task
 {
     /**
      * List all routes.
+     *
+     * @description List all routes.
+     *
+     * @option --no-substitution: Doesn't replace matching group by params name
      */
     public function mainAction()
     {
@@ -34,7 +38,7 @@ class RouteListTask extends Task
 
             $reverses = $route->getReversedPaths();
 
-            if (!$this->hasOption('no-compile')) {
+            if (!$this->hasOption('no-substitution')) {
                 $compiled = $route->getCompiledPattern();
                 if ($compiled !== $route->getPattern()) {
                     foreach ($reverses as $key => $reverse) {

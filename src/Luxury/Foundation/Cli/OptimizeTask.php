@@ -16,6 +16,10 @@ class OptimizeTask extends Task
 {
     /**
      * Optimize the loader.
+     *
+     * @description Optimize the loader.
+     *
+     * @option --memory: Optimize memory.
      */
     public function mainAction()
     {

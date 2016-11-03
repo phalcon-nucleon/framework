@@ -21,12 +21,18 @@ class Table
     /**
      * Table constructor.
      *
-     * @param array $datas
+     * @param ConsoleOutput $output
+     * @param array         $datas
+     * @param array         $headers
      */
-    public function __construct(ConsoleOutput $output, array $datas = [])
+    public function __construct(ConsoleOutput $output, array $datas = [], array $headers = [])
     {
         $this->output = $output;
-        $this->datas  = $datas;
+        $this->datas = $datas;
+
+        foreach ($headers as $header) {
+            $this->columns[$header] = [];
+        }
     }
 
     protected function generateColumns()
@@ -75,8 +81,8 @@ class Table
 
         foreach ($this->datas as $data) {
             $line = '|';
-            foreach ($data as $column => $value) {
-                $line .= ' ' . str_pad($value, $this->columns[$column]['size'], ' ') . ' |';
+            foreach ($this->columns as $column => $opts) {
+                $line .= ' ' . str_pad(Arr::fetch($data, $column, ''), $opts['size'], ' ') . ' |';
             }
             $this->output->write($line, true);
         }

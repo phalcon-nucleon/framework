@@ -4,7 +4,6 @@ namespace Luxury\Foundation\Cli;
 
 use Luxury\Cli\Task;
 use Luxury\Support\Arr;
-use Luxury\Support\Str;
 use Phalcon\Cli\Router\Route;
 
 /**
@@ -15,11 +14,13 @@ use Phalcon\Cli\Router\Route;
 class ListTask extends Task
 {
     protected $reflections = [];
-    protected $scanned     = [];
-    protected $describes   = [];
+    protected $scanned = [];
+    protected $describes = [];
 
     /**
      * List all command available.
+     *
+     * @description List all command available.
      */
     public function mainAction()
     {
@@ -38,11 +39,7 @@ class ListTask extends Task
             $this->describeRoute($route);
         }
 
-        // $taskPath = $this->config->paths->app . 'Cli' . DIRECTORY_SEPARATOR . 'Tasks' . DIRECTORY_SEPARATOR;
-
-       // $this->scanDir($taskPath);
-
-        $this->table($this->describes);
+        $this->table($this->describes, ['cmd', 'description', 'arguments', 'options']);
     }
 
     protected function describeRoute(Route $route)
@@ -70,89 +67,73 @@ class ListTask extends Task
         $this->describe($pattern, $class, $action);
     }
 
-    /*
-    protected function scanDir($dir, $subnamespace = '')
-    {
-        $actionSuffix = $this->dispatcher->getActionSuffix();
-
-        $files = array_diff(scandir($dir), ['.', '..']);
-
-        foreach ($files as $file) {
-            if (is_dir($dir . DIRECTORY_SEPARATOR . $file)) {
-                continue;
-            }
-            if (!Str::endsWith($file, 'Task.php')) {
-                continue;
-            }
-
-            $class     = str_replace('.php', '', $file);
-            $fullClass = 'App\Cli\Tasks\\' . (!empty($subnamespace) ? $subnamespace . '\\' : '') . $class;
-
-            $reflection = new \ReflectionClass($fullClass);
-
-            foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-                $methodName = $method->getName();
-                if (!Str::endsWith($methodName, $actionSuffix)) {
-                    continue;
-                }
-
-                $task   = Str::lower(substr($class, 0, strlen($class) - 4));
-                $action = substr($methodName, 0, strlen($methodName) - strlen($actionSuffix));
-
-                $this->describeParsed($fullClass, $action);
-            }
-        }
-    }
-
-    protected function describeParsed($fullClass, $action)
-    {
-        if (Arr::has($this->scanned, $fullClass . '::' . $action)) {
-            return;
-        }
-        $this->scanned[$fullClass . '::' . $action] = true;
-
-        $delimiter = \Phalcon\Cli\Router\Route::getDelimiter();
-
-        $actionSuffix = $this->dispatcher->getActionSuffix();
-
-        $fullClass = 'App\Cli\Tasks\\' . Str::capitalize($task) . 'Task';
-
-        $this->describe($task . ($action !== 'main' ? $delimiter . $action : ''), $fullClass, $action . $actionSuffix);
-    }
-*/
     protected function describe($pattern, $class, $action)
     {
+        $infos = $this->getInfos($class, $action);
+
+        if (!empty($infos['options'])) {
+            $infos['options'] = implode(', ', $infos['options']);
+        }
+        if (!empty($infos['arguments'])) {
+            $infos['arguments'] = implode(', ', $infos['arguments']);
+        }
+
+        $infos['cmd'] = $pattern;
+
+        $this->describes[] = $infos;
+    }
+
+    /**
+     * @param $class
+     * @param $methodName
+     *
+     * @return array
+     */
+    protected function getInfos($class, $methodName)
+    {
+        $infos = [];
         $reflection = $this->getReflection($class);
 
         try {
-            $method = $reflection->getMethod($action);
+            $method = $reflection->getMethod($methodName);
         } catch (\Exception $e) {
 
         }
         $description = '';
-        $params      = [];
         if (!empty($method)) {
             $docBlock = $method->getDocComment();
 
             preg_match_all('/\*\s*@(\w+)(.*)/', $docBlock, $annotations);
             $docBlock = preg_replace('/\*\s*@(\w+)(.*)/', '', $docBlock);
 
-
-            preg_match_all('/\*([^\n\r]+)/', $docBlock, $lines);
-
-            foreach ($lines[1] as $line) {
-                $line = trim($line);
-                if ($line == '*' || $line == '/') {
-                    continue;
+            foreach ($annotations[1] as $k => $annotation) {
+                switch ($annotation) {
+                    case 'description':
+                        $infos['description'] = trim($annotations[2][$k]);
+                        break;
+                    case 'argument':
+                    case 'option':
+                        $infos[$annotation . 's'][] = trim($annotations[2][$k]);
+                        break;
                 }
-                $description .= $line . ' ';
+            }
+
+            if (empty($infos['description'])) {
+                preg_match_all('/\*([^\n\r]+)/', $docBlock, $lines);
+
+                foreach ($lines[1] as $line) {
+                    $line = trim($line);
+                    if ($line == '*' || $line == '/') {
+                        continue;
+                    }
+                    $description .= $line . ' ';
+                }
+
+                $infos['description'] = trim($description);
             }
         }
 
-        $this->describes[] = [
-            'cmd'  => $pattern,
-            'desc' => $description
-        ];
+        return $infos;
     }
 
     /**

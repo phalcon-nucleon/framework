@@ -12,7 +12,8 @@ use Phalcon\Di\FactoryDefault\Cli as Di;
  *
  * @package Luxury\Foundation\Kernel
  *
- * @property-read \Phalcon\Cli\Router $router
+ * @property-read \Luxury\Cli\Router $router
+ * @property-read \Phalcon\Cli\Dispatcher $dispatcher
  */
 abstract class Cli extends Console implements Kernelable
 {

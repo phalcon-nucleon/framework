@@ -12,8 +12,8 @@ use Phalcon\Cli\Task as PhalconTask;
  *
  * @package Luxury\Cli
  *
+ * @property-read \Luxury\Cli\Router $router
  * @property-read \Phalcon\Cli\Dispatcher $dispatcher
- * @property-read \Phalcon\Cli\Router     $router
  */
 class Task extends PhalconTask
 {
@@ -52,9 +52,9 @@ class Task extends PhalconTask
         $this->line($this->output->question($str));
     }
 
-    public function table(array $datas)
+    public function table(array $datas, array $headers = [])
     {
-        (new Table($this->output, $datas))->display();
+        (new Table($this->output, $datas, $headers))->display();
     }
 
     public function line($str)

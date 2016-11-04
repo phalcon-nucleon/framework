@@ -68,6 +68,7 @@ class Task extends PhalconTask
 
         return true;
     }
+
     /**
      * Handle Exception and output them.
      *

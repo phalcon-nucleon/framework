@@ -15,10 +15,6 @@ final class Helper
 {
     private static $reflections = [];
 
-    private function __construct()
-    {
-    }
-
     /**
      * Remove the decoration of a string
      *

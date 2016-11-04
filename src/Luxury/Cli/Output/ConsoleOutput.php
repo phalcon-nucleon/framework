@@ -17,7 +17,7 @@ class ConsoleOutput
     /**
      * @var resource
      */
-    private $stream;
+    private $stdout;
 
     /**
      * @var bool
@@ -84,7 +84,7 @@ class ConsoleOutput
 
     public function error($str)
     {
-        return $this->apply($str, 'white', 'red');
+        return $this->apply($str, 'black', 'red');
     }
 
     public function question($str)
@@ -95,7 +95,10 @@ class ConsoleOutput
     /**
      * Applies the style to a given text.
      *
-     * @param string $text The text to style
+     * @param string $text The text to style=
+     * @param null   $foreground
+     * @param null   $background
+     * @param array  $options
      *
      * @return string
      */
@@ -133,13 +136,13 @@ class ConsoleOutput
     /**
      * @return resource
      */
-    protected function getStream()
+    protected function getStdout()
     {
-        if ($this->stream == null) {
-            $this->stream = $this->openOutputStream();
+        if ($this->stdout == null) {
+            $this->stdout = $this->openOutputStream();
         }
 
-        return $this->stream;
+        return $this->stdout;
     }
 
     /**
@@ -151,7 +154,7 @@ class ConsoleOutput
             return;
         }
 
-        $stream = $this->getStream();
+        $stream = $this->getStdout();
 
         if (false === @fwrite($stream, $message) || ($newline && (false === @fwrite($stream, PHP_EOL)))) {
             // should never happen
@@ -176,7 +179,7 @@ class ConsoleOutput
                 || 'xterm' === getenv('TERM');
         }
 
-        return function_exists('posix_isatty') && @posix_isatty($this->stream);
+        return function_exists('posix_isatty') && @posix_isatty($this->stdout);
     }
 
     /**
@@ -240,9 +243,10 @@ class ConsoleOutput
 
     function __destruct()
     {
-        if ($this->stream != null) {
-            fclose($this->stream);
+        if ($this->stdout != null) {
+            fclose($this->stdout);
         }
+
         if($this->quiet){
             while (@ob_get_clean());
         }

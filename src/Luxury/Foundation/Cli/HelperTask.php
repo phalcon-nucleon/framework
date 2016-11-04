@@ -3,8 +3,10 @@
 namespace Luxury\Foundation\Cli;
 
 use Luxury\Cli\Output\Helper;
+use Luxury\Cli\Router;
 use Luxury\Cli\Task;
 use Luxury\Support\Arr;
+use Phalcon\Cli\Router\Route;
 
 /**
  * Class HelperTask
@@ -15,6 +17,7 @@ class HelperTask extends Task
 {
     public function beforeExecuteRoute()
     {
+        // Parent overload to prevent check the help option existence
     }
 
     public function mainAction()
@@ -24,16 +27,58 @@ class HelperTask extends Task
             $this->getArg('action') . $this->dispatcher->getActionSuffix()
         );
 
-        $this->line($infos['description']);
+        $route = $this->resolveRoute($this->getArg('task'), $this->getArg('action'));
+
+        if(!empty($route)){
+            $this->line('Usage :');
+            $this->info("\t" . $route->getPattern());
+        }
+
+        $this->line('Description :');
+        $this->line("\t" . $infos['description']);
+
         if (Arr::has($infos, 'arguments')) {
+            $this->line('Arguments :');
             foreach ($infos['arguments'] as $argument) {
-                $this->line('param: ' . $argument);
+                $this->line("\t" . $argument);
             }
         }
         if (Arr::has($infos, 'options')) {
+            $this->line('Options :');
             foreach ($infos['options'] as $option) {
-                $this->line('opts: ' . $option);
+                $this->line("\t" . $option);
             }
         }
+    }
+
+    /**
+     * @param $class
+     * @param $action
+     *
+     * @return null|Route
+     */
+    private function resolveRoute($class, $action)
+    {
+        $routes = $this->router->getRoutes();
+
+        $findedRoute = null;
+        foreach ($routes as $route) {
+            /** @var Route $route */
+
+            $paths = $route->getPaths();
+
+            if ($paths['task'] == Router::classToTask($class)) {
+                if (Arr::fetch($paths, 'action', 'main') == $action) {
+                    $findedRoute = $route;
+                    break;
+                }
+            }
+        }
+
+        if (!empty($findedRoute)) {
+            return $findedRoute;
+        }
+
+        return null;
     }
 }

@@ -4,17 +4,22 @@ namespace Luxury\Cli;
 
 use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Output\Table;
+use Luxury\Constants\Events;
 use Luxury\Foundation\Cli\HelperTask;
 use Luxury\Support\Arr;
 use Phalcon\Cli\Task as PhalconTask;
+use Phalcon\Events\Event;
 
 /**
  * Class Task
  *
  * @package Luxury\Cli
  *
- * @property-read \Luxury\Cli\Router      $router
- * @property-read \Phalcon\Cli\Dispatcher $dispatcher
+ * @property-read \Luxury\Cache\CacheStrategy            $cache
+ * @property-read \Phalcon\Mvc\Application               $app
+ * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
+ * @property-read \Luxury\Cli\Router                     $router
+ * @property-read \Phalcon\Cli\Dispatcher                $dispatcher
  */
 class Task extends PhalconTask
 {
@@ -26,6 +31,20 @@ class Task extends PhalconTask
     public function onConstruct()
     {
         $this->output = new ConsoleOutput($this->hasOption('q') || $this->hasOption('quiet'));
+
+        $this->dispatcher
+            ->getEventsManager()
+            ->attach(Events\Dispatch::BEFORE_EXCEPTION, function (Event $event, $dispatcher, \Exception $exception) {
+                return $this->handleException($event, $dispatcher, $exception);
+            });
+
+        if(($this->hasOption('s') || $this->hasOption('stats')) && !$this->dispatcher->wasForwarded()){
+            $this->dispatcher
+                ->getEventsManager()
+                ->attach(Events\Cli\Application::AFTER_HANDLE, function (Event $event, $dispatcher, Task $task) {
+                    return $this->displayStats($event, $dispatcher, $task);
+                });
+        }
     }
 
     /**
@@ -37,9 +56,9 @@ class Task extends PhalconTask
     {
         if ($this->hasOption('h') || $this->hasOption('help')) {
             $this->dispatcher->forward([
-                'task'   => $this->router->classToTask(HelperTask::class),
+                'task'   => Router::classToTask(HelperTask::class),
                 'params' => [
-                    'task' => $this->dispatcher->getHandlerClass(),
+                    'task'   => $this->dispatcher->getHandlerClass(),
                     'action' => $this->dispatcher->getActionName(),
                 ]
             ]);
@@ -48,6 +67,32 @@ class Task extends PhalconTask
         }
 
         return true;
+    }
+    /**
+     * Handle Exception and output them.
+     *
+     * @param Event      $event
+     * @param            $dispatcher
+     * @param \Exception $exception
+     *
+     * @return bool
+     */
+    public function handleException(Event $event, $dispatcher, \Exception $exception)
+    {
+        $this->error('Exception : ' . get_class($exception));
+        $this->error($exception->getMessage());
+        $this->error($exception->getTraceAsString());
+
+        return false;
+    }
+
+    public function displayStats()
+    {
+        $this->line('');
+        $this->line('Stats : ');
+        $this->line("\tmem:" . $this->output->info(memory_get_usage()));
+        $this->line("\tmem.peak:" . $this->output->info(memory_get_peak_usage()));
+        $this->line("\ttime:" . $this->output->info((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'])));
     }
 
     public function info($str)

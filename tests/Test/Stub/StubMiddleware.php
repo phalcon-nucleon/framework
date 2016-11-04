@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Constants\Events\Application as AppEvent;
+use Luxury\Constants\Events\Http\Application as AppEvent;
 use Luxury\Foundation\Middleware\Application as ApplicationMiddleware;
 use Luxury\Interfaces\Middleware\AfterInterface;
 use Luxury\Interfaces\Middleware\BeforeInterface;

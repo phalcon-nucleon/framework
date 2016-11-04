@@ -20,9 +20,9 @@ class ListTask extends Task
     protected $describes   = [];
 
     /**
-     * List all command available.
+     * List all commands available.
      *
-     * @description List all command available.
+     * @description List all commands available.
      */
     public function mainAction()
     {
@@ -32,8 +32,9 @@ class ListTask extends Task
         foreach ($routes as $route) {
             /** @var Route $route */
             // Default route
-            if ($route->getPattern() === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)[$delimiter]{0,1}$#" ||
-                $route->getPattern() === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)$delimiter([a-zA-Z0-9\\.\\_]+)($delimiter.*)*$#"
+            $pattern = $route->getPattern();
+            if ($pattern === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)[$delimiter]{0,1}$#" ||
+                $pattern === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)$delimiter([a-zA-Z0-9\\.\\_]+)($delimiter.*)*$#"
             ) {
                 continue;
             }

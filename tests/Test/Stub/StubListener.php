@@ -17,8 +17,8 @@ class StubListener extends Listener implements TestListenable
     use TestListenize;
 
     protected $listen = [
-        Events\Application::BOOT                  => 'onBoot',
-        Events\Application::BEFORE_HANDLE_REQUEST => 'beforeHandleRequest',
+        Events\Http\Application::BOOT          => 'onBoot',
+        Events\Http\Application::BEFORE_HANDLE => 'beforeHandleRequest',
     ];
 
     protected $space = [

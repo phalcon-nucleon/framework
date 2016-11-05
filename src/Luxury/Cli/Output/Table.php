@@ -32,11 +32,15 @@ class Table
      * @param array         $headers
      * @param string        $style
      */
-    public function __construct(ConsoleOutput $output, array $datas = [], array $headers = [], $style = self::STYLE_DEFAULT)
-    {
+    public function __construct(
+        ConsoleOutput $output,
+        array $datas = [],
+        array $headers = [],
+        $style = self::STYLE_DEFAULT
+    ) {
         $this->output = $output;
-        $this->datas = $datas;
-        $this->style = $style;
+        $this->datas  = $datas;
+        $this->style  = $style;
 
         foreach ($headers as $header) {
             $this->columns[$header] = [];
@@ -66,7 +70,8 @@ class Table
                     continue;
                 }
 
-                $this->columns[$column]['size'] = max($this->columns[$column]['size'], Helper::strlenWithoutDecoration($value));
+                $this->columns[$column]['size'] =
+                    max($this->columns[$column]['size'], Helper::strlenWithoutDecoration($value));
             }
         }
 
@@ -88,7 +93,7 @@ class Table
     protected function header()
     {
         $closure = $this->style === self::NO_STYLE ? '' : '|';
-        $line = $closure;
+        $line    = $closure;
         foreach ($this->columns as $column => $opts) {
             $line .= ' ' . Helper::strPad(Str::upper($column), $opts['size'], ' ') . ' ' . $closure;
         }

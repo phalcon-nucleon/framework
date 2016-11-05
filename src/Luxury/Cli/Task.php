@@ -30,7 +30,7 @@ class Task extends PhalconTask
 
     public function onConstruct()
     {
-        $this->output = new ConsoleOutput($this->hasOption('q') || $this->hasOption('quiet'));
+        $this->output = new ConsoleOutput($this->hasOption('q', 'quiet'));
 
         $this->dispatcher
             ->getEventsManager()
@@ -38,7 +38,7 @@ class Task extends PhalconTask
                 return $this->handleException($event, $dispatcher, $exception);
             });
 
-        if(($this->hasOption('s') || $this->hasOption('stats')) && !$this->dispatcher->wasForwarded()){
+        if(($this->hasOption('s', 'stats')) && !$this->dispatcher->wasForwarded()){
             $this->dispatcher
                 ->getEventsManager()
                 ->attach(Events\Cli\Application::AFTER_HANDLE, function (Event $event, $dispatcher, Task $task) {
@@ -54,7 +54,7 @@ class Task extends PhalconTask
      */
     public function beforeExecuteRoute()
     {
-        if ($this->hasOption('h') || $this->hasOption('help')) {
+        if ($this->hasOption('h', 'help')) {
             $this->dispatcher->forward([
                 'task'   => Router::classToTask(HelperTask::class),
                 'params' => [
@@ -192,12 +192,18 @@ class Task extends PhalconTask
     /**
      * Check if option has been passed
      *
-     * @param string $name
+     * @param string[] ...$options
      *
      * @return bool
      */
-    protected function hasOption($name)
+    protected function hasOption(...$options)
     {
-        return Arr::has($this->getOptions(), $name);
+        foreach ($options as $option) {
+            if (Arr::has($this->getOptions(), $option)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

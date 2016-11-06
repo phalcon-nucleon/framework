@@ -68,4 +68,12 @@ abstract class Http extends PhApplication implements Kernelable
 
         $this->useImplicitView($config->app->useImplicitView ?? false);
     }
+
+    /**
+     * Register the routes of the application.
+     */
+    public function registerRoutes()
+    {
+        require $this->config->paths->routes . 'http.php';
+    }
 }

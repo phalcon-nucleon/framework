@@ -76,6 +76,32 @@ final class Helper
     }
 
     /**
+     * @param \Phalcon\Cli\Router\Route|\Phalcon\Mvc\Router\Route $route
+     * @param \Luxury\Cli\Output\ConsoleOutput                                      $output
+     *
+     * @return string
+     */
+    public static function describeRoutePattern($route, ConsoleOutput $output)
+    {
+        $reverses = $route->getReversedPaths();
+
+        $compiled = $route->getCompiledPattern();
+        if ($compiled !== $route->getPattern()) {
+            foreach ($reverses as $key => $reverse) {
+                if (is_int($key)) {
+                    $compiled =
+                        preg_replace('/\([^?][^\/\)]+\)/', $output->notice('{' . $reverse . '}'), $compiled,
+                            1);
+                }
+            }
+            preg_match('/\^(.+)\$/', $compiled, $matchs);
+            $compiled = $matchs[1];
+        }
+
+        return $compiled;
+    }
+
+    /**
      * @param $class
      * @param $methodName
      *

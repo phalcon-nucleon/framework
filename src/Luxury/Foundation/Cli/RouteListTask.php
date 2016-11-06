@@ -2,9 +2,11 @@
 
 namespace Luxury\Foundation\Cli;
 
+use Luxury\Cli\Output\Helper;
 use Luxury\Cli\Task;
-use Luxury\Foundation\Application;
+use Luxury\Constants\Services;
 use Luxury\Support\Arr;
+use Luxury\Support\Facades\Router;
 use Luxury\Support\Str;
 use Phalcon\Mvc\Dispatcher;
 use Phalcon\Mvc\Router\Route;
@@ -21,33 +23,19 @@ class RouteListTask extends Task
      *
      * @description List all routes.
      *
-     * @option --no-substitution: Doesn't replace matching group by params name
+     * @option      --no-substitution: Doesn't replace matching group by params name
      */
     public function mainAction()
     {
-        $luxury = new Application($this->config);
-
-        $httpApp = $luxury->make('App\\Http\\Kernel');
-
-        $routes = $httpApp->router->getRoutes();
+        $routes = $this->getHttpRoutes();
 
         $datas = [];
         foreach ($routes as $route) {
             /** @var Route $route */
             $paths = $route->getPaths();
 
-            $reverses = $route->getReversedPaths();
-
             if (!$this->hasOption('no-substitution')) {
-                $compiled = $route->getCompiledPattern();
-                if ($compiled !== $route->getPattern()) {
-                    foreach ($reverses as $key => $reverse) {
-                        if (is_int($key)) {
-                            $compiled = preg_replace('/\([^\/\)]+\)/', $this->output->notice('{' . $reverse . '}'), $compiled, 1);
-                        }
-                    }
-                    $compiled = substr($compiled, 2, strlen($compiled) - 5);
-                }
+                $compiled = Helper::describeRoutePattern($route, $this->output);
             } else {
                 $compiled = $route->getPattern();
             }
@@ -69,5 +57,30 @@ class RouteListTask extends Task
         }
 
         $this->table($datas);
+    }
+
+    protected function getHttpRoutes()
+    {
+        Router::clearResolvedInstances();
+
+        $cliRouter = $this->router;
+
+        $this->di->remove(Services::ROUTER);
+
+        $httpRouterProvider = new \Luxury\Providers\Http\Router;
+
+        $httpRouterProvider->registering();
+
+        require $this->config->paths->routes . 'http.php';
+
+        $routes = Router::getRoutes();
+
+        Router::clearResolvedInstances();
+
+        $this->di->remove(Services::ROUTER);
+
+        $this->di->setShared(Services::ROUTER, $cliRouter);
+
+        return $routes;
     }
 }

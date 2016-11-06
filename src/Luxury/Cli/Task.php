@@ -38,7 +38,7 @@ class Task extends PhalconTask
                 return $this->handleException($event, $dispatcher, $exception);
             });
 
-        if(($this->hasOption('s', 'stats')) && !$this->dispatcher->wasForwarded()){
+        if (($this->hasOption('s', 'stats')) && !$this->dispatcher->wasForwarded()) {
             $this->dispatcher
                 ->getEventsManager()
                 ->attach(Events\Cli\Application::AFTER_HANDLE, function (Event $event, $dispatcher, Task $task) {
@@ -56,7 +56,7 @@ class Task extends PhalconTask
     {
         if ($this->hasOption('h', 'help')) {
             $this->dispatcher->forward([
-                'task'   => Router::classToTask(HelperTask::class),
+                'task'   => HelperTask::class,
                 'params' => [
                     'task'   => $this->dispatcher->getHandlerClass(),
                     'action' => $this->dispatcher->getActionName(),

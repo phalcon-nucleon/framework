@@ -30,7 +30,7 @@ class Router extends Provider
     {
         $router = new LuxuryRouter(false);
 
-        $router->setDefaultTask(LuxuryRouter::classToTask(ListTask::class));
+        $router->setDefaultTask(ListTask::class);
 
         $router->addTask('help ( .*)*', HelperTask::class);
         $router->addTask('list', ListTask::class);

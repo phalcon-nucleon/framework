@@ -3,7 +3,6 @@
 namespace Luxury\Foundation\Cli;
 
 use Luxury\Cli\Output\Helper;
-use Luxury\Cli\Router;
 use Luxury\Cli\Task;
 use Luxury\Support\Arr;
 use Phalcon\Cli\Router\Route;
@@ -29,7 +28,7 @@ class HelperTask extends Task
 
         $route = $this->resolveRoute($this->getArg('task'), $this->getArg('action'));
 
-        if(!empty($route)){
+        if (!empty($route)) {
             $this->line('Usage :');
             $this->info("\t" . $route->getPattern());
         }
@@ -67,7 +66,7 @@ class HelperTask extends Task
 
             $paths = $route->getPaths();
 
-            if ($paths['task'] == Router::classToTask($class)) {
+            if ($paths['task'] == $class) {
                 if (Arr::fetch($paths, 'action', 'main') == $action) {
                     $findedRoute = $route;
                     break;

@@ -54,4 +54,12 @@ abstract class Cli extends Console implements Kernelable
     {
         parent::__construct(null);
     }
+
+    /**
+     * Register the routes of the application.
+     */
+    public function registerRoutes()
+    {
+        require $this->config->paths->routes . 'cli.php';
+    }
 }

@@ -23,7 +23,7 @@ class Router extends \Phalcon\Cli\Router
      */
     public function addTask($pattern, $class, $action = null, array $params = [])
     {
-        $params['task'] = self::classToTask($class);
+        $params['task'] = $class;
 
         $params['action'] = $action;
 
@@ -36,17 +36,5 @@ class Router extends \Phalcon\Cli\Router
         }
 
         return $this->add($pattern, $params);
-    }
-
-    /**
-     * Transform a task class name, to a valid task for the router.
-     *
-     * @param string $class
-     *
-     * @return string
-     */
-    public static function classToTask($class)
-    {
-        return preg_replace('/Task$/', '', $class);
     }
 }

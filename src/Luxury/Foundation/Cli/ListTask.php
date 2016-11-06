@@ -55,27 +55,17 @@ class ListTask extends Task
 
     protected function describeRoute(Route $route)
     {
-        $pattern = $route->getPattern();
-
         $paths = $route->getPaths();
 
-        $class = $paths['task'] . 'Task';
+        $class = $paths['task'];
 
         $action = Arr::fetch($paths, 'action', 'main') . $this->dispatcher->getActionSuffix();
 
         $this->scanned[$class . '::' . $action] = true;
 
-        $patternParams = '/' . preg_quote('([[:alnum:]]+)', '/') . '/';
-        preg_match_all($patternParams, $pattern, $matches);
-
-        foreach ($matches[0] as $k => $match) {
-            $param = array_search($k + 1, $paths);
-            if (!empty($param)) {
-                $pattern = preg_replace($patternParams, '<' . $param . '>', $pattern, 1);
-            }
-        }
-
-        $this->describe($pattern, $class, $action);
+        $compiled = Helper::describeRoutePattern($route, $this->output);
+        
+        $this->describe($compiled, $class, $action);
     }
 
     protected function describe($pattern, $class, $action)

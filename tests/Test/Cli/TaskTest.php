@@ -2,7 +2,6 @@
 
 namespace Test\Cli;
 
-use Luxury\Cli\Router;
 use Luxury\Cli\Task;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Cli\HelperTask;
@@ -24,6 +23,7 @@ class TaskTest extends TestCase
     private function stubTask()
     {
         StubTask::$enableConstructor = false;
+
         return new StubTask();
     }
 
@@ -96,7 +96,7 @@ class TaskTest extends TestCase
         $dispatcher->expects($this->once())
             ->method('forward')
             ->with([
-                'task'   => Router::classToTask(HelperTask::class),
+                'task'   => HelperTask::class,
                 'params' => [
                     'task'   => Task::class,
                     'action' => 'main',

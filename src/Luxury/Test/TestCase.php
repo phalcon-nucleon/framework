@@ -91,8 +91,9 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         }
 
         if (self::$kernelClassInstance == null) {
-            self::$kernelClassInstance =
-                self::$appClassInstance->make(static::kernelClassInstance());
+            self::$kernelClassInstance = self::$appClassInstance->make(static::kernelClassInstance());
+
+            Facade::clearResolvedInstances();
         }
 
         return self::$kernelClassInstance;

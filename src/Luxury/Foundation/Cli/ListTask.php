@@ -2,6 +2,7 @@
 
 namespace Luxury\Foundation\Cli;
 
+use Luxury\Cli\Output\Decorate;
 use Luxury\Cli\Output\Group;
 use Luxury\Cli\Output\Helper;
 use Luxury\Cli\Task;
@@ -63,7 +64,7 @@ class ListTask extends Task
 
         $this->scanned[$class . '::' . $action] = true;
 
-        $compiled = Helper::describeRoutePattern($route, $this->output);
+        $compiled = Helper::describeRoutePattern($route);
         
         $this->describe($compiled, $class, $action);
     }
@@ -79,7 +80,7 @@ class ListTask extends Task
             $infos['arguments'] = implode(', ', $infos['arguments']);
         }
 
-        $infos['cmd'] = $this->output->info($pattern);
+        $infos['cmd'] = Decorate::info($pattern);
 
         $this->describes[] = $infos;
     }

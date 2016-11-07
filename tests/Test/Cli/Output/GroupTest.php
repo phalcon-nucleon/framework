@@ -4,6 +4,7 @@ namespace Test\Cli\Output;
 
 use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Output\Group;
+use Test\Stub\StubConsoleOutput;
 use Test\TestCase\TestCase;
 
 /**
@@ -18,15 +19,7 @@ class GroupTest extends TestCase
      */
     private function consoleOutput()
     {
-        return new class extends ConsoleOutput
-        {
-            public $out;
-
-            public function write($message, $newline)
-            {
-                $this->out .= $message . ($newline ? PHP_EOL : '');
-            }
-        };
+        return new StubConsoleOutput();
     }
 
     public function dataGenerateGroupData()

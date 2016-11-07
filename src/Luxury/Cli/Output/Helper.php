@@ -77,11 +77,10 @@ final class Helper
 
     /**
      * @param \Phalcon\Cli\Router\Route|\Phalcon\Mvc\Router\Route $route
-     * @param \Luxury\Cli\Output\ConsoleOutput                                      $output
      *
      * @return string
      */
-    public static function describeRoutePattern($route, ConsoleOutput $output)
+    public static function describeRoutePattern($route)
     {
         $reverses = $route->getReversedPaths();
 
@@ -90,7 +89,7 @@ final class Helper
             foreach ($reverses as $key => $reverse) {
                 if (is_int($key)) {
                     $compiled =
-                        preg_replace('/\([^?][^\/\)]+\)/', $output->notice('{' . $reverse . '}'), $compiled,
+                        preg_replace('/\([^?][^\/\)]+\)/', Decorate::notice('{' . $reverse . '}'), $compiled,
                             1);
                 }
             }

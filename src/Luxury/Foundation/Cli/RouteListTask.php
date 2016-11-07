@@ -8,8 +8,6 @@ use Luxury\Constants\Services;
 use Luxury\Support\Arr;
 use Luxury\Support\Facades\Router;
 use Luxury\Support\Str;
-use Phalcon\Mvc\Dispatcher;
-use Phalcon\Mvc\Router\Route;
 
 /**
  * Class RouteListTask
@@ -31,11 +29,11 @@ class RouteListTask extends Task
 
         $datas = [];
         foreach ($routes as $route) {
-            /** @var Route $route */
+            /** @var \Phalcon\Mvc\Router\Route $route */
             $paths = $route->getPaths();
 
             if (!$this->hasOption('no-substitution')) {
-                $compiled = Helper::describeRoutePattern($route, $this->output);
+                $compiled = Helper::describeRoutePattern($route);
             } else {
                 $compiled = $route->getPattern();
             }

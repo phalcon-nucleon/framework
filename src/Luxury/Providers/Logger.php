@@ -3,9 +3,9 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Phalcon\Logger\Adapter\Database;
-use Phalcon\Logger\Adapter\File;
-use Phalcon\Logger\Adapter\File\Multiple;
+use Phalcon\Logger\Adapter\Database as DatabaseLoggerAdapter;
+use Phalcon\Logger\Adapter\File as FileLoggerAdapter;
+use Phalcon\Logger\Adapter\File\Multiple as MultipleLoggerAdapter;
 
 /**
  * Class Logger
@@ -30,22 +30,22 @@ class Logger extends Provider
 
         switch (ucfirst($adapter = $config->log->adapter ?? 'empty')) {
             case null:
-            case Multiple::class:
+            case MultipleLoggerAdapter::class:
             case 'Multiple':
-                $adapter = Multiple::class;
+                $adapter = MultipleLoggerAdapter::class;
 
                 $name = $config->log->path ?? null;
                 break;
-            case File::class:
+            case FileLoggerAdapter::class:
             case 'File':
-                $adapter = File::class;
+                $adapter = FileLoggerAdapter::class;
 
                 $name = $config->log->path ?? null;
                 break;
 
-            case Database::class:
+            case DatabaseLoggerAdapter::class:
             case 'Database':
-                $adapter = Database::class;
+                $adapter = DatabaseLoggerAdapter::class;
 
                 $config->log->options->db = $this->getDI()->getShared(Services::DB);
                 $name = $config->log->name ?? 'phalcon';

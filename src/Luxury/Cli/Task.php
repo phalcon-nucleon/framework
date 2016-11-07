@@ -3,6 +3,7 @@
 namespace Luxury\Cli;
 
 use Luxury\Cli\Output\ConsoleOutput;
+use Luxury\Cli\Output\Decorate;
 use Luxury\Cli\Output\Table;
 use Luxury\Constants\Events;
 use Luxury\Foundation\Cli\HelperTask;
@@ -41,10 +42,16 @@ class Task extends PhalconTask
         if (($this->hasOption('s', 'stats')) && !$this->dispatcher->wasForwarded()) {
             $this->dispatcher
                 ->getEventsManager()
-                ->attach(Events\Cli\Application::AFTER_HANDLE, function (Event $event, $dispatcher, Task $task) {
-                    return $this->displayStats($event, $dispatcher, $task);
+                ->attach(Events\Cli\Application::AFTER_HANDLE, function () {
+                    $this->displayStats();
                 });
         }
+
+        $this->dispatcher
+        ->getEventsManager()
+        ->attach(Events\Cli\Application::AFTER_HANDLE, function () {
+            $this->output->clean();
+        });
     }
 
     /**
@@ -91,34 +98,39 @@ class Task extends PhalconTask
     {
         $this->line('');
         $this->line('Stats : ');
-        $this->line("\tmem:" . $this->output->info(memory_get_usage()));
-        $this->line("\tmem.peak:" . $this->output->info(memory_get_peak_usage()));
-        $this->line("\ttime:" . $this->output->info((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'])));
+        $this->line("\tmem:" . Decorate::info(memory_get_usage()));
+        $this->line("\tmem.peak:" . Decorate::info(memory_get_peak_usage()));
+        $this->line("\ttime:" . Decorate::info((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'])));
+    }
+
+    public function line($str)
+    {
+        $this->output->write($str, true);
     }
 
     public function info($str)
     {
-        $this->line($this->output->info($str));
+        $this->output->info($str);
     }
 
     public function notice($str)
     {
-        $this->line($this->output->notice($str));
+        $this->output->notice($str);
     }
 
     public function warn($str)
     {
-        $this->line($this->output->warn($str));
+        $this->output->warn($str);
     }
 
     public function error($str)
     {
-        $this->line($this->output->error($str));
+        $this->output->error($str);
     }
 
     public function question($str)
     {
-        $this->line($this->output->question($str));
+        $this->output->question($str);
     }
 
     public function table(array $datas, array $headers = [], $style = Table::STYLE_DEFAULT)
@@ -126,10 +138,6 @@ class Task extends PhalconTask
         (new Table($this->output, $datas, $headers, $style))->display();
     }
 
-    public function line($str)
-    {
-        $this->output->write($str, true);
-    }
 
     /**
      * Return all agruments pass to the cli

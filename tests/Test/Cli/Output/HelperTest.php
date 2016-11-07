@@ -2,10 +2,9 @@
 
 namespace Test\Cli\Output;
 
-
-use Luxury\Cli\Output\ConsoleOutput;
+use Luxury\Cli\Output\Decorate;
 use Luxury\Cli\Output\Helper;
-use Luxury\Foundation\Cli\ListTask;
+use Phalcon;
 use Test\Stub\StubTask;
 
 class HelperTest extends \PHPUnit_Framework_TestCase
@@ -105,5 +104,40 @@ class HelperTest extends \PHPUnit_Framework_TestCase
     public function testGetTaskInfos($class, $action, $infos)
     {
         $this->assertEquals($infos, Helper::getTaskInfos($class, $action));
+    }
+
+    public function dataDescribeRoutePattern()
+    {
+        return [
+            ['', new Phalcon\Cli\Router\Route('', [])],
+            ['', new Phalcon\Mvc\Router\Route('', [])],
+            ['test', new Phalcon\Cli\Router\Route('test', [])],
+            ['test', new Phalcon\Mvc\Router\Route('test', [])],
+            ['test (\w+)', new Phalcon\Cli\Router\Route('test (\w+)', [])],
+            ['test/(\w+)', new Phalcon\Mvc\Router\Route('test/(\w+)', [])],
+            ['test ' . Decorate::notice('{param_1}'), new Phalcon\Cli\Router\Route('test (\w+)', ['param_1' => 1])],
+            ['test/' . Decorate::notice('{param_1}'), new Phalcon\Mvc\Router\Route('test/(\w+)', ['param_1' => 1])],
+            [
+                'test ' . Decorate::notice('{p1}') . ' ' . Decorate::notice('{p2}'),
+                new Phalcon\Cli\Router\Route('test (\w+) (\w+)', ['p1' => 1, 'p2' => 2])
+            ], [
+                'test/' . Decorate::notice('{p1}') . '/' . Decorate::notice('{p2}'),
+                new Phalcon\Mvc\Router\Route('test/(\w+)/(\w+)', ['p1' => 1, 'p2' => 2])
+            ], [
+                'test ' . Decorate::notice('{p1}') . '(?: ' . Decorate::notice('{p2}').')',
+                new Phalcon\Cli\Router\Route('test (\w+)(?: (\w+))', ['p1' => 1, 'p2' => 2])
+            ], [
+                'test/' . Decorate::notice('{p1}') . '/' . Decorate::notice('{p2}') . '(?:/'.Decorate::notice('{p3}').')',
+                new Phalcon\Mvc\Router\Route('test/(\w+)/(\w+)(?:/(\d+))', ['p1' => 1, 'p2' => 2, 'p3' => 3])
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider dataDescribeRoutePattern
+     */
+    public function testDescribeRoutePattern($expected, $route)
+    {
+        $this->assertEquals($expected, Helper::describeRoutePattern($route));
     }
 }

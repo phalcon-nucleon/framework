@@ -145,7 +145,7 @@ abstract class FuncTestCase extends TestCase
     {
         /* @var $dispatcher \Phalcon\Mvc\Dispatcher */
         $dispatcher = $this->getDI()->getShared(Services::DISPATCHER);
-        $actual     = $dispatcher->wasForwarded();
+        $actual = $dispatcher->wasForwarded();
 
         if (!$actual) {
             throw new \PHPUnit_Framework_ExpectationFailedException(
@@ -223,11 +223,11 @@ abstract class FuncTestCase extends TestCase
     protected function tearDown()
     {
         $_SESSION = [];
-        $_GET     = [];
-        $_POST    = [];
-        $_COOKIE  = [];
+        $_GET = [];
+        $_POST = [];
+        $_COOKIE = [];
         $_REQUEST = [];
-        $_FILES   = [];
+        $_FILES = [];
         parent::tearDown();
     }
 
@@ -267,5 +267,17 @@ abstract class FuncTestCase extends TestCase
                     unset($_POST[$key]);
             }
         }
+    }
+
+    /**
+     * Dispatches a given command line
+     *
+     * @param string $cli
+     */
+    protected function dispatchCli($cli)
+    {
+        $this->app->setArgument(explode(' ', $cli));
+
+        $this->app->handle();
     }
 }

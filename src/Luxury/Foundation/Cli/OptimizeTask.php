@@ -19,11 +19,11 @@ class OptimizeTask extends Task
      *
      * @description Optimize the loader.
      *
-     * @option      --memory: Optimize memory.
+     * @option      -m, --memory: Optimize memory.
      */
     public function mainAction()
     {
-        if ($this->hasOption('memory')) {
+        if ($this->hasOption('m', 'memory')) {
             $this->info('Generating memory optimized auto-loader');
             $this->optimizeMemory();
         } else {
@@ -39,9 +39,9 @@ class OptimizeTask extends Task
     {
         $this->callComposer();
 
-        $files      = $this->getAutoload('files');
+        $files = $this->getAutoload('files');
         $namespaces = $this->getAutoload('namespaces');
-        $psr        = $this->getAutoload('psr4');
+        $psr = $this->getAutoload('psr4');
 
         $_namespaces = [];
 
@@ -52,17 +52,17 @@ class OptimizeTask extends Task
             $_namespaces[trim($namespace, '\\')] = $dir;
         }
 
-        $this->output($files, $_namespaces);
+        $this->generateOutput($files, $_namespaces);
     }
 
     protected function optimizeProcess()
     {
         $this->callComposer(true);
 
-        $files   = $this->getAutoload('files');
+        $files = $this->getAutoload('files');
         $classes = $this->getAutoload('classmap');
 
-        $this->output($files, null, $classes);
+        $this->generateOutput($files, null, $classes);
     }
 
     /**
@@ -103,8 +103,6 @@ class OptimizeTask extends Task
      * Call composer
      *
      * @param bool $optimize Optimize
-     *
-     * @return string
      */
     protected function callComposer($optimize = false)
     {
@@ -124,7 +122,7 @@ class OptimizeTask extends Task
      * @param array|null $namespaces
      * @param array|null $classmap
      */
-    protected function output($files = null, $namespaces = null, $classmap = null)
+    protected function generateOutput($files = null, $namespaces = null, $classmap = null)
     {
         $output = '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL;
 

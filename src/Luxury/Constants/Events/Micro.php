@@ -5,9 +5,9 @@ namespace Luxury\Constants\Events;
 /**
  * Class Micro
  *
- * @package Luxury\Constants\Events
- *
  * Contains a list of events related to the area 'micro'
+ *
+ * @package Luxury\Constants\Events
  */
 final class Micro
 {

@@ -1,4 +1,14 @@
 <?php
+/**
+ * @author Taylor Otwell
+ *
+ * Functions added :
+ *  - fetch
+ *  - read
+ *
+ * Functions removed :
+ *  - sort (Because Collection isn't implemented)
+ */
 
 namespace Luxury\Support;
 
@@ -134,9 +144,9 @@ final class Arr
     /**
      * Return the first element in an array passing a given truth test.
      *
-     * @param array    $array
-     * @param callable $callback
-     * @param mixed    $default
+     * @param array          $array
+     * @param callable|null  $callback
+     * @param mixed          $default
      *
      * @return mixed
      */
@@ -158,9 +168,9 @@ final class Arr
     /**
      * Return the last element in an array passing a given truth test.
      *
-     * @param array    $array
-     * @param callable $callback
-     * @param mixed    $default
+     * @param array          $array
+     * @param callable|null  $callback
+     * @param mixed          $default
      *
      * @return mixed
      */
@@ -168,9 +178,9 @@ final class Arr
     {
         if (is_null($callback)) {
             return empty($array) ? Obj::value($default) : end($array);
-        }
+       }
 
-        return static::first(array_reverse($array), $callback, $default);
+       return static::first(array_reverse($array, true), $callback, $default);
     }
 
     /**
@@ -183,23 +193,15 @@ final class Arr
      */
     public static function flatten($array, $depth = INF)
     {
-        $result = [];
-
-        foreach ($array as $item) {
-            if (is_array($item)) {
-                if ($depth === 1) {
-                    $result = array_merge($result, $item);
-                    continue;
-                }
-
-                $result = array_merge($result, static::flatten($item, $depth - 1));
-                continue;
+        return array_reduce($array, function ($result, $item) use ($depth) {
+            if (! is_array($item)) {
+                return array_merge($result, [$item]);
+            } elseif ($depth === 1) {
+                return array_merge($result, array_values($item));
+            } else {
+                return array_merge($result, static::flatten($item, $depth - 1));
             }
-
-            $result[] = $item;
-        }
-
-        return $result;
+        }, []);
     }
 
     /**
@@ -319,26 +321,33 @@ final class Arr
      * Check if an item exists in an array using "dot" notation.
      *
      * @param \ArrayAccess|array $array
-     * @param string             $key
+     * @param string|array       $keys
      *
      * @return bool
      */
-    public static function has($array, $key)
+    public static function has($array, $keys)
     {
+        if (is_null($keys)) {
+            return false;
+        }
+        $keys = (array) $keys;
         if (!$array) {
             return false;
         }
-        if (is_null($key)) {
+        if ($keys === []) {
             return false;
         }
-        if (static::exists($array, $key)) {
-            return true;
-        }
-        foreach (explode('.', $key) as $segment) {
-            if (static::accessible($array) && static::exists($array, $segment)) {
-                $array = $array[$segment];
-            } else {
-                return false;
+        foreach ($keys as $key) {
+            $subKeyArray = $array;
+            if (static::exists($array, $key)) {
+                continue;
+            }
+            foreach (explode('.', $key) as $segment) {
+                if (static::accessible($subKeyArray) && static::exists($subKeyArray, $segment)) {
+                    $subKeyArray = $subKeyArray[$segment];
+                } else {
+                    return false;
+                }
             }
         }
 
@@ -529,15 +538,7 @@ final class Arr
      */
     public static function where($array, callable $callback) : array
     {
-        $filtered = [];
-
-        foreach ($array as $key => $value) {
-            if (call_user_func($callback, $key, $value)) {
-                $filtered[$key] = $value;
-            }
-        }
-
-        return $filtered;
+        return array_filter($array, $callback, ARRAY_FILTER_USE_BOTH);
     }
 
     /**

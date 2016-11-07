@@ -23,7 +23,7 @@ trait TraitTestCase
 
         $config = array_merge($config, [
             'cache'       => [],
-            'application' => ['baseUri' => '/']
+            'app' => ['base_uri' => '/']
         ]);
 
         parent::setUpBeforeClass();

@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Foundation\Application\Cli as CliApplication;
+use Luxury\Foundation\Kernel\Cli as CliApplication;
 use Phalcon\Di;
 
 /**

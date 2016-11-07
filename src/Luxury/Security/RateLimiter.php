@@ -57,7 +57,7 @@ class RateLimiter extends Injectable
         if ($cache->exists($this->name . $key . $this->klock, $decaySeconds)) {
             return true;
         }
-        if ($this->attempts($key, $decaySeconds) > $maxAttempts) {
+        if ($this->attempts($key, $decaySeconds) >= $maxAttempts) {
             $cache->save(
                 $this->name . $key . $this->klock,
                 time() + ($decaySeconds),
@@ -88,7 +88,7 @@ class RateLimiter extends Injectable
         $cache = $this->getDI()->getShared(Services::CACHE);
 
         if (!$cache->exists($key, $decaySeconds)) {
-            $cache->save($key, 1, $decaySeconds);
+            $cache->save($key, 0, $decaySeconds);
         }
 
         $value = (int)$cache->get($key, $decaySeconds);
@@ -139,7 +139,7 @@ class RateLimiter extends Injectable
     {
         $attempts = $this->attempts($key, $decaySeconds);
 
-        return $attempts === 0 ? $maxAttempts : $maxAttempts - $attempts + 1;
+        return $attempts === 0 ? $maxAttempts : $maxAttempts - $attempts;
     }
 
     /**

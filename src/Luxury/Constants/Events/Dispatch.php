@@ -5,9 +5,9 @@ namespace Luxury\Constants\Events;
 /**
  * Class Dispatch
  *
- * @package Luxury\Constants\Events
- *
  * Contains a list of events related to the area 'dispatch'
+ *
+ * @package Luxury\Constants\Events
  */
 final class Dispatch
 {

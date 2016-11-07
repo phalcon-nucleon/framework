@@ -1,20 +1,20 @@
 <?php
 
-namespace Luxury\Middleware;
+namespace Luxury\Interfaces\Middleware;
 
 use Phalcon\Events\Event;
 
 /**
- * Interface BeforeMiddleware
+ * Interface InitMiddleware
  *
  * @package Luxury\Middleware
  *
- * Middleware before handled
+ * Middleware finish handled
  */
-interface BeforeMiddleware
+interface InitInterface
 {
     /**
-     * Called before the execution of handler
+     * Called on the initialization
      *
      * @param \Phalcon\Events\Event $event
      * @param \Phalcon\Dispatcher|mixed   $source
@@ -23,5 +23,5 @@ interface BeforeMiddleware
      * @throws \Exception
      * @return bool
      */
-    public function before(Event $event, $source, $data = null);
+    public function init(Event $event, $source, $data = null);
 }

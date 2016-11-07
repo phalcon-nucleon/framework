@@ -89,16 +89,12 @@ class MiddlewareControllerTest extends TestCase
      */
     public function testCheck($filterType, $filter, $actionName, $expected)
     {
-        $dispatcher = $this->getMockBuilder(\Phalcon\Mvc\Dispatcher::class)
-            ->setMethods(['getActionName', 'getActionSuffix'])
-            ->getMock();
+        $dispatcher = $this->mockService(Services::DISPATCHER, \Phalcon\Mvc\Dispatcher::class, true);
+
         $dispatcher->expects($this->any())
             ->method('getActionName')
             ->will($this->returnValue($actionName));
         $dispatcher->expects($this->any())->method('getActionSuffix')->will($this->returnValue(''));
-
-        $this->getDI()->remove(Services::DISPATCHER);
-        $this->getDI()->setShared(Services::DISPATCHER, $dispatcher);
 
         $controller = $this->getStubControllerMiddleware();
 

@@ -4,6 +4,13 @@ namespace Luxury\Exceptions;
 
 use Phalcon\Exception;
 
+/**
+ * Class TokenMismatchException
+ *
+ * Token exception for failing csrf check
+ *
+ * @package Luxury\Exceptions
+ */
 class TokenMismatchException extends Exception
 {
     /**

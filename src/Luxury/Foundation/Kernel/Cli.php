@@ -1,6 +1,6 @@
 <?php
 
-namespace Luxury\Foundation\Application;
+namespace Luxury\Foundation\Kernel;
 
 use Luxury\Foundation\Kernelize;
 use Luxury\Interfaces\Kernelable;
@@ -10,7 +10,10 @@ use Phalcon\Di\FactoryDefault\Cli as Di;
 /**
  * Class Cli
  *
- * @package Luxury\Foundation\Application
+ * @package Luxury\Foundation\Kernel
+ *
+ * @property-read \Luxury\Cli\Router $router
+ * @property-read \Phalcon\Cli\Dispatcher $dispatcher
  */
 abstract class Cli extends Console implements Kernelable
 {
@@ -50,5 +53,13 @@ abstract class Cli extends Console implements Kernelable
     public function __construct()
     {
         parent::__construct(null);
+    }
+
+    /**
+     * Register the routes of the application.
+     */
+    public function registerRoutes()
+    {
+        require $this->config->paths->routes . 'cli.php';
     }
 }

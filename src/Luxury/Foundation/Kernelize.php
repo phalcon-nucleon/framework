@@ -4,7 +4,6 @@ namespace Luxury\Foundation;
 
 use Luxury\Constants\Services;
 use Luxury\Events\Listener;
-use Luxury\Middleware\Middleware;
 use Luxury\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Di;
@@ -25,7 +24,7 @@ trait Kernelize
     public function registerServices()
     {
         foreach ($this->providers as $provider) {
-            /* @var \Luxury\Providers\Provider $prv */
+            /* @var \Luxury\Interfaces\Providable $prv */
             $prv = new $provider();
 
             $prv->registering();
@@ -38,7 +37,7 @@ trait Kernelize
     public function registerMiddlewares()
     {
         foreach ($this->middlewares as $middleware) {
-            $this->attachMiddleware(new $middleware);
+            $this->attach(new $middleware);
         }
     }
 
@@ -53,7 +52,7 @@ trait Kernelize
     }
 
     /**
-     * Attach an Event Listener
+     * Attach an Listener
      *
      * @param Listener $listener
      *
@@ -67,18 +66,6 @@ trait Kernelize
         $listener->setEventsManager($this->getEventsManager());
 
         $listener->attach();
-    }
-
-    /**
-     * Attach a Middleware
-     *
-     * @param Middleware $middleware
-     *
-     * @throws \Exception
-     */
-    public function attachMiddleware(Middleware $middleware)
-    {
-        $this->attach($middleware);
     }
 
     /**

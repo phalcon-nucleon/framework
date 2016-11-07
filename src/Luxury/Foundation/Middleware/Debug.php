@@ -3,16 +3,16 @@
 namespace Luxury\Foundation\Middleware;
 
 use Luxury\Constants\Events;
-use Luxury\Middleware\Middleware;
+use Luxury\Events\Listener;
 use Luxury\Support\Facades\Log;
 use Phalcon\Events\Event;
 
 /**
  * Class Debug
  *
- * @package Luxury\Middleware
+ * @package Luxury\Foundation\Middleware
  */
-class Debug extends Middleware
+class Debug extends Listener
 {
     protected $space = [
         Events::APPLICATION,

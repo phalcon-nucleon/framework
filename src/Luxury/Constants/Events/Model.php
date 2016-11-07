@@ -5,9 +5,9 @@ namespace Luxury\Constants\Events;
 /**
  * Class Model
  *
- * @package Luxury\Constants\Events
- *
  * Contains a list of events related to the area 'model'
+ *
+ * @package Luxury\Constants\Events
  */
 final class Model
 {

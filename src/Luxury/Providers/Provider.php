@@ -16,6 +16,8 @@ abstract class Provider implements Providable, InjectionAwareInterface
     use InjectionAwareTrait;
 
     /**
+     * Name of the service
+     *
      * @var string
      */
     protected $name;
@@ -36,7 +38,7 @@ abstract class Provider implements Providable, InjectionAwareInterface
     }
 
     /**
-     *
+     * @inheritdoc
      */
     public function registering()
     {
@@ -48,6 +50,10 @@ abstract class Provider implements Providable, InjectionAwareInterface
     }
 
     /**
+     * Return the service to register
+     *
+     * Called when the services container tries to resolve the service
+     *
      * @return mixed
      */
     abstract protected function register();

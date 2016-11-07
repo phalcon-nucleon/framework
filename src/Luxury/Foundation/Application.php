@@ -7,6 +7,8 @@ use Phalcon\Config;
 /**
  * Class Application
  *
+ * Phalcon Application Boostraper
+ *
  * @package Luxury\Foundation
  */
 class Application

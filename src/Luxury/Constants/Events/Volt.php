@@ -5,9 +5,9 @@ namespace Luxury\Constants\Events;
 /**
  * Class Volt
  *
- * @package Luxury\Constants\Events
- *
  * Contains a list of events related to the area 'volt'
+ *
+ * @package Luxury\Constants\Events
  */
 final class Volt
 {

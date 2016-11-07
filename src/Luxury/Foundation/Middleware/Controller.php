@@ -3,12 +3,10 @@
 namespace Luxury\Foundation\Middleware;
 
 use Luxury\Constants\Events;
-use Luxury\Middleware\{
-    AfterMiddleware,
-    BeforeMiddleware,
-    FinishMiddleware,
-    Middleware
-};
+use Luxury\Events\Listener;
+use Luxury\Interfaces\Middleware\AfterInterface;
+use Luxury\Interfaces\Middleware\BeforeInterface;
+use Luxury\Interfaces\Middleware\FinishInterface;
 
 /**
  * ControllerMiddleware
@@ -17,7 +15,7 @@ use Luxury\Middleware\{
  *
  * @package Luxury\Foundation\Middleware
  */
-abstract class Controller extends Middleware
+abstract class Controller extends Listener
 {
     /**
      * Filter methods
@@ -33,13 +31,13 @@ abstract class Controller extends Middleware
     {
         parent::__construct();
 
-        if ($this instanceof BeforeMiddleware) {
+        if ($this instanceof BeforeInterface) {
             $this->listen[Events\Dispatch::BEFORE_EXECUTE_ROUTE] = 'checkBefore';
         }
-        if ($this instanceof AfterMiddleware) {
+        if ($this instanceof AfterInterface) {
             $this->listen[Events\Dispatch::AFTER_EXECUTE_ROUTE] = 'checkAfter';
         }
-        if ($this instanceof FinishMiddleware) {
+        if ($this instanceof FinishInterface) {
             $this->listen[Events\Dispatch::AFTER_DISPATCH] = 'checkFinish';
         }
     }
@@ -99,7 +97,7 @@ abstract class Controller extends Middleware
     final public function checkBefore($event, $source, $data)
     {
         if ($this->check()) {
-            /** @var BeforeMiddleware $this */
+            /** @var \Luxury\Interfaces\Middleware\BeforeInterface $this */
             return $this->before($event, $source, $data);
         }
 
@@ -116,7 +114,7 @@ abstract class Controller extends Middleware
     final public function checkAfter($event, $source, $data)
     {
         if ($this->check()) {
-            /** @var AfterMiddleware $this */
+            /** @var \Luxury\Interfaces\Middleware\AfterInterface $this */
             return $this->after($event, $source, $data);
         }
 
@@ -133,7 +131,7 @@ abstract class Controller extends Middleware
     final public function checkFinish($event, $source, $data)
     {
         if ($this->check()) {
-            /** @var FinishMiddleware $this */
+            /** @var \Luxury\Interfaces\Middleware\FinishInterface $this */
             return $this->finish($event, $source, $data);
         }
 

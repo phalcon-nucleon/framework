@@ -4,10 +4,17 @@ namespace Luxury\Http\Middleware;
 
 use Luxury\Exceptions\TokenMismatchException;
 use Luxury\Foundation\Middleware\Controller;
-use Luxury\Middleware\BeforeMiddleware;
+use Luxury\Interfaces\Middleware\BeforeInterface;
 use Phalcon\Events\Event;
 
-class Csrf extends Controller implements BeforeMiddleware
+/**
+ * Class Csrf
+ *
+ * Cross Site Request Forgery Middleware
+ *
+ * @package Luxury\Http\Middleware
+ */
+class Csrf extends Controller implements BeforeInterface
 {
     /**
      * Called before the execution of handler

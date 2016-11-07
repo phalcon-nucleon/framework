@@ -1,6 +1,6 @@
 <?php
 
-namespace Luxury\Middleware;
+namespace Luxury\Interfaces\Middleware;
 
 use Phalcon\Events\Event;
 
@@ -11,7 +11,7 @@ use Phalcon\Events\Event;
  *
  * Middleware after handled
  */
-interface AfterMiddleware
+interface AfterInterface
 {
     /**
      * Called after the execution of handler

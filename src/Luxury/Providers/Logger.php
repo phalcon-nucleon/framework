@@ -3,7 +3,9 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Support\Arr;
+use Phalcon\Logger\Adapter\Database as DatabaseLoggerAdapter;
+use Phalcon\Logger\Adapter\File as FileLoggerAdapter;
+use Phalcon\Logger\Adapter\File\Multiple as MultipleLoggerAdapter;
 
 /**
  * Class Logger
@@ -28,18 +30,22 @@ class Logger extends Provider
 
         switch (ucfirst($adapter = $config->log->adapter ?? 'empty')) {
             case null:
+            case MultipleLoggerAdapter::class:
             case 'Multiple':
-                $adapter = \Phalcon\Logger\Adapter\File\Multiple::class;
+                $adapter = MultipleLoggerAdapter::class;
 
                 $name = $config->log->path ?? null;
                 break;
+            case FileLoggerAdapter::class:
             case 'File':
-                $adapter = \Phalcon\Logger\Adapter\File::class;
+                $adapter = FileLoggerAdapter::class;
 
                 $name = $config->log->path ?? null;
                 break;
+
+            case DatabaseLoggerAdapter::class:
             case 'Database':
-                $adapter = \Phalcon\Logger\Adapter\Database::class;
+                $adapter = DatabaseLoggerAdapter::class;
 
                 $config->log->options->db = $this->getDI()->getShared(Services::DB);
                 $name = $config->log->name ?? 'phalcon';
@@ -53,7 +59,11 @@ class Logger extends Provider
                 $name = $config->log->name ?? 'phalcon';
                 break;
             default:
-                throw new \RuntimeException("Logger adapter $adapter not implemented.");
+                if(!class_exists($adapter)){
+                    throw new \RuntimeException("Logger adapter $adapter not implemented.");
+                }
+
+                $name = $config->log->name ?? 'phalcon';
         }
 
         if (empty($name)) {

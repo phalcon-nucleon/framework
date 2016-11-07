@@ -1,6 +1,6 @@
 <?php
 
-namespace Luxury\Foundation\Application;
+namespace Luxury\Foundation\Kernel;
 
 use Luxury\Foundation\Kernelize;
 use Luxury\Interfaces\Kernelable;
@@ -11,7 +11,7 @@ use Phalcon\Mvc\Application as PhApplication;
 /**
  * Class Http
  *
- * @package Luxury\Foundation\Application
+ * @package Luxury\Foundation\Kernel
  */
 abstract class Http extends PhApplication implements Kernelable
 {
@@ -66,6 +66,14 @@ abstract class Http extends PhApplication implements Kernelable
     {
         $this->kernelizeBootstrap($config);
 
-        $this->useImplicitView($config->application->useImplicitView ?? false);
+        $this->useImplicitView($config->app->useImplicitView ?? false);
+    }
+
+    /**
+     * Register the routes of the application.
+     */
+    public function registerRoutes()
+    {
+        require $this->config->paths->routes . 'http.php';
     }
 }

@@ -2,7 +2,9 @@
 
 namespace Test\Stub;
 
-use Luxury\Foundation\Application\Cli as CliApplication;
+use Luxury\Foundation\Kernel\Cli as CliApplication;
+use Luxury\Providers\Cli\Dispatcher;
+use Luxury\Providers\Cli\Router;
 
 /**
  * Class StubKernelEmpty
@@ -16,7 +18,10 @@ class StubKernelCli extends CliApplication
      *
      * @var string[]
      */
-    protected $providers = [];
+    protected $providers = [
+        Dispatcher::class,
+        Router::class
+    ];
 
     /**
      * Register the routes.

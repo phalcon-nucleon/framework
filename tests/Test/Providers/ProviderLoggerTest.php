@@ -71,12 +71,7 @@ class ProviderLoggerTest extends TestCase
         $this->app->config->log->adapter = 'Database';
         $this->app->config->log->options = new Config(['table' => 'logger']);
 
-        $this->getDI()->setShared(
-            Services::DB,
-            $this->getMockBuilder(\Phalcon\Db\Adapter\Pdo\Mysql::class)
-                ->disableOriginalConstructor()
-                ->getMock()
-        );
+        $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
 
         $provider = new Logger();
 

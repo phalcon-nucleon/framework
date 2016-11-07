@@ -4,19 +4,21 @@ namespace Luxury\Providers;
 
 use Luxury\Cache\CacheStrategy;
 use Luxury\Constants\Services;
+use Luxury\Interfaces\Providable;
+use Luxury\Support\Traits\InjectionAwareTrait;
 use Phalcon\Cache\BackendInterface;
+use Phalcon\Cache\Frontend\None as FrontendNone;
 use Phalcon\Cache\FrontendInterface;
+use Phalcon\Di\InjectionAwareInterface;
 
 /**
  * Class Cache
  *
  * @package Luxury\Providers
  */
-class Cache extends Provider
+class Cache implements Providable, InjectionAwareInterface
 {
-    protected $name = Services::CACHE;
-
-    protected $shared = true;
+    use InjectionAwareTrait;
 
     /**
      *
@@ -26,14 +28,14 @@ class Cache extends Provider
         $di = $this->getDI();
 
         // Registering CacheStrategy
-        $di->setShared($this->name, CacheStrategy::class);
+        $di->setShared(Services::CACHE, CacheStrategy::class);
 
         // Registering All Cache Driver
         $caches = $di->getShared(Services::CONFIG)->cache;
 
         foreach ($caches as $name => $cache) {
             $di->setShared(
-                $this->name . '.' . $name,
+                Services::CACHE . '.' . $name,
                 function () use ($cache) {
                     // Acceptable Driver (Backend)
                     $driver = $cache->driver;
@@ -56,13 +58,12 @@ class Cache extends Provider
                             break;
                         default:
                             $driverClass = $driver;
-                    }
-
-                    if (!class_exists($driverClass)) {
-                        $msg = empty($driver)
-                            ? 'Cache driver not set.'
-                            : "Cache driver $driver not implemented.";
-                        throw new \RuntimeException($msg);
+                            if (!class_exists($driverClass)) {
+                                $msg = empty($driver)
+                                    ? 'Cache driver not set.'
+                                    : "Cache driver $driver not implemented.";
+                                throw new \RuntimeException($msg);
+                            }
                     }
 
                     // Acceptable Adapter (Frontend)
@@ -81,14 +82,14 @@ class Cache extends Provider
                             $adapterClass = '\Phalcon\Cache\Frontend\\' . $adapter;
                             break;
                         case null:
-                            $adapterClass = '\Phalcon\Cache\Frontend\None';
+                            $adapterClass = FrontendNone::class;
                             break;
                         default:
                             $adapterClass = $adapter;
-                    }
 
-                    if (!class_exists($adapterClass)) {
-                        throw new \RuntimeException("Cache adapter $adapter not implemented.");
+                            if (!class_exists($adapterClass)) {
+                                throw new \RuntimeException("Cache adapter $adapter not implemented.");
+                            }
                     }
 
                     $options = isset($cache->options) ? (array)$cache->options : [];
@@ -109,12 +110,5 @@ class Cache extends Provider
                 }
             );
         }
-    }
-
-    /**
-     * @return void
-     */
-    protected function register()
-    {
     }
 }

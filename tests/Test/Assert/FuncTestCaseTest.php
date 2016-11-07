@@ -22,7 +22,7 @@ class FuncTestCaseTest extends TestCase
     {
         global $config;
 
-        $config['application']['baseUri'] = '/';
+        $config['app']['base_uri'] = '/';
 
         parent::setUp();
 

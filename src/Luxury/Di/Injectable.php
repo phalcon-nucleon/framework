@@ -7,7 +7,7 @@ namespace Luxury\Di;
  *
  * @package Luxury\Di
  *
- * @property-read \Phalcon\Cache\BackendInterface        $cache
+ * @property-read \Luxury\Cache\CacheStrategy            $cache
  * @property-read \Phalcon\Mvc\Application               $app
  * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
  */
@@ -24,7 +24,7 @@ abstract class Injectable extends \Phalcon\Di\Injectable
 
     /**
      * Override Magic method __get
-     *  \_ break the default forced cache value of registered component founded on the Di.
+     * break the default forced cache value of registered component founded on the Di.
      *
      * @param string $propertyName
      *

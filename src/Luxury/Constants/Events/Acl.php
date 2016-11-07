@@ -5,9 +5,9 @@ namespace Luxury\Constants\Events;
 /**
  * Class Acl
  *
- * @package Luxury\Constants\Events
- *
  * Contains a list of events related to the area 'acl'
+ *
+ * @package Luxury\Constants\Events
  */
 final class Acl
 {

@@ -14,7 +14,7 @@
         <directory>./tests/</directory>
     </testsuite>
     <filter>
-        <whitelist processUncoveredFilesFromWhitelist="false">
+        <whitelist processUncoveredFilesFromWhitelist="false" addUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./src</directory>
         </whitelist>
     </filter>

@@ -5,9 +5,9 @@ namespace Luxury\Constants\Events;
 /**
  * Class Console
  *
- * @package Luxury\Constants\Events
- *
  * Contains a list of events related to the area 'console'
+ *
+ * @package Luxury\Constants\Events
  */
 final class Console
 {

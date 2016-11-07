@@ -1,17 +1,17 @@
 <?php
 
-namespace Luxury\Middleware;
+namespace Luxury\Interfaces\Middleware;
 
 use Phalcon\Events\Event;
 
 /**
- * Interface FinishMiddleware
+ * Interface BeforeMiddleware
  *
  * @package Luxury\Middleware
  *
- * Middleware finish handled
+ * Middleware before handled
  */
-interface FinishMiddleware
+interface BeforeInterface
 {
     /**
      * Called before the execution of handler
@@ -23,5 +23,5 @@ interface FinishMiddleware
      * @throws \Exception
      * @return bool
      */
-    public function finish(Event $event, $source, $data = null);
+    public function before(Event $event, $source, $data = null);
 }

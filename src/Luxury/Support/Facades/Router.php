@@ -9,6 +9,8 @@ use Luxury\Constants\Services;
  *
  * @package Luxury\Support\Facades
  *
+ * @method static \Phalcon\Cli\Router\RouteInterface addTask(string $pattern, mixed $paths, mixed $httpMethods = null, mixed $position = null) Adds a route to the router (CLI Only)
+ *          
  * @method static string getRewriteUri() Get rewrite info. This info is read from $_GET['_url']. This returns '/' if the rewrite information cannot be read
  * @method static \Phalcon\Mvc\RouterInterface setUriSource(mixed $uriSource) Sets the URI source. One of the URI_SOURCE_constants
  * @method static \Phalcon\Mvc\RouterInterface removeExtraSlashes(bool $remove) Set whether router must remove the extra slashes in the handled routes

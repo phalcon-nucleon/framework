@@ -10,6 +10,9 @@ namespace Luxury\Interfaces;
 interface Providable
 {
     /**
+     * Called upon bootstrap the application.
+     * Adds to container services desired services.
+     *
      * @return void
      */
     public function registering();

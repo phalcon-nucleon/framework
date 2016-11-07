@@ -97,6 +97,7 @@ class TaskTest extends TestCase
             ->method('forward')
             ->with([
                 'task'   => HelperTask::class,
+                'action' => 'main',
                 'params' => [
                     'task'   => Task::class,
                     'action' => 'main',

@@ -48,13 +48,7 @@ class MacroableTest extends TestCase
 
     public function testRegisterMacroAndCallWithoutStaticCallable()
     {
-        $obj       = new class
-        {
-            function __invoke()
-            {
-                return 'Taylor';
-            }
-        };
+        $obj       = new StubMacroable;
         $macroable = $this->macroable;
         $macroable::macro(__CLASS__, $obj);
         $this->assertEquals('Taylor', $macroable->{__CLASS__}());
@@ -113,5 +107,13 @@ class TestMacroable
     public function func()
     {
         return 123;
+    }
+}
+
+class StubMacroable
+{
+    function __invoke()
+    {
+        return 'Taylor';
     }
 }

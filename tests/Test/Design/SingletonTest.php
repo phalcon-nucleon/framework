@@ -13,28 +13,44 @@ class SingletonTest extends TestCase
         $this->assertEquals('test', StubSingleton::instance()->getVar());
     }
 
-    /**
-     * @expectedException \Error
-     */
     public function testFailConstruct()
     {
+        if (PHP_MAJOR_VERSION == 5) {
+            $this->markTestSkipped('Can\'t test this in php5.');
+
+            return;
+        }
+
+        $this->setExpectedException('\Error');
+
         new StubSingleton;
     }
 
-    /**
-     * @expectedException \Error
-     */
     public function testFailClone()
     {
+        if (PHP_MAJOR_VERSION == 5) {
+            $this->markTestSkipped('Can\'t test this in php5.');
+
+            return;
+        }
+
+        $this->setExpectedException('\Error');
+
         $instance = StubSingleton::instance();
 
         $new_instance = clone $instance;
     }
-    /**
-     * @expectedException \RuntimeException
-     */
+
     public function testFailCallClone()
     {
+        if (PHP_MAJOR_VERSION == 5) {
+            $this->markTestSkipped('Can\'t test this in php5.');
+
+            return;
+        }
+
+        $this->setExpectedException('\RuntimeException');
+
         $instance = StubSingleton::instance();
 
         $this->invokeMethod($instance, '__clone', []);

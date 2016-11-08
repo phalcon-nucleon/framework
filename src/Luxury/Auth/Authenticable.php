@@ -16,7 +16,7 @@ trait Authenticable
      *
      * @return string
      */
-    public function getAuthIdentifier() : string
+    public function getAuthIdentifier()
     {
         return $this->{static::getAuthIdentifierName()};
     }
@@ -26,7 +26,7 @@ trait Authenticable
      *
      * @return string
      */
-    public function getAuthPassword() : string
+    public function getAuthPassword()
     {
         return $this->{static::getAuthPasswordName()};
     }
@@ -36,7 +36,7 @@ trait Authenticable
      *
      * @return string
      */
-    public function getRememberToken() : string
+    public function getRememberToken()
     {
         return $this->{static::getRememberTokenName()};
     }
@@ -48,7 +48,7 @@ trait Authenticable
      *
      * @return void
      */
-    public function setRememberToken(string $value)
+    public function setRememberToken($value)
     {
         $this->{static::getRememberTokenName()} = $value;
     }
@@ -58,7 +58,7 @@ trait Authenticable
      *
      * @return string
      */
-    public static function getAuthIdentifierName() : string
+    public static function getAuthIdentifierName()
     {
         return 'email';
     }
@@ -68,7 +68,7 @@ trait Authenticable
      *
      * @return string
      */
-    public static function getAuthPasswordName() : string
+    public static function getAuthPasswordName()
     {
         return 'password';
     }
@@ -78,7 +78,7 @@ trait Authenticable
      *
      * @return string
      */
-    public static function getRememberTokenName() : string
+    public static function getRememberTokenName()
     {
         return 'remember_token';
     }

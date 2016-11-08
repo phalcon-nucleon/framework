@@ -72,6 +72,6 @@ class Error
      */
     public function __get($name)
     {
-        return $this->attributes[$name] ?? null;
+        return isset($this->attributes[$name]) ? $this->attributes[$name] : null;
     }
 }

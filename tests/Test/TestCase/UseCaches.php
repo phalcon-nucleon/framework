@@ -12,8 +12,6 @@ use Test\Cache\StubBackend;
  */
 trait UseCaches
 {
-    protected static $cache_dir = __DIR__ . '/../../.data/';
-
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();

@@ -115,7 +115,7 @@ abstract class RoutesTestCase extends FuncTestCase
      *
      * @return array[]
      */
-    abstract protected function routes(): array;
+    abstract protected function routes();
 
     /**
      * @param \Phalcon\Mvc\Router\RouteInterface $route

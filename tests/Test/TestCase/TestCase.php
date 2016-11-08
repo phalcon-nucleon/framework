@@ -11,7 +11,7 @@ abstract class TestCase extends FuncTestCase
 {
     use TraitTestCase;
 
-    protected static $cache_dir = __DIR__ . '/../../.data/';
+    public static $cache_dir = __DIR__ . '/../../.data/';
 
     public function setUp()
     {

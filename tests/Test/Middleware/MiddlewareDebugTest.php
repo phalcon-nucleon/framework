@@ -2,10 +2,12 @@
 
 namespace Test\Middleware;
 
+use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Debug;
 use Luxury\Providers\Logger;
 use Luxury\Support\Facades\Log;
 use Phalcon\Events\Event;
+use Phalcon\Logger\Adapter\File;
 use Test\TestCase\TestCase;
 
 /**
@@ -45,22 +47,13 @@ class MiddlewareDebugTest extends TestCase
      */
     public function testFunction($function, $log)
     {
-        $this->app->config->log          = new \stdClass();
-        $this->app->config->log->adapter = 'Multiple';
-        $this->app->config->log->path  = __DIR__ . '/../../.data/';
-        $this->app->config->log->options = new \Phalcon\Config([]);
-
-        $provider = new Logger();
-
-        $provider->registering();
-        
-        Log::shouldReceive('debug')->once()->with($log . 'stdClass');
+        $this->mockService(Services::LOGGER, File\Multiple::class, true)
+            ->expects($this->once())
+            ->method('debug')
+            ->with($log . 'stdClass');
 
         /** @var Debug $debug */
-        $debug = new class extends Debug
-        {
-
-        };
+        $debug = new Debug;
 
         $debug->$function(new Event('', new \stdClass), new \stdClass);
     }

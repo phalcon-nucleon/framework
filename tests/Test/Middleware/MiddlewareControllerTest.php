@@ -18,10 +18,7 @@ class MiddlewareControllerTest extends TestCase
      */
     public function getStubControllerMiddleware()
     {
-        return new class extends Controller
-        {
-
-        };
+        return new StubMiddlewareController;
     }
 
     public function testFilter()
@@ -102,4 +99,9 @@ class MiddlewareControllerTest extends TestCase
 
         $this->assertEquals($expected, $controller->check());
     }
+}
+
+class StubMiddlewareController extends Controller
+{
+
 }

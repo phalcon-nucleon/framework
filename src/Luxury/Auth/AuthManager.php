@@ -96,7 +96,7 @@ class AuthManager extends Injectable
      *
      * @return \Luxury\Foundation\Auth\User
      */
-    public function attempt(array $credentials = [], bool $remember = false)
+    public function attempt(array $credentials = [], $remember = false)
     {
         $user = $this->retrieveUserByCredentials($credentials);
 
@@ -148,7 +148,7 @@ class AuthManager extends Injectable
      *
      * @return bool
      */
-    public function login(User $user, bool $remember = false)
+    public function login(User $user, $remember = false)
     {
         if (!$user) {
             return false;

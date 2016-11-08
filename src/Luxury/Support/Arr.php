@@ -29,7 +29,7 @@ final class Arr
      *
      * @return bool
      */
-    public static function accessible($value) : bool
+    public static function accessible($value)
     {
         return is_array($value) || $value instanceof ArrayAccess;
     }
@@ -59,7 +59,7 @@ final class Arr
      *
      * @return array
      */
-    public static function collapse($array) : array
+    public static function collapse($array)
     {
         $results = [];
 
@@ -81,7 +81,7 @@ final class Arr
      *
      * @return array
      */
-    public static function divide($array) : array
+    public static function divide($array)
     {
         return [array_keys($array), array_values($array)];
     }
@@ -94,7 +94,7 @@ final class Arr
      *
      * @return array
      */
-    public static function dot($array, $prepend = '') : array
+    public static function dot($array, $prepend = '')
     {
         $results = [];
 
@@ -277,7 +277,7 @@ final class Arr
             return $default;
         }
 
-        return $array[$key] ?? $default;
+        return isset($array[$key]) ? $array[$key] : $default;
     }
 
     /**
@@ -363,7 +363,7 @@ final class Arr
      *
      * @return bool
      */
-    public static function isAssoc(array $array) : bool
+    public static function isAssoc(array $array)
     {
         $keys = array_keys($array);
 
@@ -378,7 +378,7 @@ final class Arr
      *
      * @return array
      */
-    public static function only($array, $keys) : array
+    public static function only($array, $keys)
     {
         return array_intersect_key($array, array_flip((array)$keys));
     }
@@ -392,7 +392,7 @@ final class Arr
      *
      * @return array
      */
-    public static function pluck($array, $value, $key = null) : array
+    public static function pluck($array, $value, $key = null)
     {
         $results = [];
 
@@ -536,7 +536,7 @@ final class Arr
      *
      * @return array
      */
-    public static function where($array, callable $callback) : array
+    public static function where($array, callable $callback)
     {
         return array_filter($array, $callback, ARRAY_FILTER_USE_BOTH);
     }
@@ -549,7 +549,7 @@ final class Arr
      *
      * @return array
      */
-    protected static function explodePluckParameters($value, $key) : array
+    protected static function explodePluckParameters($value, $key)
     {
         $value = is_string($value) ? explode('.', $value) : $value;
 

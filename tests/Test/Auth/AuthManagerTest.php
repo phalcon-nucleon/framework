@@ -356,17 +356,17 @@ class AuthManagerTest extends TestCase
 
 class CustomUser extends User
 {
-    public static function getAuthIdentifierName() : string
+    public static function getAuthIdentifierName()
     {
         return 'my_user_name';
     }
 
-    public static function getAuthPasswordName() : string
+    public static function getAuthPasswordName()
     {
         return 'my_user_password';
     }
 
-    public static function getRememberTokenName() : string
+    public static function getRememberTokenName()
     {
         return 'my_user_remember';
     }

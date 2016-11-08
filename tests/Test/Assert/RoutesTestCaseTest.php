@@ -7,6 +7,7 @@ use Phalcon\Http\Request\Method;
 use Phalcon\Mvc\Router\Route;
 use Test\Stub\StubController;
 use Test\Stub\StubKernelHttp;
+use Test\Stub\StubRouteTestCase;
 use Test\TestCase\TestCase;
 use Test\TestCase\TraitTestCase;
 use Test\TestCase\UseCaches;
@@ -16,38 +17,11 @@ class RoutesTestCaseTest extends TestCase
     use TraitTestCase;
 
     /**
-     * @return RoutesTestCase
+     * @return StubRouteTestCase
      */
     public function getStub()
     {
-        return new class extends RoutesTestCase
-        {
-            use TraitTestCase;
-
-            /**
-             * @return array[]
-             */
-            protected function routes(): array
-            {
-                return [
-                    $this->formatDataRoute('/', 'GET', true),
-                    $this->formatDataRoute('/', 'POST', false),
-                    $this->formatDataRoute('/something/:int', 'GET', true, 'index', StubController::class, [1])
-                ];
-            }
-
-            public function assertRoute(
-                $route,
-                $method,
-                $expected,
-                $controller = null,
-                $action = null,
-                array $params = null
-            )
-            {
-                static::$testedRoutes[] = [$route, $method, $expected, $controller, $action, $params];
-            }
-        };
+        return new StubRouteTestCase;
     }
 
     public function testRouteProvider()

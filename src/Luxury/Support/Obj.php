@@ -59,7 +59,7 @@ final class Obj
             return self::value($default);
         }
 
-        return $object->$property ?? self::value($default);
+        return isset($object->$property) ? $object->$property : self::value($default);
     }
 
     /**

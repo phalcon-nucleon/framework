@@ -15,10 +15,7 @@ class StrategyTest extends TestCase
 
     public function testWrong()
     {
-        $instance = new class extends Strategy
-        {
-            protected $supported = [];
-        };
+        $instance = new StubWrongStrategy;
 
         $this->setExpectedException(\RuntimeException::class,
             get_class($instance) . " : default unsupported. ");
@@ -28,15 +25,22 @@ class StrategyTest extends TestCase
 
     public function testMake()
     {
-        $instance = new class extends Strategy
-        {
-            protected $supported = [
-                Registry::class
-            ];
-
-            protected $default = Registry::class;
-        };
+        $instance = new StubGoodStrategy();
 
         $this->assertInstanceOf(Registry::class, $instance->uses(Registry::class));
     }
+}
+
+class StubWrongStrategy extends Strategy
+{
+    protected $supported = [];
+}
+
+class StubGoodStrategy extends Strategy
+{
+    protected $supported = [
+        Registry::class
+    ];
+
+    protected $default = Registry::class;
 }

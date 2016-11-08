@@ -18,10 +18,7 @@ class ListenerTest extends TestCase
     public function testAttach()
     {
         /** @var Listener $listener */
-        $listener = new class extends Listener
-        {
-            protected $listen = ['test'];
-        };
+        $listener = new StubWrongListener;
 
         $listener->attach();
     }
@@ -53,3 +50,10 @@ class ListenerTest extends TestCase
         }
     }
 }
+
+class StubWrongListener extends Listener
+{
+    protected $listen = ['test'];
+}
+
+;

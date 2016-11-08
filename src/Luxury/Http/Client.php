@@ -44,7 +44,7 @@ class Client
      * @throws \Phalcon\Http\Client\Provider\Exception
      */
     public function get(
-        string $url,
+        $url,
         array $params = [],
         array $header = [],
         $autoRedirectCallback = false
@@ -65,7 +65,7 @@ class Client
      * @throws \Phalcon\Http\Client\Provider\Exception
      */
     public function head(
-        string $url,
+        $url,
         array $params = [],
         array $header = [],
         $autoRedirectCallback = false
@@ -86,7 +86,7 @@ class Client
      * @throws \Phalcon\Http\Client\Provider\Exception
      */
     public function post(
-        string $url,
+        $url,
         array $params = [],
         array $header = [],
         $autoRedirectCallback = false
@@ -107,7 +107,7 @@ class Client
      * @throws \Phalcon\Http\Client\Provider\Exception
      */
     public function put(
-        string $url,
+        $url,
         array $params = [],
         array $header = [],
         $autoRedirectCallback = false
@@ -128,7 +128,7 @@ class Client
      * @throws \Phalcon\Http\Client\Provider\Exception
      */
     public function delete(
-        string $url,
+        $url,
         array $params = [],
         array $header = [],
         $autoRedirectCallback = false
@@ -149,7 +149,7 @@ class Client
      * @throws \Phalcon\Http\Client\Provider\Exception
      */
     public function patch(
-        string $url,
+        $url,
         array $params = [],
         array $header = [],
         $autoRedirectCallback = false
@@ -171,12 +171,12 @@ class Client
      * @throws \Phalcon\Http\Client\Provider\Exception
      */
     private function call(
-        string $method,
-        string $url,
+        $method,
+        $url,
         array $params = [],
         array $header = [],
         $autoRedirect = null
-    ) : Response {
+    ) {
 
         switch (strtoupper($method)) {
             case Method::HEAD:
@@ -233,7 +233,7 @@ class Client
      *
      * @return bool
      */
-    public function isOk(Response $response) : bool
+    public function isOk(Response $response)
     {
         $code = $response->header->statusCode;
 
@@ -247,7 +247,7 @@ class Client
      *
      * @return bool
      */
-    public function isSuccess(Response $response) : bool
+    public function isSuccess(Response $response)
     {
         $code = $response->header->statusCode;
 
@@ -261,7 +261,7 @@ class Client
      *
      * @return bool
      */
-    public function isRedirect(Response $response) : bool
+    public function isRedirect(Response $response)
     {
         $code = $response->header->statusCode;
 
@@ -275,7 +275,7 @@ class Client
      *
      * @return bool
      */
-    public function isFail(Response $response) : bool
+    public function isFail(Response $response)
     {
         $code = $response->header->statusCode;
 
@@ -289,7 +289,7 @@ class Client
      *
      * @return bool
      */
-    public function isError(Response $response) : bool
+    public function isError(Response $response)
     {
         $code = $response->header->statusCode;
 

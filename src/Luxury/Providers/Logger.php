@@ -28,19 +28,20 @@ class Logger extends Provider
         /** @var \Phalcon\Config|\stdClass $config */
         $config = $this->getDI()->getShared(Services::CONFIG);
 
-        switch (ucfirst($adapter = $config->log->adapter ?? 'empty')) {
+        $adapter = ucfirst(isset($config->log->adapter) ? $config->log->adapter : 'empty');
+        switch ($adapter) {
             case null:
             case MultipleLoggerAdapter::class:
             case 'Multiple':
                 $adapter = MultipleLoggerAdapter::class;
 
-                $name = $config->log->path ?? null;
+                $name = isset($config->log->path) ? $config->log->path :  null;
                 break;
             case FileLoggerAdapter::class:
             case 'File':
                 $adapter = FileLoggerAdapter::class;
 
-                $name = $config->log->path ?? null;
+                $name = isset($config->log->path) ? $config->log->path :  null;
                 break;
 
             case DatabaseLoggerAdapter::class:
@@ -48,7 +49,7 @@ class Logger extends Provider
                 $adapter = DatabaseLoggerAdapter::class;
 
                 $config->log->options->db = $this->getDI()->getShared(Services::DB);
-                $name = $config->log->name ?? 'phalcon';
+                $name = isset($config->log->name) ? $config->log->name :  'phalcon';
                 break;
             case 'Firelogger':
             case 'Stream':
@@ -56,14 +57,14 @@ class Logger extends Provider
             case 'Udplogger':
                 $adapter = '\Phalcon\Logger\Adapter\\' . $adapter;
 
-                $name = $config->log->name ?? 'phalcon';
+                $name = isset($config->log->name) ? $config->log->name :  'phalcon';
                 break;
             default:
                 if(!class_exists($adapter)){
                     throw new \RuntimeException("Logger adapter $adapter not implemented.");
                 }
 
-                $name = $config->log->name ?? 'phalcon';
+                $name = isset($config->log->name) ? $config->log->name :  'phalcon';
         }
 
         if (empty($name)) {

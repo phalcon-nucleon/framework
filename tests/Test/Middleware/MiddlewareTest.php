@@ -2,7 +2,6 @@
 
 namespace Test\Middleware;
 
-use Luxury\Constants\Events;
 use Luxury\Foundation\Middleware\Application as ApplicationMiddleware;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
 use Luxury\Foundation\Middleware\Disptacher as DisptacherMiddleware;

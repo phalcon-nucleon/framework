@@ -14,5 +14,5 @@ interface Authorizable
     /**
      * @return Role
      */
-    public function getRole() : Role;
+    public function getRole();
 }

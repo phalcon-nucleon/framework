@@ -19,15 +19,8 @@ class StubCacheProvider extends Provider
 
     protected $shared = true;
 
-    /**
-     * @param \Phalcon\DiInterface $di
-     *
-     * @return void
-     */
-    public function register(DiInterface $di)
+    public function register()
     {
-       // $di->setShared(Services::CACHE, function () {
-            return new StubCache();
-       // });
+        return new StubCache();
     }
 }

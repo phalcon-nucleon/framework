@@ -88,26 +88,15 @@ class FacadeTest extends TestCase
     public function testFacadeSwap()
     {
         $app = new ApplicationStub;
-        $app->setShared('foo', new class
-        {
-            public function foo()
-            {
-                return 'bar';
-            }
-        });
+
+        $app->setShared('foo', new Foo);
         FacadeStub::setDependencyInjection($app);
 
-        $this->assertEquals('bar', FacadeStub::foo());
+        $this->assertEquals('baz', FacadeStub::bar());
 
-        FacadeStub::swap(new class
-        {
-            public function foo()
-            {
-                return 'baz';
-            }
-        });
+        FacadeStub::swap(new Bar);
 
-        $this->assertEquals('baz', FacadeStub::foo());
+        $this->assertEquals('foo', FacadeStub::bar());
     }
 
     public function testFacadeCallsUnderlyingApplication()
@@ -174,20 +163,22 @@ class AnonymousClassFacadeStub extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return new class
-        {
-            private $value = 'AnonymousClassFacadeStub';
+        return new AnonymousClassFacadeStubClass;
+    }
+}
 
-            public function get()
-            {
-                return $this->value;
-            }
+class AnonymousClassFacadeStubClass
+{
+    private $value = 'AnonymousClassFacadeStub';
 
-            public function set($value = null)
-            {
-                $this->value = $value;
-            }
-        };
+    public function get()
+    {
+        return $this->value;
+    }
+
+    public function set($value = null)
+    {
+        $this->value = $value;
     }
 }
 
@@ -198,20 +189,7 @@ class SingletonAnonymousClassFacadeStub extends Facade
     private static function getInstance()
     {
         if (self::$instance == null) {
-            self::$instance = new class
-            {
-                private $value = 'SingletonAnonymousClassFacadeStub';
-
-                public function get()
-                {
-                    return $this->value;
-                }
-
-                public function set($value = null)
-                {
-                    $this->value = $value;
-                }
-            };
+            self::$instance = new SingletonAnonymousClassFacadeStubClass;
         }
 
         return self::$instance;
@@ -222,7 +200,20 @@ class SingletonAnonymousClassFacadeStub extends Facade
         return self::getInstance();
     }
 }
+class SingletonAnonymousClassFacadeStubClass
+{
+    private $value = 'SingletonAnonymousClassFacadeStub';
 
+    public function get()
+    {
+        return $this->value;
+    }
+
+    public function set($value = null)
+    {
+        $this->value = $value;
+    }
+}
 class ApplicationStub extends FactoryDefault
 {
     protected $attributes = [];
@@ -255,5 +246,21 @@ class ApplicationStub extends FactoryDefault
     public function offsetUnset($key)
     {
         unset($this->attributes[$key]);
+    }
+}
+
+class Foo
+{
+    public function bar()
+    {
+        return 'baz';
+    }
+}
+
+class Bar
+{
+    public function bar()
+    {
+        return 'foo';
     }
 }

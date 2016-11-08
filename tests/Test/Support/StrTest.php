@@ -122,7 +122,7 @@ class StrTest extends TestCase
     }
     public function testQuickRandom()
     {
-        $randomInteger = random_int(1, 100);
+        $randomInteger = mt_rand(1, 100);
         $this->assertEquals($randomInteger, strlen(Str::quickRandom($randomInteger)));
         $this->assertInternalType('string', Str::quickRandom());
         $this->assertEquals(16, strlen(Str::quickRandom()));
@@ -130,7 +130,7 @@ class StrTest extends TestCase
     public function testRandom()
     {
         $this->assertEquals(16, strlen(Str::random()));
-        $randomInteger = random_int(1, 100);
+        $randomInteger = mt_rand(1, 100);
         $this->assertEquals($randomInteger, strlen(Str::random($randomInteger)));
         $this->assertInternalType('string', Str::random());
     }

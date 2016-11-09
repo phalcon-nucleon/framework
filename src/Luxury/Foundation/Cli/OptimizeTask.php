@@ -44,15 +44,18 @@ class OptimizeTask extends Task
         $psr = $this->getAutoload('psr4');
 
         $_namespaces = [];
-
-        foreach ($namespaces as $namespace => $dir) {
-            $_namespaces[trim($namespace, '\\')] = $dir;
+        $_dirs = [];
+        foreach ($namespaces as $namespace => $directories) {
+            $_namespaces[trim($namespace, '\\')] = $directories;
+            foreach ($directories as $directory) {
+                $_dirs[$directory] = $directory;
+            }
         }
         foreach ($psr as $namespace => $dir) {
             $_namespaces[trim($namespace, '\\')] = $dir;
         }
 
-        $this->generateOutput($files, $_namespaces);
+        $this->generateOutput($files, $_namespaces, $_dirs);
     }
 
     protected function optimizeProcess()
@@ -62,7 +65,7 @@ class OptimizeTask extends Task
         $files = $this->getAutoload('files');
         $classes = $this->getAutoload('classmap');
 
-        $this->generateOutput($files, null, $classes);
+        $this->generateOutput($files, null, null, $classes);
     }
 
     /**
@@ -120,14 +123,18 @@ class OptimizeTask extends Task
      *
      * @param array|null $files
      * @param array|null $namespaces
+     * @param array|null $directories
      * @param array|null $classmap
      */
-    protected function generateOutput($files = null, $namespaces = null, $classmap = null)
+    protected function generateOutput($files = null, $namespaces = null, $directories = null, $classmap = null)
     {
         $output = '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL;
 
         if (!empty($files)) {
             $output .= '$loader->registerFiles(' . var_export(array_values($files), true) . ');' . PHP_EOL;
+        }
+        if (!empty($directories)) {
+            $output .= '$loader->registerDirs(' . var_export(array_values($directories), true) . ');' . PHP_EOL;
         }
         if (!empty($namespaces)) {
             $output .= '$loader->registerNamespaces(' . var_export($namespaces, true) . ');' . PHP_EOL;

@@ -135,7 +135,7 @@ class ThrottleTest extends TestCase
      */
     public function testWrongImplementedMiddleware()
     {
-        StubThrolledWrongImplemented::create(0);
+        new StubThrolledWrongImplemented(0);
     }
 }
 

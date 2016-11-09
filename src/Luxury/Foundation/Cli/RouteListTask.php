@@ -43,14 +43,18 @@ class RouteListTask extends Task
             if (is_array($httpMethods)) {
                 $httpMethods = implode('|', $httpMethods);
             }
-
+            $middleware = Arr::fetch($paths, 'middleware');
+            if (is_array($middleware)) {
+                $middleware = implode('|', $middleware);
+            }
             $datas[] = [
-                'domain'  => $route->getHostname(),
-                'name'    => $route->getName(),
-                'method'  => $httpMethods,
-                'pattern' => $compiled,
-                'action'  => Arr::fetch($paths, 'namespace', 'App\\Http\\Controllers') .
-                    '\\' . Str::capitalize($paths['controller']) . 'Controller::' . $paths['action']
+                'domain'     => $route->getHostname(),
+                'name'       => $route->getName(),
+                'method'     => $httpMethods,
+                'pattern'    => $compiled,
+                'action'     => Arr::fetch($paths, 'namespace', 'App\\Http\\Controllers') .
+                    '\\' . Str::capitalize($paths['controller']) . 'Controller::' . $paths['action'],
+                'middleware' => $middleware
             ];
         }
 

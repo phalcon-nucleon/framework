@@ -46,25 +46,21 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
     private $limiter;
 
     /**
-     * Throttle factory.
+     * Throttle constructor.
      *
      * @param int $max   Number of max request by $decay
      * @param int $decay Decay time (seconds)
-     *
-     * @return Throttle
      */
-    public static function create($max, $decay = 60)
+    public function __construct($max, $decay = 60)
     {
-        $throttle = new static;
+        parent::__construct();
 
-        if (!isset($throttle->name)) {
+        if (!isset($this->name)) {
             throw new \RuntimeException(static::class . '->name is empty.');
         }
 
-        $throttle->max   = $max;
-        $throttle->decay = $decay;
-
-        return $throttle;
+        $this->max   = $max;
+        $this->decay = $decay;
     }
 
     /**
@@ -107,6 +103,8 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
     public function after(Event $event, $source, $data = null)
     {
         $this->addHeader($this->resolveRequestSignature(), false);
+
+        return true;
     }
 
     /**

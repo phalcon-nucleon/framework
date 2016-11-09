@@ -82,15 +82,16 @@ final class Helper
      */
     public static function describeRoutePattern($route)
     {
-        $reverses = $route->getReversedPaths();
+        $paths = $route->getPaths();
 
         $compiled = $route->getCompiledPattern();
         if ($compiled !== $route->getPattern()) {
-            foreach ($reverses as $key => $reverse) {
-                if (is_int($key)) {
-                    $compiled =
-                        preg_replace('/\([^?][^\/\)]+\)/', Decorate::notice('{' . $reverse . '}'), $compiled,
-                            1);
+            foreach ($paths as $key => $value) {
+                if (in_array($key, ['controller', 'task', 'action', 'middleware'])) {
+                    continue;
+                }
+                if (is_int($value)) {
+                    $compiled = preg_replace('/\([^?][^\/\)]+\)/', Decorate::notice('{' . $key . '}'), $compiled, 1);
                 }
             }
             preg_match('/\^(.+)\$/', $compiled, $matchs);

@@ -2,6 +2,7 @@
 
 namespace Luxury\Foundation\Kernel;
 
+use Luxury\Constants\Events\Http\Application;
 use Luxury\Foundation\Kernelize;
 use Luxury\Interfaces\Kernelable;
 use Phalcon\Config;
@@ -67,6 +68,10 @@ abstract class Http extends PhApplication implements Kernelable
         $this->kernelizeBootstrap($config);
 
         $this->useImplicitView(isset($config->app->useImplicitView) ? $config->app->useImplicitView : false);
+
+        $this->getEventsManager()->attach(Application::BEFORE_HANDLE, function () {
+            $this->registerMiddlewareBeforeHandle();
+        });
     }
 
     /**
@@ -75,5 +80,38 @@ abstract class Http extends PhApplication implements Kernelable
     public function registerRoutes()
     {
         require $this->config->paths->routes . 'http.php';
+    }
+
+    /**
+     * Attach middleware specified in the route, if a route was matched
+     */
+    protected function registerMiddlewareBeforeHandle(){
+        $router = $this->router;
+
+        if ($router->wasMatched()) {
+            $route = $router->getMatchedRoute();
+
+            $paths = $route->getPaths();
+
+            if (!empty($paths['middleware'])) {
+                $middlewares = $paths['middleware'];
+
+                if (!is_array($middlewares)) {
+                    $middlewares = [$middlewares];
+                }
+
+                foreach ($middlewares as $key => $middleware) {
+                    if (is_int($key)) {
+                        $middlewareClass = $middleware;
+                        $middlewareParams = [];
+                    } else {
+                        $middlewareClass = $key;
+                        $middlewareParams = !is_array($middlewares) ? [$middleware] : $middleware;
+                    }
+
+                    $this->attach(new $middlewareClass(...$middlewareParams));
+                }
+            }
+        }
     }
 }

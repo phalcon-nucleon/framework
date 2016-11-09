@@ -105,6 +105,11 @@ class OptimizeTaskTest extends TestCase
                 'file_1.php',
                 'file_2.php',
             ]), true) . ');' . PHP_EOL .
+            '$loader->registerDirs(' . var_export(array_values([
+                'dir_1',
+                'dir_2',
+                'dir_3',
+            ]), true) . ');' . PHP_EOL .
             '$loader->registerNamespaces(' . var_export([
                 'namespace_1' => array('dir_1'),
                 'namespace_2' => array('dir_2', 'dir_3'),

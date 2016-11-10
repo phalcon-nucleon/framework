@@ -38,8 +38,6 @@ abstract class Controller extends Listener
      */
     public function __construct($controllerClass)
     {
-        parent::__construct();
-
         $this->controllerClass = $controllerClass;
 
         if ($this instanceof BeforeInterface) {

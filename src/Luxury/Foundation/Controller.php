@@ -15,12 +15,18 @@ abstract class Controller extends \Phalcon\Mvc\Controller
      * Event called on controller construction
      *
      * Register middleware here.
-     *
-     * Register middleware was attached in the route.
      */
     protected function onConstruct()
     {
-        $router     = $this->router;
+        $this->routeMiddleware();
+    }
+
+    /**
+     * Register middleware was attached in the route.
+     */
+    protected function routeMiddleware()
+    {
+        $router = $this->router;
         $dispatcher = $this->dispatcher;
 
         if (!$dispatcher->wasForwarded() && $router->wasMatched()) {

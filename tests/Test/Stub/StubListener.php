@@ -29,8 +29,6 @@ class StubListener extends Listener implements TestListenable
 
     public function __construct()
     {
-        parent::__construct();
-
         self::$instance = $this;
     }
 

@@ -244,18 +244,9 @@ final class Str
         while (($len = static::length($string)) < $length) {
             $size = $length - $len;
 
-            if (function_exists('random_bytes')) {
-                $bytes = random_bytes($size);
-            } elseif(function_exists('mcrypt_create_iv')){
-                $bytes = mcrypt_create_iv($size, MCRYPT_DEV_URANDOM);
-            } elseif(function_exists('openssl_random_pseudo_bytes')){
-                $bytes = openssl_random_pseudo_bytes($size);
-            }
-            $string .= static::substr(
-                str_replace(['/', '+', '='], '', base64_encode($bytes)),
-                0,
-                $size
-            );
+            $bytes = self::callRandom($size);
+
+            $string .= static::substr(str_replace(['/', '+', '='], '', base64_encode($bytes)), 0, $size);
         }
 
         return $string;
@@ -467,6 +458,34 @@ final class Str
     public static function ucfirst($string)
     {
         return static::upper(static::substr($string, 0, 1)) . static::substr($string, 1);
+    }
+
+    protected static function callRandom($size)
+    {
+        static $randFunc;
+
+        switch ($randFunc) {
+            case 'random_bytes':
+                return random_bytes($size);
+            case 'mcrypt_create_iv':
+                return mcrypt_create_iv($size, MCRYPT_DEV_URANDOM);
+            case 'openssl_random_pseudo_bytes':
+                return openssl_random_pseudo_bytes($size);
+            case 'self::quickRandom':
+                return self::quickRandom($size);
+            default:
+                if (function_exists('random_bytes')) {
+                    $randFunc = 'random_bytes';
+                } elseif (function_exists('mcrypt_create_iv')) {
+                    $randFunc = 'mcrypt_create_iv';
+                } elseif (function_exists('openssl_random_pseudo_bytes')) {
+                    $randFunc = 'openssl_random_pseudo_bytes';
+                } else {
+                    $randFunc = 'self::quickRandom';
+                }
+
+                return self::callRandom($size);
+        }
     }
 
     /**

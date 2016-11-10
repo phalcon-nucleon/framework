@@ -36,7 +36,7 @@ class Task extends PhalconTask
         $this->dispatcher
             ->getEventsManager()
             ->attach(Events\Dispatch::BEFORE_EXCEPTION, function (Event $event, $dispatcher, \Exception $exception) {
-                return $this->handleException($event, $dispatcher, $exception);
+                return $this->handleException($exception);
             });
 
         if (($this->hasOption('s', 'stats')) && !$this->dispatcher->wasForwarded()) {
@@ -80,13 +80,11 @@ class Task extends PhalconTask
     /**
      * Handle Exception and output them.
      *
-     * @param Event      $event
-     * @param            $dispatcher
      * @param \Exception $exception
      *
      * @return bool
      */
-    public function handleException(Event $event, $dispatcher, \Exception $exception)
+    public function handleException(\Exception $exception)
     {
         $this->error('Exception : ' . get_class($exception));
         $this->error($exception->getMessage());

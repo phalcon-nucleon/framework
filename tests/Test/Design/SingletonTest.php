@@ -43,12 +43,6 @@ class SingletonTest extends TestCase
 
     public function testFailCallClone()
     {
-        if (PHP_MAJOR_VERSION == 5) {
-            $this->markTestSkipped('Can\'t test this in php5.');
-
-            return;
-        }
-
         $this->setExpectedException('\RuntimeException');
 
         $instance = StubSingleton::instance();

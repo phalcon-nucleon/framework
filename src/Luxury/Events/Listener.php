@@ -2,7 +2,7 @@
 
 namespace Luxury\Events;
 
-use Luxury\Di\Injectable;
+use Phalcon\Di\Injectable;
 use Phalcon\Events\Event;
 
 /**
@@ -91,5 +91,7 @@ abstract class Listener extends Injectable
         foreach ($this->closures as $event => $closure) {
             $em->detach($event, $closure);
         }
+
+        $this->closures = [];
     }
 }

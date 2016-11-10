@@ -3,7 +3,7 @@
 namespace Luxury\Security;
 
 use Luxury\Constants\Services;
-use Luxury\Di\Injectable;
+use Phalcon\Di\Injectable;
 
 /**
  * Class RateLimiter
@@ -35,8 +35,6 @@ class RateLimiter extends Injectable
      */
     public function __construct($name = '')
     {
-        parent::__construct();
-
         $this->name = $name;
     }
 

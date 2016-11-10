@@ -201,8 +201,6 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     /**
      * Sets the Dependency Injector.
      *
-     * @see    Injectable::setDI
-     *
      * @param  DiInterface $di
      *
      * @return $this
@@ -215,7 +213,6 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     /**
      * Returns the internal Dependency Injector.
      *
-     * @see    Injectable::getDI
      * @return DiInterface
      */
     public function getDI()
@@ -273,6 +270,8 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     }
 
     /**
+     * Get value of an private/protected property of an object.
+     *
      * @param object $object
      * @param string $propertyName
      * @param null   $className
@@ -288,18 +287,18 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     }
 
     /**
+     * Set value of an private/protected property of an object.
+     *
      * @param object $object
      * @param string $propertyName
      * @param mixed  $value
      * @param null   $className
-     *
-     * @return mixed
      */
     public function setValueProperty(&$object, $propertyName, $value, $className = null)
     {
         $this->getPrivateProperty(
             $className ? $className : get_class($object),
             $propertyName
-        )->setValue($value);
+        )->setValue($object, $value);
     }
 }

@@ -3,12 +3,11 @@
 namespace Luxury\Auth;
 
 use Luxury\Constants\Services;
-use Luxury\Di\Injectable;
 use Luxury\Foundation\Auth\User;
 use Luxury\Interfaces\Auth\Authenticable as AuthenticableInterface;
 use Luxury\Support\Arr;
-use Luxury\Support\Facades\Session;
 use Luxury\Support\Str;
+use Phalcon\Di\Injectable;
 
 /**
  * Class Auth

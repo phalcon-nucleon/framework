@@ -2,8 +2,6 @@
 
 namespace Luxury\Foundation;
 
-use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
-
 /**
  * Class Controller
  *
@@ -18,7 +16,46 @@ abstract class Controller extends \Phalcon\Mvc\Controller
      *
      * Register middleware here.
      */
-    abstract protected function onConstruct();
+    protected function onConstruct()
+    {
+        $this->routeMiddleware();
+    }
+
+    /**
+     * Register middleware was attached in the route.
+     */
+    protected function routeMiddleware()
+    {
+        $router = $this->router;
+        $dispatcher = $this->dispatcher;
+
+        if (!$dispatcher->wasForwarded() && $router->wasMatched()) {
+            $route = $router->getMatchedRoute();
+
+            $paths = $route->getPaths();
+
+            if (!empty($paths['middleware'])) {
+                $middlewares = $paths['middleware'];
+
+                if (!is_array($middlewares)) {
+                    $middlewares = [$middlewares];
+                }
+
+                foreach ($middlewares as $key => $middleware) {
+                    if (is_int($key)) {
+                        $middlewareClass  = $middleware;
+                        $middlewareParams = [];
+                    } else {
+                        $middlewareClass  = $key;
+                        $middlewareParams = !is_array($middlewares) ? [$middleware] : $middleware;
+                    }
+
+                    $this->middleware($middlewareClass, ...$middlewareParams)
+                        ->only([$dispatcher->getActionName() . $dispatcher->getActionSuffix()]);
+                }
+            }
+        }
+    }
 
     /**
      * Attach a ControllerMiddleware.
@@ -31,14 +68,17 @@ abstract class Controller extends \Phalcon\Mvc\Controller
      *  "Dispatch::BeforeDispatch"
      * can not be caught.
      *
-     * @param ControllerMiddleware $middleware
+     * @param string $middlewareClass
+     * @param mixed  ...$params
      *
-     * @return Controller
+     * @return \Luxury\Foundation\Middleware\Controller
      */
-    protected function middleware(ControllerMiddleware $middleware)
+    protected function middleware($middlewareClass, ...$params)
     {
+        $middleware = new $middlewareClass(static::class, ...$params);
+
         $this->app->attach($middleware);
 
-        return $this;
+        return $middleware;
     }
 }

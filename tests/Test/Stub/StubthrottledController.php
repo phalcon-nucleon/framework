@@ -4,7 +4,7 @@ namespace Test\Stub;
 
 use Luxury\Constants\Services;
 use Luxury\Foundation\Controller;
-use Luxury\Http\Middleware\Throttle as ThrottleMiddleware;
+use Luxury\Http\Middleware\ThrottleRequest as ThrottleMiddleware;
 
 /**
  * Class StubThrottledController
@@ -20,7 +20,7 @@ class StubthrottledController extends Controller
      */
     protected function onConstruct()
     {
-        $this->middleware(ThrottleMiddleware::create(10, 60)->only(['indexAction']));
+        $this->middleware(ThrottleMiddleware::class, 10, 60)->only(['indexAction']);
     }
 
     public function indexAction()

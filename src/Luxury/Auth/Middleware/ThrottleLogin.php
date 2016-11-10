@@ -10,7 +10,7 @@ use Luxury\Middleware\Throttle as ThrottleMiddleware;
  *
  * @package Luxury\Auth\Middleware
  */
-class Throttle extends ThrottleMiddleware
+class ThrottleLogin extends ThrottleMiddleware
 {
     protected $name = Services::AUTH;
 }

@@ -57,7 +57,7 @@ class TableTest extends TestCase
 
         $this->invokeMethod($table, 'generateColumns', []);
 
-        $columns = $this->valueProperty($table, 'columns');
+        $columns = $this->getValueProperty($table, 'columns');
 
         $this->assertEquals($expected, $columns);
     }

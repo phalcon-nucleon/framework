@@ -10,7 +10,7 @@ use Luxury\Middleware\Throttle as ThrottleMiddleware;
  *
  * @package Luxury\Http\Middleware
  */
-class Throttle extends ThrottleMiddleware
+class ThrottleRequest extends ThrottleMiddleware
 {
     protected $name = Services::REQUEST;
 }

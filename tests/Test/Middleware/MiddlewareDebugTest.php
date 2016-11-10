@@ -4,8 +4,6 @@ namespace Test\Middleware;
 
 use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Debug;
-use Luxury\Providers\Logger;
-use Luxury\Support\Facades\Log;
 use Phalcon\Events\Event;
 use Phalcon\Logger\Adapter\File;
 use Test\TestCase\TestCase;

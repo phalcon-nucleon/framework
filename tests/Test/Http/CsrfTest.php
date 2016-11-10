@@ -4,6 +4,7 @@ namespace Test\Http;
 
 use Luxury\Constants\Services;
 use Luxury\Http\Middleware\Csrf;
+use Phalcon\Version;
 use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 
@@ -15,7 +16,7 @@ class CsrfTest extends TestCase
         parent::setUp();
 
         StubController::$middlewares[] = [
-            'middleware' => new Csrf(),
+            'middleware' => Csrf::class,
             'params'     => [
                 'only' => ['indexAction']
             ]
@@ -27,6 +28,7 @@ class CsrfTest extends TestCase
         parent::tearDown();
 
         StubController::$middlewares = [];
+        StubController::$registerMiddlewares = [];
     }
 
     /**

@@ -48,6 +48,11 @@ abstract class Http extends PhApplication implements Kernelable
     protected $dependencyInjection = Di::class;
 
     /**
+     * @var \Luxury\Events\Listener[]
+     */
+    private $registeredMiddlewares = [];
+
+    /**
      * Application constructor.
      */
     public function __construct()

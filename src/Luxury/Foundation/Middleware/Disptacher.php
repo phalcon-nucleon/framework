@@ -21,8 +21,6 @@ abstract class Disptacher extends Listener
      */
     public function __construct()
     {
-        parent::__construct();
-
         if ($this instanceof InitInterface) {
             $this->listen[Dispatch::BEFORE_DISPATCH_LOOP] = 'init';
         }

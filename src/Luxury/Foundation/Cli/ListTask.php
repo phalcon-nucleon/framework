@@ -49,7 +49,7 @@ class ListTask extends Task
             $datas[$describe['cmd']] = $describe['description'];
         }
 
-        $this->line('Available Commands:');
+        $this->line('Available Commands :');
 
         (new Group($this->output, $datas))->display();
     }

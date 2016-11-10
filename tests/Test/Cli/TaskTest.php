@@ -2,6 +2,7 @@
 
 namespace Test\Cli;
 
+use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Task;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Cli\HelperTask;
@@ -120,5 +121,83 @@ class TaskTest extends TestCase
         $task = $this->stubTask();
 
         $this->assertTrue($task->beforeExecuteRoute());
+    }
+
+    public function dataOutput()
+    {
+        return [
+            ['info', 'test'],
+            ['notice', 'test'],
+            ['question', 'test'],
+            ['warn', 'test'],
+            ['error', 'test'],
+        ];
+    }
+
+    /**
+     * @dataProvider dataOutput
+     */
+    public function testOutput($func, $str)
+    {
+        $mock = $this->createMock(ConsoleOutput::class);
+
+        $mock->expects($this->once())
+            ->method($func)
+            ->with($str);
+
+        $task = $this->stubTask();
+
+        $this->setValueProperty($task, 'output', $mock);
+
+        $task->$func($str);
+    }
+
+    public function testLine()
+    {
+        $mock = $this->createMock(ConsoleOutput::class);
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->with('test', true);
+
+        $task = $this->stubTask();
+
+        $this->setValueProperty($task, 'output', $mock);
+
+        $task->line('test');
+    }
+
+    public function testDisplayStats()
+    {
+        $mock = $this->createMock(ConsoleOutput::class);
+
+        $mock->expects($this->exactly(5))
+            ->method('write')
+            ->with($this->anything());
+
+        $task = $this->stubTask();
+
+        $this->setValueProperty($task, 'output', $mock);
+
+        $task->displayStats();
+    }
+
+    public function testHandleExpection()
+    {
+        $mock = $this->createMock(ConsoleOutput::class);
+
+        $mock->expects($this->exactly(3))
+            ->method('error')
+            ->withConsecutive(
+                ['Exception : Exception'],
+                ['test'],
+                [$this->anything()]
+            );
+
+        $task = $this->stubTask();
+
+        $this->setValueProperty($task, 'output', $mock);
+
+        $task->handleException(new \Exception('test', 123));
     }
 }

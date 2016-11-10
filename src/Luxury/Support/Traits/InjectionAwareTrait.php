@@ -46,21 +46,4 @@ trait InjectionAwareTrait
 
         return $this->_dependencyInjector;
     }
-
-    /**
-     * Magic method __get allows to access services in the services container by just
-     * only accessing a public property with the same name of a registered service
-     *
-     * @param string $propertyName
-     *
-     * @return mixed|null
-     */
-    public function __get($propertyName)
-    {
-        if (($di = $this->getDI()) && $di->has($propertyName)) {
-            return $di->get($propertyName);
-        }
-
-        return null;
-    }
 }

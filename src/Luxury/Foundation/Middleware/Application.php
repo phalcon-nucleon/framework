@@ -23,8 +23,6 @@ abstract class Application extends Listener
      */
     public function __construct()
     {
-        parent::__construct();
-
         if ($this instanceof InitInterface) {
             $this->listen[AppEvent::BOOT] = 'init';
         }

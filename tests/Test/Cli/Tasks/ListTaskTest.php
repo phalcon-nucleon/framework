@@ -2,6 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
+use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Output\Decorate;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Cli\ListTask;
@@ -55,7 +56,7 @@ class ListTaskTest extends TestCase
 
         $this->invokeMethod($task, 'describe', [$cmd, $class, $action]);
 
-        $describes = $this->valueProperty($task, 'describes');
+        $describes = $this->getValueProperty($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }
@@ -96,8 +97,46 @@ class ListTaskTest extends TestCase
 
         $this->invokeMethod($task, 'describeRoute', [$route]);
 
-        $describes = $this->valueProperty($task, 'describes');
+        $describes = $this->getValueProperty($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
+    }
+
+    public function testMainAction()
+    {
+        $expected = [
+            'write' => ['exactly' => 9, 'consecutive' => [
+                ['Available Commands :'],
+                [' '.Decorate::info('help ( .*)*').'                                    ', true],
+                [' '.Decorate::info('list').'            List all commands available.   ', true],
+                [' '.Decorate::info('optimize').'        Optimize the loader.           ', true],
+                [' '.Decorate::info('clear-compiled').'  Clear compilation.             ', true],
+                ['route', true],
+                [' '.Decorate::info('route:list').'      List all routes.               ', true],
+                ['view', true],
+                [' '.Decorate::info('view:clear').'      Clear all compiled view files. ', true],
+            ]]
+        ];
+
+        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
+
+        $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($this->createMock(Manager::class));
+        $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
+
+        $mock = $this->createMock(ConsoleOutput::class);
+        foreach ($expected as $func => $params) {
+            $method = $mock->expects($this->exactly($params['exactly']))
+                ->method($func);
+
+            if (!empty($params['consecutive'])) {
+                $method->withConsecutive(...$params['consecutive']);
+            }
+        }
+
+        $task = new ListTask();
+
+        $this->setValueProperty($task, 'output', $mock);
+
+        $task->mainAction();
     }
 }

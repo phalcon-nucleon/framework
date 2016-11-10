@@ -43,9 +43,19 @@ class RouteListTask extends Task
             if (is_array($httpMethods)) {
                 $httpMethods = implode('|', $httpMethods);
             }
-            $middleware = Arr::fetch($paths, 'middleware');
-            if (is_array($middleware)) {
-                $middleware = implode('|', $middleware);
+            $middlewares = Arr::fetch($paths, 'middleware');
+            if (is_array($middlewares)) {
+                $_middlewares = [];
+                foreach ($middlewares as $key => $middleware) {
+                    if(is_int($key)){
+                        $_middlewares[] = $middleware;
+                    } else {
+                        $_middlewares[] = $key;
+                    }
+                }
+                $middleware = implode('|', $_middlewares);
+            } else {
+                $middleware = $middlewares;
             }
             $datas[] = [
                 'domain'     => $route->getHostname(),

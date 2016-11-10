@@ -68,7 +68,6 @@ class CacheStrategyTest extends TestCase
         $this->assertEquals('data', Cache::get('test'));
         $this->assertEquals(['test'], Cache::queryKeys('test'));
 
-
         Cache::delete('test');
 
         $this->assertNull(Cache::get('test'));
@@ -81,11 +80,12 @@ class CacheStrategyTest extends TestCase
         $keys  = [];
         $datas = [];
         for ($i = 0; $i < 5; $i++) {
-            Cache::save($keys[] = 'test' . $i, $datas[] = 'data' . $i, 10);
+            Cache::save($keys[] = 'test' . $i, $datas[] = 'data' . $i, 1000);
+            usleep(10);
         }
 
         for ($i = 0; $i < 5; $i++) {
-            Cache::exists('test' . $i);
+            $this->assertTrue(Cache::exists('test' . $i));
         }
 
         foreach ($keys as $k => $key) {

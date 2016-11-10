@@ -2,6 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
+use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Cli\HelperTask;
 use Luxury\Foundation\Cli\ListTask;
@@ -32,11 +33,9 @@ class HelperTaskTest extends TestCase
      */
     public function testResolveRoute($expected, $class, $action)
     {
-        $eventManager = $this->createMock(Manager::class);
-
         $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
 
-        $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($eventManager);
+        $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($this->createMock(Manager::class));
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
 
         $task = new HelperTask();
@@ -46,5 +45,65 @@ class HelperTaskTest extends TestCase
 
         $this->assertEquals($expected->getPattern(), $route->getPattern());
         $this->assertEquals($expected->getPaths(), $route->getPaths());
+    }
+
+    public function dataMainAction()
+    {
+        return [
+            [HelperTask::class, 'main', [
+                'info'  => ['exactly' => 1, 'consecutive' => [["\t" . 'help ( .*)*']]],
+                'write' => ['exactly' => 3, 'consecutive' => [['Usage :', true], ['Description :', true], ["\t", true]]],
+            ]],
+            [ListTask::class, 'main', [
+                'info'  => ['exactly' => 1, 'consecutive' => [["\t" . 'list']]],
+                'write' => ['exactly' => 3, 'consecutive' => [
+                    ['Usage :', true], ['Description :', true], ["\t" . 'List all commands available.', true]
+                ]]
+            ]],
+            [OptimizeTask::class, 'main', [
+                'info'  => ['exactly' => 1],
+                'write' => ['exactly' => 5, 'consecutive' => [
+                    ['Usage :', true],
+                    ['Description :', true],
+                    ["\t" . 'Optimize the loader.', true],
+                    ['Options :', true],
+                    ["\t" . '-m, --memory: Optimize memory.', true],
+                ]]
+            ]],
+        ];
+    }
+
+    /**
+     * @dataProvider dataMainAction
+     */
+    public function testMainAction($class, $action, $expected)
+    {
+        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
+
+        $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($this->createMock(Manager::class));
+        $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
+
+        $dispatcher->expects($this->any())
+            ->method('getParams')
+            ->willReturn([
+                'task'   => $class,
+                'action' => $action,
+            ]);
+
+        $mock = $this->createMock(ConsoleOutput::class);
+        foreach ($expected as $func => $params) {
+            $method = $mock->expects($this->exactly($params['exactly']))
+                ->method($func);
+
+            if (!empty($params['consecutive'])) {
+                $method->withConsecutive(...$params['consecutive']);
+            }
+        }
+
+        $task = new HelperTask();
+
+        $this->setValueProperty($task, 'output', $mock);
+
+        $task->mainAction();
     }
 }

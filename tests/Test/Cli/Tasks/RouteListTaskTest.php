@@ -64,7 +64,7 @@ class RouteListTaskTest extends TestCase
                 ['+--------+------+----------+-----------+--------------------------------------------+-----------------------------+'],
                 ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index |                             |'],
                 ['|        |      | POST     | /post     | Test\Stub\StubController::index            |                             |'],
-                ['|        |      | GET      | /u/'.Decorate::info('{user}').' | Test\Stub\StubController::index            |                             |'],
+                ['|        |      | GET      | /u/'.Decorate::notice('{user}').' | Test\Stub\StubController::index            |                             |'],
                 ['|        |      | GET|HEAD | /get-head | Test\Stub\StubController::index            | Luxury\Http\Middleware\Csrf |'],
                 ['+--------+------+----------+-----------+--------------------------------------------+-----------------------------+'],
             ]]

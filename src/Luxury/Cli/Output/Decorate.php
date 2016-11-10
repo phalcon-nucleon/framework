@@ -46,8 +46,6 @@ class Decorate
         'conceal'    => ['set' => 8, 'unset' => 28],
     ];
 
-    private static $supportColor = null;
-
     /**
      * Check if console has color support
      *
@@ -55,19 +53,15 @@ class Decorate
      */
     private static function hasColorSupport()
     {
-        if (!self::$supportColor === null) {
-            return self::$supportColor;
-        }
-
         if (DIRECTORY_SEPARATOR === '\\') {
-            return self::$supportColor =
+            return
                 '10.0.10586' === PHP_WINDOWS_VERSION_MAJOR . '.' . PHP_WINDOWS_VERSION_MINOR . '.' . PHP_WINDOWS_VERSION_BUILD
                 || false !== getenv('ANSICON')
                 || 'ON' === getenv('ConEmuANSI')
                 || 'xterm' === getenv('TERM');
         }
 
-        return self::$supportColor = function_exists('posix_isatty') && @posix_isatty(STDOUT);
+        return function_exists('posix_isatty') && @posix_isatty(STDOUT);
     }
 
     /**

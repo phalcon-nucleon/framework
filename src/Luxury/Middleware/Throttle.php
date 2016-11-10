@@ -48,12 +48,13 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
     /**
      * Throttle constructor.
      *
-     * @param int $max   Number of max request by $decay
-     * @param int $decay Decay time (seconds)
+     * @param string $controllerClass
+     * @param int    $max   Number of max request by $decay
+     * @param int    $decay Decay time (seconds)
      */
-    public function __construct($max, $decay = 60)
+    public function __construct($controllerClass, $max, $decay = 60)
     {
-        parent::__construct();
+        parent::__construct($controllerClass);
 
         if (!isset($this->name)) {
             throw new \RuntimeException(static::class . '->name is empty.');

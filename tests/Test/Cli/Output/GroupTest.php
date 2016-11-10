@@ -79,7 +79,7 @@ class GroupTest extends TestCase
 
         $this->invokeMethod($table, 'generateGroupData', []);
 
-        $columns = $this->valueProperty($table, 'groups');
+        $columns = $this->getValueProperty($table, 'groups');
 
         $this->assertEquals($expected, $columns);
     }

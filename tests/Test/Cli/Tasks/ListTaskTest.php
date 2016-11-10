@@ -55,7 +55,7 @@ class ListTaskTest extends TestCase
 
         $this->invokeMethod($task, 'describe', [$cmd, $class, $action]);
 
-        $describes = $this->valueProperty($task, 'describes');
+        $describes = $this->getValueProperty($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }
@@ -96,7 +96,7 @@ class ListTaskTest extends TestCase
 
         $this->invokeMethod($task, 'describeRoute', [$route]);
 
-        $describes = $this->valueProperty($task, 'describes');
+        $describes = $this->getValueProperty($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }

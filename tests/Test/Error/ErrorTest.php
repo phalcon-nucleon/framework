@@ -27,7 +27,7 @@ class ErrorTest extends TestCase
     {
         $error = new Error($options);
 
-        $attributes = $this->valueProperty($error, 'attributes');
+        $attributes = $this->getValueProperty($error, 'attributes');
 
         $keys = [
             'type',

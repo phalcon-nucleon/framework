@@ -4,6 +4,7 @@ namespace Test\Middleware;
 
 use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Controller;
+use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 
 /**
@@ -18,7 +19,7 @@ class MiddlewareControllerTest extends TestCase
      */
     public function getStubControllerMiddleware()
     {
-        return new StubMiddlewareController;
+        return new StubMiddlewareController(StubController::class);
     }
 
     public function testFilter()
@@ -30,7 +31,7 @@ class MiddlewareControllerTest extends TestCase
 
         $this->assertEquals(
             [],
-            $this->valueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller')
+            $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller')
         );
 
         $this->assertEquals($controller, $controller->only([]));
@@ -39,7 +40,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => [],
             'except' => []
-        ], $this->valueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
+        ], $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
 
         $this->assertEquals($controller, $controller->only(['test']));
         $this->assertEquals($controller, $controller->except(['test']));
@@ -47,7 +48,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => ['test'],
             'except' => ['test']
-        ], $this->valueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
+        ], $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
 
         $this->assertEquals($controller, $controller->only(null));
         $this->assertEquals($controller, $controller->except(null));
@@ -55,7 +56,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => ['test'],
             'except' => ['test']
-        ], $this->valueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
+        ], $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
 
         $this->assertEquals($controller, $controller->only([]));
         $this->assertEquals($controller, $controller->except([]));
@@ -63,7 +64,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => [],
             'except' => []
-        ], $this->valueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
+        ], $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
     }
 
     public function dataCheck()
@@ -91,7 +92,12 @@ class MiddlewareControllerTest extends TestCase
         $dispatcher->expects($this->any())
             ->method('getActionName')
             ->will($this->returnValue($actionName));
-        $dispatcher->expects($this->any())->method('getActionSuffix')->will($this->returnValue(''));
+        $dispatcher->expects($this->any())
+            ->method('getActionSuffix')
+            ->will($this->returnValue(''));
+        $dispatcher->expects($this->any())
+            ->method('getHandlerClass')
+            ->will($this->returnValue(StubController::class));
 
         $controller = $this->getStubControllerMiddleware();
 

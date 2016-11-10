@@ -24,7 +24,7 @@ class MiddlewareTest extends TestCase
     public function testControllerMiddleware()
     {
         // GIVEN
-        $middleware = new TestControllerMiddlewareStub();
+        $middleware = new TestControllerMiddlewareStub(StubController::class);
 
         $this->app->useImplicitView(false);
 
@@ -43,6 +43,14 @@ class MiddlewareTest extends TestCase
         $this->assertEquals(1, count($middleware->getView('before')));
         $this->assertEquals(1, count($middleware->getView('after')));
         $this->assertEquals(1, count($middleware->getView('finish')));
+    }
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        StubController::$registerMiddlewares = [];
+        StubController::$middlewares = [];
     }
 
     /**
@@ -77,10 +85,8 @@ class MiddlewareTest extends TestCase
         $finish
     ) {
         // GIVEN
-        $middleware = new TestControllerMiddlewareStub();
-
         StubController::$middlewares[] = [
-            'middleware' => $middleware,
+            'middleware' => TestControllerMiddlewareStub::class,
             'params'     => [$filter => $methods]
         ];
 
@@ -88,6 +94,8 @@ class MiddlewareTest extends TestCase
 
         // WHEN
         $this->dispatch('/');
+
+        $middleware = StubController::$registerMiddlewares[count(StubController::$middlewares) - 1];
 
         // THEN
         $this->assertEquals($init, count($middleware->getView('init')));

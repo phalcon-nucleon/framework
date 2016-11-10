@@ -2,9 +2,11 @@
 namespace Test\Middleware;
 
 use Luxury\Constants\Services;
+use Luxury\Http\Middleware\ThrottleRequest;
 use Luxury\Middleware\Throttle;
 use Phalcon\Http\Response;
 use Phalcon\Http\Response\StatusCode;
+use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 use Test\TestCase\UseCaches;
 
@@ -33,7 +35,7 @@ class ThrottleTest extends TestCase
             // WHEN
             $this->dispatch('/');
             $response = $this->app->response;
-            $headers = $response->getHeaders();
+            $headers  = $response->getHeaders();
             if ($i <= 10) {
                 $this->assertNotEquals($status, $response->getStatusCode(), "status:$i");
                 $this->assertNotEquals($msg, $response->getContent(), "content:$i");
@@ -130,12 +132,60 @@ class ThrottleTest extends TestCase
         $this->assertEquals(60, $response->getHeaders()->get('Retry-After'));
     }
 
+    public function testThrottleRegisterFromRoute()
+    {
+        $this->app->useImplicitView(false);
+
+        StubController::$middlewares = [];
+
+        $this->app->router->addGet('/route-throttled', [
+            'namespace'  => 'Test\Stub',
+            'controller' => 'Stub',
+            'action'     => 'index',
+            'middleware' => [ThrottleRequest::class => [10, 60]]
+        ]);
+
+        $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
+        $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        for ($i = 1; $i <= 11; $i++) {
+            // WHEN
+            $this->dispatch('/route-throttled');
+
+            $response = $this->app->response;
+            $headers  = $response->getHeaders();
+            if ($i <= 10) {
+                $this->assertNotEquals($status, $response->getStatusCode(), "status:$i");
+                $this->assertNotEquals($msg, $response->getContent(), "content:$i");
+                $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
+                $this->assertEquals(10 - $i, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
+                $this->assertEquals(null, $headers->get('Retry-After'), "Retry-After:$i");
+            } else {
+                $this->assertEquals($status, $response->getStatusCode(), "status:$i");
+                $this->assertEquals($msg, $response->getContent(), "content:$i");
+                $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
+                $this->assertEquals(0, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
+                $this->assertEquals(60, $headers->get('Retry-After'), "Retry-After:$i");
+            }
+        }
+
+        usleep(1000000);
+        $this->dispatch('/route-throttled');
+
+        $response = $this->app->response;
+
+        $this->assertEquals($status, $response->getStatusCode());
+        $this->assertEquals($msg, $response->getContent());
+        $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
+        $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
+        $this->assertEquals(59, $response->getHeaders()->get('Retry-After'));
+    }
+
     /**
      * @expectedException \RuntimeException
      */
     public function testWrongImplementedMiddleware()
     {
-        new StubThrolledWrongImplemented(0);
+        new StubThrolledWrongImplemented(StubController::class, 0);
     }
 }
 

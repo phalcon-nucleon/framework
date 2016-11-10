@@ -6,11 +6,9 @@ use Luxury\Test\RoutesTestCase;
 use Phalcon\Http\Request\Method;
 use Phalcon\Mvc\Router\Route;
 use Test\Stub\StubController;
-use Test\Stub\StubKernelHttp;
 use Test\Stub\StubRouteTestCase;
 use Test\TestCase\TestCase;
 use Test\TestCase\TraitTestCase;
-use Test\TestCase\UseCaches;
 
 class RoutesTestCaseTest extends TestCase
 {
@@ -80,6 +78,6 @@ class RoutesTestCaseTest extends TestCase
             ['', Method::GET, true, null, null, null],
             ['', Method::GET, true, 'Stub', 'index', null],
             ['/parameted/param_1', Method::GET, true, 'Stub', 'index', ['tags' => 'param_1']],
-        ], $this->valueProperty($routesTestCase, 'testedRoutes', RoutesTestCase::class));
+        ], $this->getValueProperty($routesTestCase, 'testedRoutes', RoutesTestCase::class));
     }
 }

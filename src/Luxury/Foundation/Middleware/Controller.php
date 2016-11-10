@@ -25,11 +25,22 @@ abstract class Controller extends Listener
     private $filter = [];
 
     /**
-     * ControllerMiddleware constructor.
+     * The controller who create this middleware
+     *
+     * @var string
      */
-    public function __construct()
+    private $controllerClass;
+
+    /**
+     * ControllerMiddleware constructor.
+     *
+     * @param string $controllerClass The controller who create this middleware
+     */
+    public function __construct($controllerClass)
     {
         parent::__construct();
+
+        $this->controllerClass = $controllerClass;
 
         if ($this instanceof BeforeInterface) {
             $this->listen[Events\Dispatch::BEFORE_EXECUTE_ROUTE] = 'checkBefore';
@@ -48,6 +59,10 @@ abstract class Controller extends Listener
     final public function check()
     {
         $dispatcher = $this->dispatcher;
+
+        if ($this->controllerClass !== $dispatcher->getHandlerClass()) {
+            return false;
+        }
 
         $action = $dispatcher->getActionName() . $dispatcher->getActionSuffix();
 

@@ -39,6 +39,13 @@ abstract class Listener extends Injectable
     protected $space;
 
     /**
+     * Closure attached to the EventsManager
+     *
+     * @var array
+     */
+    private $closures = [];
+
+    /**
      * Attach all require event to make the listener
      */
     public function attach()
@@ -59,12 +66,30 @@ abstract class Listener extends Injectable
                     );
                 }
 
-                $closure = function (Event $event, $handler, $data = null) use ($callback) {
+                $this->closures[$event] = $closure = function (Event $event, $handler, $data = null) use ($callback) {
                     return $this->$callback($event, $handler, $data);
                 };
 
-                $em->attach($event, \Closure::bind($closure, $this));
+                $em->attach($event, $closure);
             }
+        }
+    }
+
+    /**
+     * Detach all event attached to the EventsManager
+     */
+    public function detach()
+    {
+        $em = $this->getEventsManager();
+
+        if (!empty($this->space)) {
+            foreach ($this->space as $space) {
+                $em->detach($space, $this);
+            }
+        }
+
+        foreach ($this->closures as $event => $closure) {
+            $em->detach($event, $closure);
         }
     }
 }

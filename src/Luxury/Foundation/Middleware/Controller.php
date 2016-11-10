@@ -58,6 +58,11 @@ abstract class Controller extends Listener
     {
         $dispatcher = $this->dispatcher;
 
+        if($dispatcher->wasForwarded() && !$dispatcher->isFinished()){
+            // Controller has just been forwarded
+            return false;
+        }
+
         if ($this->controllerClass !== $dispatcher->getHandlerClass()) {
             return false;
         }

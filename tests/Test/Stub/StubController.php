@@ -82,5 +82,7 @@ class StubController extends Controller
             "controller" => "Stub",
             "action" => "index",
         ]);
+
+        return false;
     }
 }

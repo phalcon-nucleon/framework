@@ -145,4 +145,33 @@ class MiddlewareTest extends TestCase
         $this->assertEquals(1, count($middleware->getView('after')));
         $this->assertEquals(1, count($middleware->getView('finish')));
     }
+
+    public function testForwarded()
+    {
+        StubController::$middlewares[] = [
+            'middleware' => ControllerMiddlewareStub::class,
+            'params'     => ['only' => ['forwardedAction']]
+        ];
+
+        StubController::$middlewares[] = [
+            'middleware' => ControllerMiddlewareStub::class,
+            'params'     => ['only' => ['indexAction']]
+        ];
+
+        $this->dispatch('/forwarded');
+
+        $middleware = StubController::$registerMiddlewares[0];
+
+        $this->assertEquals(0, count($middleware->getView('init')));
+        $this->assertEquals(1, count($middleware->getView('before')));
+        $this->assertEquals(0, count($middleware->getView('after')));
+        $this->assertEquals(0, count($middleware->getView('finish')));
+
+        $middleware = StubController::$registerMiddlewares[1];
+
+        $this->assertEquals(0, count($middleware->getView('init')));
+        $this->assertEquals(1, count($middleware->getView('before')));
+        $this->assertEquals(1, count($middleware->getView('after')));
+        $this->assertEquals(1, count($middleware->getView('finish')));
+    }
 }

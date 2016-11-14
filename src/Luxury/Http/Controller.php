@@ -1,6 +1,6 @@
 <?php
 
-namespace Luxury\Foundation\Http;
+namespace Luxury\Http;
 
 /**
  * Class Controller

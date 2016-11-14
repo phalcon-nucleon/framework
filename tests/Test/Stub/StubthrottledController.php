@@ -3,7 +3,7 @@
 namespace Test\Stub;
 
 use Luxury\Constants\Services;
-use Luxury\Foundation\Http\Controller;
+use Luxury\Http\Controller;
 use Luxury\Http\Middleware\ThrottleRequest as ThrottleMiddleware;
 
 /**

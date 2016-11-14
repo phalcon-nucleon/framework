@@ -5,7 +5,7 @@ namespace Test\Error;
 use Luxury\Constants\Services;
 use Luxury\Error\Error;
 use Luxury\Error\Handler;
-use Luxury\Foundation\Http\Controller;
+use Luxury\Http\Controller;
 use Phalcon\Logger;
 use Test\TestCase\TestCase;
 

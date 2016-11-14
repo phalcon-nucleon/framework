@@ -22,7 +22,7 @@ class View implements Providable, InjectionAwareInterface
     use InjectionAwareTrait;
 
     /**
-     * @return \Phalcon\Mvc\View
+     * @inheritdoc
      */
     public function registering()
     {

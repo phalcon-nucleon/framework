@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Foundation\Controller;
+use Luxury\Http\Controller;
 
 /**
  * Class StubController

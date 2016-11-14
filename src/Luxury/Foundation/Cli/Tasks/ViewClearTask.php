@@ -1,10 +1,14 @@
 <?php
 
-namespace Luxury\Foundation\Cli;
+namespace Luxury\Foundation\Cli\Tasks;
 
 use Luxury\Cli\Task;
-use \RuntimeException;
 
+/**
+ * Class ViewClearTask
+ *
+ * @package Luxury\Foundation\Cli
+ */
 class ViewClearTask extends Task
 {
     /**
@@ -22,6 +26,4 @@ class ViewClearTask extends Task
 
         $this->info('Compiled views cleared!');
     }
-
-
 }

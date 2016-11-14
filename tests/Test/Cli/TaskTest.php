@@ -5,7 +5,7 @@ namespace Test\Cli;
 use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Task;
 use Luxury\Constants\Services;
-use Luxury\Foundation\Cli\HelperTask;
+use Luxury\Foundation\Cli\Tasks\HelperTask;
 use Phalcon\Cli\Dispatcher;
 use Test\Stub\StubKernelCli;
 use Test\Stub\StubTask;

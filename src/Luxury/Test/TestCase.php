@@ -34,7 +34,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     protected $app;
 
     /**
-     * @var \Luxury\Foundation\Application
+     * @var \Luxury\Foundation\Bootstrap
      */
     protected $lxApp;
 
@@ -44,7 +44,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     protected static $kernelClassInstance;
 
     /**
-     * @var \Luxury\Foundation\Application
+     * @var \Luxury\Foundation\Bootstrap
      */
     protected static $appClassInstance;
 
@@ -60,7 +60,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         $this->checkExtension('phalcon');
 
         // Creating the application
-        $this->lxApp = new \Luxury\Foundation\Application(new PhConfig($config));
+        $this->lxApp = new \Luxury\Foundation\Bootstrap(new PhConfig($config));
         $this->app   = $this->lxApp->make($this->kernel());
     }
 
@@ -87,7 +87,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     {
         global $config;
         if (self::$appClassInstance == null) {
-            self::$appClassInstance = new \Luxury\Foundation\Application(new PhConfig($config));
+            self::$appClassInstance = new \Luxury\Foundation\Bootstrap(new PhConfig($config));
         }
 
         if (self::$kernelClassInstance == null) {

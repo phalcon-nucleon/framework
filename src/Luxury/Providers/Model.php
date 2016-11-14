@@ -21,7 +21,7 @@ class Model implements Providable, InjectionAwareInterface
     use InjectionAwareTrait;
 
     /**
-     * @return mixed
+     * @inheritdoc
      */
     public function registering()
     {

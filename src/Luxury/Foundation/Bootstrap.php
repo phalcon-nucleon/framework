@@ -11,7 +11,7 @@ use Phalcon\Config;
  *
  * @package Luxury\Foundation
  */
-class Application
+class Bootstrap
 {
     /**
      * @var \Phalcon\Config

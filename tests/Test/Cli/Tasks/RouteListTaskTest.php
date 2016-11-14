@@ -5,7 +5,7 @@ namespace Test\Cli\Tasks;
 use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Output\Decorate;
 use Luxury\Constants\Services;
-use Luxury\Foundation\Cli\RouteListTask;
+use Luxury\Foundation\Cli\Tasks\RouteListTask;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Events\Manager;
 use Phalcon\Cli\Router;

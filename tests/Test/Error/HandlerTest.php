@@ -5,7 +5,7 @@ namespace Test\Error;
 use Luxury\Constants\Services;
 use Luxury\Error\Error;
 use Luxury\Error\Handler;
-use Luxury\Foundation\Controller;
+use Luxury\Http\Controller;
 use Phalcon\Logger;
 use Test\TestCase\TestCase;
 
@@ -218,6 +218,28 @@ class HandlerTest extends TestCase
             'line'    => 120,
             'isError' => true,
         ]));
+    }
+
+    public function testHandleException()
+    {
+        $msg = 'Uncaught exception: some exception in ' . __FILE__. ' on line ' . (__LINE__+6);
+
+        $this->mockLogger(Logger::ERROR, $msg);
+
+        $this->expectOutputString($msg);
+
+        Handler::handleException(new \Exception('some exception'));
+    }
+
+    public function testHandleError()
+    {
+        $msg = 'E_USER_ERROR: user error in ' . __FILE__. ' on line ' . (__LINE__+6);
+
+        $this->mockLogger(Logger::ERROR, $msg);
+
+        $this->expectOutputString($msg);
+
+        Handler::handleError(E_USER_ERROR, 'user error', __FILE__, __LINE__);
     }
 
     public function testTriggerError()

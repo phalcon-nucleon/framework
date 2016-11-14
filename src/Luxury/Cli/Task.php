@@ -6,7 +6,7 @@ use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Output\Decorate;
 use Luxury\Cli\Output\Table;
 use Luxury\Constants\Events;
-use Luxury\Foundation\Cli\HelperTask;
+use Luxury\Foundation\Cli\Tasks\HelperTask;
 use Luxury\Support\Arr;
 use Phalcon\Cli\Task as PhalconTask;
 use Phalcon\Events\Event;
@@ -22,7 +22,7 @@ use Phalcon\Events\Event;
  * @property-read \Luxury\Cli\Router                     $router
  * @property-read \Phalcon\Cli\Dispatcher                $dispatcher
  */
-class Task extends PhalconTask
+abstract class Task extends PhalconTask
 {
     /**
      * @var ConsoleOutput
@@ -33,23 +33,19 @@ class Task extends PhalconTask
     {
         $this->output = new ConsoleOutput($this->hasOption('q', 'quiet'));
 
-        $this->dispatcher
-            ->getEventsManager()
-            ->attach(Events\Dispatch::BEFORE_EXCEPTION, function (Event $event, $dispatcher, \Exception $exception) {
-                return $this->handleException($exception);
-            });
+        $em = $this->dispatcher->getEventsManager();
+
+        $em->attach(Events\Dispatch::BEFORE_EXCEPTION, function (Event $event, $dispatcher, \Exception $exception) {
+            return $this->handleException($exception);
+        });
 
         if (($this->hasOption('s', 'stats')) && !$this->dispatcher->wasForwarded()) {
-            $this->dispatcher
-                ->getEventsManager()
-                ->attach(Events\Cli\Application::AFTER_HANDLE, function () {
-                    $this->displayStats();
-                });
+            $em->attach(Events\Cli\Application::AFTER_HANDLE, function () {
+                $this->displayStats();
+            });
         }
 
-        $this->dispatcher
-        ->getEventsManager()
-        ->attach(Events\Cli\Application::AFTER_HANDLE, function () {
+        $em->attach(Events\Cli\Application::AFTER_HANDLE, function () {
             $this->output->clean();
         });
     }

@@ -1,23 +1,23 @@
 <?php
 
-namespace Luxury\Foundation\Kernel;
+namespace Luxury\Foundation\Cli;
 
 use Luxury\Foundation\Kernelize;
 use Luxury\Interfaces\Kernelable;
-use Phalcon\Config;
-use Phalcon\Di\FactoryDefault as Di;
-use Phalcon\Mvc\Application as PhApplication;
+use Phalcon\Cli\Console;
+use Phalcon\Di\FactoryDefault\Cli as Di;
 
 /**
- * Class Http
+ * Class Cli
  *
  * @package Luxury\Foundation\Kernel
+ *
+ * @property-read \Luxury\Cli\Router $router
+ * @property-read \Phalcon\Cli\Dispatcher $dispatcher
  */
-abstract class Http extends PhApplication implements Kernelable
+abstract class Kernel extends Console implements Kernelable
 {
-    use Kernelize {
-        bootstrap as kernelizeBootstrap;
-    }
+    use Kernelize;
 
     /**
      * Return the Provider List to load.
@@ -48,11 +48,6 @@ abstract class Http extends PhApplication implements Kernelable
     protected $dependencyInjection = Di::class;
 
     /**
-     * @var \Luxury\Events\Listener[]
-     */
-    private $registeredMiddlewares = [];
-
-    /**
      * Application constructor.
      */
     public function __construct()
@@ -61,24 +56,10 @@ abstract class Http extends PhApplication implements Kernelable
     }
 
     /**
-     * Application starter
-     *
-     * @param \Phalcon\Config $config
-     *
-     * @return void
-     */
-    public function bootstrap(Config $config)
-    {
-        $this->kernelizeBootstrap($config);
-
-        $this->useImplicitView(isset($config->app->useImplicitView) ? $config->app->useImplicitView : false);
-    }
-
-    /**
      * Register the routes of the application.
      */
     public function registerRoutes()
     {
-        require $this->config->paths->routes . 'http.php';
+        require $this->config->paths->routes . 'cli.php';
     }
 }

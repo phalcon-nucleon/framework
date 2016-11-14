@@ -4,12 +4,12 @@ namespace Luxury\Providers\Cli;
 
 use Luxury\Constants\Services;
 use Luxury\Cli\Router as LuxuryRouter;
-use Luxury\Foundation\Cli\ClearCompiledTask;
-use Luxury\Foundation\Cli\HelperTask;
-use Luxury\Foundation\Cli\ListTask;
-use Luxury\Foundation\Cli\OptimizeTask;
-use Luxury\Foundation\Cli\RouteListTask;
-use Luxury\Foundation\Cli\ViewClearTask;
+use Luxury\Foundation\Cli\Tasks\ClearCompiledTask;
+use Luxury\Foundation\Cli\Tasks\HelperTask;
+use Luxury\Foundation\Cli\Tasks\ListTask;
+use Luxury\Foundation\Cli\Tasks\OptimizeTask;
+use Luxury\Foundation\Cli\Tasks\RouteListTask;
+use Luxury\Foundation\Cli\Tasks\ViewClearTask;
 use Luxury\Providers\Provider;
 
 /**

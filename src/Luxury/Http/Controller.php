@@ -1,6 +1,6 @@
 <?php
 
-namespace Luxury\Foundation;
+namespace Luxury\Http;
 
 /**
  * Class Controller
@@ -30,6 +30,8 @@ abstract class Controller extends \Phalcon\Mvc\Controller
         $dispatcher = $this->dispatcher;
 
         if (!$dispatcher->wasForwarded() && $router->wasMatched()) {
+            $actionMethod = $dispatcher->getActionName() . $dispatcher->getActionSuffix();
+
             $route = $router->getMatchedRoute();
 
             $paths = $route->getPaths();
@@ -50,8 +52,7 @@ abstract class Controller extends \Phalcon\Mvc\Controller
                         $middlewareParams = !is_array($middlewares) ? [$middleware] : $middleware;
                     }
 
-                    $this->middleware($middlewareClass, ...$middlewareParams)
-                        ->only([$dispatcher->getActionName() . $dispatcher->getActionSuffix()]);
+                    $this->middleware($middlewareClass, ...$middlewareParams)->only([$actionMethod]);
                 }
             }
         }

@@ -1,16 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: xlzi590
- * Date: 03/11/2016
- * Time: 14:16
- */
 
-namespace Luxury\Foundation\Cli;
-
+namespace Luxury\Foundation\Cli\Tasks;
 
 use Luxury\Cli\Task;
 
+/**
+ * Class ClearCompiledTask
+ *
+ * @package Luxury\Foundation\Cli
+ */
 class ClearCompiledTask extends Task
 {
     /**

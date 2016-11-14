@@ -220,6 +220,28 @@ class HandlerTest extends TestCase
         ]));
     }
 
+    public function testHandleException()
+    {
+        $msg = 'Uncaught exception: some exception in ' . __FILE__. ' on line ' . (__LINE__+6);
+
+        $this->mockLogger(Logger::ERROR, $msg);
+
+        $this->expectOutputString($msg);
+
+        Handler::handleException(new \Exception('some exception'));
+    }
+
+    public function testHandleError()
+    {
+        $msg = 'E_USER_ERROR: user error in ' . __FILE__. ' on line ' . (__LINE__+6);
+
+        $this->mockLogger(Logger::ERROR, $msg);
+
+        $this->expectOutputString($msg);
+
+        Handler::handleError(E_USER_ERROR, 'user error', __FILE__, __LINE__);
+    }
+
     public function testTriggerError()
     {
         $expectedMsg = 'E_USER_ERROR: msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8);

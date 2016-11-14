@@ -76,20 +76,19 @@ class Handler
      * @param string $errfile
      * @param int    $errline
      */
-    public static function handleError($errno, $errstr, $errfile, $errline) {
+    public static function handleError($errno, $errstr, $errfile, $errline)
+    {
         if (!($errno & error_reporting())) {
             return;
         }
 
-        $options = [
+        static::handle(new Error([
             'type'    => $errno,
             'message' => $errstr,
             'file'    => $errfile,
             'line'    => $errline,
             'isError' => true,
-        ];
-
-        static::handle(new Error($options));
+        ]));
     }
 
     /**
@@ -97,17 +96,16 @@ class Handler
      *
      * @param \Error|\Exception|\Throwable $e
      */
-    public static function handleException($e){
-        $options = [
+    public static function handleException($e)
+    {
+        static::handle(new Error([
             'type'        => $e->getCode(),
             'message'     => $e->getMessage(),
             'file'        => $e->getFile(),
             'line'        => $e->getLine(),
             'isException' => true,
             'exception'   => $e,
-        ];
-
-        static::handle(new Error($options));
+        ]));
     }
 
     /**

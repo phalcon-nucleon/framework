@@ -6,7 +6,7 @@ use Luxury\Cli\Output\ConsoleOutput;
 use Luxury\Cli\Output\Decorate;
 use Luxury\Cli\Output\Table;
 use Luxury\Constants\Events;
-use Luxury\Foundation\Cli\HelperTask;
+use Luxury\Foundation\Cli\Tasks\HelperTask;
 use Luxury\Support\Arr;
 use Phalcon\Cli\Task as PhalconTask;
 use Phalcon\Events\Event;
@@ -22,7 +22,7 @@ use Phalcon\Events\Event;
  * @property-read \Luxury\Cli\Router                     $router
  * @property-read \Phalcon\Cli\Dispatcher                $dispatcher
  */
-class Task extends PhalconTask
+abstract class Task extends PhalconTask
 {
     /**
      * @var ConsoleOutput

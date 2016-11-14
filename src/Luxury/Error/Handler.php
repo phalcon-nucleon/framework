@@ -57,41 +57,57 @@ class Handler
                 break;
         }
 
-        set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-            if (!($errno & error_reporting())) {
-                return;
-            }
+        set_error_handler(self::class . '::handleError');
 
-            $options = [
-                'type'    => $errno,
-                'message' => $errstr,
-                'file'    => $errfile,
-                'line'    => $errline,
-                'isError' => true,
-            ];
-
-            static::handle(new Error($options));
-        });
-
-        set_exception_handler(function ($e) {
-            /** @var \Error|\Exception $e */
-            $options = [
-                'type'        => $e->getCode(),
-                'message'     => $e->getMessage(),
-                'file'        => $e->getFile(),
-                'line'        => $e->getLine(),
-                'isException' => true,
-                'exception'   => $e,
-            ];
-
-            static::handle(new Error($options));
-        });
+        set_exception_handler(self::class . '::handleException');
 
         register_shutdown_function(function () {
             if (!is_null($options = error_get_last())) {
                 static::handle(new Error($options));
             }
         });
+    }
+
+    /**
+     * Handle an php Error
+     *
+     * @param int    $errno
+     * @param string $errstr
+     * @param string $errfile
+     * @param int    $errline
+     */
+    public static function handleError($errno, $errstr, $errfile, $errline) {
+        if (!($errno & error_reporting())) {
+            return;
+        }
+
+        $options = [
+            'type'    => $errno,
+            'message' => $errstr,
+            'file'    => $errfile,
+            'line'    => $errline,
+            'isError' => true,
+        ];
+
+        static::handle(new Error($options));
+    }
+
+    /**
+     * Handle an Exception non catched
+     *
+     * @param \Error|\Exception|\Throwable $e
+     */
+    public static function handleException($e){
+        $options = [
+            'type'        => $e->getCode(),
+            'message'     => $e->getMessage(),
+            'file'        => $e->getFile(),
+            'line'        => $e->getLine(),
+            'isException' => true,
+            'exception'   => $e,
+        ];
+
+        static::handle(new Error($options));
     }
 
     /**

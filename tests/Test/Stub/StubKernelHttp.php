@@ -3,7 +3,7 @@
 namespace Test\Stub;
 
 use Luxury\Constants\Services;
-use Luxury\Foundation\Kernel\Http as HttpApplication;
+use Luxury\Foundation\Http\Kernel as HttpApplication;
 use Luxury\Providers;
 use Phalcon\Mvc\Router;
 

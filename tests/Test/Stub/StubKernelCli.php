@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Foundation\Kernel\Cli as CliApplication;
+use Luxury\Foundation\Cli\Kernel as CliApplication;
 use Luxury\Providers\Cli\Dispatcher;
 use Luxury\Providers\Cli\Router;
 

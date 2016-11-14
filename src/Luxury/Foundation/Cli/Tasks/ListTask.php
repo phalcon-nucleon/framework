@@ -1,6 +1,6 @@
 <?php
 
-namespace Luxury\Foundation\Cli;
+namespace Luxury\Foundation\Cli\Tasks;
 
 use Luxury\Cli\Output\Decorate;
 use Luxury\Cli\Output\Group;

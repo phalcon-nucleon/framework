@@ -1,23 +1,24 @@
 <?php
 
-namespace Luxury\Foundation\Kernel;
+namespace Luxury\Foundation\Http;
 
+use Luxury\Error\Handler;
 use Luxury\Foundation\Kernelize;
 use Luxury\Interfaces\Kernelable;
-use Phalcon\Cli\Console;
-use Phalcon\Di\FactoryDefault\Cli as Di;
+use Phalcon\Config;
+use Phalcon\Di\FactoryDefault as Di;
+use Phalcon\Mvc\Application;
 
 /**
- * Class Cli
+ * Class Http
  *
  * @package Luxury\Foundation\Kernel
- *
- * @property-read \Luxury\Cli\Router $router
- * @property-read \Phalcon\Cli\Dispatcher $dispatcher
  */
-abstract class Cli extends Console implements Kernelable
+abstract class Kernel extends Application implements Kernelable
 {
-    use Kernelize;
+    use Kernelize {
+        bootstrap as kernelizeBootstrap;
+    }
 
     /**
      * Return the Provider List to load.
@@ -56,10 +57,24 @@ abstract class Cli extends Console implements Kernelable
     }
 
     /**
+     * Application starter
+     *
+     * @param \Phalcon\Config $config
+     *
+     * @return void
+     */
+    public function bootstrap(Config $config)
+    {
+        $this->kernelizeBootstrap($config);
+
+        $this->useImplicitView(isset($config->view->implicit) ? $config->view->implicit : false);
+    }
+
+    /**
      * Register the routes of the application.
      */
     public function registerRoutes()
     {
-        require $this->config->paths->routes . 'cli.php';
+        require $this->config->paths->routes . 'http.php';
     }
 }

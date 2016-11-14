@@ -7,9 +7,7 @@ use Luxury\Events\Listener;
 use Luxury\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Di;
-use Phalcon\Di\Service;
 use Phalcon\Events\Manager as EventsManager;
-use Phalcon\Loader;
 
 /**
  * Class HttpKernel

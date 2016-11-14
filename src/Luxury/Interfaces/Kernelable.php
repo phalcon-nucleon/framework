@@ -2,7 +2,6 @@
 
 namespace Luxury\Interfaces;
 
-use Phalcon\Application;
 use Phalcon\Config;
 
 /**

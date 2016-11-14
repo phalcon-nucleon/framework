@@ -2,7 +2,6 @@
 
 namespace Luxury\Foundation\Http;
 
-use Luxury\Error\Handler;
 use Luxury\Foundation\Kernelize;
 use Luxury\Interfaces\Kernelable;
 use Phalcon\Config;

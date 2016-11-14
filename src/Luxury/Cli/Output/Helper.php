@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: xlzi590
- * Date: 03/11/2016
- * Time: 16:30
- */
 
 namespace Luxury\Cli\Output;
-
 
 use Luxury\Support\Arr;
 

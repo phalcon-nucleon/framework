@@ -66,20 +66,12 @@ class AuthManagerTest extends TestCase
             ->method('tableExists')
             ->will($this->returnValue(true));
 
-        $this->invokeMethod($object, 'initializeMetaData', [], \Luxury\Foundation\Auth\User::class);
-        $this->invokeMethod($object, 'primary', ['id', Column::TYPE_INTEGER], \Luxury\Foundation\Auth\User::class);
-        $this->invokeMethod($object, 'column', ['name', Column::TYPE_VARCHAR], \Luxury\Foundation\Auth\User::class);
-        $this->invokeMethod($object, 'column', ['email', Column::TYPE_VARCHAR], \Luxury\Foundation\Auth\User::class);
-        $this->invokeMethod($object, 'column', ['password', Column::TYPE_VARCHAR], \Luxury\Foundation\Auth\User::class);
-        $this->invokeMethod($object, 'column', ['remember_token', Column::TYPE_VARCHAR], \Luxury\Foundation\Auth\User::class);
-
-        $this->invokeMethod($object, 'initializeMetaData', [], \Test\Auth\CustomUser::class);
-        $this->invokeMethod($object, 'primary', ['id', Column::TYPE_INTEGER], \Test\Auth\CustomUser::class);
-        $this->invokeMethod($object, 'column', ['name', Column::TYPE_VARCHAR], \Test\Auth\CustomUser::class);
-        $this->invokeMethod($object, 'column', ['email', Column::TYPE_VARCHAR], \Test\Auth\CustomUser::class);
-        $this->invokeMethod($object, 'column', ['my_user_name', Column::TYPE_VARCHAR], \Test\Auth\CustomUser::class);
-        $this->invokeMethod($object, 'column', ['my_user_password', Column::TYPE_VARCHAR], \Test\Auth\CustomUser::class);
-        $this->invokeMethod($object, 'column', ['my_user_remember', Column::TYPE_VARCHAR], \Test\Auth\CustomUser::class);
+        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'initializeMetaData', []);
+        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'primary', ['id', Column::TYPE_INTEGER]);
+        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['name', Column::TYPE_VARCHAR]);
+        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['email', Column::TYPE_VARCHAR]);
+        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['password', Column::TYPE_VARCHAR]);
+        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['remember_token', Column::TYPE_VARCHAR]);
     }
 
     public function testNoAttemps()
@@ -327,6 +319,14 @@ class AuthManagerTest extends TestCase
 
 class CustomUser extends User
 {
+    protected function describe()
+    {
+        $this->primary('id', Column::TYPE_INTEGER);
+        $this->column('my_user_name', Column::TYPE_VARCHAR);
+        $this->column('my_user_password', Column::TYPE_VARCHAR);
+        $this->column('my_user_remember', Column::TYPE_VARCHAR);
+    }
+
     public static function getAuthIdentifierName()
     {
         return 'my_user_name';

@@ -66,12 +66,14 @@ class AuthManagerTest extends TestCase
             ->method('tableExists')
             ->will($this->returnValue(true));
 
+        $this->invokeMethod($object, 'initializeMetaData', [], \Luxury\Foundation\Auth\User::class);
         $this->invokeMethod($object, 'primary', ['id', Column::TYPE_INTEGER], \Luxury\Foundation\Auth\User::class);
         $this->invokeMethod($object, 'column', ['name', Column::TYPE_VARCHAR], \Luxury\Foundation\Auth\User::class);
         $this->invokeMethod($object, 'column', ['email', Column::TYPE_VARCHAR], \Luxury\Foundation\Auth\User::class);
         $this->invokeMethod($object, 'column', ['password', Column::TYPE_VARCHAR], \Luxury\Foundation\Auth\User::class);
         $this->invokeMethod($object, 'column', ['remember_token', Column::TYPE_VARCHAR], \Luxury\Foundation\Auth\User::class);
 
+        $this->invokeMethod($object, 'initializeMetaData', [], \Test\Auth\CustomUser::class);
         $this->invokeMethod($object, 'primary', ['id', Column::TYPE_INTEGER], \Test\Auth\CustomUser::class);
         $this->invokeMethod($object, 'column', ['name', Column::TYPE_VARCHAR], \Test\Auth\CustomUser::class);
         $this->invokeMethod($object, 'column', ['email', Column::TYPE_VARCHAR], \Test\Auth\CustomUser::class);

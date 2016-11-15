@@ -23,10 +23,31 @@ abstract class Model extends \Phalcon\Mvc\Model
     public function metaData()
     {
         if (!isset(static::$meta[static::class])) {
+            static::initializeMetaData();
             static::describe();
         }
 
         return static::$meta[static::class];
+    }
+
+    private static function initializeMetaData()
+    {
+        static::$meta[static::class] = [
+            MetaData::MODELS_ATTRIBUTES               => [],
+            MetaData::MODELS_PRIMARY_KEY              => [],
+            MetaData::MODELS_NON_PRIMARY_KEY          => [],
+            MetaData::MODELS_NOT_NULL                 => [],
+            MetaData::MODELS_DATA_TYPES               => [],
+            MetaData::MODELS_DATA_TYPES_NUMERIC       => [],
+            MetaData::MODELS_DATE_AT                  => [],
+            MetaData::MODELS_DATE_IN                  => [],
+            MetaData::MODELS_IDENTITY_COLUMN          => null,
+            MetaData::MODELS_DATA_TYPES_BIND          => [],
+            MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT => [],
+            MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE => [],
+            MetaData::MODELS_DEFAULT_VALUES           => [],
+            MetaData::MODELS_EMPTY_STRING_VALUES      => []
+        ];
     }
 
     protected static function describe()
@@ -94,6 +115,7 @@ abstract class Model extends \Phalcon\Mvc\Model
             case Column::TYPE_INTEGER:
             case Column::TYPE_TIMESTAMP:
                 static::$meta[static::class][MetaData::MODELS_DATA_TYPES_BIND][$name] = Column::BIND_PARAM_INT;
+                static::$meta[static::class][MetaData::MODELS_DATA_TYPES_NUMERIC][]   = $name;
                 break;
             case Column::TYPE_DECIMAL:
             case Column::TYPE_FLOAT:

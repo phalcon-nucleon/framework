@@ -42,7 +42,7 @@ class Cache implements Providable, InjectionAwareInterface
                     if (empty($driver)) {
                         $driver = $cache->backend;
                     }
-                    switch ($driver = ucfirst($driver)) {
+                    switch ($driver) {
                         case 'Aerospike':
                         case 'Apc':
                         case 'Database':
@@ -54,7 +54,7 @@ class Cache implements Providable, InjectionAwareInterface
                         case 'Redis':
                         case 'Wincache':
                         case 'Xcache':
-                            $driverClass = '\Phalcon\Cache\Backend\\' . $driver;
+                            $driverClass = '\Phalcon\Cache\Backend\\' . ucfirst($driver);
                             break;
                         default:
                             $driverClass = $driver;
@@ -71,7 +71,7 @@ class Cache implements Providable, InjectionAwareInterface
                     if (empty($driver)) {
                         $adapter = $cache->frontend;
                     }
-                    switch ($adapter = ucfirst($adapter)) {
+                    switch ($adapter) {
                         case 'Data':
                         case 'Json':
                         case 'File':
@@ -79,7 +79,7 @@ class Cache implements Providable, InjectionAwareInterface
                         case 'Output':
                         case 'Igbinary':
                         case 'None':
-                            $adapterClass = '\Phalcon\Cache\Frontend\\' . $adapter;
+                            $adapterClass = '\Phalcon\Cache\Frontend\\' . ucfirst($adapter);
                             break;
                         case null:
                             $adapterClass = FrontendNone::class;

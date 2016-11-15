@@ -28,7 +28,7 @@ class Logger extends Provider
         /** @var \Phalcon\Config|\stdClass $config */
         $config = $this->getDI()->getShared(Services::CONFIG);
 
-        $adapter = ucfirst(isset($config->log->adapter) ? $config->log->adapter : 'empty');
+        $adapter = isset($config->log->adapter) ? $config->log->adapter : 'empty';
         switch ($adapter) {
             case null:
             case MultipleLoggerAdapter::class:
@@ -55,7 +55,7 @@ class Logger extends Provider
             case 'Stream':
             case 'Syslog':
             case 'Udplogger':
-                $adapter = '\Phalcon\Logger\Adapter\\' . $adapter;
+                $adapter = '\Phalcon\Logger\Adapter\\' . ucfirst($adapter);
 
                 $name = isset($config->log->name) ? $config->log->name :  'phalcon';
                 break;

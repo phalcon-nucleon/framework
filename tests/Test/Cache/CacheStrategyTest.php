@@ -1,8 +1,8 @@
 <?php
 namespace Test\Cache;
 
-use Luxury\Cache\CacheStrategy;
 use Luxury\Support\Facades\Cache;
+use Phalcon\Cache\Backend;
 use Phalcon\Cache\Frontend\Base64;
 use Phalcon\Cache\Frontend\Data;
 use Phalcon\Cache\Frontend\Json;
@@ -63,6 +63,28 @@ class CacheStrategyTest extends TestCase
 
     public function testSaveGetDelete()
     {
+        $mock = $this->mockService('cache.default', Backend\File::class, true);
+
+        $mock->expects($this->any())
+            ->method('save')
+            ->with('test', 'data', 10);
+
+        $mock->expects($this->any())
+            ->method('get')
+            ->with('test')
+            ->willReturnOnConsecutiveCalls(
+                'data',
+                null
+            );
+
+        $mock->expects($this->any())
+            ->method('queryKeys')
+            ->with('test')
+            ->willReturnOnConsecutiveCalls(
+                ['test'],
+                []
+            );
+
         Cache::save('test', 'data', 10);
 
         $this->assertEquals('data', Cache::get('test'));

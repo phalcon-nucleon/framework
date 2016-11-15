@@ -18,7 +18,7 @@ class CsrfTest extends TestCase
         StubController::$middlewares[] = [
             'middleware' => Csrf::class,
             'params'     => [
-                'only' => ['indexAction']
+                'only' => ['index']
             ]
         ];
     }

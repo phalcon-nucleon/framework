@@ -30,7 +30,7 @@ abstract class Controller extends \Phalcon\Mvc\Controller
         $dispatcher = $this->dispatcher;
 
         if (!$dispatcher->wasForwarded() && $router->wasMatched()) {
-            $actionMethod = $dispatcher->getActionName() . $dispatcher->getActionSuffix();
+            $actionMethod = $dispatcher->getActionName();
 
             $route = $router->getMatchedRoute();
 

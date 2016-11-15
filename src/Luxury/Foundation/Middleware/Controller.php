@@ -67,7 +67,7 @@ abstract class Controller extends Listener
             return false;
         }
 
-        $action = $dispatcher->getActionName() . $dispatcher->getActionSuffix();
+        $action = $dispatcher->getActionName();
 
         $enable = true;
         if (isset($this->filter['only'])) {

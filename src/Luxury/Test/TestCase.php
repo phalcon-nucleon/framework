@@ -261,10 +261,10 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
      *
      * @return mixed Method return.
      */
-    public function invokeMethod(&$object, $methodName, array $parameters = [])
+    public function invokeMethod(&$object, $methodName, array $parameters = [], $className = null)
     {
         return $this->getPrivateMethod(
-            get_class($object),
+            !is_null($className) ? $className : get_class($object),
             $methodName
         )->invokeArgs($object, $parameters);
     }

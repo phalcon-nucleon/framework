@@ -22,11 +22,15 @@ class Flash extends Provider
      */
     protected function register()
     {
-        return new FlashDirect([
+        $flash = new FlashDirect([
             'error'   => 'alert alert-danger',
             'success' => 'alert alert-success',
             'notice'  => 'alert alert-info',
             'warning' => 'alert alert-warning'
         ]);
+
+        $flash->setImplicitFlush(false);
+
+        return $flash;
     }
 }

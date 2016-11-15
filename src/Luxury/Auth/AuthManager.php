@@ -214,7 +214,7 @@ class AuthManager extends Injectable
         $class = $this->modelClass();
 
         return $class::findFirst([
-            'condition' => $class::getAuthIdentifierName() . ' = :auth_identifier:',
+            'conditions' => $class::getAuthIdentifierName() . ' = :auth_identifier:',
             'bind'      => [
                 'auth_identifier' => $id
             ]

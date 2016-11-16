@@ -5,8 +5,7 @@ namespace Luxury\Providers;
 use Luxury\Constants\Services;
 
 use Luxury\Interfaces\Providable;
-use Luxury\Support\Traits\InjectionAwareTrait;
-use Phalcon\Di\InjectionAwareInterface;
+use Phalcon\Di\Injectable;
 use Phalcon\Mvc\Model\Manager as ModelManager;
 use Phalcon\Mvc\Model\Metadata\Memory as ModelMetadataMemory;
 use Phalcon\Mvc\Model\Transaction\Manager as ModelTransactionManager;
@@ -16,10 +15,8 @@ use Phalcon\Mvc\Model\Transaction\Manager as ModelTransactionManager;
  *
  * @package     Luxury\Providers
  */
-class Model implements Providable, InjectionAwareInterface
+class Model extends Injectable  implements Providable
 {
-    use InjectionAwareTrait;
-
     /**
      * @inheritdoc
      */

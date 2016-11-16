@@ -116,8 +116,8 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
      */
     protected function resolveRequestSignature()
     {
-        $request = $this->getDI()->getShared(Services::REQUEST);
-        $router  = $this->getDI()->getShared(Services::ROUTER);
+        $request = $this->{Services::REQUEST};
+        $router  = $this->{Services::ROUTER};
 
         return sha1(
             $router->getModuleName() .
@@ -138,7 +138,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
      */
     protected function addHeader($signature, $tooManyAttempts = false)
     {
-        $response = $this->getDI()->getShared(Services::RESPONSE);
+        $response = $this->{Services::RESPONSE};
 
         $limiter = $this->getLimiter();
 

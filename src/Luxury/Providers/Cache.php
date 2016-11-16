@@ -5,21 +5,18 @@ namespace Luxury\Providers;
 use Luxury\Cache\CacheStrategy;
 use Luxury\Constants\Services;
 use Luxury\Interfaces\Providable;
-use Luxury\Support\Traits\InjectionAwareTrait;
 use Phalcon\Cache\BackendInterface;
 use Phalcon\Cache\Frontend\None as FrontendNone;
 use Phalcon\Cache\FrontendInterface;
-use Phalcon\Di\InjectionAwareInterface;
+use Phalcon\Di\Injectable;
 
 /**
  * Class Cache
  *
  * @package Luxury\Providers
  */
-class Cache implements Providable, InjectionAwareInterface
+class Cache extends Injectable implements Providable
 {
-    use InjectionAwareTrait;
-
     /**
      *
      */

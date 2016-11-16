@@ -50,7 +50,7 @@ class RateLimiter extends Injectable
     public function tooManyAttempts($key, $maxAttempts, $decaySeconds = 1)
     {
         /** @var \Luxury\Cache\CacheStrategy $cache */
-        $cache = $this->getDI()->getShared(Services::CACHE);
+        $cache = $this->{Services::CACHE};
 
         if ($cache->exists($this->name . $key . $this->klock, $decaySeconds)) {
             return true;
@@ -83,7 +83,7 @@ class RateLimiter extends Injectable
         $key = $this->name . $key;
 
         /** @var \Luxury\Cache\CacheStrategy $cache */
-        $cache = $this->getDI()->getShared(Services::CACHE);
+        $cache = $this->{Services::CACHE};
 
         if (!$cache->exists($key, $decaySeconds)) {
             $cache->save($key, 0, $decaySeconds);
@@ -107,7 +107,7 @@ class RateLimiter extends Injectable
      */
     public function attempts($key, $decaySeconds = 1)
     {
-        $value = $this->getDI()->getShared(Services::CACHE)->get($this->name . $key, $decaySeconds);
+        $value = $this->{Services::CACHE}->get($this->name . $key, $decaySeconds);
 
         return is_null($value) ? 0 : (int)$value;
     }
@@ -121,7 +121,7 @@ class RateLimiter extends Injectable
      */
     public function resetAttempts($key)
     {
-        return $this->getDI()->getShared(Services::CACHE)->delete($this->name . $key);
+        return $this->{Services::CACHE}->delete($this->name . $key);
     }
 
     /**
@@ -151,7 +151,7 @@ class RateLimiter extends Injectable
     {
         $this->resetAttempts($key);
 
-        $this->getDI()->getShared(Services::CACHE)->delete($this->name . $key . $this->klock);
+        $this->{Services::CACHE}->delete($this->name . $key . $this->klock);
     }
 
     /**
@@ -164,8 +164,7 @@ class RateLimiter extends Injectable
      */
     public function availableIn($key, $decaySeconds)
     {
-        $time = $this->getDI()
-            ->getShared(Services::CACHE)
+        $time = $this->{Services::CACHE}
             ->get($this->name . $key . $this->klock, $decaySeconds);
 
         return $time - time();

@@ -26,7 +26,7 @@ class Logger extends Provider
     protected function register()
     {
         /** @var \Phalcon\Config|\stdClass $config */
-        $config = $this->getDI()->getShared(Services::CONFIG);
+        $config = $this->{Services::CONFIG};
 
         $adapter = isset($config->log->adapter) ? $config->log->adapter : 'empty';
         switch ($adapter) {
@@ -48,7 +48,7 @@ class Logger extends Provider
             case 'Database':
                 $adapter = DatabaseLoggerAdapter::class;
 
-                $config->log->options->db = $this->getDI()->getShared(Services::DB);
+                $config->log->options->db = $this->{Services::DB};
                 $name = isset($config->log->name) ? $config->log->name :  'phalcon';
                 break;
             case 'Firelogger':

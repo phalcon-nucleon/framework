@@ -4,10 +4,9 @@ namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
 use Luxury\Interfaces\Providable;
-use Luxury\Support\Traits\InjectionAwareTrait;
 use Luxury\View\Engine\Extensions\PhpFunction as PhpFunctionExtension;
 use Phalcon\Assets\Manager as AssetsManager;
-use Phalcon\Di\InjectionAwareInterface;
+use Phalcon\Di\Injectable;
 use Phalcon\DiInterface;
 use Phalcon\Mvc\View\Engine\Volt as VoltEngine;
 use Phalcon\Tag;
@@ -17,10 +16,8 @@ use Phalcon\Tag;
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class View implements Providable, InjectionAwareInterface
+class View extends Injectable implements Providable
 {
-    use InjectionAwareTrait;
-
     /**
      * @inheritdoc
      */

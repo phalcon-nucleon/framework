@@ -23,7 +23,7 @@ class Database extends Provider
      */
     protected function register()
     {
-        $dbConfig = $this->getDI()->getShared(Services::CONFIG)->database->toArray();
+        $dbConfig = $this->{Services::CONFIG}->database->toArray();
 
         $adapter = $dbConfig['adapter'];
         unset($dbConfig['adapter']);

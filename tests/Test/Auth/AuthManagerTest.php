@@ -66,7 +66,6 @@ class AuthManagerTest extends TestCase
             ->method('tableExists')
             ->will($this->returnValue(true));
 
-        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'initializeMetaData', []);
         $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'primary', ['id', Column::TYPE_INTEGER]);
         $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['name', Column::TYPE_VARCHAR]);
         $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['email', Column::TYPE_VARCHAR]);
@@ -319,8 +318,10 @@ class AuthManagerTest extends TestCase
 
 class CustomUser extends User
 {
-    protected function describe()
+    public function initialize()
     {
+        parent::initialize();
+
         $this->primary('id', Column::TYPE_INTEGER);
         $this->column('my_user_name', Column::TYPE_VARCHAR);
         $this->column('my_user_password', Column::TYPE_VARCHAR);

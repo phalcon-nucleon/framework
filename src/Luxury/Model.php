@@ -27,10 +27,22 @@ abstract class Model extends \Phalcon\Mvc\Model
      */
     public function initialize()
     {
-        if (!isset(static::$metaDatasClass[static::class])) {
-            static::initializeMetaData();
-            $this->describe();
-        }
+        static::$metaDatasClass[static::class] = [
+            MetaData::MODELS_ATTRIBUTES               => [],
+            MetaData::MODELS_PRIMARY_KEY              => [],
+            MetaData::MODELS_NON_PRIMARY_KEY          => [],
+            MetaData::MODELS_NOT_NULL                 => [],
+            MetaData::MODELS_DATA_TYPES               => [],
+            MetaData::MODELS_DATA_TYPES_NUMERIC       => [],
+            MetaData::MODELS_DATE_AT                  => [],
+            MetaData::MODELS_DATE_IN                  => [],
+            MetaData::MODELS_IDENTITY_COLUMN          => false,
+            MetaData::MODELS_DATA_TYPES_BIND          => [],
+            MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT => [],
+            MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE => [],
+            MetaData::MODELS_DEFAULT_VALUES           => [],
+            MetaData::MODELS_EMPTY_STRING_VALUES      => []
+        ];
     }
 
     /**
@@ -54,58 +66,29 @@ abstract class Model extends \Phalcon\Mvc\Model
     }
 
     /**
-     * Describe the column of the model.
-     *
-     * Use the function "primary", "column" to describe them.
-     *
-     * @return void
-     */
-    protected function describe()
-    {
-    }
-
-    /**
-     * Initialize the metaData with all meta attributes.
-     */
-    private static function initializeMetaData()
-    {
-        static::$metaDatasClass[static::class] = [
-            MetaData::MODELS_ATTRIBUTES               => [],
-            MetaData::MODELS_PRIMARY_KEY              => [],
-            MetaData::MODELS_NON_PRIMARY_KEY          => [],
-            MetaData::MODELS_NOT_NULL                 => [],
-            MetaData::MODELS_DATA_TYPES               => [],
-            MetaData::MODELS_DATA_TYPES_NUMERIC       => [],
-            MetaData::MODELS_DATE_AT                  => [],
-            MetaData::MODELS_DATE_IN                  => [],
-            MetaData::MODELS_IDENTITY_COLUMN          => false,
-            MetaData::MODELS_DATA_TYPES_BIND          => [],
-            MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT => [],
-            MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE => [],
-            MetaData::MODELS_DEFAULT_VALUES           => [],
-            MetaData::MODELS_EMPTY_STRING_VALUES      => []
-        ];
-    }
-
-    /**
      * Define the primary column
      *
      * @param string $name
      * @param int    $type
-     * @param bool   $identity
-     * @param bool   $autoIncrement
+     * @param array  $options
      */
-    protected static function primary($name, $type, $identity = true, $autoIncrement = true)
+    protected static function primary($name, $type, array $options = [])
     {
         static::addColumn($name, $type);
 
         static::$metaDatasClass[static::class][MetaData::MODELS_PRIMARY_KEY][] = $name;
         static::$metaDatasClass[static::class][MetaData::MODELS_NOT_NULL][] = $name;
 
-        if ($identity) {
+        if (
+            (!isset($options['identity']) || $options['identity']) &&
+            (!isset($options['multiple']) || !$options['multiple'])
+        ) {
             static::$metaDatasClass[static::class][MetaData::MODELS_IDENTITY_COLUMN] = $name;
         }
-        if ($autoIncrement) {
+        if (
+            (!isset($options['autoIncrement']) || $options['autoIncrement']) &&
+            (!isset($options['multiple']) || !$options['multiple'])
+        ) {
             static::$metaDatasClass[static::class][MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT][$name] = true;
         }
     }
@@ -113,33 +96,41 @@ abstract class Model extends \Phalcon\Mvc\Model
     /**
      * Define a column
      *
-     * @param string          $name
-     * @param int             $type
-     * @param bool            $nullable
-     * @param string|int|null $default
-     * @param bool            $autoUpdate
+     * @param string $name
+     * @param int    $type
+     * @param array  $options
      */
-    protected static function column($name, $type, $nullable = false, $default = null, $autoUpdate = false)
+    protected static function column($name, $type, array $options = [])
     {
         static::addColumn($name, $type);
 
         static::$metaDatasClass[static::class][MetaData::MODELS_NON_PRIMARY_KEY][] = $name;
 
-        if ($nullable) {
+        if (isset($options['nullable']) && $options['nullable']) {
             static::$metaDatasClass[static::class][MetaData::MODELS_EMPTY_STRING_VALUES][$name] = true;
         } else {
             static::$metaDatasClass[static::class][MetaData::MODELS_NOT_NULL][] = $name;
         }
 
-        if (!is_null($default)) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DEFAULT_VALUES][$name] = $default;
+        if (isset($options['default'])) {
+            static::$metaDatasClass[static::class][MetaData::MODELS_DEFAULT_VALUES][$name] = $options['default'];
         }
 
-        if ($autoUpdate) {
+        if (isset($options['autoInsert']) && $options['autoInsert']) {
+            static::$metaDatasClass[static::class][MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT][$name] = true;
+        }
+
+        if (isset($options['autoUpdate']) && $options['autoUpdate']) {
             static::$metaDatasClass[static::class][MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE][$name] = true;
         }
     }
 
+    /**
+     *
+     *
+     * @param string $name
+     * @param int    $type
+     */
     private static function addColumn($name, $type)
     {
         static::$columnsMapClass[static::class][$name] = $name;

@@ -3,6 +3,7 @@
 namespace Test\Models;
 
 use Luxury\Model;
+use Luxury\Support\Arr;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\MetaData;
 use Test\TestCase\TestCase;
@@ -113,41 +114,121 @@ class ModelTest extends TestCase
     public function dataColumn()
     {
         return [
-            ['test', Column::TYPE_BIGINTEGER, false, null, false, Column::BIND_PARAM_INT, true],
-            ['test', Column::TYPE_INTEGER, true, null, false, Column::BIND_PARAM_INT, true],
-            ['test', Column::TYPE_TIMESTAMP, false, 1, false, Column::BIND_PARAM_INT, true],
-            ['test', Column::TYPE_DECIMAL, true, 1, false, Column::BIND_PARAM_DECIMAL, true],
-            ['test', Column::TYPE_FLOAT, false, null, true, Column::BIND_PARAM_DECIMAL, true],
-            ['test', Column::TYPE_DOUBLE, true, null, true, Column::BIND_PARAM_DECIMAL, true],
-            ['test', Column::TYPE_JSON, false, 1, true, Column::BIND_PARAM_STR],
-            ['test', Column::TYPE_TEXT, true, 1, true, Column::BIND_PARAM_STR],
-            ['test', Column::TYPE_CHAR, false, null, false, Column::BIND_PARAM_STR],
-            ['test', Column::TYPE_VARCHAR, false, null, false, Column::BIND_PARAM_STR],
-            ['test', Column::TYPE_DATE, false, null, false, Column::BIND_PARAM_STR],
-            ['test', Column::TYPE_DATETIME, false, null, false, Column::BIND_PARAM_STR],
-            ['test', Column::TYPE_BLOB, false, null, false, Column::BIND_PARAM_BLOB],
-            ['test', Column::TYPE_JSONB, false, null, false, Column::BIND_PARAM_BLOB],
-            ['test', Column::TYPE_MEDIUMBLOB, false, null, false, Column::BIND_PARAM_BLOB],
-            ['test', Column::TYPE_TINYBLOB, false, null, false, Column::BIND_PARAM_BLOB],
-            ['test', Column::TYPE_LONGBLOB, false, null, false, Column::BIND_PARAM_BLOB],
-            ['test', Column::TYPE_BOOLEAN, false, null, false, Column::BIND_PARAM_BOOL],
-            ['test', null, false, null, false, Column::BIND_PARAM_NULL],
-            ['test', 'abc', false, null, false, Column::BIND_SKIP],
+            [
+                'test', Column::TYPE_BIGINTEGER,
+                ['nullable' => false, 'default' => null, 'autoInsert' => false, 'autoUpdate' => false],
+                Column::BIND_PARAM_INT, true
+            ],
+            [
+                'test', Column::TYPE_INTEGER,
+                ['nullable' => true, 'default' => null, 'autoInsert' => false, 'autoUpdate' => false],
+                Column::BIND_PARAM_INT, true
+            ],
+            [
+                'test', Column::TYPE_TIMESTAMP,
+                ['nullable' => false, 'default' => 1, 'autoInsert' => false, 'autoUpdate' => false],
+                Column::BIND_PARAM_INT, true
+            ],
+            [
+                'test', Column::TYPE_DECIMAL,
+                ['nullable' => true, 'default' => 1, 'autoInsert' => false, 'autoUpdate' => false],
+                Column::BIND_PARAM_DECIMAL, true
+            ],
+            [
+                'test', Column::TYPE_FLOAT,
+                ['nullable' => false, 'default' => null, 'autoInsert' => true, 'autoUpdate' => false],
+                Column::BIND_PARAM_DECIMAL, true
+            ],
+            [
+                'test', Column::TYPE_DOUBLE,
+                ['nullable' => true, 'default' => null, 'autoInsert' => true, 'autoUpdate' => false],
+                Column::BIND_PARAM_DECIMAL, true
+            ],
+            [
+                'test', Column::TYPE_JSON,
+                ['nullable' => false, 'default' => 1, 'autoInsert' => true, 'autoUpdate' => false],
+                Column::BIND_PARAM_STR
+            ],
+            [
+                'test', Column::TYPE_TEXT,
+                ['nullable' => true, 'default' => 1, 'autoInsert' => true, 'autoUpdate' => false],
+                Column::BIND_PARAM_STR
+            ],
+            [
+                'test', Column::TYPE_CHAR,
+                ['nullable' => false, 'default' => null, 'autoInsert' => false, 'autoUpdate' => true],
+                Column::BIND_PARAM_STR
+            ],
+            [
+                'test', Column::TYPE_VARCHAR,
+                ['nullable' => true, 'default' => null, 'autoInsert' => false, 'autoUpdate' => true],
+                Column::BIND_PARAM_STR
+            ],
+            [
+                'test', Column::TYPE_DATE,
+                ['nullable' => false, 'default' => 1, 'autoInsert' => false, 'autoUpdate' => true],
+                Column::BIND_PARAM_STR
+            ],
+            [
+                'test', Column::TYPE_DATETIME,
+                ['nullable' => true, 'default' => 1, 'autoInsert' => false, 'autoUpdate' => true],
+                Column::BIND_PARAM_STR
+            ],
+            [
+                'test', Column::TYPE_BLOB,
+                ['nullable' => false, 'default' => null, 'autoInsert' => true, 'autoUpdate' => true],
+                Column::BIND_PARAM_BLOB
+            ],
+            [
+                'test', Column::TYPE_JSONB,
+                ['nullable' => true, 'default' => null, 'autoInsert' => true, 'autoUpdate' => true],
+                Column::BIND_PARAM_BLOB
+            ],
+            [
+                'test', Column::TYPE_MEDIUMBLOB,
+                ['nullable' => false, 'default' => 1, 'autoInsert' => true, 'autoUpdate' => true],
+                Column::BIND_PARAM_BLOB
+            ],
+            [
+                'test', Column::TYPE_TINYBLOB,
+                ['nullable' => true, 'default' => 1, 'autoInsert' => true, 'autoUpdate' => true],
+                Column::BIND_PARAM_BLOB
+            ],
+            [
+                'test', Column::TYPE_LONGBLOB,
+                [],
+                Column::BIND_PARAM_BLOB
+            ],
+            [
+                'test', Column::TYPE_BOOLEAN,
+                [],
+                Column::BIND_PARAM_BOOL
+            ],
+            [
+                'test', null,
+                [],
+                Column::BIND_PARAM_NULL
+            ],
+            [
+                'test', 'abc',
+                [],
+                Column::BIND_SKIP
+            ],
         ];
     }
 
     /**
      * @dataProvider dataColumn
      */
-    public function testColumn($name, $type, $nullable, $default, $autoUpdate, $expectedBind, $numeric = false)
+    public function testColumn($name, $type, $options, $expectedBind, $numeric = false)
     {
-        $this->invokeStaticMethod(Model::class, 'column', [$name, $type, $nullable, $default, $autoUpdate]);
+        $this->invokeStaticMethod(Model::class, 'column', [$name, $type, $options]);
 
         $meta = $this->getStaticValueProperty(Model::class, 'metaDatasClass')[Model::class];
 
         $this->assertColumnAdded($name, $type, $expectedBind, $numeric);
 
-        if ($nullable) {
+        if (Arr::fetch($options, 'nullable')) {
             $this->assertArrayHasKey(MetaData::MODELS_EMPTY_STRING_VALUES, $meta);
             $this->assertEquals([$name => true], $meta[MetaData::MODELS_EMPTY_STRING_VALUES]);
         } else {
@@ -155,14 +236,19 @@ class ModelTest extends TestCase
             $this->assertEquals([$name], $meta[MetaData::MODELS_NOT_NULL]);
         }
 
-        if (!is_null($default)) {
+        if (!is_null(Arr::fetch($options, 'default'))) {
             $this->assertArrayHasKey(MetaData::MODELS_DEFAULT_VALUES, $meta);
-            $this->assertEquals([$name => $default], $meta[MetaData::MODELS_DEFAULT_VALUES]);
+            $this->assertEquals([$name => Arr::fetch($options, 'default')], $meta[MetaData::MODELS_DEFAULT_VALUES]);
         } else {
             $this->assertArrayNotHasKey(MetaData::MODELS_DEFAULT_VALUES, $meta);
         }
 
-        if ($autoUpdate) {
+        if (Arr::fetch($options, 'autoInsert')) {
+            $this->assertArrayHasKey(MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT, $meta);
+            $this->assertEquals([$name => true], $meta[MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT]);
+        }
+
+        if (Arr::fetch($options, 'autoUpdate')) {
             $this->assertArrayHasKey(MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE, $meta);
             $this->assertEquals([$name => true], $meta[MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE]);
         }
@@ -179,9 +265,7 @@ class ModelTest extends TestCase
         $names = [];
         $attrs = [];
         $types = [];
-        $nulls = [];
-        $defaults = [];
-        $autos = [];
+        $options = [];
         $binds = [];
         foreach ($columns as $column) {
             $this->invokeStaticMethod(Model::class, 'column', $column);
@@ -190,9 +274,7 @@ class ModelTest extends TestCase
             $attrs[] = $name;
             $names[$name] = $name;
             $types[$name] = array_shift($column);
-            $nulls[$name] = array_shift($column);
-            $defaults[$name] = array_shift($column);
-            $autos[$name] = array_shift($column);
+            $options[$name] = array_shift($column);
             $binds[$name] = array_shift($column);
         }
 
@@ -207,19 +289,19 @@ class ModelTest extends TestCase
     public function dataPrimary()
     {
         return [
-            ['primary', Column::TYPE_BIGINTEGER, true, true],
-            ['primary', Column::TYPE_BIGINTEGER, false, true],
-            ['primary', Column::TYPE_BIGINTEGER, true, false],
-            ['primary', Column::TYPE_BIGINTEGER, false, false],
+            ['primary', Column::TYPE_BIGINTEGER, ['identity' => true, 'autoIncrement' => true]],
+            ['primary', Column::TYPE_BIGINTEGER, ['identity' => false, 'autoIncrement' => true]],
+            ['primary', Column::TYPE_BIGINTEGER, ['identity' => true, 'autoIncrement' => false]],
+            ['primary', Column::TYPE_BIGINTEGER, ['identity' => false, 'autoIncrement' => false]],
         ];
     }
 
     /**
      * @dataProvider dataPrimary
      */
-    public function testPrimary($name, $type, $identity = true, $autoIncrement = true)
+    public function testPrimary($name, $type, $options)
     {
-        $this->invokeStaticMethod(Model::class, 'primary', [$name, $type, $identity, $autoIncrement]);
+        $this->invokeStaticMethod(Model::class, 'primary', [$name, $type, $options]);
 
         $this->assertColumnAdded($name, $type, Column::BIND_PARAM_INT, true);
 
@@ -228,12 +310,12 @@ class ModelTest extends TestCase
         $this->assertEquals([$name], $meta[MetaData::MODELS_PRIMARY_KEY]);
         $this->assertEquals([$name], $meta[MetaData::MODELS_NOT_NULL]);
 
-        if ($identity) {
+        if ($options['identity']) {
             $this->assertEquals($name, $meta[MetaData::MODELS_IDENTITY_COLUMN]);
         } else {
             $this->assertArrayNotHasKey(MetaData::MODELS_IDENTITY_COLUMN, $meta);
         }
-        if ($autoIncrement) {
+        if ($options['autoIncrement']) {
             $this->assertEquals([$name => true], $meta[MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT]);
         } else {
             $this->assertArrayNotHasKey(MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT, $meta);
@@ -242,8 +324,8 @@ class ModelTest extends TestCase
 
     public function testMultipePrimary()
     {
-        $this->invokeStaticMethod(Model::class, 'primary', ['p_1', Column::TYPE_BIGINTEGER, false, false]);
-        $this->invokeStaticMethod(Model::class, 'primary', ['p_2', Column::TYPE_VARCHAR, false, false]);
+        $this->invokeStaticMethod(Model::class, 'primary', ['p_1', Column::TYPE_BIGINTEGER, ['multiple' => true]]);
+        $this->invokeStaticMethod(Model::class, 'primary', ['p_2', Column::TYPE_VARCHAR, ['multiple' => true]]);
 
         $this->assertColumnAdded('p_1', Column::TYPE_BIGINTEGER, Column::BIND_PARAM_INT, true);
         $this->assertColumnAdded('p_2', Column::TYPE_VARCHAR, Column::BIND_PARAM_STR, false);
@@ -252,29 +334,5 @@ class ModelTest extends TestCase
 
         $this->assertEquals(['p_1', 'p_2'], $meta[MetaData::MODELS_PRIMARY_KEY]);
         $this->assertEquals(['p_1', 'p_2'], $meta[MetaData::MODELS_NOT_NULL]);
-    }
-    
-    public function testInitialize()
-    {
-        $expected = [
-            MetaData::MODELS_ATTRIBUTES               => [],
-            MetaData::MODELS_PRIMARY_KEY              => [],
-            MetaData::MODELS_NON_PRIMARY_KEY          => [],
-            MetaData::MODELS_NOT_NULL                 => [],
-            MetaData::MODELS_DATA_TYPES               => [],
-            MetaData::MODELS_DATA_TYPES_NUMERIC       => [],
-            MetaData::MODELS_DATE_AT                  => [],
-            MetaData::MODELS_DATE_IN                  => [],
-            MetaData::MODELS_IDENTITY_COLUMN          => false,
-            MetaData::MODELS_DATA_TYPES_BIND          => [],
-            MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT => [],
-            MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE => [],
-            MetaData::MODELS_DEFAULT_VALUES           => [],
-            MetaData::MODELS_EMPTY_STRING_VALUES      => []
-        ];
-
-        $this->invokeStaticMethod(Model::class, 'initializeMetaData', []);
-
-        $this->assertEquals($expected, $this->getStaticValueProperty(Model::class, 'metaDatasClass')[Model::class]);
     }
 }

@@ -401,9 +401,9 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'timestampable', [$field, $options], Model::class);
+        $this->invokeMethod($model, 'timestampable', [$field, $options]);
 
-        $this->assertColumnAdded('t_1', $type, Column::BIND_PARAM_STR, false, get_class($model));
+        $this->assertColumnAdded($field, $type, Column::BIND_PARAM_STR, false, get_class($model));
 
         $modelManager = $model->getModelsManager();
         $behaviors = $this->getValueProperty($modelManager, '_behaviors');
@@ -437,7 +437,7 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'timestampable', ['test', $options], Model::class);
+        $this->invokeMethod($model, 'timestampable', ['test', $options]);
     }
 
     public function dataSoftDeletable()
@@ -490,7 +490,7 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'softDeletable', ['test', $options], Model::class);
+        $this->invokeMethod($model, 'softDeletable', ['test', $options]);
     }
 
     public function testTimestamps()

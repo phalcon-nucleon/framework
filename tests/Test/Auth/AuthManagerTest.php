@@ -26,7 +26,7 @@ class AuthManagerTest extends TestCase
         global $config;
 
         $config['session']['id'] = 'unittest';
-        $config['auth']['model'] = User::class;
+        $config['auth']['model'] = BasicUser::class;
 
         parent::setUp();
     }
@@ -65,12 +65,6 @@ class AuthManagerTest extends TestCase
         $con->expects($this->any())
             ->method('tableExists')
             ->will($this->returnValue(true));
-
-        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'primary', ['id', Column::TYPE_INTEGER]);
-        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['name', Column::TYPE_VARCHAR]);
-        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['email', Column::TYPE_VARCHAR]);
-        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['password', Column::TYPE_VARCHAR]);
-        $this->invokeStaticMethod(\Luxury\Foundation\Auth\User::class, 'column', ['remember_token', Column::TYPE_VARCHAR]);
     }
 
     public function testNoAttemps()
@@ -234,7 +228,7 @@ class AuthManagerTest extends TestCase
         $cookies = $this->getDI()->getShared(Services::COOKIES);
         /** @var Security $security */
         $security = $this->getDI()->getShared(Services::SECURITY);
-        $token    = Str::random(60);
+        $token = Str::random(60);
 
         $this->mockDb(1, [
             [
@@ -313,6 +307,20 @@ class AuthManagerTest extends TestCase
         $this->assertNull(Auth::user());
         $this->assertFalse(Auth::check());
         $this->assertTrue(Auth::guest());
+    }
+}
+
+class BasicUser extends User
+{
+    public function initialize()
+    {
+        parent::initialize();
+
+        $this->primary('id', Column::TYPE_INTEGER);
+        $this->column('name', Column::TYPE_VARCHAR);
+        $this->column('email', Column::TYPE_VARCHAR);
+        $this->column('password', Column::TYPE_VARCHAR);
+        $this->column('remember_token', Column::TYPE_VARCHAR);
     }
 }
 

@@ -3,6 +3,8 @@
 namespace Luxury;
 
 use Phalcon\Db\Column;
+use Phalcon\Mvc\Model\Behavior\SoftDelete;
+use Phalcon\Mvc\Model\Behavior\Timestampable;
 use Phalcon\Mvc\Model\MetaData;
 
 /**
@@ -72,9 +74,9 @@ abstract class Model extends \Phalcon\Mvc\Model
      * @param int    $type
      * @param array  $options
      */
-    protected static function primary($name, $type, array $options = [])
+    protected function primary($name, $type, array $options = [])
     {
-        static::addColumn($name, $type);
+        static::addColumn($name, $type, isset($options['map']) ? $options['map'] : $name);
 
         static::$metaDatasClass[static::class][MetaData::MODELS_PRIMARY_KEY][] = $name;
         static::$metaDatasClass[static::class][MetaData::MODELS_NOT_NULL][] = $name;
@@ -100,9 +102,9 @@ abstract class Model extends \Phalcon\Mvc\Model
      * @param int    $type
      * @param array  $options
      */
-    protected static function column($name, $type, array $options = [])
+    protected function column($name, $type, array $options = [])
     {
-        static::addColumn($name, $type);
+        static::addColumn($name, $type, isset($options['map']) ? $options['map'] : $name);
 
         static::$metaDatasClass[static::class][MetaData::MODELS_NON_PRIMARY_KEY][] = $name;
 
@@ -126,14 +128,104 @@ abstract class Model extends \Phalcon\Mvc\Model
     }
 
     /**
+     * Define a timestampable column.
+     * Automatically add the Timestampable behavior.
+     *
+     * @param string $name
+     * @param array  $options
+     */
+    protected function timestampable($name, array $options = [])
+    {
+        if ((isset($options['autoInsert']) && $options['autoInsert']) ||
+            (isset($options['autoUpdate']) && $options['autoUpdate'])
+        ) {
+            throw new \RuntimeException('Model: A timestampable field can\'t have autoInsert or autoUpdate.');
+        }
+        if (isset($options['nullable']) && $options['nullable']) {
+            throw new \RuntimeException('Model: A timestampable field can\'t be nullable.');
+        }
+        if (isset($options['default'])) {
+            throw new \RuntimeException('Model: A timestampable field can\'t have a default value.');
+        }
+
+        self::column($name, isset($options['type']) ? $options['type'] : Column::TYPE_DATETIME, $options);
+
+        $params = [];
+
+        if (isset($options['insert']) && $options['insert']) {
+            $params['beforeCreate'] = [
+                'field'  => $name,
+                'format' => isset($options['format']) ? $options['format'] : DATE_ATOM
+            ];
+        }
+
+        if (isset($options['update']) && $options['update']) {
+            $params['beforeUpdate'] = [
+                'field'  => $name,
+                'format' => isset($options['format']) ? $options['format'] : DATE_ATOM
+            ];
+        }
+
+        if(empty($params)){
+            throw new \RuntimeException('Model: A timestampable field needs to have at least insert or update.');
+        }
+
+        $this->addBehavior(new Timestampable($params));
+    }
+
+    /**
+     * Add <created_at> & <updated_at> columns with  Timestampable behavior.
+     */
+    protected function timestamps()
+    {
+        $this->timestampable('created_at', ['insert' => true]);
+        $this->timestampable('updated_at', ['update' => true]);
+    }
+
+    /**
+     * Define a softDeleted column.
+     * Automatically add the SoftDelete behavior.
+     *
+     * @param string $name
+     * @param array  $options
+     */
+    protected function softDeletable($name, array $options = [])
+    {
+        if ((isset($options['autoInsert']) && $options['autoInsert']) ||
+            (isset($options['autoUpdate']) && $options['autoUpdate'])
+        ) {
+            throw new \RuntimeException('Model: A timestampable field can\'t have autoInsert or autoUpdate.');
+        }
+        if (isset($options['default'])) {
+            throw new \RuntimeException('Model: A timestampable field can\'t have a default value.');
+        }
+
+        self::column($name, isset($options['type']) ? $options['type'] : Column::TYPE_BOOLEAN, $options);
+
+        $this->addBehavior(new SoftDelete([
+            'field' => $name,
+            'value' => isset($options['value']) ? $options['value'] : true
+        ]));
+    }
+
+    /**
+     * Add <deleted> column with SoftDelete behavior.
+     */
+    protected function softDelete()
+    {
+        $this->softDeletable('deleted');
+    }
+
+    /**
      *
      *
      * @param string $name
      * @param int    $type
+     * @param string $map
      */
-    private static function addColumn($name, $type)
+    private static function addColumn($name, $type, $map)
     {
-        static::$columnsMapClass[static::class][$name] = $name;
+        static::$columnsMapClass[static::class][$name] = $map;
 
         static::$metaDatasClass[static::class][MetaData::MODELS_ATTRIBUTES][] = $name;
         static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES][$name] = $type;

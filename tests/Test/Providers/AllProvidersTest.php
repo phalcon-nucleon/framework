@@ -119,22 +119,6 @@ class AllProvidersTest extends TestCase
                 ]
             ]],
 
-            Services::HTTP_CLIENT => [HttpClient::class, [
-                [
-                    'name'   => Services::HTTP_CLIENT,
-                    'class'  => HttpClient::class,
-                    'shared' => true
-                ]
-            ]],
-
-            Services::HTTP_CLIENT => [HttpClient::class, [
-                [
-                    'name'   => Services::HTTP_CLIENT,
-                    'class'  => Client::class,
-                    'shared' => true
-                ]
-            ]],
-
             'Model' => [Model::class, [
                 [
                     'name'   => Services::MODELS_MANAGER,

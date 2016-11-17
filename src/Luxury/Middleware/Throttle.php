@@ -4,11 +4,11 @@ namespace Luxury\Middleware;
 
 use Luxury\Constants\Services;
 use Luxury\Foundation\Middleware\Controller as ControllerMiddleware;
+use Luxury\Http\Standards\StatusCode;
 use Luxury\Interfaces\Middleware\AfterInterface;
 use Luxury\Interfaces\Middleware\BeforeInterface;
 use Luxury\Security\RateLimiter;
 use Phalcon\Events\Event;
-use Phalcon\Http\Response\StatusCode;
 
 /**
  * Class Throttle

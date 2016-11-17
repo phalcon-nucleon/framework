@@ -3,9 +3,9 @@ namespace Test\Middleware;
 
 use Luxury\Constants\Services;
 use Luxury\Http\Middleware\ThrottleRequest;
+use Luxury\Http\Standards\StatusCode;
 use Luxury\Middleware\Throttle;
 use Phalcon\Http\Response;
-use Phalcon\Http\Response\StatusCode;
 use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 use Test\TestCase\UseCaches;

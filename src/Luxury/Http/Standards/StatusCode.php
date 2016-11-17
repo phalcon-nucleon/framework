@@ -22,7 +22,7 @@
  * @package Phalcon\Http\Response
  * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
  */
-namespace Phalcon\Http\Response;
+namespace Luxury\Http\Standards;
 
 class StatusCode
 {

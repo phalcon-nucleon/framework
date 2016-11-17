@@ -18,12 +18,12 @@ class ProviderLoggerTest extends TestCase
     public function dataLoggerSetting()
     {
         return [
-            'Multiple'   => ['Multiple', 'path', __DIR__ . '/../../.data/'],
+            //'Multiple'   => ['Multiple', 'path', __DIR__ . '/../../.data/'],
             'File'       => ['File', 'path', __DIR__ . '/../../.data/log.txt'],
-            'Firelogger' => ['Firelogger', 'name', 'firelogger'],
+            //'Firelogger' => ['Firelogger', 'name', 'firelogger'],
             'Stream'     => ['Stream', 'name', 'php://stderr'],
             'Syslog'     => ['Syslog', 'name', 'syslog'],
-            'Udplogger'  => ['Udplogger', 'name', 'udplogger', ['url' => 'url', 'port' => 1234]],
+            //'Udplogger'  => ['Udplogger', 'name', 'udplogger', ['url' => 'url', 'port' => 1234]],
         ];
     }
 
@@ -45,44 +45,15 @@ class ProviderLoggerTest extends TestCase
 
         $this->assertTrue($this->getDI()->getService(Services::LOGGER)->isShared());
 
-        if ($adapter === 'Multiple') {
-            $this->assertInstanceOf(
-                File\Multiple::class,
-                $this->getDI()->getShared(Services::LOGGER)
-            );
-        } else {
+
             $this->assertInstanceOf(
                 '\Phalcon\Logger\Adapter\\' . $adapter,
                 $this->getDI()->getShared(Services::LOGGER)
             );
-        }
 
         if ($adapter === 'File') {
             $this->getDI()->getShared(Services::LOGGER)->close();
         }
-    }
-
-    public function testRegisterDatabaseLogger()
-    {
-        // 'Database'   => ['Database', 'name', 'database', ['table' => 'logger']],
-
-        $this->app->config->log          = new \stdClass();
-        $this->app->config->log->name    = 'Database';
-        $this->app->config->log->adapter = 'Database';
-        $this->app->config->log->options = new Config(['table' => 'logger']);
-
-        $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
-
-        $provider = new Logger();
-
-        $provider->registering();
-
-        $this->getDI()->getShared(Services::LOGGER);
-
-        $this->assertInstanceOf(
-            \Phalcon\Logger\Adapter\Database::class,
-            $this->getDI()->getShared(Services::LOGGER)
-        );
     }
 
     /**
@@ -121,8 +92,8 @@ class ProviderLoggerTest extends TestCase
     public function testFailRegisterMissingOptions()
     {
         $this->app->config->log          = new \stdClass();
-        $this->app->config->log->adapter = 'Multiple';
-        $this->app->config->log->path    = 'Multiple';
+        $this->app->config->log->adapter = 'File';
+        $this->app->config->log->path    = 'File';
 
         $provider = new Logger();
 

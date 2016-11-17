@@ -2,8 +2,8 @@
 
 namespace Test\Assert;
 
+use Luxury\Http\Standards\Method;
 use Luxury\Test\Helpers\RoutesTrait;
-use Phalcon\Http\Request\Method;
 use Test\TestCase\TestCase;
 
 /**

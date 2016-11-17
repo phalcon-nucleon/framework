@@ -45,7 +45,7 @@ class MiddlewareDebugTest extends TestCase
      */
     public function testFunction($function, $log)
     {
-        $this->mockService(Services::LOGGER, File\Multiple::class, true)
+        $this->mockService(Services::LOGGER, File::class, true)
             ->expects($this->once())
             ->method('debug')
             ->with($log . 'stdClass');

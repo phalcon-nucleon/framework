@@ -21,6 +21,9 @@ class ClearCompiledTask extends Task
         if (file_exists($compileDir . 'loader.php')) {
             @unlink($compileDir . 'loader.php');
         }
+        if (file_exists($compileDir . 'compile.php')) {
+            @unlink($compileDir . 'compile.php');
+        }
 
         $this->info('The compiled loader has been removed.');
     }
@@ -36,6 +39,9 @@ class ClearCompiledTask extends Task
 
         if (file_exists($compileDir . 'loader.php')) {
             @unlink($compileDir . 'loader.php');
+        }
+        if (file_exists($compileDir . 'compile.php')) {
+            @unlink($compileDir . 'compile.php');
         }
     }
 }

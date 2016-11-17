@@ -26,6 +26,7 @@ return [
     $path . '/Interfaces/Middleware/BeforeInterface.php',
     $path . '/Interfaces/Middleware/FinishInterface.php',
 
+    $path . '/Providers/Provider.php',
     $path . '/Providers/Http/Dispatcher.php',
     $path . '/Providers/Http/Router.php',
     $path . '/Providers/Cache.php',

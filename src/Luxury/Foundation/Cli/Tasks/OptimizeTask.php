@@ -2,6 +2,7 @@
 
 namespace Luxury\Foundation\Cli\Tasks;
 
+use ClassPreloader\Factory;
 use Luxury\Cli\Task;
 
 /**
@@ -25,10 +26,10 @@ class OptimizeTask extends Task
         } else {
             $res = $this->optimizeProcess();
         }
-
         if ($res === false) {
             $this->error('Autoloader generation has failed.');
         }
+        $this->optimizeClass();
     }
 
     /**
@@ -42,13 +43,13 @@ class OptimizeTask extends Task
 
         $this->info('Generating memory optimized auto-loader');
 
-        $files = $this->getAutoload('files');
+        $files      = $this->getAutoload('files');
         $namespaces = $this->getAutoload('namespaces');
-        $psr = $this->getAutoload('psr4');
-        $classes = $this->getAutoload('classmap');
+        $psr        = $this->getAutoload('psr4');
+        $classes    = $this->getAutoload('classmap');
 
         $_namespaces = [];
-        $_dirs = [];
+        $_dirs       = [];
         foreach ($namespaces as $namespace => $directories) {
             $_namespaces[trim($namespace, '\\')] = $directories;
             foreach ($directories as $directory) {
@@ -73,10 +74,33 @@ class OptimizeTask extends Task
 
         $this->info('Generating optimized auto-loader');
 
-        $files = $this->getAutoload('files');
+        $files   = $this->getAutoload('files');
         $classes = $this->getAutoload('classmap');
 
         return $this->generateOutput($files, null, null, $classes);
+    }
+
+    protected function optimizeClass()
+    {
+        $preloader = (new Factory())->create(['skip' => true]);
+
+        $handle = $preloader->prepareOutput($this->config->paths->base . 'bootstrap/compile/compile.php');
+
+        $files = require __DIR__ . '/Optimize/compile.php';
+
+        if (file_exists($this->config->paths->base . 'config/compile.php')) {
+            $files = array_merge($files, require $this->config->paths->base . 'config/compile.php');
+        }
+
+        foreach ($files as $file) {
+            try {
+                fwrite($handle, $preloader->getCode($file, false) . PHP_EOL);
+            } catch (\Exception $e) {
+                //
+            }
+        }
+
+        fclose($handle);
     }
 
     /**
@@ -122,7 +146,7 @@ class OptimizeTask extends Task
     {
         $cmd = trim($this->getComposerCmd() . ' dump-autoload ' . ($optimize ? '--optimize' : ''));
 
-        if(DIRECTORY_SEPARATOR === '\\'){
+        if (DIRECTORY_SEPARATOR === '\\') {
             $cmd = 'cmd /Q /C "' . $cmd . '" > NUL 2> NUL';
         } else {
             $cmd = $cmd . ' 1> /dev/null 2> /dev/null';
@@ -132,7 +156,7 @@ class OptimizeTask extends Task
 
         $resource = proc_open($cmd, [], $pipes, $this->config->paths->base);
 
-        foreach ($pipes as $pipe){
+        foreach ($pipes as $pipe) {
             fclose($pipe);
         }
 

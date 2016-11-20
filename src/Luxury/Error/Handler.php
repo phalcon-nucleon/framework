@@ -25,7 +25,6 @@ use Luxury\Constants\Services;
 use Phalcon\Di;
 use Phalcon\Http\Response;
 use Phalcon\Logger;
-use Phalcon\Logger\Adapter\File as FileLogger;
 use Phalcon\Logger\Formatter;
 use Phalcon\Logger\Formatter\Line as FormatterLine;
 
@@ -118,6 +117,11 @@ class Handler
     public static function handle(Error $error)
     {
         $di = Di::getDefault();
+
+        if (is_null($di)) {
+            error_log($error->message, $error->type);
+            return null;
+        }
 
         /* @var \Phalcon\Config $config */
         $config = $di->getShared(Services::CONFIG)->error;

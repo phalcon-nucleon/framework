@@ -21,7 +21,7 @@ trait InjectionAwareTrait
      *
      * @var Di
      */
-    protected $_dependencyInjector;
+    protected $_di;
 
     /**
      * Sets the dependency injector
@@ -30,7 +30,7 @@ trait InjectionAwareTrait
      */
     public function setDI(DiInterface $dependencyInjector)
     {
-        $this->_dependencyInjector = $dependencyInjector;
+        $this->_di = $dependencyInjector;
     }
 
     /**
@@ -40,10 +40,25 @@ trait InjectionAwareTrait
      */
     public function getDI()
     {
-        if (!isset($this->_dependencyInjector)) {
+        if (!isset($this->_di)) {
             $this->setDI(Di::getDefault());
         }
 
-        return $this->_dependencyInjector;
+        return $this->_di;
+    }
+
+    public function __get($name)
+    {
+        if (!isset($this->$name)) {
+            $di = $this->getDI();
+
+            if (!$di->has($name)) {
+                throw new \RuntimeException("$name not found in dependency injection.");
+            }
+
+            $this->$name = $di->getShared($name);
+        }
+
+        return $this->$name;
     }
 }

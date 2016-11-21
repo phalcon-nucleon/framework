@@ -20,7 +20,7 @@ class StubthrottledController extends Controller
      */
     protected function onConstruct()
     {
-        $this->middleware(ThrottleMiddleware::class, 10, 60)->only(['indexAction']);
+        $this->middleware(ThrottleMiddleware::class, 10, 60)->only(['index']);
     }
 
     public function indexAction()

@@ -3,18 +3,12 @@
 namespace Luxury\Providers;
 
 use Luxury\Constants\Services;
-use Luxury\Exceptions\SessionAdapterNotFound;
-use Phalcon\Session\Adapter\Aerospike as AerospikeAdapter;
-use Phalcon\Session\Adapter\Database as DatabaseAdapter;
+use Phalcon\Di\Injectable;
 use Phalcon\Session\Adapter\Files as FilesAdapter;
-use Phalcon\Session\Adapter\HandlerSocket as HandlerSocketAdapter;
 use Phalcon\Session\Adapter\Libmemcached as LibmemcachedAdapter;
 use Phalcon\Session\Adapter\Memcache as MemcacheAdapter;
-use Phalcon\Session\Adapter\Mongo as MongoAdapter;
 use Phalcon\Session\Adapter\Redis as RedisAdapter;
 use Luxury\Interfaces\Providable;
-use Luxury\Support\Traits\InjectionAwareTrait;
-use Phalcon\Di\InjectionAwareInterface;
 use Phalcon\Session\Bag;
 
 /**
@@ -22,10 +16,8 @@ use Phalcon\Session\Bag;
  *
  * @package Luxury\Foundation\Bootstrap
  */
-class Session implements Providable, InjectionAwareInterface
+class Session extends Injectable implements Providable
 {
-    use InjectionAwareTrait;
-
     /**
      * Start the session the first time some component request the session service
      *
@@ -55,10 +47,6 @@ class Session implements Providable, InjectionAwareInterface
                 case 'Redis':
                     $class = 'Phalcon\Session\Adapter\\' . $adapter;
                     break;
-                case AerospikeAdapter::class:
-                case DatabaseAdapter::class:
-                case HandlerSocketAdapter::class:
-                case MongoAdapter::class:
                 case FilesAdapter::class:
                 case LibmemcachedAdapter::class:
                 case MemcacheAdapter::class:

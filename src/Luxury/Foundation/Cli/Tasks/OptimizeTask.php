@@ -2,10 +2,8 @@
 
 namespace Luxury\Foundation\Cli\Tasks;
 
+use ClassPreloader\Factory;
 use Luxury\Cli\Task;
-use Symfony\Component\Process\PhpExecutableFinder;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\ProcessUtils;
 
 /**
  * Class OptimizeTask
@@ -24,27 +22,34 @@ class OptimizeTask extends Task
     public function mainAction()
     {
         if ($this->hasOption('m', 'memory')) {
-            $this->info('Generating memory optimized auto-loader');
-            $this->optimizeMemory();
+            $res = $this->optimizeMemory();
         } else {
-            $this->info('Generating optimized auto-loader');
-            $this->optimizeProcess();
+            $res = $this->optimizeProcess();
         }
+        if ($res === false) {
+            $this->error('Autoloader generation has failed.');
+        }
+        $this->optimizeClass();
     }
 
     /**
+     * Build an memory optimized autoloader
      *
+     * @return bool|int
      */
     protected function optimizeMemory()
     {
         $this->callComposer();
 
-        $files = $this->getAutoload('files');
+        $this->info('Generating memory optimized auto-loader');
+
+        $files      = $this->getAutoload('files');
         $namespaces = $this->getAutoload('namespaces');
-        $psr = $this->getAutoload('psr4');
+        $psr        = $this->getAutoload('psr4');
+        $classes    = $this->getAutoload('classmap');
 
         $_namespaces = [];
-        $_dirs = [];
+        $_dirs       = [];
         foreach ($namespaces as $namespace => $directories) {
             $_namespaces[trim($namespace, '\\')] = $directories;
             foreach ($directories as $directory) {
@@ -55,17 +60,47 @@ class OptimizeTask extends Task
             $_namespaces[trim($namespace, '\\')] = $dir;
         }
 
-        $this->generateOutput($files, $_namespaces, $_dirs);
+        return $this->generateOutput($files, $_namespaces, $_dirs, $classes);
     }
 
+    /**
+     * Build an process optimized autoloader
+     *
+     * @return bool|int
+     */
     protected function optimizeProcess()
     {
         $this->callComposer(true);
 
-        $files = $this->getAutoload('files');
+        $this->info('Generating optimized auto-loader');
+
+        $files   = $this->getAutoload('files');
         $classes = $this->getAutoload('classmap');
 
-        $this->generateOutput($files, null, null, $classes);
+        return $this->generateOutput($files, null, null, $classes);
+    }
+
+    protected function optimizeClass()
+    {
+        $preloader = (new Factory())->create(['skip' => true]);
+
+        $handle = $preloader->prepareOutput($this->config->paths->base . 'bootstrap/compile/compile.php');
+
+        $files = require __DIR__ . '/Optimize/compile.php';
+
+        if (file_exists($this->config->paths->base . 'config/compile.php')) {
+            $files = array_merge($files, require $this->config->paths->base . 'config/compile.php');
+        }
+
+        foreach ($files as $file) {
+            try {
+                fwrite($handle, $preloader->getCode($file, false) . PHP_EOL);
+            } catch (\Exception $e) {
+                //
+            }
+        }
+
+        fclose($handle);
     }
 
     /**
@@ -97,7 +132,7 @@ class OptimizeTask extends Task
             return 'composer';
         }
 
-        $binary = ProcessUtils::escapeArgument((new PhpExecutableFinder())->find(false));
+        $binary = getenv('PHP_BINARY') ?: PHP_BINARY;
 
         return $binary . ' composer.phar';
     }
@@ -109,13 +144,23 @@ class OptimizeTask extends Task
      */
     protected function callComposer($optimize = false)
     {
-        $process = (new Process('', $this->config->paths->base))->setTimeout(null);
-
         $cmd = trim($this->getComposerCmd() . ' dump-autoload ' . ($optimize ? '--optimize' : ''));
 
-        $process->setCommandLine($cmd);
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $cmd = 'cmd /Q /C "' . $cmd . '" > NUL 2> NUL';
+        } else {
+            $cmd = $cmd . ' 1> /dev/null 2> /dev/null';
+        }
 
-        $process->run();
+        $this->info('Composer dump-autoload');
+
+        $resource = proc_open($cmd, [], $pipes, $this->config->paths->base);
+
+        foreach ($pipes as $pipe) {
+            fclose($pipe);
+        }
+
+        proc_close($resource);
     }
 
     /**
@@ -125,6 +170,8 @@ class OptimizeTask extends Task
      * @param array|null $namespaces
      * @param array|null $directories
      * @param array|null $classmap
+     *
+     * @return int|bool
      */
     protected function generateOutput($files = null, $namespaces = null, $directories = null, $classmap = null)
     {
@@ -145,6 +192,6 @@ class OptimizeTask extends Task
 
         $output .= '$loader->register();' . PHP_EOL;
 
-        file_put_contents($this->config->paths->base . 'bootstrap/compile/loader.php', $output);
+        return file_put_contents($this->config->paths->base . 'bootstrap/compile/loader.php', $output);
     }
 }

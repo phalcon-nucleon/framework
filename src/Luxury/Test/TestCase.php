@@ -261,12 +261,29 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
      *
      * @return mixed Method return.
      */
-    public function invokeMethod(&$object, $methodName, array $parameters = [])
+    public function invokeMethod(&$object, $methodName, array $parameters = [], $className = null)
     {
         return $this->getPrivateMethod(
-            get_class($object),
+            !is_null($className) ? $className : get_class($object),
             $methodName
         )->invokeArgs($object, $parameters);
+    }
+
+    /**
+     * Call protected/private static method of a class.
+     *
+     * @param string $class
+     * @param string $methodName Method name to call
+     * @param array  $parameters Array of parameters to pass into method.
+     *
+     * @return mixed Method return.
+     */
+    public function invokeStaticMethod($class, $methodName, array $parameters = [])
+    {
+        return $this->getPrivateMethod(
+            $class,
+            $methodName
+        )->invokeArgs(null, $parameters);
     }
 
     /**
@@ -287,7 +304,23 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     }
 
     /**
-     * Set value of an private/protected property of an object.
+     * Get value of an private/protected property of an object.
+     *
+     * @param string $class
+     * @param string $propertyName
+     *
+     * @return mixed
+     */
+    public function getStaticValueProperty($class, $propertyName)
+    {
+        return $this->getPrivateProperty(
+            $class,
+            $propertyName
+        )->getValue(null);
+    }
+
+    /**
+     * Set value of an private/protected static property of a class.
      *
      * @param object $object
      * @param string $propertyName
@@ -300,5 +333,20 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
             $className ? $className : get_class($object),
             $propertyName
         )->setValue($object, $value);
+    }
+
+    /**
+     * Set value of an private/protected property of a class.
+     *
+     * @param string $class
+     * @param string $propertyName
+     * @param mixed  $value
+     */
+    public function setStaticValueProperty($class, $propertyName, $value)
+    {
+        $this->getPrivateProperty(
+            $class,
+            $propertyName
+        )->setValue(null, $value);
     }
 }

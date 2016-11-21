@@ -58,7 +58,7 @@ class AuthManager extends Injectable
             $user = $this->retrieveUserByIdentifier($id);
         }
 
-        $cookies = $this->getDI()->getShared(Services::COOKIES);
+        $cookies = $this->{Services::COOKIES};
         if (empty($user) && $cookies->has('remember_me')) {
             $recaller = $cookies->get('remember_me');
             list($identifier, $token) = explode('|', $recaller);
@@ -67,7 +67,7 @@ class AuthManager extends Injectable
                 $user = $this->retrieveUserByToken($identifier, $token);
 
                 if ($user) {
-                    $this->getDI()->getShared(Services::SESSION)->set($this->sessionKey(), $user->getAuthIdentifier());
+                    $this->{Services::SESSION}->set($this->sessionKey(), $user->getAuthIdentifier());
                 }
             }
         }
@@ -126,7 +126,7 @@ class AuthManager extends Injectable
         $this->user      = null;
         $this->loggedOut = true;
 
-        $this->getDI()->getShared(Services::SESSION)->destroy();
+        $this->{Services::SESSION}->destroy();
     }
 
     /**
@@ -136,7 +136,7 @@ class AuthManager extends Injectable
      */
     public function retrieveIdentifier()
     {
-        return $this->getDI()->getShared(Services::SESSION)->get($this->sessionKey());
+        return $this->{Services::SESSION}->get($this->sessionKey());
     }
 
     /**
@@ -155,13 +155,13 @@ class AuthManager extends Injectable
 
         $this->regenerateSessionId();
 
-        $this->getDI()->getShared(Services::SESSION)->set($this->sessionKey(), $user->getAuthIdentifier());
+        $this->{Services::SESSION}->set($this->sessionKey(), $user->getAuthIdentifier());
 
         if ($remember) {
             $rememberToken = Str::random(60);
 
             /** @var \Phalcon\Http\Response\Cookies|\Phalcon\Http\Response\CookiesInterface $cookies */
-            $cookies = $this->getDI()->getShared(Services::COOKIES);
+            $cookies = $this->{Services::COOKIES};
             $cookies->set('remember_me', $user->getAuthIdentifier() . '|' . $rememberToken);
 
             $user->setRememberToken($rememberToken);
@@ -214,7 +214,7 @@ class AuthManager extends Injectable
         $class = $this->modelClass();
 
         return $class::findFirst([
-            'condition' => $class::getAuthIdentifierName() . ' = :auth_identifier:',
+            'conditions' => $class::getAuthIdentifierName() . ' = :auth_identifier:',
             'bind'      => [
                 'auth_identifier' => $id
             ]
@@ -257,7 +257,7 @@ class AuthManager extends Injectable
         $user = $this->retrieveUserByIdentifier(Arr::fetch($credentials, $identifier));
 
         if ($user) {
-            $security = $this->getDI()->getShared(Services::SECURITY);
+            $security = $this->{Services::SECURITY};
 
             if($security->checkHash(Arr::fetch($credentials, $password), $user->getAuthPassword())){
                 return $user;
@@ -272,7 +272,7 @@ class AuthManager extends Injectable
      */
     protected function regenerateSessionId()
     {
-        $this->getDI()->getShared(Services::SESSION)->regenerateId();
+        $this->{Services::SESSION}->regenerateId();
     }
 
     /**
@@ -282,7 +282,7 @@ class AuthManager extends Injectable
      */
     private function sessionKey()
     {
-        return $this->getDI()->getShared(Services::CONFIG)->session->id;
+        return $this->{Services::CONFIG}->session->id;
     }
 
     /**
@@ -291,7 +291,7 @@ class AuthManager extends Injectable
     private function modelClass()
     {
         if (!isset($this->model)) {
-            $this->model = '\\' . $this->getDI()->getShared(Services::CONFIG)->auth->model;
+            $this->model = '\\' . $this->{Services::CONFIG}->auth->model;
         }
 
         return $this->model;

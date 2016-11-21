@@ -13,7 +13,6 @@ use Luxury\Auth\AuthManager;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Auth\User;
 use Luxury\Support\Facades\Auth;
-use Luxury\Support\Facades\Session;
 use Luxury\Support\Str;
 use Phalcon\Db\Column;
 use Phalcon\Http\Response\Cookies;
@@ -27,7 +26,7 @@ class AuthManagerTest extends TestCase
         global $config;
 
         $config['session']['id'] = 'unittest';
-        $config['auth']['model'] = User::class;
+        $config['auth']['model'] = BasicUser::class;
 
         parent::setUp();
     }
@@ -66,49 +65,6 @@ class AuthManagerTest extends TestCase
         $con->expects($this->any())
             ->method('tableExists')
             ->will($this->returnValue(true));
-
-        $con->expects($this->any())
-            ->method('describeColumns')
-            ->will($this->returnValue([
-                new Column('id', [
-                    "type"          => Column::TYPE_INTEGER,
-                    "size"          => 10,
-                    "unsigned"      => true,
-                    "notNull"       => true,
-                    "autoIncrement" => true,
-                    "first"         => true
-                ]),
-                new Column('name', [
-                    "type"    => Column::TYPE_VARCHAR,
-                    "size"    => 64,
-                    "notNull" => true
-                ]),
-                new Column('my_user_name', [
-                    "type"    => Column::TYPE_VARCHAR,
-                    "size"    => 64,
-                    "notNull" => true
-                ]),
-                new Column('email', [
-                    "type"    => Column::TYPE_VARCHAR,
-                    "size"    => 64,
-                    "notNull" => true
-                ]),
-                new Column('password', [
-                    "type"    => Column::TYPE_VARCHAR,
-                    "size"    => 32,
-                    "notNull" => true
-                ]),
-                new Column('my_user_password', [
-                    "type"    => Column::TYPE_VARCHAR,
-                    "size"    => 32,
-                    "notNull" => true
-                ]),
-                new Column('remember_token', [
-                    "type"    => Column::TYPE_VARCHAR,
-                    "size"    => 60,
-                    "notNull" => true
-                ]),
-            ]));
     }
 
     public function testNoAttemps()
@@ -272,7 +228,7 @@ class AuthManagerTest extends TestCase
         $cookies = $this->getDI()->getShared(Services::COOKIES);
         /** @var Security $security */
         $security = $this->getDI()->getShared(Services::SECURITY);
-        $token    = Str::random(60);
+        $token = Str::random(60);
 
         $this->mockDb(1, [
             [
@@ -354,8 +310,32 @@ class AuthManagerTest extends TestCase
     }
 }
 
+class BasicUser extends User
+{
+    public function initialize()
+    {
+        parent::initialize();
+
+        $this->primary('id', Column::TYPE_INTEGER);
+        $this->column('name', Column::TYPE_VARCHAR);
+        $this->column('email', Column::TYPE_VARCHAR);
+        $this->column('password', Column::TYPE_VARCHAR);
+        $this->column('remember_token', Column::TYPE_VARCHAR);
+    }
+}
+
 class CustomUser extends User
 {
+    public function initialize()
+    {
+        parent::initialize();
+
+        $this->primary('id', Column::TYPE_INTEGER);
+        $this->column('my_user_name', Column::TYPE_VARCHAR);
+        $this->column('my_user_password', Column::TYPE_VARCHAR);
+        $this->column('my_user_remember', Column::TYPE_VARCHAR);
+    }
+
     public static function getAuthIdentifierName()
     {
         return 'my_user_name';

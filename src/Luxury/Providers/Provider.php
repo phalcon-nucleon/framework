@@ -3,18 +3,15 @@
 namespace Luxury\Providers;
 
 use Luxury\Interfaces\Providable;
-use Luxury\Support\Traits\InjectionAwareTrait;
-use Phalcon\Di\InjectionAwareInterface;
+use Phalcon\Di\Injectable;
 
 /**
  * Class Provider
  *
  * @package     Luxury\Providers
  */
-abstract class Provider implements Providable, InjectionAwareInterface
+abstract class Provider extends Injectable implements Providable
 {
-    use InjectionAwareTrait;
-
     /**
      * Name of the service
      *

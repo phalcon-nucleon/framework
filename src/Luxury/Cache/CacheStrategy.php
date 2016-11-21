@@ -3,9 +3,7 @@ namespace Luxury\Cache;
 
 use Luxury\Constants\Services;
 use Luxury\Support\DesignPatterns\Strategy;
-use Luxury\Support\Traits\InjectionAwareTrait;
 use Phalcon\Cache\BackendInterface;
-use Phalcon\Di\InjectionAwareInterface;
 
 /**
  * Class CacheService
@@ -15,20 +13,16 @@ use Phalcon\Di\InjectionAwareInterface;
  *
  * @package Luxury\Cache
  *
- * @method BackendInterface uses(string $use = null)
+ * @method BackendInterface uses($use = null)
  */
-class CacheStrategy extends Strategy implements InjectionAwareInterface, BackendInterface
+class CacheStrategy extends Strategy implements BackendInterface
 {
-    use InjectionAwareTrait;
-
-    protected $default;
-
     /**
      * CacheStrategy constructor.
      */
     public function __construct()
     {
-        $caches = $this->getDI()->getShared(Services::CONFIG)->cache;
+        $caches = $this->{Services::CONFIG}->cache;
 
         foreach ($caches as $name => $cache) {
             if (!isset($this->default)) {
@@ -44,7 +38,7 @@ class CacheStrategy extends Strategy implements InjectionAwareInterface, Backend
      */
     protected function make($use)
     {
-        return $this->getDI()->getShared(Services::CACHE . '.' . $use);
+        return $this->{Services::CACHE . '.' . $use};
     }
 
     /**

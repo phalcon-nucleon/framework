@@ -1,6 +1,7 @@
 <?php
 
 namespace Luxury\Support\DesignPatterns;
+use Phalcon\Di\Injectable;
 
 /**
  * Class Singleton
@@ -9,7 +10,7 @@ namespace Luxury\Support\DesignPatterns;
  * 
  * @package  Luxury\Support\DesignPatterns
  */
-abstract class Singleton
+abstract class Singleton extends Injectable
 {
     /**
      * @var static

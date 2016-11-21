@@ -3,10 +3,12 @@
 namespace Test\Middleware;
 
 use Test\Middleware\Stub\ApplicationMiddlewareStub;
+use Test\Middleware\Stub\ControllerForwardMiddlewareStub;
 use Test\Middleware\Stub\ControllerMiddlewareStub;
 use Test\Middleware\Stub\DispatchMiddlewareStub;
 use Test\Stub\StubController;
 use Test\TestCase\TestCase;
+use Test\TestCase\TestListenize;
 
 /**
  * Class MiddlewareTest
@@ -53,10 +55,10 @@ class MiddlewareTest extends TestCase
     public function dataFiltereControllerMiddleware()
     {
         return [
-            'only.indexAction'   => ['only', ['indexAction'], 0, 1, 1, 1],
-            'except.indexAction' => ['except', ['indexAction'], 0, 0, 0, 0],
-            'only.index'         => ['only', ['index'], 0, 0, 0, 0],
-            'except.index'       => ['except', ['index'], 0, 1, 1, 1],
+            'only.indexAction'   => ['only', ['index'], 0, 1, 1, 1],
+            'except.indexAction' => ['except', ['index'], 0, 0, 0, 0],
+            'only.index'         => ['only', ['wrong'], 0, 0, 0, 0],
+            'except.index'       => ['except', ['wrong'], 0, 1, 1, 1],
         ];
     }
 
@@ -89,6 +91,7 @@ class MiddlewareTest extends TestCase
         // WHEN
         $this->dispatch('/');
 
+        /** @var TestListenize $middleware */
         $middleware = StubController::$registerMiddlewares[count(StubController::$middlewares) - 1];
 
         // THEN
@@ -150,16 +153,48 @@ class MiddlewareTest extends TestCase
     {
         StubController::$middlewares[] = [
             'middleware' => ControllerMiddlewareStub::class,
-            'params'     => ['only' => ['forwardedAction']]
+            'params'     => ['only' => ['forwarded']]
         ];
 
         StubController::$middlewares[] = [
             'middleware' => ControllerMiddlewareStub::class,
-            'params'     => ['only' => ['indexAction']]
+            'params'     => ['only' => ['index']]
         ];
 
         $this->dispatch('/forwarded');
 
+        /** @var TestListenize $middleware */
+        $middleware = StubController::$registerMiddlewares[0];
+
+        $this->assertEquals(0, count($middleware->getView('init')));
+        $this->assertEquals(1, count($middleware->getView('before')));
+        $this->assertEquals(0, count($middleware->getView('after')));
+        $this->assertEquals(0, count($middleware->getView('finish')));
+
+        $middleware = StubController::$registerMiddlewares[1];
+
+        $this->assertEquals(0, count($middleware->getView('init')));
+        $this->assertEquals(1, count($middleware->getView('before')));
+        $this->assertEquals(1, count($middleware->getView('after')));
+        $this->assertEquals(1, count($middleware->getView('finish')));
+    }
+
+    public function testForwardedByMiddleware()
+    {
+        StubController::$middlewares[] = [
+            'middleware' => ControllerForwardMiddlewareStub::class,
+            'params'     => ['only' => ['return']],
+            'construct'  => ['Stub', 'index']
+        ];
+
+        StubController::$middlewares[] = [
+            'middleware' => ControllerMiddlewareStub::class,
+            'params'     => ['only' => ['index']]
+        ];
+
+        $this->dispatch('/return');
+
+        /** @var TestListenize $middleware */
         $middleware = StubController::$registerMiddlewares[0];
 
         $this->assertEquals(0, count($middleware->getView('init')));

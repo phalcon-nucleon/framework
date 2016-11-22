@@ -14,7 +14,7 @@ use Phalcon\Di\Injectable;
  *
  * @package Luxury\Auth
  */
-class AuthManager extends Injectable
+class Manager extends Injectable
 {
     /**
      * User AuthenticableInterface
@@ -58,6 +58,7 @@ class AuthManager extends Injectable
             $user = $this->retrieveUserByIdentifier($id);
         }
 
+        /** @var \Phalcon\Http\Response\Cookies $cookies */
         $cookies = $this->{Services::COOKIES};
         if (empty($user) && $cookies->has('remember_me')) {
             $recaller = $cookies->get('remember_me');
@@ -257,6 +258,7 @@ class AuthManager extends Injectable
         $user = $this->retrieveUserByIdentifier(Arr::fetch($credentials, $identifier));
 
         if ($user) {
+            /** @var \Phalcon\Security $security */
             $security = $this->{Services::SECURITY};
 
             if($security->checkHash(Arr::fetch($credentials, $password), $user->getAuthPassword())){

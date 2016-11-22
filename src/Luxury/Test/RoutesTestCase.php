@@ -1,14 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: gallegret
- * Date: 07/07/2016
- * Time: 15:08
- */
 
 namespace Luxury\Test;
 
+use Luxury\Providers\Http\Router;
+use Luxury\Support\Facades\Facade;
 use Luxury\Test\Helpers\RoutesTrait;
+use Phalcon\Di;
 
 /**
  * Class RoutesTestCase
@@ -20,6 +17,36 @@ abstract class RoutesTestCase extends FuncTestCase
     use RoutesTrait;
 
     /**
+     * Return the application route
+     *
+     * @return array
+     */
+    public function getApplicationRoutes()
+    {
+        global $config;
+
+        $di = new Di();
+        Di::setDefault($di);
+
+        Facade::clearResolvedInstances();
+        Facade::setDependencyInjection($di);
+
+        (new Router())->registering();
+
+        require $config['paths']['routes'] . 'http.php';
+
+        $routes = [];
+        foreach ($di->getShared('router')->getRoutes() as $route) {
+            /** @var \Phalcon\Mvc\Router\Route $route */
+            $routes[$route->getPattern()] = [$route];
+        }
+
+        Facade::clearResolvedInstances();
+
+        return $routes;
+    }
+
+    /**
      * @param string $route      Route Url
      * @param string $method     Http Method
      * @param bool   $expected   Route match excepted
@@ -29,7 +56,8 @@ abstract class RoutesTestCase extends FuncTestCase
      *
      * @return array
      */
-    public function formatDataRoute($route, $method, $expected, $controller = null, $action = null, array $params = null){
+    public function formatDataRoute($route, $method, $expected, $controller = null, $action = null, array $params = null)
+    {
         return [$route, $method, $expected, $controller, $action, $params];
     }
 
@@ -42,7 +70,7 @@ abstract class RoutesTestCase extends FuncTestCase
 
         $_routes = [];
         foreach ($routes as $route) {
-            $key = $route[1] . '-' . $route[0] . '-' . ($route[2] ? 'true' : 'false') .'-'. substr(md5(uniqid('', true)), 0, 6);
+            $key = $route[1] . '-' . $route[0] . '-' . ($route[2] ? 'true' : 'false') . '-' . substr(md5(uniqid('', true)), 0, 6);
 
             $_routes[$key] = $route;
         }
@@ -68,29 +96,14 @@ abstract class RoutesTestCase extends FuncTestCase
         $controller = null,
         $action = null,
         array $params = null
-    ) {
+    )
+    {
         $this->assertRoute($route, $method, $expected, $controller, $action, $params);
     }
 
     /**
-     * Return the application route
-     *
-     * @return array
-     */
-    public function getRoutes()
-    {
-        $routes = [];
-        foreach (self::staticKernel()->router->getRoutes() as $route) {
-            /** @var \Phalcon\Mvc\Router\Route $route */
-            $routes[$route->getPattern()] = [$route];
-        }
-
-        return $routes;
-    }
-
-    /**
      * @test
-     * @dataProvider      getRoutes
+     * @dataProvider      getApplicationRoutes
      * @depends           testRoutes
      *
      * @param \Phalcon\Mvc\Router\RouteInterface $route

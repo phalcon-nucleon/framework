@@ -2,11 +2,9 @@
 
 namespace Test\Providers;
 
-use Luxury\Auth\AuthManager;
+use Luxury\Auth\Manager as AuthManager;
 use Luxury\Cache\CacheStrategy;
-use Luxury\Constants\Events\ModelsManager;
 use Luxury\Constants\Services;
-use Luxury\Http\Client;
 use Luxury\Interfaces\Providable;
 use Luxury\Providers\Annotations;
 use Luxury\Providers\Auth;
@@ -16,8 +14,6 @@ use Luxury\Providers\Crypt;
 use Luxury\Providers\Escaper;
 use Luxury\Providers\Filter;
 use Luxury\Providers\Flash;
-use Luxury\Providers\HttpClient;
-use Luxury\Providers\Logger;
 use Luxury\Providers\Model;
 use Luxury\Providers\ModelsMetaData;
 use Luxury\Providers\Provider;
@@ -29,7 +25,6 @@ use Phalcon\Flash\Direct as FlashDirect;
 use Phalcon\Flash\Session as FlashSession;
 use Phalcon\Mvc\Model\Manager as ModelManager;
 use Phalcon\Mvc\Model\Metadata\Memory as ModelMetadataMemory;
-use Phalcon\Mvc\Model\Transaction;
 use Phalcon\Mvc\Model\Transaction\Manager as ModelTransactionManager;
 use Test\TestCase\TestCase;
 

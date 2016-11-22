@@ -48,17 +48,19 @@ class RoutesTestCaseTest extends TestCase
 
     public function testGetRoutes()
     {
+        global $config;
+        $config['paths']['routes'] = __DIR__ . '/../Stub/';
+
         $routesTestCase = $this->getStub();
 
         $expectedRoutes = [
-            '/'                              => [Route::class],
-            '/return'                        => [Route::class],
-            '/redirect'                      => [Route::class],
-            '/parameted/([\w_-]+)(?:/:int)?' => [Route::class],
-            '/forwarded'                     => [Route::class],
+            '/get'      => [Route::class],
+            '/post'     => [Route::class],
+            '/u/:int'   => [Route::class],
+            '/get-head' => [Route::class],
         ];
 
-        $appRoutes = $routesTestCase->getRoutes();
+        $appRoutes = $routesTestCase->getApplicationRoutes();
 
         foreach ($expectedRoutes as $route => $expectedRoute) {
             $this->assertArrayHasKey($route, $appRoutes);

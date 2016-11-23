@@ -2,8 +2,8 @@
 
 namespace Test\Providers;
 
-use Luxury\Constants\Services;
-use Luxury\Providers\Session;
+use Neutrino\Constants\Services;
+use Neutrino\Providers\Session;
 use Phalcon\Session\Adapter\Files;
 use Phalcon\Session\Bag;
 use Test\Stub\StubKernelHttpEmpty;

@@ -1,15 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: xlzi590
- * Date: 17/10/2016
- * Time: 11:32
- */
 
 namespace Test\Providers;
 
-use Luxury\Interfaces\Providable;
-use Luxury\Providers\Provider;
+use Neutrino\Providers\Provider;
 use Test\TestCase\TestCase;
 
 class ProviderTest extends TestCase

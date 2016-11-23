@@ -2,8 +2,8 @@
 
 namespace Test\Middleware;
 
-use Luxury\Constants\Services;
-use Luxury\Foundation\Middleware\Debug;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Middleware\Debug;
 use Phalcon\Events\Event;
 use Phalcon\Logger\Adapter\File;
 use Test\TestCase\TestCase;

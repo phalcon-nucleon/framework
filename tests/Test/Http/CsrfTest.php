@@ -2,8 +2,8 @@
 
 namespace Test\Http;
 
-use Luxury\Constants\Services;
-use Luxury\Http\Middleware\Csrf;
+use Neutrino\Constants\Services;
+use Neutrino\Http\Middleware\Csrf;
 use Phalcon\Version;
 use Test\Stub\StubController;
 use Test\TestCase\TestCase;
@@ -32,7 +32,7 @@ class CsrfTest extends TestCase
     }
 
     /**
-     * @expectedException \Luxury\Exceptions\TokenMismatchException
+     * @expectedException \Neutrino\Exceptions\TokenMismatchException
      */
     public function testCsrfFail_Get()
     {
@@ -40,7 +40,7 @@ class CsrfTest extends TestCase
     }
 
     /**
-     * @expectedException \Luxury\Exceptions\TokenMismatchException
+     * @expectedException \Neutrino\Exceptions\TokenMismatchException
      */
     public function testCsrfFail_Post()
     {
@@ -78,7 +78,7 @@ class CsrfTest extends TestCase
     }
 
     /**
-     * @expectedException \Luxury\Exceptions\TokenMismatchException
+     * @expectedException \Neutrino\Exceptions\TokenMismatchException
      */
     public function testCsrfFail_Ajax()
     {

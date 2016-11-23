@@ -1,6 +1,6 @@
 <?php
 
-use Luxury\Support\Facades\Router;
+use Neutrino\Support\Facades\Router;
 
 Router::addGet('/get', [
     'controller' => 'Stub',
@@ -24,5 +24,5 @@ Router::add('/get-head', [
     'controller' => 'Stub',
     'action'     => 'index',
     'namespace'  => 'Test\Stub',
-    'middleware' => \Luxury\Http\Middleware\Csrf::class
+    'middleware' => \Neutrino\Http\Middleware\Csrf::class
 ], ['GET', 'HEAD']);

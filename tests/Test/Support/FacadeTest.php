@@ -1,7 +1,7 @@
 <?php
 namespace Test\Support;
 
-use Luxury\Support\Facades\Facade;
+use Neutrino\Support\Facades\Facade;
 use Mockery as m;
 use Phalcon\Di\FactoryDefault;
 use Test\TestCase\TestCase;

@@ -1,7 +1,7 @@
 <?php
 namespace Test\Design;
 
-use Luxury\Support\DesignPatterns\Strategy;
+use Neutrino\Support\DesignPatterns\Strategy;
 use Phalcon\Registry;
 use Test\TestCase\TestCase;
 

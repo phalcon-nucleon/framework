@@ -9,11 +9,11 @@
 namespace Test\Auth;
 
 
-use Luxury\Auth\Manager as AuthManager;
-use Luxury\Constants\Services;
-use Luxury\Foundation\Auth\User;
-use Luxury\Support\Facades\Auth;
-use Luxury\Support\Str;
+use Neutrino\Auth\Manager as AuthManager;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Auth\User;
+use Neutrino\Support\Facades\Auth;
+use Neutrino\Support\Str;
 use Phalcon\Db\Column;
 use Phalcon\Http\Response\Cookies;
 use Phalcon\Security;

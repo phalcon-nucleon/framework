@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Support\DesignPatterns\Singleton;
+use Neutrino\Support\DesignPatterns\Singleton;
 
 class StubSingleton extends Singleton
 {

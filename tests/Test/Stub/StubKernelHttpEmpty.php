@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Foundation\Http\Kernel as HttpApplication;
+use Neutrino\Foundation\Http\Kernel as HttpApplication;
 use Phalcon\Di;
 
 /**

@@ -2,7 +2,7 @@
 
 namespace Test\Support;
 
-use Luxury\Support\Traits\InjectionAwareTrait;
+use Neutrino\Support\Traits\InjectionAwareTrait;
 use Phalcon\Di;
 use Test\TestCase\TestCase;
 
@@ -41,7 +41,7 @@ class InjectionAwareTraitTest extends TestCase
             'assets'             => \Phalcon\Assets\Manager::class,
             'app'                => \Phalcon\Application::class,
             'config'             => \Phalcon\Config::class,
-            'cache'              => \Luxury\Cache\CacheStrategy::class,
+            'cache'              => \Neutrino\Cache\CacheStrategy::class,
         ];
 
         foreach ($services as $service => $class) {

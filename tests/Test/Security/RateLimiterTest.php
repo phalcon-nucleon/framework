@@ -2,9 +2,9 @@
 
 namespace Test\Security;
 
-use Luxury\Cache\CacheStrategy;
-use Luxury\Constants\Services;
-use Luxury\Security\RateLimiter;
+use Neutrino\Cache\CacheStrategy;
+use Neutrino\Constants\Services;
+use Neutrino\Security\RateLimiter;
 use Test\TestCase\TestCase;
 
 /**

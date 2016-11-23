@@ -2,8 +2,8 @@
 
 namespace Test\Cli\Output;
 
-use Luxury\Cli\Output\Decorate;
-use Luxury\Cli\Output\Helper;
+use Neutrino\Cli\Output\Decorate;
+use Neutrino\Cli\Output\Helper;
 use Phalcon;
 use Test\Stub\StubTask;
 

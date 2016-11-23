@@ -1,9 +1,9 @@
 <?php
 namespace Test\Cli;
 
-use Luxury\Cli\Router;
-use Luxury\Constants\Services;
-use Luxury\Foundation\Cli\Tasks\ListTask;
+use Neutrino\Cli\Router;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 

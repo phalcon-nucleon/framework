@@ -1,7 +1,7 @@
 <?php
 namespace Test\Cache;
 
-use Luxury\Support\Facades\Cache;
+use Neutrino\Support\Facades\Cache;
 use Phalcon\Cache\Backend;
 use Phalcon\Cache\Frontend\Base64;
 use Phalcon\Cache\Frontend\Data;

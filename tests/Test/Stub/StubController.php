@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Http\Controller;
+use Neutrino\Http\Controller;
 
 /**
  * Class StubController

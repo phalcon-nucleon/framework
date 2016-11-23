@@ -2,7 +2,7 @@
 namespace Test\Support;
 
 use ArrayObject;
-use Luxury\Support\Arr;
+use Neutrino\Support\Arr;
 
 /**
  * Class ArrTest

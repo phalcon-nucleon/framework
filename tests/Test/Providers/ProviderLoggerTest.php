@@ -2,10 +2,9 @@
 
 namespace Test\Providers;
 
-use Luxury\Constants\Services;
-use Luxury\Providers\Logger;
+use Neutrino\Constants\Services;
+use Neutrino\Providers\Logger;
 use Phalcon\Config;
-use Phalcon\Logger\Adapter\File;
 use Test\TestCase\TestCase;
 
 /**

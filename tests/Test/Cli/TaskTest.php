@@ -2,10 +2,10 @@
 
 namespace Test\Cli;
 
-use Luxury\Cli\Output\ConsoleOutput;
-use Luxury\Cli\Task;
-use Luxury\Constants\Services;
-use Luxury\Foundation\Cli\Tasks\HelperTask;
+use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Task;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Phalcon\Cli\Dispatcher;
 use Test\Stub\StubKernelCli;
 use Test\Stub\StubTask;

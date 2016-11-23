@@ -2,8 +2,8 @@
 
 namespace Test\Stub;
 
-use Luxury\Constants\Events;
-use Luxury\Events\Listener;
+use Neutrino\Constants\Events;
+use Neutrino\Events\Listener;
 use Test\TestCase\TestListenable;
 use Test\TestCase\TestListenize;
 

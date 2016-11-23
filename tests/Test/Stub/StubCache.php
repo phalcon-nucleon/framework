@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Support\Str;
+use Neutrino\Support\Str;
 use Phalcon\Cache\Backend;
 use Phalcon\Cache\BackendInterface;
 use Phalcon\Cache\Frontend\None;

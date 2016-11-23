@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Foundation\Cli\Kernel as CliApplication;
+use Neutrino\Foundation\Cli\Kernel as CliApplication;
 use Phalcon\Di;
 
 /**

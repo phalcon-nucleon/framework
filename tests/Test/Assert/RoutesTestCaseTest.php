@@ -2,8 +2,8 @@
 
 namespace Test\Assert;
 
-use Luxury\Http\Standards\Method;
-use Luxury\Test\RoutesTestCase;
+use Neutrino\Http\Standards\Method;
+use Neutrino\Test\RoutesTestCase;
 use Phalcon\Mvc\Router\Route;
 use Test\Stub\StubController;
 use Test\Stub\StubRouteTestCase;

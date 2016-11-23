@@ -1,8 +1,8 @@
 <?php
 namespace Test;
 
-use Luxury\Constants\Events;
-use Luxury\Events\Listener;
+use Neutrino\Constants\Events;
+use Neutrino\Events\Listener;
 use Phalcon\Events\Manager;
 use Test\Stub\StubListener;
 use Test\TestCase\TestCase;

@@ -2,9 +2,9 @@
 
 namespace Test\Stub;
 
-use Luxury\Foundation\Cli\Kernel as CliApplication;
-use Luxury\Providers\Cli\Dispatcher;
-use Luxury\Providers\Cli\Router;
+use Neutrino\Foundation\Cli\Kernel as CliApplication;
+use Neutrino\Providers\Cli\Dispatcher;
+use Neutrino\Providers\Cli\Router;
 
 /**
  * Class StubKernelEmpty

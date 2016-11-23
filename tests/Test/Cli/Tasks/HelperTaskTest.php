@@ -2,11 +2,11 @@
 
 namespace Test\Cli\Tasks;
 
-use Luxury\Cli\Output\ConsoleOutput;
-use Luxury\Constants\Services;
-use Luxury\Foundation\Cli\Tasks\HelperTask;
-use Luxury\Foundation\Cli\Tasks\ListTask;
-use Luxury\Foundation\Cli\Tasks\OptimizeTask;
+use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Cli\Tasks\HelperTask;
+use Neutrino\Foundation\Cli\Tasks\ListTask;
+use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;

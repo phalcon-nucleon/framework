@@ -2,17 +2,17 @@
 
 namespace Test\Facades;
 
-use Luxury\Constants\Services;
-use Luxury\Support\Facades\Auth;
-use Luxury\Support\Facades\Cache;
-use Luxury\Support\Facades\Flash;
-use Luxury\Support\Facades\Log;
-use Luxury\Support\Facades\Request;
-use Luxury\Support\Facades\Response;
-use Luxury\Support\Facades\Router;
-use Luxury\Support\Facades\Session;
-use Luxury\Support\Facades\Url;
-use Luxury\Support\Facades\View;
+use Neutrino\Constants\Services;
+use Neutrino\Support\Facades\Auth;
+use Neutrino\Support\Facades\Cache;
+use Neutrino\Support\Facades\Flash;
+use Neutrino\Support\Facades\Log;
+use Neutrino\Support\Facades\Request;
+use Neutrino\Support\Facades\Response;
+use Neutrino\Support\Facades\Router;
+use Neutrino\Support\Facades\Session;
+use Neutrino\Support\Facades\Url;
+use Neutrino\Support\Facades\View;
 use Test\TestCase\TestCase;
 
 /**

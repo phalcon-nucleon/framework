@@ -2,8 +2,8 @@
 
 namespace Test\Providers;
 
-use Luxury\Constants\Services;
-use Luxury\Providers\Database;
+use Neutrino\Constants\Services;
+use Neutrino\Providers\Database;
 use Test\Stub\StubKernelHttpEmpty;
 use Test\TestCase\TestCase;
 

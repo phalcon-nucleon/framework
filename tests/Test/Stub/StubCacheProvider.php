@@ -2,10 +2,8 @@
 
 namespace Test\Stub;
 
-use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Luxury\Providers\Provider;
-use Phalcon\DiInterface;
+use Neutrino\Constants\Services;
+use Neutrino\Providers\Provider;
 
 /**
  * Class StubCacheProvider

@@ -2,8 +2,8 @@
 
 namespace Test\Cli\Output;
 
-use Luxury\Cli\Output\ConsoleOutput;
-use Luxury\Cli\Output\Group;
+use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\Group;
 use Test\Stub\StubConsoleOutput;
 use Test\TestCase\TestCase;
 

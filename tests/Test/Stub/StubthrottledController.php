@@ -2,9 +2,9 @@
 
 namespace Test\Stub;
 
-use Luxury\Constants\Services;
-use Luxury\Http\Controller;
-use Luxury\Http\Middleware\ThrottleRequest as ThrottleMiddleware;
+use Neutrino\Constants\Services;
+use Neutrino\Http\Controller;
+use Neutrino\Http\Middleware\ThrottleRequest as ThrottleMiddleware;
 
 /**
  * Class StubThrottledController

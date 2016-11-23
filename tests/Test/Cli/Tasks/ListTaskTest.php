@@ -2,12 +2,12 @@
 
 namespace Test\Cli\Tasks;
 
-use Luxury\Cli\Output\ConsoleOutput;
-use Luxury\Cli\Output\Decorate;
-use Luxury\Constants\Services;
-use Luxury\Foundation\Cli\Tasks\ListTask;
-use Luxury\Foundation\Cli\Tasks\OptimizeTask;
-use Luxury\Foundation\Cli\Tasks\RouteListTask;
+use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\Decorate;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Cli\Tasks\ListTask;
+use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
+use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;

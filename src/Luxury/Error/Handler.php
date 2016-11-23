@@ -119,7 +119,9 @@ class Handler
         $di = Di::getDefault();
 
         if (is_null($di)) {
-            error_log($error->message, $error->type);
+            $type = static::getErrorType($error->type);
+            error_log("$type: {$error->message} in {$error->file} on line {$error->line}", $error->type);
+
             return null;
         }
 

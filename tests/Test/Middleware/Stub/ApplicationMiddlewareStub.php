@@ -2,11 +2,11 @@
 
 namespace Test\Middleware\Stub;
 
-use Luxury\Foundation\Middleware\Application;
-use Luxury\Interfaces\Middleware\AfterInterface;
-use Luxury\Interfaces\Middleware\BeforeInterface;
-use Luxury\Interfaces\Middleware\FinishInterface;
-use Luxury\Interfaces\Middleware\InitInterface;
+use Neutrino\Foundation\Middleware\Application;
+use Neutrino\Interfaces\Middleware\AfterInterface;
+use Neutrino\Interfaces\Middleware\BeforeInterface;
+use Neutrino\Interfaces\Middleware\FinishInterface;
+use Neutrino\Interfaces\Middleware\InitInterface;
 use Test\Middleware\Middlewarize;
 use Test\TestCase\TestListenable;
 use Test\TestCase\TestListenize;

@@ -1,8 +1,8 @@
 <?php
 namespace Test\Providers;
 
-use Luxury\Constants\Services;
-use Luxury\Providers\Cli\Dispatcher;
+use Neutrino\Constants\Services;
+use Neutrino\Providers\Cli\Dispatcher;
 use Test\Stub\StubKernelCliEmpty;
 use Test\TestCase\TestCase;
 

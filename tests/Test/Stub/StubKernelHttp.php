@@ -2,9 +2,9 @@
 
 namespace Test\Stub;
 
-use Luxury\Constants\Services;
-use Luxury\Foundation\Http\Kernel as HttpApplication;
-use Luxury\Providers;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Http\Kernel as HttpApplication;
+use Neutrino\Providers;
 use Phalcon\Mvc\Router;
 
 /**
@@ -33,13 +33,13 @@ class StubKernelHttp extends HttpApplication
         /*
          * Service provided by the Phalcon\Di\FactoryDefault
          *
-        \Luxury\Providers\Models::class,
-        \Luxury\Providers\Cookies::class,
-        \Luxury\Providers\Filter::class,
-        \Luxury\Providers\Escaper::class,
-        \Luxury\Providers\Security::class,
-        \Luxury\Providers\Crypt::class,
-        \Luxury\Providers\Annotations::class,
+        \Neutrino\Providers\Models::class,
+        \Neutrino\Providers\Cookies::class,
+        \Neutrino\Providers\Filter::class,
+        \Neutrino\Providers\Escaper::class,
+        \Neutrino\Providers\Security::class,
+        \Neutrino\Providers\Crypt::class,
+        \Neutrino\Providers\Annotations::class,
         /**/
     ];
 

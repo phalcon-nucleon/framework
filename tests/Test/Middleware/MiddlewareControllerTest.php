@@ -2,8 +2,8 @@
 
 namespace Test\Middleware;
 
-use Luxury\Constants\Services;
-use Luxury\Foundation\Middleware\Controller;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Middleware\Controller;
 use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 
@@ -31,7 +31,7 @@ class MiddlewareControllerTest extends TestCase
 
         $this->assertEquals(
             [],
-            $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller')
+            $this->getValueProperty($controller, 'filter', \Neutrino\Foundation\Middleware\Controller::class)
         );
 
         $this->assertEquals($controller, $controller->only([]));
@@ -40,7 +40,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => [],
             'except' => []
-        ], $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
+        ], $this->getValueProperty($controller, 'filter', \Neutrino\Foundation\Middleware\Controller::class));
 
         $this->assertEquals($controller, $controller->only(['test']));
         $this->assertEquals($controller, $controller->except(['test']));
@@ -48,7 +48,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => ['test'],
             'except' => ['test']
-        ], $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
+        ], $this->getValueProperty($controller, 'filter', \Neutrino\Foundation\Middleware\Controller::class));
 
         $this->assertEquals($controller, $controller->only(null));
         $this->assertEquals($controller, $controller->except(null));
@@ -56,7 +56,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => ['test'],
             'except' => ['test']
-        ], $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
+        ], $this->getValueProperty($controller, 'filter', \Neutrino\Foundation\Middleware\Controller::class));
 
         $this->assertEquals($controller, $controller->only([]));
         $this->assertEquals($controller, $controller->except([]));
@@ -64,7 +64,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => [],
             'except' => []
-        ], $this->getValueProperty($controller, 'filter', 'Luxury\Foundation\Middleware\Controller'));
+        ], $this->getValueProperty($controller, 'filter', \Neutrino\Foundation\Middleware\Controller::class));
     }
 
     public function dataCheck()

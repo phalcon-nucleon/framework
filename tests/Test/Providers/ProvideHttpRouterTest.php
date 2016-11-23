@@ -1,8 +1,8 @@
 <?php
 namespace Test\Providers;
 
-use Luxury\Constants\Services;
-use Luxury\Providers\Http\Router;
+use Neutrino\Constants\Services;
+use Neutrino\Providers\Http\Router;
 use Test\Stub\StubKernelHttpEmpty;
 use Test\TestCase\TestCase;
 

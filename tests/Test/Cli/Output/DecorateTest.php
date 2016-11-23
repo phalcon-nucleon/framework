@@ -9,7 +9,7 @@
 namespace Test\Cli\Output;
 
 
-use Luxury\Cli\Output\Decorate;
+use Neutrino\Cli\Output\Decorate;
 
 class DecorateTest extends \PHPUnit_Framework_TestCase
 {

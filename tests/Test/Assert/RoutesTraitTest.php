@@ -2,8 +2,8 @@
 
 namespace Test\Assert;
 
-use Luxury\Http\Standards\Method;
-use Luxury\Test\Helpers\RoutesTrait;
+use Neutrino\Http\Standards\Method;
+use Neutrino\Test\Helpers\RoutesTrait;
 use Test\TestCase\TestCase;
 
 /**

@@ -1,10 +1,10 @@
 <?php
 namespace Test\Middleware;
 
-use Luxury\Constants\Services;
-use Luxury\Http\Middleware\ThrottleRequest;
-use Luxury\Http\Standards\StatusCode;
-use Luxury\Middleware\Throttle;
+use Neutrino\Constants\Services;
+use Neutrino\Http\Middleware\ThrottleRequest;
+use Neutrino\Http\Standards\StatusCode;
+use Neutrino\Middleware\Throttle;
 use Phalcon\Http\Response;
 use Test\Stub\StubController;
 use Test\TestCase\TestCase;

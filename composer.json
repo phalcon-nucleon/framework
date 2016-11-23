@@ -1,7 +1,7 @@
 {
   "name": "nucleon/framework",
-  "description": "Phalcon extended framework. (Luxury:Kernel)",
-  "keywords": ["framework", "phalcon", "luxury"],
+  "description": "Phalcon extended framework. (Nucleon:Kernel)",
+  "keywords": ["framework", "phalcon", "nucleon"],
   "minimum-stability": "stable",
   "license": "GNU",
   "authors": [
@@ -23,7 +23,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Luxury\\": "src/Luxury/"
+      "Neutrino\\": "src/Neutrino/"
     }
   }
 }

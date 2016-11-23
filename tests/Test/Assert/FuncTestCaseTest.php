@@ -1,8 +1,8 @@
 <?php
 namespace Test\Assert;
 
-use Luxury\Constants\Services;
-use Luxury\Support\Str;
+use Neutrino\Constants\Services;
+use Neutrino\Support\Str;
 use Phalcon\Http\Response;
 use Test\TestCase\TestCase;
 

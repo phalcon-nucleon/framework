@@ -9,7 +9,7 @@
 namespace Test\Stub;
 
 
-use Luxury\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\ConsoleOutput;
 
 class StubConsoleOutput extends ConsoleOutput
 {

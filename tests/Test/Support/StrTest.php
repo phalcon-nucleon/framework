@@ -1,7 +1,7 @@
 <?php
 namespace Test\Support;
 
-use Luxury\Support\Str;
+use Neutrino\Support\Str;
 use Test\TestCase\TestCase;
 
 /**

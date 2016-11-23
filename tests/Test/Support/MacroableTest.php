@@ -1,7 +1,7 @@
 <?php
 namespace Test\Support;
 
-use Luxury\Support\Traits\Macroable;
+use Neutrino\Support\Traits\Macroable;
 use Test\TestCase\TestCase;
 
 /**

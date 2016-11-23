@@ -2,7 +2,7 @@
 
 namespace Test\Error;
 
-use Luxury\Error\Error;
+use Neutrino\Error\Error;
 use Test\TestCase\TestCase;
 
 /**

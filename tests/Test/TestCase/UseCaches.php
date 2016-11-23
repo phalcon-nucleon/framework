@@ -2,7 +2,7 @@
 
 namespace Test\TestCase;
 
-use Luxury\Support\Facades\Cache;
+use Neutrino\Support\Facades\Cache;
 use Test\Cache\StubBackend;
 
 /**

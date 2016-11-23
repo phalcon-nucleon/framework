@@ -2,12 +2,12 @@
 
 namespace Test\Stub;
 
-use Luxury\Constants\Events\Http\Application as AppEvent;
-use Luxury\Foundation\Middleware\Application as ApplicationMiddleware;
-use Luxury\Interfaces\Middleware\AfterInterface;
-use Luxury\Interfaces\Middleware\BeforeInterface;
-use Luxury\Interfaces\Middleware\FinishInterface;
-use Luxury\Interfaces\Middleware\InitInterface;
+use Neutrino\Constants\Events\Http\Application as AppEvent;
+use Neutrino\Foundation\Middleware\Application as ApplicationMiddleware;
+use Neutrino\Interfaces\Middleware\AfterInterface;
+use Neutrino\Interfaces\Middleware\BeforeInterface;
+use Neutrino\Interfaces\Middleware\FinishInterface;
+use Neutrino\Interfaces\Middleware\InitInterface;
 use Phalcon\Events\Event;
 use Test\TestCase\TestListenable;
 use Test\TestCase\TestListenize;

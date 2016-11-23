@@ -2,10 +2,10 @@
 
 namespace Test\Middleware\Stub;
 
-use Luxury\Foundation\Middleware\Controller;
-use Luxury\Interfaces\Middleware\AfterInterface;
-use Luxury\Interfaces\Middleware\BeforeInterface;
-use Luxury\Interfaces\Middleware\FinishInterface;
+use Neutrino\Foundation\Middleware\Controller;
+use Neutrino\Interfaces\Middleware\AfterInterface;
+use Neutrino\Interfaces\Middleware\BeforeInterface;
+use Neutrino\Interfaces\Middleware\FinishInterface;
 use Phalcon\Events\Event;
 use Test\Middleware\Middlewarize;
 use Test\TestCase\TestListenable;

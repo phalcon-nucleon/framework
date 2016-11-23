@@ -2,7 +2,7 @@
 
 namespace Test\TestCase;
 
-use Luxury\Test\FuncTestCase;
+use Neutrino\Test\FuncTestCase;
 
 /**
  * Class TestCase

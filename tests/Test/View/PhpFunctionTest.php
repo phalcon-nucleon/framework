@@ -2,7 +2,7 @@
 
 namespace Test\View;
 
-use Luxury\View\Engine\Extensions\PhpFunction;
+use Neutrino\View\Engine\Extensions\PhpFunction;
 use Test\TestCase\TestCase;
 
 /**

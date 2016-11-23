@@ -2,10 +2,10 @@
 
 namespace Test\Error;
 
-use Luxury\Constants\Services;
-use Luxury\Error\Error;
-use Luxury\Error\Handler;
-use Luxury\Http\Controller;
+use Neutrino\Constants\Services;
+use Neutrino\Error\Error;
+use Neutrino\Error\Handler;
+use Neutrino\Http\Controller;
 use Phalcon\Logger;
 use Test\TestCase\TestCase;
 

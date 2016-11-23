@@ -2,24 +2,24 @@
 
 namespace Test\Providers;
 
-use Luxury\Auth\Manager as AuthManager;
-use Luxury\Cache\CacheStrategy;
-use Luxury\Constants\Services;
-use Luxury\Interfaces\Providable;
-use Luxury\Providers\Annotations;
-use Luxury\Providers\Auth;
-use Luxury\Providers\Cache;
-use Luxury\Providers\Cookies;
-use Luxury\Providers\Crypt;
-use Luxury\Providers\Escaper;
-use Luxury\Providers\Filter;
-use Luxury\Providers\Flash;
-use Luxury\Providers\Model;
-use Luxury\Providers\ModelsMetaData;
-use Luxury\Providers\Provider;
-use Luxury\Providers\Security;
-use Luxury\Providers\Url;
-use Luxury\Providers\View;
+use Neutrino\Auth\Manager as AuthManager;
+use Neutrino\Cache\CacheStrategy;
+use Neutrino\Constants\Services;
+use Neutrino\Interfaces\Providable;
+use Neutrino\Providers\Annotations;
+use Neutrino\Providers\Auth;
+use Neutrino\Providers\Cache;
+use Neutrino\Providers\Cookies;
+use Neutrino\Providers\Crypt;
+use Neutrino\Providers\Escaper;
+use Neutrino\Providers\Filter;
+use Neutrino\Providers\Flash;
+use Neutrino\Providers\Model;
+use Neutrino\Providers\ModelsMetaData;
+use Neutrino\Providers\Provider;
+use Neutrino\Providers\Security;
+use Neutrino\Providers\Url;
+use Neutrino\Providers\View;
 use Phalcon\Annotations\Adapter\Memory as AnnotationsAdapterMemory;
 use Phalcon\Flash\Direct as FlashDirect;
 use Phalcon\Flash\Session as FlashSession;
@@ -106,7 +106,7 @@ class AllProvidersTest extends TestCase
                 ]
             ]],
 
-            Services::FLASH_SESSION => [\Luxury\Providers\FlashSession::class, [
+            Services::FLASH_SESSION => [\Neutrino\Providers\FlashSession::class, [
                 [
                     'name'   => Services::FLASH_SESSION,
                     'class'  => FlashSession::class,
@@ -130,7 +130,7 @@ class AllProvidersTest extends TestCase
                 ]
             ]],
 
-            Services::MODELS_MANAGER => [\Luxury\Providers\ModelManager::class, [
+            Services::MODELS_MANAGER => [\Neutrino\Providers\ModelManager::class, [
                 [
                     'name'   => Services::MODELS_MANAGER,
                     'class'  => ModelManager::class,
@@ -146,7 +146,7 @@ class AllProvidersTest extends TestCase
                 ]
             ]],
 
-            Services::TRANSACTION_MANAGER => [\Luxury\Providers\ModelTransactionManager::class, [
+            Services::TRANSACTION_MANAGER => [\Neutrino\Providers\ModelTransactionManager::class, [
                 [
                     'name'   => Services::TRANSACTION_MANAGER,
                     'class'  => ModelTransactionManager::class,

@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Cli\Task;
+use Neutrino\Cli\Task;
 
 class StubTask extends Task
 {

@@ -2,8 +2,8 @@
 
 namespace Test\Models;
 
-use Luxury\Model;
-use Luxury\Support\Arr;
+use Neutrino\Model;
+use Neutrino\Support\Arr;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\MetaData;
 use Test\TestCase\TestCase;

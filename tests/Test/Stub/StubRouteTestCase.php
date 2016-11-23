@@ -2,7 +2,7 @@
 
 namespace Test\Stub;
 
-use Luxury\Test\RoutesTestCase;
+use Neutrino\Test\RoutesTestCase;
 use Test\TestCase\TraitTestCase;
 
 class StubRouteTestCase extends RoutesTestCase

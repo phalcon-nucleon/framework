@@ -60,7 +60,7 @@ class ThrottleTest extends TestCase
         $this->assertEquals($msg, $response->getContent());
         $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
         $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
-        $this->assertEquals(59, $response->getHeaders()->get('Retry-After'));
+        $this->assertLessThanOrEqual(59, $response->getHeaders()->get('Retry-After'));
     }
 
     public function testThrottleFiltered()
@@ -179,7 +179,7 @@ class ThrottleTest extends TestCase
         $this->assertEquals($msg, $response->getContent());
         $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
         $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
-        $this->assertEquals(59, $response->getHeaders()->get('Retry-After'));
+        $this->assertLessThanOrEqual(59, $response->getHeaders()->get('Retry-After'));
     }
 
     /**

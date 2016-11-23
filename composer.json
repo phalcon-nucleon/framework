@@ -1,9 +1,9 @@
 {
-  "name": "ark4ne/phalcon-luxury-framework",
+  "name": "nucleon/framework",
   "description": "Phalcon extended framework. (Luxury:Kernel)",
   "keywords": ["framework", "phalcon", "luxury"],
   "minimum-stability": "stable",
-  "license": "MIT",
+  "license": "GNU",
   "authors": [
     {
       "name": "Ark4ne (Guillaume Allegret)",
@@ -23,8 +23,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Luxury\\": "src/Luxury/",
-      "Phalcon\\": "libraries/Phalcon"
+      "Luxury\\": "src/Luxury/"
     }
   }
 }

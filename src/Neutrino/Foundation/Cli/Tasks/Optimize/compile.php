@@ -1,6 +1,6 @@
 <?php
 
-$path = __DIR__ . '/../../../Neutrino';
+$path = __DIR__ . '/../../../../../Neutrino';
 
 return [
     $path . '/Constants/Services.php',

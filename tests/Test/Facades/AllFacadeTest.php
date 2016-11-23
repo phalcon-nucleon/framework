@@ -6,7 +6,6 @@ use Luxury\Constants\Services;
 use Luxury\Support\Facades\Auth;
 use Luxury\Support\Facades\Cache;
 use Luxury\Support\Facades\Flash;
-use Luxury\Support\Facades\HttpClient;
 use Luxury\Support\Facades\Log;
 use Luxury\Support\Facades\Request;
 use Luxury\Support\Facades\Response;
@@ -30,7 +29,6 @@ class AllFacadeTest extends TestCase
             [Auth::class, Services::AUTH],
             [Cache::class, Services::CACHE],
             [Flash::class, Services::FLASH],
-            [HttpClient::class, Services::HTTP_CLIENT],
             [Log::class, Services::LOGGER],
             [Request::class, Services::REQUEST],
             [Response::class, Services::RESPONSE],

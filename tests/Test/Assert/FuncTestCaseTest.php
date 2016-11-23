@@ -2,12 +2,8 @@
 namespace Test\Assert;
 
 use Luxury\Constants\Services;
-use Luxury\Foundation\Kernelize;
-use Luxury\Interfaces\Kernelable;
 use Luxury\Support\Str;
 use Phalcon\Http\Response;
-use Phalcon\Kernel;
-use Phalcon\Mvc\Application;
 use Test\TestCase\TestCase;
 
 /**
@@ -270,11 +266,5 @@ class FuncTestCaseTest extends TestCase
 
         // THEN
         $this->assertRedirectTo('/');
-    }
-
-    public function testStaticKernel()
-    {
-        $this->assertInstanceOf(Application::class, static::staticKernel());
-        $this->assertInstanceOf(Kernelable::class, static::staticKernel());
     }
 }

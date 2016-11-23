@@ -22,7 +22,7 @@ class RouteListTaskTest extends TestCase
     public function testGetHttpRoute()
     {
         $this->app->config->paths = (object)[
-            'routes' => __DIR__ . '/Stub/'
+            'routes' => __DIR__ . '/../../Stub/'
         ];
 
         $expectedRoutes = [
@@ -54,7 +54,7 @@ class RouteListTaskTest extends TestCase
     public function testMainAction()
     {
         $this->app->config->paths = (object)[
-            'routes' => __DIR__ . '/Stub/'
+            'routes' => __DIR__ . '/../../Stub/'
         ];
 
         $expected = [
@@ -97,7 +97,7 @@ class RouteListTaskTest extends TestCase
     public function testMainActionNoSubstitution()
     {
         $this->app->config->paths = (object)[
-            'routes' => __DIR__ . '/Stub/'
+            'routes' => __DIR__ . '/../../Stub/'
         ];
 
         $expected = [

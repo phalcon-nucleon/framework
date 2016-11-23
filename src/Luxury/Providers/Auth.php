@@ -2,7 +2,7 @@
 
 namespace Luxury\Providers;
 
-use Luxury\Auth\AuthManager;
+use Luxury\Auth\Manager as AuthManager;
 use Luxury\Constants\Services;
 
 /**
@@ -18,7 +18,7 @@ class Auth extends Provider
     protected $shared = true;
 
     /**
-     * @return \Luxury\Auth\AuthManager
+     * @return \Luxury\Auth\Manager
      */
     protected function register()
     {

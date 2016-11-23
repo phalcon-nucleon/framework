@@ -9,7 +9,7 @@
 namespace Test\Auth;
 
 
-use Luxury\Auth\AuthManager;
+use Luxury\Auth\Manager as AuthManager;
 use Luxury\Constants\Services;
 use Luxury\Foundation\Auth\User;
 use Luxury\Support\Facades\Auth;

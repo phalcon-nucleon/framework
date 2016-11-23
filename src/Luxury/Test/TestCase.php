@@ -39,16 +39,6 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     protected $lxApp;
 
     /**
-     * @var Application|Kernelize
-     */
-    protected static $kernelClassInstance;
-
-    /**
-     * @var \Luxury\Foundation\Bootstrap
-     */
-    protected static $appClassInstance;
-
-    /**
      * This method is called before a test is executed.
      */
     protected function setUp()
@@ -80,34 +70,12 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         throw new \RuntimeException("kernelClassInstance not implemented.");
     }
 
-    /**
-     * @return \Luxury\Foundation\Kernelize|\Phalcon\Application
-     */
-    protected static function staticKernel()
-    {
-        global $config;
-        if (self::$appClassInstance == null) {
-            self::$appClassInstance = new \Luxury\Foundation\Bootstrap(new PhConfig($config));
-        }
-
-        if (self::$kernelClassInstance == null) {
-            self::$kernelClassInstance = self::$appClassInstance->make(static::kernelClassInstance());
-
-            Facade::clearResolvedInstances();
-        }
-
-        return self::$kernelClassInstance;
-    }
-
     protected function tearDown()
     {
         Mockery::close();
         Facade::clearResolvedInstances();
         $this->app->getDI()->reset();
         $this->app = null;
-
-        self::$appClassInstance    = null;
-        self::$kernelClassInstance = null;
 
         parent::tearDown();
     }
@@ -255,9 +223,10 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     /**
      * Call protected/private method of a class.
      *
-     * @param object &$object    Instantiated object that we will run method on.
-     * @param string $methodName Method name to call
-     * @param array  $parameters Array of parameters to pass into method.
+     * @param object      &$object    Instantiated object that we will run method on.
+     * @param string      $methodName Method name to call
+     * @param array       $parameters Array of parameters to pass into method.
+     * @param string|null $className
      *
      * @return mixed Method return.
      */

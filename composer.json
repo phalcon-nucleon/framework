@@ -3,7 +3,7 @@
   "description": "Phalcon extended framework. (Nucleon:Kernel)",
   "keywords": ["framework", "phalcon", "nucleon"],
   "minimum-stability": "stable",
-  "license": "GNU",
+  "license": "MIT",
   "authors": [
     {
       "name": "Ark4ne (Guillaume Allegret)",

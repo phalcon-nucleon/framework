@@ -2,9 +2,9 @@
 
 namespace Neutrino\Test;
 
+use Mockery;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Support\Facades\Facade;
-use Mockery;
 use Phalcon\Application;
 use Phalcon\Config;
 use Phalcon\Config as PhConfig;

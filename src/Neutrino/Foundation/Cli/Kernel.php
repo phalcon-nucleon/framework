@@ -62,4 +62,6 @@ abstract class Kernel extends Console implements Kernelable
     {
         require $this->config->paths->routes . 'cli.php';
     }
+
+    public function boot(){}
 }

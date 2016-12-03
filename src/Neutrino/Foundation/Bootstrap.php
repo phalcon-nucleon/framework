@@ -9,7 +9,7 @@ use Phalcon\Config;
  *
  * Phalcon Application Boostraper
  *
- *  @package Neutrino\Foundation
+ * @package Neutrino\Foundation
  */
 class Bootstrap
 {
@@ -44,6 +44,8 @@ class Bootstrap
         $kernel->registerMiddlewares();
         $kernel->registerListeners();
         $kernel->registerRoutes();
+
+        $kernel->boot();
 
         return $kernel;
     }

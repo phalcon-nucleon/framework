@@ -49,4 +49,9 @@ interface Kernelable
      * @return void
      */
     public function registerListeners();
+
+    /**
+     * @return void
+     */
+    public function boot();
 }

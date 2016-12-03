@@ -73,7 +73,7 @@ trait Kernelize
      *
      * @return void
      */
-    public function bootstrap(Config $config)
+    public final function bootstrap(Config $config)
     {
         $diClass = $this->dependencyInjection;
 

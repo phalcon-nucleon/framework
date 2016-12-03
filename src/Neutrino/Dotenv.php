@@ -8,7 +8,7 @@ class Dotenv
      * Gets the value of an environment variable. Supports boolean, empty and null.
      *
      * @param string $key
-     * @param mixed $default
+     * @param mixed  $default
      *
      * @return bool|null|string
      */
@@ -39,7 +39,8 @@ class Dotenv
     }
 
     /**
-     * @param $key
+     * @param string $key
+     *
      * @return null|string
      */
     private static function getenv($key)

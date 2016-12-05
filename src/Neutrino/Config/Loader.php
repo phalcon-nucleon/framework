@@ -36,6 +36,8 @@ class Loader
     {
         $config = [];
 
+        $excludes = array_flip($excludes);
+
         foreach (glob($basePath . '/config/*.php') as $file) {
             if (!isset($excludes[$fileName = basename($file, '.php')])) {
                 $config[$fileName] = require $file;

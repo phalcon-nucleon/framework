@@ -13,6 +13,22 @@ use Test\TestCase\TestCase;
  */
 class ClearCompiledTaskTest extends TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        // Force Enable Decoration for windows
+        putenv('TERM=xterm');
+    }
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        // Force Enable Decoration for windows
+        putenv('TERM=');
+    }
+
     protected static function kernelClassInstance()
     {
         return StubKernelCli::class;

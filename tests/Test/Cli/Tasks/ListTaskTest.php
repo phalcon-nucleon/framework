@@ -16,6 +16,22 @@ use Test\TestCase\TestCase;
 
 class ListTaskTest extends TestCase
 {
+    public function setUp()
+    {
+        parent::setUp();
+
+        // Force Enable Decoration for windows
+        putenv('TERM=xterm');
+    }
+
+    public function tearDown()
+    {
+        parent::tearDown();
+
+        // Force Enable Decoration for windows
+        putenv('TERM=');
+    }
+
     protected static function kernelClassInstance()
     {
         return StubKernelCli::class;
@@ -23,21 +39,24 @@ class ListTaskTest extends TestCase
 
     public function dataDescribe()
     {
+        // Force Enable Decoration for windows
+        putenv('TERM=xterm');
+
         return [
             [[
-                'description' => 'List all commands available.',
-                'cmd'         => Decorate::info('list'),
-            ], 'list', ListTask::class, 'mainAction'],
+                 'description' => 'List all commands available.',
+                 'cmd'         => Decorate::info('list'),
+             ], 'list', ListTask::class, 'mainAction'],
             [[
-                'description' => 'List all routes.',
-                'cmd'         => Decorate::info('route:list'),
-                'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
-            ], 'route:list', RouteListTask::class, 'mainAction'],
+                 'description' => 'List all routes.',
+                 'cmd'         => Decorate::info('route:list'),
+                 'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
+             ], 'route:list', RouteListTask::class, 'mainAction'],
             [[
-                'description' => 'Optimize the autoloader.',
-                'cmd'         => Decorate::info('optimize'),
-                'options'     => '-m, --memory: Optimize memory.',
-            ], 'optimize', OptimizeTask::class, 'mainAction']
+                 'description' => 'Optimize the autoloader.',
+                 'cmd'         => Decorate::info('optimize'),
+                 'options'     => '-m, --memory: Optimize memory.',
+             ], 'optimize', OptimizeTask::class, 'mainAction']
         ];
     }
 
@@ -63,21 +82,24 @@ class ListTaskTest extends TestCase
 
     public function dataDescribeRoute()
     {
+        // Force Enable Decoration for windows
+        putenv('TERM=xterm');
+
         return [
             [[
-                'description' => 'List all commands available.',
-                'cmd'         => Decorate::info('list'),
-            ], new Route('list', ['task' => ListTask::class])],
+                 'description' => 'List all commands available.',
+                 'cmd'         => Decorate::info('list'),
+             ], new Route('list', ['task' => ListTask::class])],
             [[
-                'description' => 'List all routes.',
-                'cmd'         => Decorate::info('route:list'),
-                'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
-            ], new Route('route:list', ['task' => RouteListTask::class])],
+                 'description' => 'List all routes.',
+                 'cmd'         => Decorate::info('route:list'),
+                 'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
+             ], new Route('route:list', ['task' => RouteListTask::class])],
             [[
-                'description' => 'Optimize the autoloader.',
-                'cmd'         => Decorate::info('optimize'),
-                'options'     => '-m, --memory: Optimize memory.',
-            ], new Route('optimize', ['task' => OptimizeTask::class])]
+                 'description' => 'Optimize the autoloader.',
+                 'cmd'         => Decorate::info('optimize'),
+                 'options'     => '-m, --memory: Optimize memory.',
+             ], new Route('optimize', ['task' => OptimizeTask::class])]
         ];
     }
 
@@ -105,38 +127,35 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write' => ['exactly' => 7, 'consecutive' => [
+            'write'  => ['exactly' => 7, 'consecutive' => [
                 //['Available Commands :'],
-                [' '.Decorate::info('help ( .*)*').'                                    ', true],
-                [' '.Decorate::info('list').'            List all commands available.   ', true],
-                [' '.Decorate::info('optimize').'        Optimize the autoloader.       ', true],
-                [' '.Decorate::info('clear-compiled').'  Clear compilation.             ', true],
+                [' ' . Decorate::info('help ( .*)*') . '                                    ', true],
+                [' ' . Decorate::info('list') . '            List all commands available.   ', true],
+                [' ' . Decorate::info('optimize') . '        Optimize the autoloader.       ', true],
+                [' ' . Decorate::info('clear-compiled') . '  Clear compilation.             ', true],
                 //['config', true],
-                [' '.Decorate::info('config:cache').'    Clear all compiled view files. ', true],
+                [' ' . Decorate::info('config:cache') . '    Clear all compiled view files. ', true],
                 //['route', true],
-                [' '.Decorate::info('route:list').'      List all routes.               ', true],
+                [' ' . Decorate::info('route:list') . '      List all routes.               ', true],
                 //['view', true],
-                [' '.Decorate::info('view:clear').'      Clear all compiled view files. ', true],
+                [' ' . Decorate::info('view:clear') . '      Clear all compiled view files. ', true],
             ]],
             'notice' => ['exactly' => 4, 'consecutive' => [
-                [Decorate::notice('Available Commands :')],
-                [Decorate::notice('config')],
-                [Decorate::notice('route')],
-                [Decorate::notice('view')],
+                ['Available Commands :'],
+                ['config'],
+                ['route'],
+                ['view'],
             ]]
         ];
-//config
-//        config:cache                       Clear all compiled view files.
 
-    $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
+        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
 
         $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($this->createMock(Manager::class));
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
 
         $mock = $this->createMock(ConsoleOutput::class);
         foreach ($expected as $func => $params) {
-            $method = $mock->expects($this->exactly($params['exactly']))
-                ->method($func);
+            $method = $mock->expects($this->exactly($params['exactly']))->method($func);
 
             if (!empty($params['consecutive'])) {
                 $method->withConsecutive(...$params['consecutive']);

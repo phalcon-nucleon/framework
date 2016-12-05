@@ -34,7 +34,7 @@ class ListTaskTest extends TestCase
                 'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
             ], 'route:list', RouteListTask::class, 'mainAction'],
             [[
-                'description' => 'Optimize the loader.',
+                'description' => 'Optimize the autoloader.',
                 'cmd'         => Decorate::info('optimize'),
                 'options'     => '-m, --memory: Optimize memory.',
             ], 'optimize', OptimizeTask::class, 'mainAction']
@@ -74,7 +74,7 @@ class ListTaskTest extends TestCase
                 'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
             ], new Route('route:list', ['task' => RouteListTask::class])],
             [[
-                'description' => 'Optimize the loader.',
+                'description' => 'Optimize the autoloader.',
                 'cmd'         => Decorate::info('optimize'),
                 'options'     => '-m, --memory: Optimize memory.',
             ], new Route('optimize', ['task' => OptimizeTask::class])]
@@ -105,20 +105,30 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write' => ['exactly' => 9, 'consecutive' => [
-                ['Available Commands :'],
+            'write' => ['exactly' => 7, 'consecutive' => [
+                //['Available Commands :'],
                 [' '.Decorate::info('help ( .*)*').'                                    ', true],
                 [' '.Decorate::info('list').'            List all commands available.   ', true],
-                [' '.Decorate::info('optimize').'        Optimize the loader.           ', true],
+                [' '.Decorate::info('optimize').'        Optimize the autoloader.       ', true],
                 [' '.Decorate::info('clear-compiled').'  Clear compilation.             ', true],
-                ['route', true],
+                //['config', true],
+                [' '.Decorate::info('config:cache').'    Clear all compiled view files. ', true],
+                //['route', true],
                 [' '.Decorate::info('route:list').'      List all routes.               ', true],
-                ['view', true],
+                //['view', true],
                 [' '.Decorate::info('view:clear').'      Clear all compiled view files. ', true],
+            ]],
+            'notice' => ['exactly' => 4, 'consecutive' => [
+                [Decorate::notice('Available Commands :')],
+                [Decorate::notice('config')],
+                [Decorate::notice('route')],
+                [Decorate::notice('view')],
             ]]
         ];
+//config
+//        config:cache                       Clear all compiled view files.
 
-        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
+    $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
 
         $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($this->createMock(Manager::class));
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');

@@ -12,131 +12,61 @@ use Phalcon\Config;
 class Loader
 {
     /**
-     * @var string
-     */
-    private $basePath;
-
-    /**
-     * @var string
-     */
-    private $compilePath;
-
-    /**
-     * @var array
-     */
-    private $excludes;
-
-    /**
-     * Loader constructor.
-     *
-     * @param        $basePath
-     * @param string $compilePath
+     * @param string $basePath
      * @param array  $excludes
-     */
-    public function __construct($basePath, $compilePath = '/bootstrap/compile', array $excludes = [])
-    {
-        $this->setBasePath($basePath)
-            ->setCompilePath($compilePath)
-            ->setExcludes($excludes);
-    }
-
-    /**
+     *
      * @return \Phalcon\Config
      */
-    public function load()
+    public static function load($basePath, array $excludes = [])
     {
-        if (!is_null($config = $this->loadFromCompile())) {
+        if (!is_null($config = self::fromCompile($basePath))) {
             return $config;
         } else {
-            return $this->loadFromFiles();
+            return self::fromFiles($basePath, $excludes);
         }
     }
 
     /**
-     * @return \Phalcon\Config
+     * @param string $basePath
+     * @param array  $excludes
+     *
+     * @return array
      */
-    public function loadFromFiles()
+    public static function raw($basePath, array $excludes = [])
     {
         $config = [];
 
-        foreach (glob($this->basePath . '/config/*.php') as $file) {
-            if (!isset($this->excludes[$fileName = basename($file, '.php')])) {
+        foreach (glob($basePath . '/config/*.php') as $file) {
+            if (!isset($excludes[$fileName = basename($file, '.php')])) {
                 $config[$fileName] = require $file;
             }
         }
 
-        return new Config($config);
+        return $config;
     }
 
     /**
+     * @param string $basePath
+     * @param array  $excludes
+     *
+     * @return \Phalcon\Config
+     */
+    public static function fromFiles($basePath, array $excludes = [])
+    {
+        return new Config(self::raw($basePath, $excludes));
+    }
+
+    /**
+     * @param string $basePath
+     *
      * @return null|\Phalcon\Config
      */
-    public function loadFromCompile()
+    public static function fromCompile($basePath)
     {
-        if (file_exists($compilePath = $this->basePath . $this->compilePath . '/config.php')) {
+        if (file_exists($compilePath = $basePath . '/bootstrap/compile/config.php')) {
             return new Config(require $compilePath);
         }
 
         return null;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getBasePath()
-    {
-        return $this->basePath;
-    }
-
-    /**
-     * @param mixed $basePath
-     *
-     * @return Loader
-     */
-    public function setBasePath($basePath)
-    {
-        $this->basePath = $basePath;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCompilePath()
-    {
-        return $this->compilePath;
-    }
-
-    /**
-     * @param string $compilePath
-     *
-     * @return Loader
-     */
-    public function setCompilePath($compilePath)
-    {
-        $this->compilePath = $compilePath;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getExcludes()
-    {
-        return $this->excludes;
-    }
-
-    /**
-     * @param array $excludes
-     *
-     * @return Loader
-     */
-    public function setExcludes(array $excludes)
-    {
-        $this->excludes = empty($excludes) ? $excludes : array_flip($excludes);
-
-        return $this;
     }
 }

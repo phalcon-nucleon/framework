@@ -3,6 +3,7 @@
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
+use Neutrino\Dotenv;
 
 /**
  * Class ClearCompiledTask
@@ -16,7 +17,7 @@ class ClearCompiledTask extends Task
      */
     public function mainAction()
     {
-        $compileDir = $this->config->paths->base . 'bootstrap/compile/';
+        $compileDir = Dotenv::env('BASE_PATH') . '/bootstrap/compile/';
 
         if (file_exists($compileDir . 'loader.php')) {
             @unlink($compileDir . 'loader.php');

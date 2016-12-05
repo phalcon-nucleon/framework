@@ -2,9 +2,9 @@
 
 namespace Neutrino\Foundation\Http;
 
+use Neutrino\Dotenv;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
-use Phalcon\Config;
 use Phalcon\Di\FactoryDefault as Di;
 use Phalcon\Mvc\Application;
 
@@ -50,7 +50,7 @@ abstract class Kernel extends Application implements Kernelable
      */
     public function registerRoutes()
     {
-        require $this->config->paths->routes . 'http.php';
+        require Dotenv::env('BASE_PATH') .'/routes/http.php';
     }
 
     public function boot()

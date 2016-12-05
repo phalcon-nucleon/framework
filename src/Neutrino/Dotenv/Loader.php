@@ -2,10 +2,12 @@
 
 namespace Neutrino\Dotenv;
 
-use Neutrino\Dotenv\Exception\InvalidFileException;
+use Neutrino\Dotenv;
 
 class Loader
 {
+    private static $has_putenv;
+
     /**
      * Loads environment variables from .env.php to getenv(), $_ENV, and $_SERVER automatically.
      *
@@ -20,7 +22,6 @@ class Loader
             return false;
         }
 
-        $has_putenv = function_exists('putenv');
 
         /** @noinspection PhpIncludeInspection */
         $config = require $path . DIRECTORY_SEPARATOR . '.env.php';
@@ -33,18 +34,18 @@ class Loader
         }
 
         foreach ($config as $key => $value) {
-            if (!is_string($value)) {
-                throw new InvalidFileException('Neutrino\Dotenv support only string value.');
-            }
-
-            if ($has_putenv) {
-                putenv($key . '=' . $value);
-            }
-
-            $_ENV[$key] = $value;
-            $_SERVER[$key] = $value;
+            Dotenv::put($key, $value);
         }
 
         return true;
+    }
+
+    public static function hasPutenv()
+    {
+        if (isset(self::$has_putenv)) {
+            return self::$has_putenv;
+        }
+
+        return self::$has_putenv = function_exists('putenv');
     }
 }

@@ -4,7 +4,6 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
-use Neutrino\Support\Arr;
 use Phalcon\Cli\Router\Route;
 
 /**
@@ -36,13 +35,13 @@ class HelperTask extends Task
         $this->line('Description :');
         $this->line("\t" . $infos['description']);
 
-        if (Arr::has($infos, 'arguments')) {
+        if (arr_has($infos, 'arguments')) {
             $this->line('Arguments :');
             foreach ($infos['arguments'] as $argument) {
                 $this->line("\t" . $argument);
             }
         }
-        if (Arr::has($infos, 'options')) {
+        if (arr_has($infos, 'options')) {
             $this->line('Options :');
             foreach ($infos['options'] as $option) {
                 $this->line("\t" . $option);
@@ -67,7 +66,7 @@ class HelperTask extends Task
             $paths = $route->getPaths();
 
             if ($paths['task'] == $class) {
-                if (Arr::fetch($paths, 'action', 'main') == $action) {
+                if (arr_fetch($paths, 'action', 'main') == $action) {
                     $findedRoute = $route;
                     break;
                 }

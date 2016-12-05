@@ -2,8 +2,6 @@
 
 namespace Neutrino\Cli\Output;
 
-use Neutrino\Support\Arr;
-
 final class Helper
 {
     private static $reflections = [];
@@ -154,7 +152,7 @@ final class Helper
      */
     private static function getReflection($class)
     {
-        if (!Arr::has(self::$reflections, $class)) {
+        if (!arr_has(self::$reflections, $class)) {
             self::$reflections[$class] = new \ReflectionClass($class);
         }
 

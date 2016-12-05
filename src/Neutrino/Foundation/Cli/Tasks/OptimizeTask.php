@@ -4,6 +4,7 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use ClassPreloader\Factory;
 use Neutrino\Cli\Task;
+use Neutrino\Dotenv;
 use Neutrino\Optimizer\Composer;
 
 /**
@@ -19,18 +20,18 @@ class OptimizeTask extends Task
     private $optimizer;
 
     /**
-     * Optimize the loader.
+     * Optimize the autoloader.
      *
-     * @description Optimize the loader.
+     * @description Optimize the autoloader.
      *
      * @option      -m, --memory: Optimize memory.
      */
     public function mainAction()
     {
         $this->optimizer = new Composer(
-            $this->config->paths->base . 'bootstrap/compile/loader.php',
-            $this->config->paths->vendor . 'composer',
-            $this->config->paths->base
+            Dotenv::env('BASE_PATH') . '/bootstrap/compile/loader.php',
+            Dotenv::env('BASE_PATH') .'/vendor/composer',
+            Dotenv::env('BASE_PATH')
         );
 
         if ($this->hasOption('m', 'memory')) {
@@ -40,8 +41,16 @@ class OptimizeTask extends Task
         }
         if ($res === false) {
             $this->error('Autoloader generation has failed.');
+        } else {
+            $this->info('Phalcon autoloader generated.');
         }
         $this->optimizeClass();
+
+        $this->info('Compilation file generated.');
+
+        $this->dispatcher->forward([
+            'task' => ConfigCacheTask::class
+        ]);
     }
 
     /**
@@ -72,12 +81,12 @@ class OptimizeTask extends Task
     {
         $preloader = (new Factory())->create(['skip' => true]);
 
-        $handle = $preloader->prepareOutput($this->config->paths->base . 'bootstrap/compile/compile.php');
+        $handle = $preloader->prepareOutput(Dotenv::env('BASE_PATH') . '/bootstrap/compile/compile.php');
 
         $files = require __DIR__ . '/Optimize/compile.php';
 
-        if (file_exists($this->config->paths->base . 'config/compile.php')) {
-            $files = array_merge($files, require $this->config->paths->base . 'config/compile.php');
+        if (file_exists(Dotenv::env('BASE_PATH') . '/config/compile.php')) {
+            $files = array_merge($files, require Dotenv::env('BASE_PATH') . '/config/compile.php');
         }
 
         foreach ($files as $file) {

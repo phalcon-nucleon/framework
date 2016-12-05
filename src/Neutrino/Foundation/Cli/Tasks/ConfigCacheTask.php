@@ -3,6 +3,8 @@
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
+use Neutrino\Config\Loader;
+use Neutrino\Dotenv;
 
 /**
  * Class ConfigCacheTask
@@ -12,30 +14,24 @@ use Neutrino\Cli\Task;
 class ConfigCacheTask extends Task
 {
 
+    /**
+     * 
+     *
+     * @throws \Exception
+     */
     public function mainAction()
     {
-        
-    }
+        $config = Loader::raw(Dotenv::env('BASE_PATH'), ['compile']);
 
-    protected function optimizeClass()
-    {
-        $preloader = (new Factory())->create(['skip' => true]);
+        $handle = fopen(Dotenv::env('BASE_PATH') . '/bootstrap/compile/config.php', 'w');
 
-        $handle = $preloader->prepareOutput($this->config->paths->base . 'bootstrap/compile/compile.php');
-
-        $files = require __DIR__ . '/Optimize/compile.php';
-
-        if (file_exists($this->config->paths->base . 'config/compile.php')) {
-            $files = array_merge($files, require $this->config->paths->base . 'config/compile.php');
+        if ($handle === false) {
+            throw new \Exception;
         }
 
-        foreach ($files as $file) {
-            try {
-                fwrite($handle, $preloader->getCode($file, false) . PHP_EOL);
-            } catch (\Exception $e) {
-                //
-            }
-        }
+        fwrite($handle, '<?php' . PHP_EOL);
+
+        fwrite($handle, 'return ' . var_export($config, true) . ';' . PHP_EOL);
 
         fclose($handle);
     }

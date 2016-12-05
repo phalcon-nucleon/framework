@@ -26,6 +26,11 @@
     "neutrino/optimizer": "self.version"
   },
   "autoload": {
+    "files": [
+      "src/Neutrino/Support/helpers/arr.php",
+      "src/Neutrino/Support/helpers/obj.php",
+      "src/Neutrino/Support/helpers/str.php"
+    ],
     "psr-4": {
       "Neutrino\\": "src/Neutrino/"
     }

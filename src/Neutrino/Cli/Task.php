@@ -7,7 +7,6 @@ use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Table;
 use Neutrino\Constants\Events;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
-use Neutrino\Support\Arr;
 use Phalcon\Cli\Task as PhalconTask;
 use Phalcon\Events\Event;
 
@@ -154,7 +153,7 @@ abstract class Task extends PhalconTask
      */
     protected function getArg($name, $default = null)
     {
-        return Arr::fetch($this->getArgs(), $name, $default);
+        return arr_fetch($this->getArgs(), $name, $default);
     }
 
     /**
@@ -166,7 +165,7 @@ abstract class Task extends PhalconTask
      */
     protected function hasArg($name)
     {
-        return Arr::has($this->getArgs(), $name);
+        return arr_has($this->getArgs(), $name);
     }
 
     /**
@@ -189,7 +188,7 @@ abstract class Task extends PhalconTask
      */
     protected function getOption($name, $default = null)
     {
-        return Arr::fetch($this->getOptions(), $name, $default);
+        return arr_fetch($this->getOptions(), $name, $default);
     }
 
     /**
@@ -202,7 +201,7 @@ abstract class Task extends PhalconTask
     protected function hasOption(...$options)
     {
         foreach ($options as $option) {
-            if (Arr::has($this->getOptions(), $option)) {
+            if (arr_has($this->getOptions(), $option)) {
                 return true;
             }
         }

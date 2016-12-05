@@ -65,7 +65,7 @@ class HelperTaskTest extends TestCase
                 'write' => ['exactly' => 5, 'consecutive' => [
                     ['Usage :', true],
                     ['Description :', true],
-                    ["\t" . 'Optimize the loader.', true],
+                    ["\t" . 'Optimize the autoloader.', true],
                     ['Options :', true],
                     ["\t" . '-m, --memory: Optimize memory.', true],
                 ]]

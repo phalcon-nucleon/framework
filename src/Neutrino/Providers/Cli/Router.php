@@ -36,6 +36,7 @@ class Router extends Provider
         $router->addTask('list', ListTask::class);
         $router->addTask('optimize', OptimizeTask::class);
         $router->addTask('clear-compiled', ClearCompiledTask::class);
+        $router->addTask('config:cache', ViewClearTask::class);
         $router->addTask('route:list', RouteListTask::class);
         $router->addTask('view:clear', ViewClearTask::class);
 

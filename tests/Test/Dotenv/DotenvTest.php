@@ -24,7 +24,7 @@ class DotenvTest extends PHPUnit_Framework_TestCase
 
     public function testWithNoEnvFileInGivenPath()
     {
-        $env = $_ENV;
+        $env    = $_ENV;
         $server = $_SERVER;
 
         $this->assertFalse(\Neutrino\Dotenv\Loader::load(__DIR__));
@@ -37,23 +37,23 @@ class DotenvTest extends PHPUnit_Framework_TestCase
     {
         return [
             ['local', [
-                'APP_ENV' => 'local',
-                'KEY_1' => 'VALUE_1',
-                'KEY_2' => 'VALUE_2',
-                'BOOL_KEY_TRUE_1' => 'true',
-                'BOOL_KEY_TRUE_2' => '(true)',
+                'APP_ENV'          => 'local',
+                'KEY_1'            => 'VALUE_1',
+                'KEY_2'            => 'VALUE_2',
+                'BOOL_KEY_TRUE_1'  => 'true',
+                'BOOL_KEY_TRUE_2'  => '(true)',
                 'BOOL_KEY_FALSE_1' => 'false',
                 'BOOL_KEY_FALSE_2' => '(false)',
-                'EMPTY_KEY_1' => 'empty',
-                'EMPTY_KEY_2' => '(empty)',
-                'NULL_KEY_1' => 'null',
-                'NULL_KEY_2' => '(null)'
+                'EMPTY_KEY_1'      => 'empty',
+                'EMPTY_KEY_2'      => '(empty)',
+                'NULL_KEY_1'       => 'null',
+                'NULL_KEY_2'       => '(null)'
             ]],
             ['testing', [
                 'APP_ENV' => 'testing',
-                'KEY_1' => 'TESTING_VALUE_1',
-                'KEY_2' => 'VALUE_2',
-                'KEY_3' => 'TESTING_VALUE_3',
+                'KEY_1'   => 'TESTING_VALUE_1',
+                'KEY_2'   => 'VALUE_2',
+                'KEY_3'   => 'TESTING_VALUE_3',
             ]]
         ];
     }
@@ -73,10 +73,8 @@ class DotenvTest extends PHPUnit_Framework_TestCase
             }
 
             $this->assertArrayHasKey($key, $_ENV);
-            $this->assertArrayHasKey($key, $_SERVER);
 
             $this->assertEquals($_ENV[$key], $value);
-            $this->assertEquals($_SERVER[$key], $value);
         }
     }
 
@@ -97,17 +95,17 @@ class DotenvTest extends PHPUnit_Framework_TestCase
         $this->assertTrue(\Neutrino\Dotenv\Loader::load($path));
 
         $expected = [
-            'APP_ENV' => 'local',
-            'KEY_1' => 'VALUE_1',
-            'KEY_2' => 'VALUE_2',
-            'BOOL_KEY_TRUE_1' => true,
-            'BOOL_KEY_TRUE_2' => true,
+            'APP_ENV'          => 'local',
+            'KEY_1'            => 'VALUE_1',
+            'KEY_2'            => 'VALUE_2',
+            'BOOL_KEY_TRUE_1'  => true,
+            'BOOL_KEY_TRUE_2'  => true,
             'BOOL_KEY_FALSE_1' => false,
             'BOOL_KEY_FALSE_2' => false,
-            'EMPTY_KEY_1' => '',
-            'EMPTY_KEY_2' => '',
-            'NULL_KEY_1' => null,
-            'NULL_KEY_2' => null
+            'EMPTY_KEY_1'      => '',
+            'EMPTY_KEY_2'      => '',
+            'NULL_KEY_1'       => null,
+            'NULL_KEY_2'       => null
         ];
 
         foreach ($expected as $key => $value) {
@@ -116,5 +114,19 @@ class DotenvTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(null, \Neutrino\Dotenv::env("no_exist_key"));
         $this->assertEquals('default', \Neutrino\Dotenv::env("no_exist_key", 'default'));
+    }
+
+    public function testGetenvCache()
+    {
+        $path = __DIR__ . DIRECTORY_SEPARATOR . 'fixture' . DIRECTORY_SEPARATOR . 'local';
+
+        $this->assertTrue(\Neutrino\Dotenv\Loader::load($path));
+
+        $this->assertEquals('local', \Neutrino\Dotenv::env("APP_ENV"));
+
+        \Neutrino\Dotenv::put("APP_ENV", 'test');
+
+        $this->assertEquals('test', \Neutrino\Dotenv::env("APP_ENV"));
+        $this->assertEquals('test', \Neutrino\Dotenv::env("APP_ENV", true));
     }
 }

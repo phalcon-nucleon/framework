@@ -29,6 +29,8 @@ return [
     $path . '/Dotenv/Loader.php',
     $path . '/Dotenv.php',
 
+    $path . '/Config/Loader.php',
+
     $path . '/Events/Listener.php',
 
     $path . '/Providers/Provider.php',

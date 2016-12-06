@@ -4,6 +4,7 @@ namespace Neutrino\Cli;
 
 use Neutrino\Cli\Output\ConsoleOutput;
 use Neutrino\Cli\Output\Decorate;
+use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Output\Table;
 use Neutrino\Constants\Events;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
@@ -95,6 +96,11 @@ abstract class Task extends PhalconTask
         $this->line("\tmem:" . Decorate::info(memory_get_usage()));
         $this->line("\tmem.peak:" . Decorate::info(memory_get_peak_usage()));
         $this->line("\ttime:" . Decorate::info((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'])));
+    }
+
+    public function displayNeutrinoVersion()
+    {
+        $this->output->write(Helper::neutrinoVersion() . PHP_EOL, true);
     }
 
     public function line($str)

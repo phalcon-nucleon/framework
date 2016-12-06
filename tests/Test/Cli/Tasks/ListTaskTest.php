@@ -4,6 +4,7 @@ namespace Test\Cli\Tasks;
 
 use Neutrino\Cli\Output\ConsoleOutput;
 use Neutrino\Cli\Output\Decorate;
+use Neutrino\Cli\Output\Helper;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
@@ -127,14 +128,16 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write'  => ['exactly' => 7, 'consecutive' => [
+            'write'  => ['exactly' => 9, 'consecutive' => [
                 //['Available Commands :'],
+                [Helper::neutrinoVersion() . PHP_EOL, true],
                 [' ' . Decorate::info('help ( .*)*') . '                                    ', true],
                 [' ' . Decorate::info('list') . '            List all commands available.   ', true],
                 [' ' . Decorate::info('optimize') . '        Optimize the autoloader.       ', true],
                 [' ' . Decorate::info('clear-compiled') . '  Clear compilation.             ', true],
                 //['config', true],
-                [' ' . Decorate::info('config:cache') . '    Clear all compiled view files. ', true],
+                [' ' . Decorate::info('config:cache') . '    Cache the configuration.       ', true],
+                [' ' . Decorate::info('config:clear') . '    Clear the configuration cache. ', true],
                 //['route', true],
                 [' ' . Decorate::info('route:list') . '      List all routes.               ', true],
                 //['view', true],

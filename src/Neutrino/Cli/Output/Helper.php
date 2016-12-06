@@ -2,6 +2,8 @@
 
 namespace Neutrino\Cli\Output;
 
+use Neutrino\Version;
+
 final class Helper
 {
     private static $reflections = [];
@@ -100,7 +102,7 @@ final class Helper
      */
     public static function getTaskInfos($class, $methodName)
     {
-        $infos      = [];
+        $infos = [];
         $reflection = self::getReflection($class);
 
         try {
@@ -143,6 +145,14 @@ final class Helper
         }
 
         return $infos;
+    }
+
+    /**
+     * @return string
+     */
+    public static function neutrinoVersion()
+    {
+        return Decorate::info('Neutrino framework') . ' ' . Decorate::notice('v' . Version::get() . ' ['. Version::getId().']');
     }
 
     /**

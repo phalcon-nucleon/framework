@@ -15,7 +15,9 @@ class ConfigCacheTask extends Task
 {
 
     /**
-     * 
+     * Configuration cache.
+     *
+     * @description Cache the configuration.
      *
      * @throws \Exception
      */
@@ -34,5 +36,7 @@ class ConfigCacheTask extends Task
         fwrite($handle, 'return ' . var_export($config, true) . ';' . PHP_EOL);
 
         fclose($handle);
+
+        $this->info('Config cache generated.');
     }
 }

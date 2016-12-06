@@ -26,6 +26,8 @@ class ListTask extends Task
      */
     public function mainAction()
     {
+        $this->displayNeutrinoVersion();
+
         $routes = $this->router->getRoutes();
 
         $delimiter = Route::getDelimiter();

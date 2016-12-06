@@ -20,6 +20,8 @@ class HelperTask extends Task
 
     public function mainAction()
     {
+        $this->displayNeutrinoVersion();
+
         $infos = Helper::getTaskInfos(
             $this->getArg('task'),
             $this->getArg('action') . $this->dispatcher->getActionSuffix()

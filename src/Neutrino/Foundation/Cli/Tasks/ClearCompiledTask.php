@@ -8,7 +8,7 @@ use Neutrino\Dotenv;
 /**
  * Class ClearCompiledTask
  *
- *  @package Neutrino\Foundation\Cli
+ * @package Neutrino\Foundation\Cli
  */
 class ClearCompiledTask extends Task
 {
@@ -17,14 +17,7 @@ class ClearCompiledTask extends Task
      */
     public function mainAction()
     {
-        $compileDir = Dotenv::env('BASE_PATH') . '/bootstrap/compile/';
-
-        if (file_exists($compileDir . 'loader.php')) {
-            @unlink($compileDir . 'loader.php');
-        }
-        if (file_exists($compileDir . 'compile.php')) {
-            @unlink($compileDir . 'compile.php');
-        }
+        self::clearLoader(Dotenv::env('BASE_PATH') . DIRECTORY_SEPARATOR . 'bootstrap/compile/');
 
         $this->info('The compiled loader has been removed.');
     }
@@ -36,8 +29,11 @@ class ClearCompiledTask extends Task
      */
     public static function composerClearCompiled()
     {
-        $compileDir = getcwd() . DIRECTORY_SEPARATOR . 'bootstrap/compile/';
+        self::clearLoader(getcwd() . DIRECTORY_SEPARATOR . 'bootstrap/compile/');
+    }
 
+    private static function clearLoader($compileDir)
+    {
         if (file_exists($compileDir . 'loader.php')) {
             @unlink($compileDir . 'loader.php');
         }

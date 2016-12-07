@@ -23,6 +23,8 @@ class ConfigCacheTask extends Task
      */
     public function mainAction()
     {
+        $this->info('Generating configuration cache');
+
         $config = Loader::raw(Dotenv::env('BASE_PATH'), ['compile']);
 
         $handle = fopen(Dotenv::env('BASE_PATH') . '/bootstrap/compile/config.php', 'w');
@@ -36,7 +38,5 @@ class ConfigCacheTask extends Task
         fwrite($handle, 'return ' . var_export($config, true) . ';' . PHP_EOL);
 
         fclose($handle);
-
-        $this->info('Config cache generated.');
     }
 }

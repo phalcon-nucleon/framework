@@ -10,7 +10,7 @@ use Neutrino\Optimizer\Composer;
 /**
  * Class OptimizeTask
  *
- *  @package Neutrino\Foundation\Cli
+ * @package Neutrino\Foundation\Cli
  */
 class OptimizeTask extends Task
 {
@@ -30,7 +30,7 @@ class OptimizeTask extends Task
     {
         $this->optimizer = new Composer(
             Dotenv::env('BASE_PATH') . '/bootstrap/compile/loader.php',
-            Dotenv::env('BASE_PATH') .'/vendor/composer',
+            Dotenv::env('BASE_PATH') . '/vendor/composer',
             Dotenv::env('BASE_PATH')
         );
 
@@ -40,13 +40,12 @@ class OptimizeTask extends Task
             $res = $this->optimizeProcess();
         }
         if ($res === false) {
-            $this->error('Autoloader generation has failed.');
-        } else {
-            $this->info('Phalcon autoloader generated.');
+            $this->error('Autoloader generation has failed');
         }
+
         $this->optimizeClass();
 
-        $this->info('Compilation file generated.');
+        $this->info('Compiling common classes');
 
         $this->dispatcher->forward([
             'task' => ConfigCacheTask::class

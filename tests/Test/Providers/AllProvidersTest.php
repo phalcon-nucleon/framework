@@ -49,7 +49,7 @@ class AllProvidersTest extends TestCase
                     'shared' => true
                 ]
             ]],
-            
+
             Services::AUTH => [Auth::class, [
                 [
                     'name'   => Services::AUTH,
@@ -193,12 +193,18 @@ class AllProvidersTest extends TestCase
         global $config;
 
         $config = array_merge($config, [
-            'cache'    => [],
-            'log'      => [
+            'cache' => [
+                'stores' => ['memory' => [
+                    'driver' => \Phalcon\Cache\Backend\Memory::class,
+                    'adapter' => 'None',
+                ]],
+                'default' => 'memory'
+            ],
+            'log'   => [
                 'adapter' => 'Multiple',
                 'path'    => __DIR__ . '/../../.data/'
             ],
-            'view'     => [
+            'view'  => [
                 'views_dir'     => '',
                 'compiled_path' => ''
             ]

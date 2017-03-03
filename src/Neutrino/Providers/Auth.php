@@ -10,20 +10,13 @@ use Neutrino\Constants\Services;
  *
  *  @package Neutrino\Providers
  */
-class Auth extends Provider
+class Auth extends BasicProvider
 {
+    protected $class = AuthManager::class;
 
     protected $name = Services::AUTH;
 
     protected $shared = true;
 
     protected $aliases = [AuthManager::class];
-
-    /**
-     * @return \Neutrino\Auth\Manager
-     */
-    protected function register()
-    {
-        return new AuthManager();
-    }
 }

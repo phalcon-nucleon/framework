@@ -9,19 +9,13 @@ use Neutrino\Constants\Services;
  *
  *  @package Neutrino\Providers
  */
-class Crypt extends Provider
+class Crypt extends BasicProvider
 {
+    protected $class = \Phalcon\Crypt::class;
+
     protected $name = Services::CRYPT;
 
     protected $shared = true;
 
     protected $aliases = [\Phalcon\Crypt::class];
-
-    /**
-     * @return \Phalcon\Crypt
-     */
-    protected function register()
-    {
-        return new \Phalcon\Crypt;
-    }
 }

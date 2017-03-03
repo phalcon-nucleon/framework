@@ -48,28 +48,29 @@ abstract class BasicProvider extends Injectable implements Providable
      */
     final public function __construct()
     {
-        if (empty($this->name)) {
-            throw new \RuntimeException('BasicProvider "' . static::class . '" have no name.');
+        if (empty($this->name) || !is_string($this->name)) {
+            throw new \RuntimeException('BasicProvider "' . static::class . '::$name" isn\'t valid.');
         }
-        if (empty($this->class)) {
-            throw new \RuntimeException('BasicProvider "' . static::class . '" have no class to provide.');
+        if (empty($this->class) || !is_string($this->name)) {
+            throw new \RuntimeException('BasicProvider "' . static::class . '::$class" isn\'t valid.');
         }
     }
 
     public function registering()
     {
-        if (!empty($this->options)) {
-            $definition = array_merge(['className' => $this->class], $this->options);
-        } else {
+        if (empty($this->options)) {
             $definition = $this->class;
+        } else {
+            $definition = array_merge(['className' => $this->class], $this->options);
         }
 
         $service = new Service($this->name, $definition, $this->shared);
 
         $this->getDI()->setRaw($this->name, $service);
 
-        foreach ($this->aliases as $alias) {
-            $this->getDI()->setRaw($alias, $service);
-        }
+        if (!empty($this->aliases))
+            foreach ($this->aliases as $alias) {
+                $this->getDI()->setRaw($alias, $service);
+            }
     }
 }

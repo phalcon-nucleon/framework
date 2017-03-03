@@ -33,6 +33,7 @@ return [
 
     $path . '/Events/Listener.php',
 
+    $path . '/Providers/BasicProvider.php',
     $path . '/Providers/Provider.php',
     $path . '/Providers/Http/Dispatcher.php',
     $path . '/Providers/Http/Router.php',

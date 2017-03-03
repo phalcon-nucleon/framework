@@ -36,7 +36,7 @@ abstract class Provider extends Injectable implements Providable
     final public function __construct()
     {
         if (empty($this->name)) {
-            throw new \RuntimeException('Provider ' . static::class . ' have no name.');
+            throw new \RuntimeException('Provider "' . static::class . '" have no name.');
         }
     }
 

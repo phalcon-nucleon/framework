@@ -43,6 +43,19 @@ abstract class BasicProvider extends Injectable implements Providable
      */
     protected $options;
 
+    /**
+     * BasicProvider constructor.
+     */
+    final public function __construct()
+    {
+        if (empty($this->name)) {
+            throw new \RuntimeException('BasicProvider "' . static::class . '" have no name.');
+        }
+        if (empty($this->class)) {
+            throw new \RuntimeException('BasicProvider "' . static::class . '" have no class to provide.');
+        }
+    }
+
     public function registering()
     {
         if (!empty($this->options)) {

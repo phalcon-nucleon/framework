@@ -13,6 +13,11 @@ use Phalcon\Di\Injectable;
 abstract class Provider extends Injectable implements Providable
 {
     /**
+     * @var mixed
+     */
+    private $instance;
+
+    /**
      * Name of the service
      *
      * @var string
@@ -47,13 +52,11 @@ abstract class Provider extends Injectable implements Providable
         $self = $this;
 
         $closure = function () use ($self) {
-            if($self->shared){
-                static $instance;
-                if(isset($instance)){
-                    return $instance;
-                }
+            if ($self->shared && isset($self->instance)) {
+                return $self->instance;
             }
-            return $instance = $self->register();
+
+            return $self->instance = $self->register();
         };
 
         $this->getDI()->set($this->name, $closure, $this->shared);

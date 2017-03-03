@@ -17,6 +17,8 @@ class ModelManager extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [Manager::class];
+
     /**
      * @return \Phalcon\Mvc\Model\Manager
      */

@@ -16,6 +16,8 @@ class Filter extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [\Phalcon\Filter::class];
+
     /**
      * @return mixed|\Phalcon\Filter
      */

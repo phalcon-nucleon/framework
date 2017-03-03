@@ -17,6 +17,8 @@ class Auth extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [AuthManager::class];
+
     /**
      * @return \Neutrino\Auth\Manager
      */

@@ -15,6 +15,8 @@ class Security extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [\Phalcon\Security::class];
+
     /**
      * @return \Phalcon\Security
      */

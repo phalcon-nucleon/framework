@@ -17,6 +17,8 @@ class Cookies extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [\Phalcon\Http\Response\Cookies::class];
+
     /**
      * @return \Phalcon\Http\Response\Cookies
      */

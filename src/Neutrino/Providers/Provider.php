@@ -25,6 +25,11 @@ abstract class Provider extends Injectable implements Providable
     protected $shared = false;
 
     /**
+     * @var string[]
+     */
+    protected $aliases;
+
+    /**
      * Provider constructor.
      */
     final public function __construct()
@@ -41,9 +46,23 @@ abstract class Provider extends Injectable implements Providable
     {
         $self = $this;
 
-        $this->getDI()->set($this->name, function () use ($self) {
-            return $self->register();
-        }, $this->shared);
+        $closure = function () use ($self) {
+            if($self->shared){
+                static $instance;
+                if(isset($instance)){
+                    return $instance;
+                }
+            }
+            return $instance = $self->register();
+        };
+
+        $this->getDI()->set($this->name, $closure, $this->shared);
+
+        if(!empty($this->aliases)){
+            foreach ($this->aliases as $alias) {
+                $this->getDI()->set($alias, $closure, $this->shared);
+            }
+        }
     }
 
     /**

@@ -17,6 +17,8 @@ class Flash extends Provider
 
     protected $shared = false;
 
+    protected $aliases = [FlashDirect::class];
+
     /**
      * @return \Phalcon\Flash\Direct
      */

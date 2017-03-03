@@ -17,6 +17,8 @@ class Annotations extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [AnnotationsMemory::class];
+
     /**
      * @return \Phalcon\Annotations\Adapter\Memory
      */

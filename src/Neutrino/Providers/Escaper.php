@@ -16,6 +16,8 @@ class Escaper extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [\Phalcon\Escaper::class];
+
     /**
      * @return \Phalcon\Escaper
      */

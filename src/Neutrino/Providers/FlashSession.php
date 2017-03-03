@@ -17,6 +17,8 @@ class FlashSession extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [Session::class];
+
     /**
      * @return \Phalcon\Flash\Session
      */

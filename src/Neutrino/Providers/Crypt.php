@@ -15,6 +15,8 @@ class Crypt extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [\Phalcon\Crypt::class];
+
     /**
      * @return \Phalcon\Crypt
      */

@@ -17,6 +17,8 @@ class ModelsMetaData extends Provider
 
     protected $shared = true;
 
+    protected $aliases = [Memory::class];
+
     /**
      * @return Memory
      */

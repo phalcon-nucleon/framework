@@ -4,19 +4,15 @@ namespace Neutrino\Providers;
 
 use Neutrino\Interfaces\Providable;
 use Phalcon\Di\Injectable;
+use Phalcon\Di\Service;
 
 /**
  * Class Provider
  *
- *  @package Neutrino\Providers
+ * @package Neutrino\Providers
  */
 abstract class Provider extends Injectable implements Providable
 {
-    /**
-     * @var mixed
-     */
-    private $instance;
-
     /**
      * Name of the service
      *
@@ -25,14 +21,14 @@ abstract class Provider extends Injectable implements Providable
     protected $name;
 
     /**
-     * @var bool
-     */
-    protected $shared = false;
-
-    /**
      * @var string[]
      */
     protected $aliases;
+
+    /**
+     * @var bool
+     */
+    protected $shared = false;
 
     /**
      * Provider constructor.
@@ -51,19 +47,15 @@ abstract class Provider extends Injectable implements Providable
     {
         $self = $this;
 
-        $closure = function () use ($self) {
-            if ($self->shared && isset($self->instance)) {
-                return $self->instance;
-            }
+        $service = new Service($this->name, function () use ($self) {
+            return $self->register();
+        }, $this->shared);
 
-            return $self->instance = $self->register();
-        };
+        $this->getDI()->setRaw($this->name, $service);
 
-        $this->getDI()->set($this->name, $closure, $this->shared);
-
-        if(!empty($this->aliases)){
+        if (!empty($this->aliases)) {
             foreach ($this->aliases as $alias) {
-                $this->getDI()->set($alias, $closure, $this->shared);
+                $this->getDI()->setRaw($alias, $service);
             }
         }
     }

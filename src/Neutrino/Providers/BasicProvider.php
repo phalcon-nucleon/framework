@@ -4,6 +4,7 @@ namespace Neutrino\Providers;
 
 use Neutrino\Interfaces\Providable;
 use Phalcon\Di\Injectable;
+use Phalcon\Di\Service;
 
 abstract class BasicProvider extends Injectable implements Providable
 {
@@ -50,10 +51,12 @@ abstract class BasicProvider extends Injectable implements Providable
             $definition = $this->class;
         }
 
-        $this->getDI()->set($this->name, $definition, $this->shared);
+        $service = new Service($this->name, $definition, $this->shared);
+
+        $this->getDI()->setRaw($this->name, $service);
 
         foreach ($this->aliases as $alias) {
-            $this->getDI()->set($alias, $definition, $this->shared);
+            $this->getDI()->setRaw($alias, $service);
         }
     }
 }

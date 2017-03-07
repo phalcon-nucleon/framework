@@ -3,6 +3,7 @@
 namespace Neutrino\Repositories;
 
 use Neutrino\Interfaces\Repositories\RepositoryInterface;
+use Neutrino\Model;
 use Neutrino\Repositories\Exceptions\TransactionException;
 use Phalcon\Di\Injectable;
 
@@ -13,6 +14,8 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
     /** @var \Phalcon\Mvc\Model\MessageInterface[] */
     protected $messages = [];
+
+    protected static $queries = [];
 
     /**
      * Repository constructor.
@@ -65,27 +68,32 @@ abstract class Repository extends Injectable implements RepositoryInterface
     }
 
     /**
-     * @param array|string|int $criteria
+     * @param array $params
      *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
      */
-    public function first($criteria = null)
+    public function first(array $params = [])
     {
-        $class = $this->modelClass;
+        $query = $this->createQuery($params, 1);
 
-        return $class::findFirst($criteria);
+        $result = $query->execute($params);
+
+        return $result->getFirst();
     }
 
     /**
      * @param array $params
      *
+     * @param bool  $create
+     *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
+     * @throws \Neutrino\Repositories\Exceptions\TransactionException
      */
     public function firstOrNew(array $params = [], $create = false)
     {
         $class = $this->modelClass;
 
-        $model = $class::findFirst($this->paramsToCriteria($params));
+        $model = $this->first($params);
 
         if ($model === false) {
             $model = new $class;
@@ -159,6 +167,45 @@ abstract class Repository extends Injectable implements RepositoryInterface
     public function getMessages()
     {
         return $this->messages;
+    }
+
+    /**
+     * @param array    $wheres
+     * @param null|int $limit
+     *
+     * @return \Phalcon\Mvc\Model\QueryInterface
+     */
+    protected function createQuery($wheres, $limit = null)
+    {
+        $phql = "SELECT * FROM {$this->modelClass}";
+
+        foreach ($wheres as $key => $where) {
+            $clauses[] = "$key = :$key:";
+        }
+
+        if (!empty($clauses)) {
+            $phql .= ' WHERE ' . implode(' AND ', $clauses);
+        }
+
+        if (!empty($limit)) {
+            $phql .= " LIMIT $limit";
+        }
+
+        return $this->getQuery($phql);
+    }
+
+    /**
+     * @param string $phql
+     *
+     * @return \Phalcon\Mvc\Model\QueryInterface
+     */
+    protected function getQuery($phql)
+    {
+        if (!isset(self::$queries[$phql])) {
+            self::$queries[$phql] = $this->modelsManager->createQuery($phql);
+        }
+
+        return self::$queries[$phql];
     }
 
     /**

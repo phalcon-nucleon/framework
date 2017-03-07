@@ -7,14 +7,14 @@ interface RepositoryInterface
     /**
      * Retourne tous les models d'une table.
      *
-     * @return \Phalcon\Mvc\Model\ResultsetInterface|\Neutrino\Model[]
+     * @return \Phalcon\Mvc\Model\ResultsetInterface|\Neutrino\Model[]|\Phalcon\Mvc\Model[]
      */
     public function all();
 
     /**
      * @param null|array $criteria
      *
-     * @return \Phalcon\Mvc\Model\ResultsetInterface
+     * @return \Phalcon\Mvc\Model\ResultsetInterface|int
      */
     public function count(array $criteria = null);
 
@@ -23,18 +23,32 @@ interface RepositoryInterface
      *
      * @param null|string|array $criteria
      *
-     * @return \Phalcon\Mvc\Model\ResultsetInterface|\Neutrino\Model[]
+     * @return \Phalcon\Mvc\Model\ResultsetInterface|\Neutrino\Model[]|\Phalcon\Mvc\Model[]
      */
     public function find($criteria = null);
 
     /**
      * Recherche & renvoie le premier model selon les criteria transmis
      *
-     * @param null|string|array $criteria
+     * @param array $params
      *
-     * @return \Phalcon\Mvc\Model\ResultsetInterface|\Neutrino\Model[]
+     * @return \Neutrino\Model|\Phalcon\Mvc\Model|bool
      */
-    public function first($criteria = null);
+    public function first(array $params = []);
+
+    /**
+     * @param array $params
+     *
+     * @return \Neutrino\Model|\Phalcon\Mvc\Model
+     */
+    public function firstOrNew(array $params = []);
+
+    /**
+     * @param array $params
+     *
+     * @return \Neutrino\Model|\Phalcon\Mvc\Model
+     */
+    public function firstOrCreate(array $params = []);
 
     /**
      * Appel la methode create sur le, ou les, models transmis, dans une transaction.

@@ -6,6 +6,8 @@ use Neutrino\Constants\Services;
 use Neutrino\Model;
 use Neutrino\Repositories\Repository;
 use Phalcon\Db\Column;
+use Phalcon\Mvc\Model\Message;
+use Phalcon\Mvc\Model\Query;
 use Test\TestCase\TestCase;
 
 class RepositoryTest extends TestCase
@@ -99,11 +101,11 @@ class RepositoryTest extends TestCase
         $this->mockDb(0, null);
         $repository = new StubRepository;
 
-        $model       = new StubModelTest;
+        $model = new StubModelTest;
         $model->name = 'test';
 
         $this->assertTrue($repository->save($model));
-        $this->assertEquals([], $repository->getMessages());
+        $this->assertTrue($repository->save([$model, $model]));
     }
 
     public function testSaveFailed()
@@ -114,10 +116,10 @@ class RepositoryTest extends TestCase
         $model = new StubModelTest;
 
         $this->assertFalse($repository->save($model));
-        $this->assertEquals([\Phalcon\Mvc\Model\Message::__set_state([
-            '_type'    => 'PresenceOf',
-            '_message' => 'name is required',
-            '_field'   => 'name',
+        $this->assertEquals([Message::__set_state([
+            '_type'    => "PresenceOf",
+            '_message' => "name is required",
+            '_field'   => "name",
             '_model'   => null,
             '_code'    => 0
         ])], $repository->getMessages());
@@ -133,7 +135,7 @@ class RepositoryTest extends TestCase
         $model->name = 'test';
 
         $this->assertTrue($repository->update($model));
-        $this->assertEquals([], $repository->getMessages());
+        $this->assertTrue($repository->update([$model, $model]));
     }
 
     public function testUpdateFailed()
@@ -142,14 +144,15 @@ class RepositoryTest extends TestCase
         $repository = new StubRepository;
 
         $model = new StubModelTest;
+        $model->name = 'test';
 
         $this->assertFalse($repository->update($model));
-        $this->assertEquals([\Phalcon\Mvc\Model\Message::__set_state([
+        $this->assertEquals([Message::__set_state([
             '_type'    => 'InvalidUpdateAttempt',
             '_message' => 'Record cannot be updated because it does not exist',
             '_field'   => null,
             '_model'   => null,
-            '_code'    => 0
+            '_code'    => 0,
         ])], $repository->getMessages());
     }
 
@@ -162,6 +165,69 @@ class RepositoryTest extends TestCase
 
         $this->assertTrue($repository->delete($model));
         $this->assertTrue($repository->delete([$model, $model]));
+    }
+
+    public function dataCreateQuery()
+    {
+        return [
+            ["SELECT * FROM " . StubModelTest::class, [], null],
+            ["SELECT * FROM " . StubModelTest::class . ' LIMIT 1', [], 1],
+            ["SELECT * FROM " . StubModelTest::class . ' WHERE name = :name:', ['name' => 'test'], null],
+            ["SELECT * FROM " . StubModelTest::class . ' WHERE name = :name: LIMIT 1', ['name' => 'test'], 1],
+        ];
+    }
+
+    /**
+     * @dataProvider dataCreateQuery
+     */
+    public function testCreateQuery($phql, $wheres, $limit)
+    {
+        $repository = new StubRepository;
+
+        /** @var Query $expected */
+        $expected = $this->getDI()->getShared('modelsManager')->createQuery($phql);
+
+        $query = $this->invokeMethod($repository, 'createQuery', [$wheres, $limit]);
+        $queries = $this->getStaticValueProperty(Repository::class, 'queries');
+
+        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
+        $this->assertArrayHasKey($phql, $queries);
+        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
+    }
+
+    public function testCreateQueryMultiple()
+    {
+        $repository = new StubRepository;
+        $this->setStaticValueProperty(Repository::class, 'queries', []);
+
+        $expected = $this->getDI()->getShared('modelsManager')->createQuery(
+            $phql = 'SELECT * FROM ' . StubModelTest::class . ' WHERE name = :name:'
+        );
+        $expectedSecond = $this->getDI()->getShared('modelsManager')->createQuery(
+            $phqlSecond = 'SELECT * FROM ' . StubModelTest::class . ' WHERE id = :id:'
+        );
+
+        $query = $this->invokeMethod($repository, 'createQuery', [['name' => 'test']]);
+        $queries = $this->getStaticValueProperty(Repository::class, 'queries');
+
+        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
+        $this->assertCount(1, $queries);
+        $this->assertArrayHasKey($phql, $queries);
+        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
+
+        $query = $this->invokeMethod($repository, 'createQuery', [['name' => 'test_2']]);
+        $queries = $this->getStaticValueProperty(Repository::class, 'queries');
+        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
+        $this->assertCount(1, $queries);
+        $this->assertArrayHasKey($phql, $queries);
+        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
+
+        $query = $this->invokeMethod($repository, 'createQuery', [['id' => 'test_2']]);
+        $queries = $this->getStaticValueProperty(Repository::class, 'queries');
+        $this->assertEquals($this->getValueProperty($expectedSecond, '_phql'), $this->getValueProperty($query, '_phql'));
+        $this->assertCount(2, $queries);
+        $this->assertArrayHasKey($phqlSecond, $queries);
+        $this->assertEquals($this->getValueProperty($expectedSecond, '_phql'), $this->getValueProperty($queries[$phqlSecond], '_phql'));
     }
 
     private function mockCount($number)

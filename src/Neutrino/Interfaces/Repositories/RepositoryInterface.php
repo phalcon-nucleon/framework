@@ -37,6 +37,15 @@ interface RepositoryInterface
     public function first($criteria = null);
 
     /**
+     * Appel la methode create sur le, ou les, models transmis, dans une transaction.
+     *
+     * @param \Neutrino\Model|\Neutrino\Model[] $value
+     *
+     * @return bool
+     */
+    public function create($value);
+
+    /**
      * Appel la methode save sur le, ou les, models transmis, dans une transaction.
      *
      * @param \Neutrino\Model|\Neutrino\Model[] $value

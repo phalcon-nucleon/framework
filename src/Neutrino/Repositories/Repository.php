@@ -3,7 +3,6 @@
 namespace Neutrino\Repositories;
 
 use Neutrino\Interfaces\Repositories\RepositoryInterface;
-use Neutrino\Model;
 use Neutrino\Repositories\Exceptions\TransactionException;
 use Phalcon\Di\Injectable;
 
@@ -38,15 +37,13 @@ abstract class Repository extends Injectable implements RepositoryInterface
      */
     public function all()
     {
-        $class = $this->modelClass;
-
-        return $class::find();
+        return $this->createQuery([])->execute();
     }
 
     /**
      * @param null|array $criteria
      *
-     * @return \Phalcon\Mvc\Model\ResultsetInterface
+     * @return \Phalcon\Mvc\Model\ResultsetInterface|int
      */
     public function count(array $criteria = null)
     {
@@ -255,6 +252,8 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
             return true;
         } catch (\Exception $e) {
+            $this->messages[] = $e->getMessage();
+
             $this->db->rollback();
 
             return false;

@@ -39,7 +39,7 @@ class RepositoryTest extends TestCase
     {
         return [
             [[]],
-            [[['id' => 1, 'name' => 't1'], ['id' => 2, 'name' => 't2'], ['id' => 3, 'name' => 't3']]]
+            [[['id' => 1, 'name' => 't1'], ['id' => 2, 'name' => 't2'], ['id' => 3, 'name' => 't3']]],
         ];
     }
 
@@ -48,6 +48,7 @@ class RepositoryTest extends TestCase
      */
     public function testAll($data)
     {
+        $this->setStaticValueProperty(Repository::class, 'queries', []);
         $this->mockDb(count($data), $data);
 
         $repository = new StubRepository;
@@ -122,7 +123,7 @@ class RepositoryTest extends TestCase
             '_field'   => "name",
             '_model'   => null,
             '_code'    => 0
-        ])], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:save: failed. Show Test\Repositories\StubRepository::getMessages().'], $repository->getMessages());
     }
 
     public function testUpdate()
@@ -153,7 +154,7 @@ class RepositoryTest extends TestCase
             '_field'   => null,
             '_model'   => null,
             '_code'    => 0,
-        ])], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:update: failed. Show Test\Repositories\StubRepository::getMessages().'], $repository->getMessages());
     }
 
     public function testDelete()

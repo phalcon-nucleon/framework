@@ -81,7 +81,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
      *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
      */
-    public function firstOrNew(array $params = [])
+    public function firstOrNew(array $params = [], $create = false)
     {
         $class = $this->modelClass;
 
@@ -93,6 +93,10 @@ abstract class Repository extends Injectable implements RepositoryInterface
             foreach ($params as $key => $param) {
                 $model->$key = $param;
             }
+
+            if ($create && $this->create($model) === false) {
+                throw new TransactionException(__METHOD__ . ': can\'t create model : ' . get_class($model));
+            };
         }
 
         return $model;
@@ -106,23 +110,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
      */
     public function firstOrCreate(array $params = [])
     {
-        $class = $this->modelClass;
-
-        $model = $class::findFirst($this->paramsToCriteria($params));
-
-        if ($model === false) {
-            $model = new $class;
-
-            foreach ($params as $key => $param) {
-                $model->$key = $param;
-            }
-
-            if ($this->create($model) === false) {
-                throw new TransactionException(__METHOD__ . ': can\'t create model : ' . get_class($model));
-            };
-        }
-
-        return $model;
+        return $this->firstOrNew($params, true);
     }
 
     /**
@@ -189,7 +177,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
         foreach ($params as $key => $param) {
             $criteria['conditions'][] = "$key = :$key:";
-            $criteria['bind'][$key] = $params;
+            $criteria['bind'][$key] = $param;
         }
         $criteria['conditions'] = implode(' AND ', $criteria['conditions']);
 

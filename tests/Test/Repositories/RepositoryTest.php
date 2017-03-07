@@ -95,24 +95,62 @@ class RepositoryTest extends TestCase
 
     public function testSave()
     {
+        $this->markTestIncomplete('Test to redo');
         $this->mockDb(0, null);
         $repository = new StubRepository;
 
-        $model = new StubModelTest;
+        $model       = new StubModelTest;
+        $model->name = 'test';
 
         $this->assertTrue($repository->save($model));
-        $this->assertTrue($repository->save([$model, $model]));
+        $this->assertEquals([], $repository->getMessages());
     }
 
-    public function testUpdate()
+    public function testSaveFailed()
     {
         $this->mockDb(0, null);
         $repository = new StubRepository;
 
         $model = new StubModelTest;
 
+        $this->assertFalse($repository->save($model));
+        $this->assertEquals([\Phalcon\Mvc\Model\Message::__set_state([
+            '_type'    => 'PresenceOf',
+            '_message' => 'name is required',
+            '_field'   => 'name',
+            '_model'   => null,
+            '_code'    => 0
+        ])], $repository->getMessages());
+    }
+
+    public function testUpdate()
+    {
+        $this->markTestIncomplete('Test to redo');
+        $this->mockDb(0, null);
+        $repository = new StubRepository;
+
+        $model       = new StubModelTest;
+        $model->name = 'test';
+
         $this->assertTrue($repository->update($model));
-        $this->assertTrue($repository->update([$model, $model]));
+        $this->assertEquals([], $repository->getMessages());
+    }
+
+    public function testUpdateFailed()
+    {
+        $this->mockDb(0, null);
+        $repository = new StubRepository;
+
+        $model = new StubModelTest;
+
+        $this->assertFalse($repository->update($model));
+        $this->assertEquals([\Phalcon\Mvc\Model\Message::__set_state([
+            '_type'    => 'InvalidUpdateAttempt',
+            '_message' => 'Record cannot be updated because it does not exist',
+            '_field'   => null,
+            '_model'   => null,
+            '_code'    => 0
+        ])], $repository->getMessages());
     }
 
     public function testDelete()
@@ -126,7 +164,6 @@ class RepositoryTest extends TestCase
         $this->assertTrue($repository->delete([$model, $model]));
     }
 
-
     private function mockCount($number)
     {
         $this->mockDb(1, [['rowcount' => $number]]);
@@ -134,7 +171,7 @@ class RepositoryTest extends TestCase
 
     private function mockDb($numRows, $result)
     {
-        $con = $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
+        $con     = $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
         $dialect = $this->createMock(\Phalcon\Db\Dialect\Mysql::class);
         $results = $this->createMock(\Phalcon\Db\Result\Pdo::class);
 

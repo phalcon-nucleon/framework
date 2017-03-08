@@ -80,6 +80,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
     /**
      * @param array $params
+     * @param bool  $create
      *
      * @param bool  $create
      *
@@ -159,6 +160,58 @@ abstract class Repository extends Injectable implements RepositoryInterface
     }
 
     /**
+     * Use as :
+     * foreach($repository->each() as $model){
+     *     // ... do some stuff
+     *
+     *     $model->save();
+     * }
+     *
+     *
+     * @param array    $params
+     * @param null|int $start
+     * @param null|int $end
+     * @param int      $pad
+     *
+     * @return \Generator|\Neutrino\Model[]
+     */
+    public function each(array $params = [], $start = null, $end = null, $pad = 20)
+    {
+        if (is_null($start)) {
+            $start = 0;
+        }
+
+        if (is_null($end)) {
+            $end = $this->count();
+        }
+
+        if ($start >= $end) {
+            return;
+        }
+
+        $phql = "SELECT * FROM {$this->modelClass}";
+
+        foreach ($params as $key => $value) {
+            $clauses[] = "$key = :$key:";
+        }
+
+        if (isset($clauses)) {
+            $phql .= ' WHERE ' . implode(' AND ', $clauses);
+        }
+
+        $nb = ($end - $start) / $pad;
+        for ($i = 0; $i < $nb; $i++) {
+            $query = $this->modelsManager->createQuery($phql . " LIMIT " . ($start + ($pad * $i)) . ', ' . $pad);
+
+            $results = $query->execute($params);
+
+            foreach ($results as $result) {
+                yield $result;
+            }
+        }
+    }
+
+    /**
      * @return \Phalcon\Mvc\Model\MessageInterface[]
      */
     public function getMessages()
@@ -221,7 +274,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
         foreach ($params as $key => $param) {
             $criteria['conditions'][] = "$key = :$key:";
-            $criteria['bind'][$key] = $param;
+            $criteria['bind'][$key]   = $param;
         }
         $criteria['conditions'] = implode(' AND ', $criteria['conditions']);
 

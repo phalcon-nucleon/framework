@@ -175,7 +175,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
      *
      * @return \Generator|\Neutrino\Model[]
      */
-    public function each(array $params = [], $start = null, $end = null, $pad = 20)
+    public function each(array $params = [], $start = null, $end = null, $pad = 100)
     {
         if (is_null($start)) {
             $start = 0;
@@ -199,7 +199,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
             $phql .= ' WHERE ' . implode(' AND ', $clauses);
         }
 
-        $nb = ($end - $start) / $pad;
+        $nb = ceil(($end - $start) / $pad);
         for ($i = 0; $i < $nb; $i++) {
             $query = $this->modelsManager->createQuery($phql . " LIMIT " . ($start + ($pad * $i)) . ', ' . $pad);
 

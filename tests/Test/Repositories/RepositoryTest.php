@@ -6,8 +6,10 @@ use Neutrino\Constants\Services;
 use Neutrino\Model;
 use Neutrino\Repositories\Repository;
 use Phalcon\Db\Column;
+use Phalcon\Mvc\Model\Manager as ModelManager;
 use Phalcon\Mvc\Model\Message;
-use Phalcon\Mvc\Model\Query;
+use Phalcon\Mvc\Model\Query as ModelQuery;
+use Phalcon\Mvc\Model\Resultset;
 use Test\TestCase\TestCase;
 
 class RepositoryTest extends TestCase
@@ -132,7 +134,7 @@ class RepositoryTest extends TestCase
         $this->mockDb(0, null);
         $repository = new StubRepository;
 
-        $model       = new StubModelTest;
+        $model = new StubModelTest;
         $model->name = 'test';
 
         $this->assertTrue($repository->update($model));
@@ -231,6 +233,69 @@ class RepositoryTest extends TestCase
         $this->assertEquals($this->getValueProperty($expectedSecond, '_phql'), $this->getValueProperty($queries[$phqlSecond], '_phql'));
     }
 
+    public function dataEach()
+    {
+        return [
+            [0, 20, 5, 20, 4],
+            [5, 20, 5, 15, 3],
+            [0, 33, 5, 33, 7],
+            [15, 33, 5, 18, 4],
+            [0, 20, 20, 20, 1],
+            [0, 20, 100, 20, 1],
+            [0, 0, 100, 0, 0],
+            [20, 0, 100, 0, 0],
+        ];
+    }
+
+    /**
+     * @dataProvider dataEach
+     */
+    public function testEach($start, $end, $pad, $e_count, $e_call)
+    {
+        $nb = floor(($end - $start) / $pad);
+
+        $rest = ($end - $start) % $pad;
+
+        $datas = [];
+        for ($i = 0; $i < $nb; $i++) {
+            $data = [];
+            for ($j = 0; $j < $pad; $j++) {
+                $data[] = StubModelTest::make();
+            }
+            $datas[] = $data;
+        }
+
+        $cdatas = count($datas);
+        for ($i = 0; $i < $rest; $i++) {
+            $datas[$cdatas][] = StubModelTest::make();
+        }
+
+        $query = $this->createMock(ModelQuery::class);
+        $builder = $query->expects($this->exactly($e_call))
+            ->method('execute');
+
+        if (!empty($datas)) {
+            $builder->willReturn(...$datas);
+        }
+
+        $modelsManager = $this->mockService(Services::MODELS_MANAGER, ModelManager::class, true);
+
+        $modelsManager->expects($this->any())->method('createQuery')->willReturn($query);
+
+        $repository = new StubRepository;
+        $this->setStaticValueProperty(Repository::class, 'queries', []);
+
+        $count = 0;
+
+        foreach ($repository->each([], $start, $end, $pad) as $item) {
+            $this->assertInstanceOf(StubModelTest::class, $item);
+
+            $count++;
+        }
+
+        $this->assertEquals($e_count, $count);
+    }
+
     private function mockCount($number)
     {
         $this->mockDb(1, [['rowcount' => $number]]);
@@ -238,7 +303,7 @@ class RepositoryTest extends TestCase
 
     private function mockDb($numRows, $result)
     {
-        $con     = $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
+        $con = $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
         $dialect = $this->createMock(\Phalcon\Db\Dialect\Mysql::class);
         $results = $this->createMock(\Phalcon\Db\Result\Pdo::class);
 
@@ -293,6 +358,24 @@ class StubModelTest extends Model
         $this->primary('id', Column::TYPE_INTEGER);
 
         $this->column('name', Column::TYPE_VARCHAR);
+    }
+
+    /**
+     * @param null $name
+     *
+     * @return \Test\Repositories\StubModelTest
+     */
+    public static function make($name = null)
+    {
+        if (is_null($name)) {
+            $name = str_random();
+        }
+
+        $model = new self;
+
+        $model->name = $name;
+
+        return $model;
     }
 }
 

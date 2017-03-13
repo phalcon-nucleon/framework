@@ -21,7 +21,19 @@ trait Kernelize
      */
     public function registerServices()
     {
-        foreach ($this->providers as $provider) {
+        /** @var Di $di */
+        $di = $this->getDI();
+
+        foreach ($this->providers as $name => $provider) {
+            if(is_string($name)){
+                $service = new Di\Service($name, $provider, true);
+
+                $di->setRaw($name, $service);
+                $di->setRaw($provider, $service);
+
+                continue;
+            }
+
             /* @var \Neutrino\Interfaces\Providable $prv */
             $prv = new $provider();
 

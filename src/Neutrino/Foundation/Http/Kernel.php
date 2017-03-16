@@ -39,6 +39,13 @@ abstract class Kernel extends Application implements Kernelable
     protected $listeners = [];
 
     /**
+     * Return the modules to attach onto the application.
+     *
+     * @var string[]
+     */
+    protected $modules = [];
+
+    /**
      * The DependencyInjection class to use.
      *
      * @var string

@@ -12,7 +12,7 @@ use Phalcon\Events\Manager as EventsManager;
 /**
  * Class HttpKernel
  *
- *  @package Neutrino\Foundation
+ * @package Neutrino\Foundation
  */
 trait Kernelize
 {
@@ -58,6 +58,19 @@ trait Kernelize
     {
         foreach ($this->listeners as $listener) {
             $this->attach(new $listener);
+        }
+    }
+
+    /**
+     * This methods registers the middlewares to be used by the application
+     *
+     * @param array $modules
+     * @param bool  $merge
+     */
+    public function registerModules(array $modules, $merge = false)
+    {
+        if (!empty($this->modules)) {
+            parent::registerModules(array_merge($this->modules, $modules), $merge);
         }
     }
 

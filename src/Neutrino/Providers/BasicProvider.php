@@ -6,6 +6,14 @@ use Neutrino\Interfaces\Providable;
 use Phalcon\Di\Injectable;
 use Phalcon\Di\Service;
 
+/**
+ * Class BasicProvider
+ *
+ * @package Neutrino\Providers
+ *
+ * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
+ * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
+ */
 abstract class BasicProvider extends Injectable implements Providable
 {
     /**
@@ -50,9 +58,6 @@ abstract class BasicProvider extends Injectable implements Providable
     {
         if (empty($this->name) || !is_string($this->name)) {
             throw new \RuntimeException('BasicProvider "' . static::class . '::$name" isn\'t valid.');
-        }
-        if (empty($this->class) || !is_string($this->name)) {
-            throw new \RuntimeException('BasicProvider "' . static::class . '::$class" isn\'t valid.');
         }
     }
 

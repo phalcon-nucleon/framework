@@ -7,7 +7,7 @@ use Phalcon\Config;
 /**
  * Class Application
  *
- * Phalcon Application Boostraper
+ * Phalcon Application Bootstrapper
  *
  * @package Neutrino\Foundation
  */

@@ -13,7 +13,7 @@ final class Services
 {
     const ACL                 = 'acl';
     const ANNOTATIONS         = 'annotations';
-    const APP                 = 'app';
+    const APP                 = 'application';
     const ASSETS              = 'assets';
     const AUTH                = 'auth';
     const CACHE               = 'cache';

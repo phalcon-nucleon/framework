@@ -3,23 +3,17 @@
 namespace Neutrino\Providers\Micro;
 
 use Neutrino\Constants\Services;
-use Neutrino\Providers\Provider;
+use Neutrino\Providers\BasicProvider;
 
-class Router extends Provider
+class Router extends BasicProvider
 {
-    protected $name = Services::ROUTER;
+    protected $class = \Neutrino\Micro\Router::class;
+
+    protected $name = Services::MICRO_ROUTER;
 
     protected $shared = true;
 
-    /**
-     * Return the service to register
-     *
-     * Called when the services container tries to resolve the service
-     *
-     * @return mixed
-     */
-    protected function register()
-    {
-        return $this->{Services::APP};
-    }
+    protected $aliases = [
+        \Neutrino\Micro\Router::class
+    ];
 }

@@ -59,6 +59,9 @@ abstract class BasicProvider extends Injectable implements Providable
         if (empty($this->name) || !is_string($this->name)) {
             throw new \RuntimeException('BasicProvider "' . static::class . '::$name" isn\'t valid.');
         }
+        if (empty($this->class) || !is_string($this->class)) {
+            throw new \RuntimeException('BasicProvider "' . static::class . '::$class" isn\'t valid.');
+        }
     }
 
     public function registering()

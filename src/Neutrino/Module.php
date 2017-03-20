@@ -2,6 +2,7 @@
 
 namespace Neutrino;
 
+use Neutrino\Support\Traits\ServicesProvidersRegistrable;
 use Phalcon\Di;
 use Phalcon\DiInterface;
 use Phalcon\Mvc\ModuleDefinitionInterface;

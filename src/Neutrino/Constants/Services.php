@@ -29,6 +29,7 @@ final class Services
     const FLASH_SESSION       = 'flashSession';
     const HTTP_CLIENT         = 'httpClient';
     const LOGGER              = 'logger';
+    const MICRO_ROUTER        = 'micro.router';
     const MODELS_MANAGER      = 'modelsManager';
     const MODELS_METADATA     = 'modelsMetadata';
     const TRANSACTION_MANAGER = 'transactionManager';

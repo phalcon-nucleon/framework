@@ -10,17 +10,12 @@ use Phalcon\Mvc\Micro\Collection;
  * Class Router
  *
  * @property \Phalcon\Mvc\Micro $application
+ * @property \Phalcon\Mvc\Router $router
  *
  * @package Neutrino\Micro
  */
 class Router extends Injectable implements RouterInterface
 {
-    /** @var \Phalcon\Mvc\Router */
-    private $router;
-
-    /** @var \Phalcon\Mvc\Micro */
-    private $application;
-
     /**
      * Sets the name of the default module
      *
@@ -28,7 +23,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function setDefaultModule($moduleName)
     {
-        throw new \RuntimeException(__METHOD__ . ' doesn\'t support modules');
+        throw new \RuntimeException(__CLASS__ . ' doesn\'t support modules');
     }
 
     /**
@@ -38,7 +33,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function setDefaultController($controllerName)
     {
-        $this->router->setDefaultController($controllerName);
+        throw new \RuntimeException(__CLASS__ . ' doesn\'t support default controller.');
     }
 
     /**
@@ -48,7 +43,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function setDefaultAction($actionName)
     {
-        $this->router->setDefaultAction($actionName);
+        throw new \RuntimeException(__CLASS__ . ' doesn\'t support default controller.');
     }
 
     /**
@@ -58,7 +53,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function setDefaults(array $defaults)
     {
-        $this->router->setDefaults($defaults);
+        throw new \RuntimeException(__CLASS__ . ' doesn\'t support defaults paths.');
     }
 
     /**
@@ -83,7 +78,7 @@ class Router extends Injectable implements RouterInterface
     public function add($pattern, $paths = null, $httpMethods = null)
     {
         foreach ($httpMethods as $httpMethod) {
-            $this->application->{strtolower($httpMethod)}($pattern, self::pathToHandler($paths));
+            $this->application->{strtolower($httpMethod)}($pattern, $this->pathToHandler($paths));
         }
 
         return null;
@@ -99,7 +94,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function addGet($pattern, $paths = null)
     {
-        return $this->application->get($pattern, self::pathToHandler($paths));
+        return $this->application->get($pattern, $this->pathToHandler($paths));
     }
 
     /**
@@ -112,7 +107,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function addPost($pattern, $paths = null)
     {
-        return $this->application->post($pattern, self::pathToHandler($paths));
+        return $this->application->post($pattern, $this->pathToHandler($paths));
     }
 
     /**
@@ -125,7 +120,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function addPut($pattern, $paths = null)
     {
-        return $this->application->put($pattern, self::pathToHandler($paths));
+        return $this->application->put($pattern, $this->pathToHandler($paths));
     }
 
     /**
@@ -138,7 +133,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function addPatch($pattern, $paths = null)
     {
-        return $this->application->patch($pattern, self::pathToHandler($paths));
+        return $this->application->patch($pattern, $this->pathToHandler($paths));
     }
 
     /**
@@ -151,7 +146,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function addDelete($pattern, $paths = null)
     {
-        return $this->application->delete($pattern, self::pathToHandler($paths));
+        return $this->application->delete($pattern, $this->pathToHandler($paths));
     }
 
     /**
@@ -164,7 +159,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function addOptions($pattern, $paths = null)
     {
-        return $this->application->options($pattern, self::pathToHandler($paths));
+        return $this->application->options($pattern, $this->pathToHandler($paths));
     }
 
     /**
@@ -177,7 +172,7 @@ class Router extends Injectable implements RouterInterface
      */
     public function addHead($pattern, $paths = null)
     {
-        return $this->application->head($pattern, self::pathToHandler($paths));
+        return $this->application->head($pattern, $this->pathToHandler($paths));
     }
 
     /**
@@ -217,6 +212,16 @@ class Router extends Injectable implements RouterInterface
     public function addConnect($pattern, $paths = null)
     {
         throw new \RuntimeException(__METHOD__ . ': Micro Application doesn\'t support HTTP CONNECT method.');
+    }
+
+    /**
+     * Adds a notFound route
+     *
+     * @param callable $handler
+     */
+    public function notFound($handler)
+    {
+        $this->application->notFound($handler);
     }
 
     /**
@@ -355,21 +360,22 @@ class Router extends Injectable implements RouterInterface
         return $this->router->getRouteByName($name);
     }
 
-    protected static function pathToHandler($path){
+    /**
+     * @param $path
+     *
+     * @return \Closure
+     */
+    protected function pathToHandler($path){
         if($path instanceof \Closure){
             return $path;
         }
 
         if(is_array($path)){
-            return function ($_ = null) use ($path) {
+            return function () use ($path) {
                 /** @var Micro $this */
 
                 $controller = arr_get($path, 'controller');
                 $action = arr_get($path, 'action');
-
-                if(!class_exists($controller)){
-                    throw new \RuntimeException(/* TODO */);
-                }
 
                 $handler = $this->getDI()->get($controller);
 
@@ -377,11 +383,7 @@ class Router extends Injectable implements RouterInterface
                     throw new \RuntimeException('Method : "' . $action . '" doesn\'t exist on "' . $controller . '"');
                 }
 
-                if(is_null($_)){
-                    return $handler->$action(...func_get_args());
-                } else {
-                    return $handler->$action();
-                }
+                return $handler->$action(...func_get_args());
             };
         }
 

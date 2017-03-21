@@ -55,6 +55,6 @@ class Router extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return Services::ROUTER;
+        return Services::MICRO_ROUTER;
     }
 }

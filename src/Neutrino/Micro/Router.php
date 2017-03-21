@@ -17,16 +17,20 @@ use Phalcon\Mvc\Micro\Collection;
 class Router extends Injectable implements RouterInterface
 {
     /**
+     * @deprecated Micro Application doesn't support modules.
+     *
      * Sets the name of the default module
      *
      * @param string $moduleName
      */
     public function setDefaultModule($moduleName)
     {
-        throw new \RuntimeException(__CLASS__ . ' doesn\'t support modules');
+        throw new \RuntimeException(__CLASS__ . ' doesn\'t support modules.');
     }
 
     /**
+     * @deprecated Micro Application doesn't support default controller.
+     *
      * Sets the default controller name
      *
      * @param string $controllerName
@@ -37,16 +41,20 @@ class Router extends Injectable implements RouterInterface
     }
 
     /**
+     * @deprecated Micro Application doesn't support default action.
+     *
      * Sets the default action name
      *
      * @param string $actionName
      */
     public function setDefaultAction($actionName)
     {
-        throw new \RuntimeException(__CLASS__ . ' doesn\'t support default controller.');
+        throw new \RuntimeException(__CLASS__ . ' doesn\'t support default action.');
     }
 
     /**
+     * @deprecated Micro Application doesn't support default paths.
+     *
      * Sets an array of default paths
      *
      * @param array $defaults
@@ -176,6 +184,8 @@ class Router extends Injectable implements RouterInterface
     }
 
     /**
+     * @deprecated Micro Application doesn't support HTTP PURGE method.
+     *
      * Adds a route to the router that only match if the HTTP method is PURGE (Squid and Varnish support)
      *
      * @param string $pattern
@@ -189,6 +199,8 @@ class Router extends Injectable implements RouterInterface
     }
 
     /**
+     * @deprecated Micro Application doesn't support HTTP TRACE method.
+     *
      * Adds a route to the router that only match if the HTTP method is TRACE
      *
      * @param string $pattern
@@ -202,6 +214,8 @@ class Router extends Injectable implements RouterInterface
     }
 
     /**
+     * @deprecated Micro Application doesn't support HTTP CONNECT method.
+     *
      * Adds a route to the router that only match if the HTTP method is CONNECT
      *
      * @param string $pattern
@@ -239,6 +253,8 @@ class Router extends Injectable implements RouterInterface
     }
 
     /**
+     * @deprecated Micro Application doesn't support clear method.
+     *
      * Removes all the defined routes
      */
     public function clear()
@@ -247,13 +263,15 @@ class Router extends Injectable implements RouterInterface
     }
 
     /**
+     * @deprecated Micro Application doesn't support modules.
+     *
      * Returns processed module name
      *
      * @return string
      */
     public function getModuleName()
     {
-        throw new \RuntimeException(__METHOD__ . ' doesn\'t support modules');
+        throw new \RuntimeException(__METHOD__ . ' doesn\'t support modules.');
     }
 
     /**

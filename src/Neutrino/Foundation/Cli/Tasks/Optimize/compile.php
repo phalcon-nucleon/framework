@@ -37,6 +37,7 @@ return [
     $path . '/Providers/Provider.php',
     $path . '/Providers/Http/Dispatcher.php',
     $path . '/Providers/Http/Router.php',
+    $path . '/Providers/Micro/Router.php',
     $path . '/Providers/Database.php',
     $path . '/Providers/Dispatcher.php',
     $path . '/Providers/Cache.php',
@@ -46,6 +47,12 @@ return [
     $path . '/Providers/Router.php',
     $path . '/Providers/View.php',
     $path . '/Providers/Url.php',
+
+    $path . '/Micro/Middleware.php',
+    $path . '/Micro/RouterInterface.php',
+    $path . '/Micro/Router.php',
+
+    $path . '/Http/Controller.php',
 
     $path . '/Support/Facades/Facade.php',
     $path . '/Support/Facades/Auth.php',
@@ -59,13 +66,16 @@ return [
     $path . '/Support/Facades/Session.php',
     $path . '/Support/Facades/Url.php',
     $path . '/Support/Facades/View.php',
+    $path . '/Support/Facades/Micro/Router.php',
 
     $path . '/Error/Handler.php',
-
-    $path . '/Http/Controller.php',
 
     $path . '/Foundation/Bootstrap.php',
     $path . '/Foundation/Kernelize.php',
     $path . '/Foundation/Http/Kernel.php',
+    $path . '/Foundation/Micro/Kernel.php',
     $path . '/Foundation/Middleware/Controller.php',
+
+    $path . '/Module.php',
+    $path . '/Model.php',
 ];

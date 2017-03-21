@@ -2,6 +2,7 @@
 
 namespace Test\Stub;
 
+use Neutrino\Constants\Services;
 use Neutrino\Foundation\Micro\Kernel;
 use Neutrino\Providers;
 
@@ -12,6 +13,7 @@ class StubKernelMicro extends Kernel
         Providers\Http\Router::class,
         Providers\Http\Dispatcher::class,
         Providers\Cache::class,
+        Providers\Micro\Router::class,
     ];
 
     protected $listeners = [
@@ -24,8 +26,11 @@ class StubKernelMicro extends Kernel
 
     public function registerRoutes()
     {
-        $this->get('', function(){
+        /** @var \Neutrino\Micro\Router $router */
+        $router = $this->{Services::MICRO_ROUTER};
 
+        $router->addGet('get.test.abc', function () {
+            return 'get.test.abc';
         });
     }
 }

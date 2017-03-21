@@ -2,17 +2,21 @@
 
 namespace Test\Micro;
 
-use Test\Stub\StubKernelMicro;
 use Test\TestCase\TestCase;
 
 class MicroKernelTest extends TestCase
 {
-    protected static function kernelClassInstance()
+    use MicroTestCase;
+
+    public function testAny()
     {
-        return StubKernelMicro::class;
+
     }
 
-    public function testAny(){
+    public function testRouteAbc()
+    {
+        $this->dispatch('get.test.abc');
 
+        $this->assertEquals("get.test.abc", $this->getContent());
     }
 }

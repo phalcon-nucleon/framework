@@ -6,6 +6,7 @@ use Neutrino\Dotenv;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Di\FactoryDefault as Di;
+use Phalcon\Events\Manager as EventManager;
 use Phalcon\Mvc\Application;
 
 /**
@@ -51,6 +52,13 @@ abstract class Kernel extends Application implements Kernelable
      * @var string
      */
     protected $dependencyInjection = Di::class;
+
+    /**
+     * The EventManager class to use.
+     *
+     * @var string
+     */
+    protected $eventsManagerClass = EventManager::class;
 
     /**
      * Register the routes of the application.

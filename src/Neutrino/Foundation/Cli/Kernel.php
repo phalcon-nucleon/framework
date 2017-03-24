@@ -7,6 +7,7 @@ use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Cli\Console;
 use Phalcon\Di\FactoryDefault\Cli as Di;
+use Phalcon\Events\Manager as EventManager;
 
 /**
  * Class Cli
@@ -54,6 +55,13 @@ abstract class Kernel extends Console implements Kernelable
      * @var string
      */
     protected $dependencyInjection = Di::class;
+
+    /**
+     * The EventManager class to use.
+     *
+     * @var string
+     */
+    protected $eventsManagerClass = EventManager::class;
 
     /**
      * Application constructor.

@@ -100,12 +100,16 @@ trait Kernelize
      */
     public final function bootstrap(Config $config)
     {
-        $diClass = $this->dependencyInjection;
-
         /** @var \Phalcon\Application $this */
-        $em = new EventsManager;
 
-        $this->setEventsManager($em);
+        $diClass = $this->dependencyInjection;
+        $emClass = $this->eventsManagerClass;
+
+        if(!empty($emClass)){
+            $em = new EventsManager;
+
+            $this->setEventsManager($em);
+        }
 
         Di::reset();
 
@@ -115,9 +119,11 @@ trait Kernelize
         $di->setShared(Services::APP, $this);
         $di->setShared(Services::CONFIG, $config);
 
-        $di->setInternalEventsManager($em);
+        if(!empty($em)){
+            $di->setInternalEventsManager($em);
 
-        $di->setShared(Services::EVENTS_MANAGER, $em);
+            $di->setShared(Services::EVENTS_MANAGER, $em);
+        }
 
         // Register Global Di
         Di::setDefault($di);

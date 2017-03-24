@@ -17,7 +17,7 @@ class StubKernelMicro extends Kernel
     ];
 
     protected $listeners = [
-        StubListener::class
+        // StubListener::class
     ];
 
     protected $middlewares = [

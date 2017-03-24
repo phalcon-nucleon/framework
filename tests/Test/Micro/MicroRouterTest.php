@@ -73,9 +73,11 @@ class MicroRouterTest extends TestCase
 
         $router->{'add' . ucfirst($httpMethod)}($path, $handler);
 
-        $this->dispatch($path, strtoupper($httpMethod));
+        $this->dispatch($path, strtoupper($httpMethod), [], $output);
 
+        $this->assertEquals($output, $this->getContent());
         $this->assertEquals($expected, $this->getContent());
+        $this->assertEquals($expected, $output);
     }
 
     public function dataTryRegisteringUnsupportedHttpMethod()

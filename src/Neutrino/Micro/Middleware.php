@@ -4,6 +4,11 @@ namespace Neutrino\Micro;
 
 use Phalcon\Mvc\Micro\MiddlewareInterface;
 
+/**
+ * Class Middleware
+ *
+ * @package Neutrino\Micro
+ */
 abstract class Middleware implements MiddlewareInterface
 {
     const ON_BEFORE = 'before';

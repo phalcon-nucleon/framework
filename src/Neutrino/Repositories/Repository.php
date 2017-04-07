@@ -5,6 +5,11 @@ namespace Neutrino\Repositories;
 use Neutrino\Interfaces\Repositories\RepositoryInterface;
 use Phalcon\Di\Injectable;
 
+/**
+ * Class Repository
+ *
+ * @package Neutrino\Repositories
+ */
 abstract class Repository extends Injectable implements RepositoryInterface
 {
     /** @var \Neutrino\Model */

@@ -2,6 +2,11 @@
 
 namespace Neutrino\Interfaces\Repositories;
 
+/**
+ * Interface RepositoryInterface
+ *
+ * @package Neutrino\Interfaces\Repositories
+ */
 interface RepositoryInterface
 {
     /**

@@ -46,6 +46,13 @@ trait InjectionAwareTrait
         return $this->_di;
     }
 
+    /**
+     * Magic method __get
+     *
+     * @param string $name
+     *
+     * @return mixed
+     */
     public function __get($name)
     {
         if (!isset($this->$name)) {

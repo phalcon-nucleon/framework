@@ -5,6 +5,11 @@ namespace Neutrino;
 use Neutrino\Dotenv\Exception\InvalidFileException;
 use Neutrino\Dotenv\Loader;
 
+/**
+ * Class Dotenv
+ *
+ * @package Neutrino
+ */
 class Dotenv
 {
     /**
@@ -73,6 +78,13 @@ class Dotenv
         return isset($_ENV[$key]) ? $_ENV[$key] : null;
     }
 
+    /**
+     * Translates values retrieved from getenv
+     *
+     * @param $value
+     *
+     * @return bool|null|string
+     */
     private static function trans($value)
     {
         switch (strtolower($value)) {

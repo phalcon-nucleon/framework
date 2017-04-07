@@ -24,6 +24,11 @@
  */
 namespace Neutrino\Http\Standards;
 
+/**
+ * Class Method
+ *
+ * @package Neutrino\Http\Standards
+ */
 class Method
 {
     /**

@@ -105,27 +105,61 @@ class Decorate
         return sprintf("\033[%sm%s\033[%sm", implode(';', $setCodes), $text, implode(';', $unsetCodes));
     }
 
-
+    /**
+     * Decorate a string as information output.
+     *
+     * @param string $str
+     *
+     * @return string
+     */
     public static function info($str)
     {
         return self::apply($str, 'green');
     }
 
+    /**
+     * Decorate a string as notice output.
+     *
+     * @param string $str
+     *
+     * @return string
+     */
     public static function notice($str)
     {
         return self::apply($str, 'yellow');
     }
 
+    /**
+     * Decorate a string as warning output.
+     *
+     * @param string $str
+     *
+     * @return string
+     */
     public static function warn($str)
     {
         return self::apply($str, 'yellow', null, ['reverse']);
     }
 
+    /**
+     * Decorate a string as error output.
+     *
+     * @param string $str
+     *
+     * @return string
+     */
     public static function error($str)
     {
         return self::apply($str, 'black', 'red');
     }
 
+    /**
+     * Decorate a string as question output.
+     *
+     * @param string $str
+     *
+     * @return string
+     */
     public static function question($str)
     {
         return self::apply($str, 'black', 'cyan');

@@ -55,6 +55,11 @@ class ListTask extends Task
         (new Group($this->output, $datas))->display();
     }
 
+    /**
+     * Describe a \Phalcon\Cli\Router\Route
+     *
+     * @param \Phalcon\Cli\Router\Route $route
+     */
     protected function describeRoute(Route $route)
     {
         $paths = $route->getPaths();
@@ -70,6 +75,11 @@ class ListTask extends Task
         $this->describe($compiled, $class, $action);
     }
 
+    /**
+     * @param string $pattern
+     * @param string $class
+     * @param string $action
+     */
     protected function describe($pattern, $class, $action)
     {
         $infos = Helper::getTaskInfos($class, $action);

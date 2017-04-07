@@ -446,10 +446,10 @@ function str_callRandom($size)
         default:
             if (function_exists('random_bytes')) {
                 $randFunc = 'random_bytes';
-            } elseif (function_exists('mcrypt_create_iv')) {
-                $randFunc = 'mcrypt_create_iv';
             } elseif (function_exists('openssl_random_pseudo_bytes')) {
                 $randFunc = 'openssl_random_pseudo_bytes';
+            } elseif (function_exists('mcrypt_create_iv')) {
+                $randFunc = 'mcrypt_create_iv';
             } else {
                 $randFunc = 'str_quickRandom';
             }

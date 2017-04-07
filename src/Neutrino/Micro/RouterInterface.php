@@ -2,6 +2,13 @@
 
 namespace Neutrino\Micro;
 
+use Phalcon\Mvc\Micro\Collection;
+
+/**
+ * Interface RouterInterface
+ *
+ * @package Neutrino\Micro
+ */
 interface RouterInterface
 {
 
@@ -146,7 +153,7 @@ interface RouterInterface
      * @param \Phalcon\Mvc\Micro\Collection $collection
      * @return RouterInterface
      */
-    public function mount(\Phalcon\Mvc\Micro\Collection $collection);
+    public function mount(Collection $collection);
 
     /**
      * Removes all the defined routes

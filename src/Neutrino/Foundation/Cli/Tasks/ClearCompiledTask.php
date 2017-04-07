@@ -32,6 +32,11 @@ class ClearCompiledTask extends Task
         self::clearLoader(getcwd() . DIRECTORY_SEPARATOR . 'bootstrap/compile/');
     }
 
+    /**
+     * Deleting Compiled Files
+     *
+     * @param string $compileDir
+     */
     private static function clearLoader($compileDir)
     {
         if (file_exists($compileDir . 'loader.php')) {

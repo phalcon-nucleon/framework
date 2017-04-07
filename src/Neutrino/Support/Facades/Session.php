@@ -25,7 +25,7 @@ use Neutrino\Constants\Services;
  * @method static string getId() Returns active session id
  * @method static bool isStarted() Check whether the session has been started
  * @method static bool destroy(bool $removeData = false) Destroys the active session
- * @method static \Phalcon\Session\AdapterInterface regenerateId(bool $deleteOldSession = true) Regenerate session's id
+ * @method static Phalcon\Session\AdapterInterface regenerateId(bool $deleteOldSession = true) Regenerate session's id
  * @method static setName(string $name) Set session name
  * @method static string getName() Get session name
  */

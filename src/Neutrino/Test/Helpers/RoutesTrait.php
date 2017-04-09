@@ -36,6 +36,7 @@ trait RoutesTrait
         array $params = null
     ) {
         // GIVEN
+        /** @var \Phalcon\DiInterface $di */
         $di = $this->getDI();
         /** @var \Phalcon\Mvc\Router $router */
         $router = $di->getShared(Services::ROUTER);

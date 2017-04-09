@@ -94,13 +94,13 @@ class Cache extends Injectable implements Providable
                     $adapterInstance = new $adapterClass($options);
 
                     if (!($adapterInstance instanceof FrontendInterface)) {
-                        throw new \RuntimeException("Cache adapter $adapter not implemente FrontendInterface.");
+                        throw new \RuntimeException("Cache adapter $adapter not implement FrontendInterface.");
                     }
 
                     $driverInstance = new $driverClass($adapterInstance, $options);
 
                     if (!($driverInstance instanceof BackendInterface)) {
-                        throw new \RuntimeException("Cache driver $adapter not implemente BackendInterface.");
+                        throw new \RuntimeException("Cache driver $adapter not implement BackendInterface.");
                     }
 
                     return $driverInstance;

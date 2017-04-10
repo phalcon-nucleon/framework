@@ -11,10 +11,14 @@ abstract class Repository extends Injectable implements RepositoryInterface
     /** @var \Neutrino\Model */
     protected $modelClass;
 
+    /** @var string */
+    protected $alias;
+
     /** @var \Phalcon\Mvc\Model\MessageInterface[] */
     protected $messages = [];
 
-    protected static $queries = [];
+    /** @var \Phalcon\Mvc\Model\Query[] */
+    protected $queries = [];
 
     /**
      * Repository constructor.
@@ -30,6 +34,8 @@ abstract class Repository extends Injectable implements RepositoryInterface
         if (empty($this->modelClass)) {
             throw new \RuntimeException(static::class . ' must have a $modelClass.');
         }
+
+        $this->alias = \Phalcon\Text::random(\Phalcon\Text::RANDOM_ALPHA, 3);
     }
 
     /**
@@ -37,7 +43,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
      */
     public function all()
     {
-        return $this->createQuery([])->execute();
+        return $this->getQuery($this->createPhql())->execute();
     }
 
     /**
@@ -53,29 +59,34 @@ abstract class Repository extends Injectable implements RepositoryInterface
     }
 
     /**
-     * @param array|string|int $criteria
+     * @param array      $params
+     * @param array|null $orders
+     * @param int|null   $limit
+     * @param int|null   $offset
      *
-     * @return \Phalcon\Mvc\Model\ResultsetInterface|\Neutrino\Model[]
+     * @return \Neutrino\Model[]|\Phalcon\Mvc\Model\ResultsetInterface
      */
-    public function find($criteria = null)
+    public function find(array $params = [], array $orders = null, $limit = null, $offset = null)
     {
-        $class = $this->modelClass;
-
-        return $class::find($criteria);
+        return $this
+            ->getQuery($this->createPhql(null, $params, $orders, $limit, $offset))
+            ->execute($this->createBindParams($params, $limit, $offset));
     }
 
     /**
-     * @param array $params
+     * @param array      $params
+     * @param array|null $orders
+     * @param int|null   $offset
      *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
      */
-    public function first(array $params = [])
+    public function first(array $params = [], array $orders = null, $offset = null)
     {
-        $query = $this->createQuery($params, 1);
+        $query = $this->getQuery($this->createPhql(null, $params, $orders, null, $offset));
 
-        $result = $query->execute($params);
+        $query->setUniqueRow(true);
 
-        return $result->getFirst();
+        return $query->execute($this->createBindParams($params, null, $offset));
     }
 
     /**
@@ -89,11 +100,11 @@ abstract class Repository extends Injectable implements RepositoryInterface
      */
     public function firstOrNew(array $params = [], $create = false)
     {
-        $class = $this->modelClass;
-
         $model = $this->first($params);
 
         if ($model === false) {
+            $class = $this->modelClass;
+
             $model = new $class;
 
             foreach ($params as $key => $param) {
@@ -163,8 +174,6 @@ abstract class Repository extends Injectable implements RepositoryInterface
      * Use as :
      * foreach($repository->each() as $model){
      *     // ... do some stuff
-     *
-     *     $model->save();
      * }
      *
      *
@@ -182,31 +191,29 @@ abstract class Repository extends Injectable implements RepositoryInterface
         }
 
         if (is_null($end)) {
-            $end = $this->count();
+            $end = INF;
         }
 
         if ($start >= $end) {
             return;
         }
 
-        $phql = "SELECT * FROM {$this->modelClass}";
-
-        foreach ($params as $key => $value) {
-            $clauses[] = "$key = :$key:";
-        }
-
-        if (isset($clauses)) {
-            $phql .= ' WHERE ' . implode(' AND ', $clauses);
-        }
+        $query = $this->getQuery($this->createPhql(null, $params, null, true, true));
 
         $nb = ceil(($end - $start) / $pad);
         for ($i = 0; $i < $nb; $i++) {
-            $query = $this->modelsManager->createQuery($phql . " LIMIT " . ($start + ($pad * $i)) . ', ' . $pad);
+            $results = $query->execute($this->createBindParams($params, $pad, ($start + ($pad * $i))));
 
-            $results = $query->execute($params);
+            $empty = true;
 
             foreach ($results as $result) {
+                $empty = false;
+
                 yield $result;
+            }
+
+            if ($empty) {
+                break;
             }
         }
     }
@@ -220,28 +227,90 @@ abstract class Repository extends Injectable implements RepositoryInterface
     }
 
     /**
-     * @param array    $wheres
-     * @param null|int $limit
+     * @param null|string|array $columns
+     * @param array             $params
+     * @param array|null        $orders
+     * @param null|int          $limit
+     * @param null              $offset
      *
-     * @return \Phalcon\Mvc\Model\QueryInterface
+     * @return string
      */
-    protected function createQuery($wheres, $limit = null)
+    protected function createPhql($columns = null, array $params = [], array $orders = null, $limit = null, $offset = null)
     {
-        $phql = "SELECT * FROM {$this->modelClass}";
+        $phql = 'SELECT';
 
-        foreach ($wheres as $key => $where) {
-            $clauses[] = "$key = :$key:";
+        if(empty($columns)) {
+            $phql .= ' *';
+        } else {
+            if(is_string($columns)){
+                $phql .= ' ' . $columns;
+            } elseif(is_array($columns)) {
+                $phql .= $this->alias . '.' . implode(', ' . $this->alias . '.', $columns);
+            } else {
+                $phql .= ' *';
+            }
+        }
+
+        $phql .= " FROM {$this->modelClass} AS {$this->alias}";
+
+        foreach ($params as $key => $where) {
+            $operator = '=';
+
+            if (is_array($where)) {
+                $operator = 'IN';
+            } elseif (is_string($where)) {
+                $operator = 'LIKE';
+            }
+
+            $clauses[] = "{$this->alias}.$key $operator :$key:";
         }
 
         if (!empty($clauses)) {
             $phql .= ' WHERE ' . implode(' AND ', $clauses);
         }
 
-        if (!empty($limit)) {
-            $phql .= " LIMIT $limit";
+        if (!empty($orders)) {
+            $_orders = [];
+            foreach ($orders as $key => $order) {
+                if (is_int($key)) {
+                    $key = $order;
+                    $order = 'ASC';
+                }
+                $_orders[] = "{$this->alias}.$key $order";
+            }
+
+            $phql .= ' ORDER BY ' . implode(', ', $_orders);
         }
 
-        return $this->getQuery($phql);
+        if (isset($limit)) {
+            $phql .= " LIMIT :{$this->alias}_limit_phql:";
+        }
+
+        if (isset($offset)) {
+            $phql .= " OFFSET :{$this->alias}_offset_phql:";
+        }
+
+        return $phql;
+    }
+
+    /**
+     * @param array $params
+     * @param null  $limit
+     * @param null  $offset
+     *
+     * @return array
+     */
+    protected function createBindParams(array $params = [], $limit = null, $offset = null)
+    {
+        if (isset($limit)) {
+            $params["{$this->alias}_limit_phql"] = $limit;
+        }
+
+        if (isset($offset)) {
+            $params["{$this->alias}_offset_phql"] = $offset;
+        }
+
+        return $params;
     }
 
     /**
@@ -251,34 +320,11 @@ abstract class Repository extends Injectable implements RepositoryInterface
      */
     protected function getQuery($phql)
     {
-        if (!isset(self::$queries[$phql])) {
-            self::$queries[$phql] = $this->modelsManager->createQuery($phql);
+        if (!isset($this->queries[$phql])) {
+            $this->queries[$phql] = $this->modelsManager->createQuery($phql);
         }
 
-        return self::$queries[$phql];
-    }
-
-    /**
-     * @return \Phalcon\Mvc\Model\Criteria
-     */
-    protected function query()
-    {
-        $class = $this->modelClass;
-
-        return $class::query();
-    }
-
-    protected function paramsToCriteria(array $params)
-    {
-        $criteria = [];
-
-        foreach ($params as $key => $param) {
-            $criteria['conditions'][] = "$key = :$key:";
-            $criteria['bind'][$key]   = $param;
-        }
-        $criteria['conditions'] = implode(' AND ', $criteria['conditions']);
-
-        return $criteria;
+        return $this->queries[$phql];
     }
 
     /**
@@ -289,14 +335,23 @@ abstract class Repository extends Injectable implements RepositoryInterface
      */
     protected function transactionCall(array $values, $method)
     {
-        $this->db->begin();
+        if (empty($values)) {
+            return true;
+        }
 
         try {
+            $this->db->begin();
+
+            $this->messages = [];
+
             foreach ($values as $item) {
                 if ($item->$method() === false) {
-                    $this->messages = $item->getMessages();
-                    throw new TransactionException(get_class($item) . ':' . $method . ': failed. Show ' . get_class($this) . '::getMessages().');
-                };
+                    $this->messages = array_merge($this->messages, $item->getMessages());
+                }
+            }
+
+            if (!empty($this->messages)) {
+                throw new TransactionException(get_class(arr_get($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
             }
 
             if ($this->db->commit() === false) {

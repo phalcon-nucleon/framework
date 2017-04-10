@@ -9,7 +9,6 @@ use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\Manager as ModelManager;
 use Phalcon\Mvc\Model\Message;
 use Phalcon\Mvc\Model\Query as ModelQuery;
-use Phalcon\Mvc\Model\Resultset;
 use Test\TestCase\TestCase;
 
 class RepositoryTest extends TestCase
@@ -50,7 +49,7 @@ class RepositoryTest extends TestCase
      */
     public function testAll($data)
     {
-        $this->setStaticValueProperty(Repository::class, 'queries', []);
+        //$this->setValueProperty(Repository::class, 'queries', []);
         $this->mockDb(count($data), $data);
 
         $repository = new StubRepository;
@@ -173,60 +172,91 @@ class RepositoryTest extends TestCase
     public function dataCreateQuery()
     {
         return [
-            ["SELECT * FROM " . StubModelTest::class, [], null],
-            ["SELECT * FROM " . StubModelTest::class . ' LIMIT 1', [], 1],
-            ["SELECT * FROM " . StubModelTest::class . ' WHERE name = :name:', ['name' => 'test'], null],
-            ["SELECT * FROM " . StubModelTest::class . ' WHERE name = :name: LIMIT 1', ['name' => 'test'], 1],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias}',
+                null, [], null, null, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} LIMIT :{alias}_limit_phql:',
+                null, [], null, 1, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name = :name:',
+                null, ['name' => 1], null, null, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name IN :name:',
+                null, ['name' => ['abc', 'xyz']], null, null, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name:',
+                null, ['name' => 'test'], null, null, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.id = :id: AND {alias}.name LIKE :name: AND {alias}.status IN :status:',
+                null, ['id' => 10, 'name' => 'abc', 'status' => [1, 2, 3]], null, null, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: LIMIT :{alias}_limit_phql:',
+                null, ['name' => 'test'], null, 1, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name ASC LIMIT :{alias}_limit_phql:',
+                null, ['name' => 'test'], ['name'], 1, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name ASC LIMIT :{alias}_limit_phql:',
+                null, ['name' => 'test'], ['name' => 'ASC'], 1, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name DESC LIMIT :{alias}_limit_phql:',
+                null, ['name' => 'test'], ['name' => 'DESC'], 1, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.id ASC, {alias}.name DESC LIMIT :{alias}_limit_phql:',
+                null, ['name' => 'test'], ['id', 'name' => 'DESC'], 1, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.id ASC, {alias}.name DESC LIMIT :{alias}_limit_phql: OFFSET :{alias}_offset_phql:',
+                null, ['name' => 'test'], ['id', 'name' => 'DESC'], 1, 1],
         ];
     }
 
     /**
      * @dataProvider dataCreateQuery
      */
-    public function testCreateQuery($phql, $wheres, $limit)
+    public function testCreateQuery($phql, $columns, $wheres, $orders, $limit, $offset)
     {
         $repository = new StubRepository;
 
-        /** @var Query $expected */
-        $expected = $this->getDI()->getShared('modelsManager')->createQuery($phql);
+        $alias = $this->getValueProperty($repository, "alias");
 
-        $query = $this->invokeMethod($repository, 'createQuery', [$wheres, $limit]);
-        $queries = $this->getStaticValueProperty(Repository::class, 'queries');
+        $phql = str_replace('{alias}', $alias, $phql);
 
-        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
-        $this->assertArrayHasKey($phql, $queries);
-        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
+        //$expected = $this->getDI()->getShared('modelsManager')->createQuery($phql);
+
+        $query = $this->invokeMethod($repository, 'createPhql', [$columns, $wheres, $orders, $limit, $offset]);
+        //$queries = $this->getStaticValueProperty(Repository::class, 'queries');
+
+        //$this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
+        $this->assertEquals($phql, $query);
+        //$this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
     }
 
     public function testCreateQueryMultiple()
     {
         $repository = new StubRepository;
-        $this->setStaticValueProperty(Repository::class, 'queries', []);
+        //$this->setStaticValueProperty(Repository::class, 'queries', []);
+
+        $alias = $this->getValueProperty($repository, "alias");
 
         $expected = $this->getDI()->getShared('modelsManager')->createQuery(
-            $phql = 'SELECT * FROM ' . StubModelTest::class . ' WHERE name = :name:'
+            $phql = 'SELECT * FROM ' . StubModelTest::class . " AS $alias WHERE $alias.name LIKE :name:"
         );
         $expectedSecond = $this->getDI()->getShared('modelsManager')->createQuery(
-            $phqlSecond = 'SELECT * FROM ' . StubModelTest::class . ' WHERE id = :id:'
+            $phqlSecond = 'SELECT * FROM ' . StubModelTest::class . " AS $alias WHERE $alias.id = :id:"
         );
 
-        $query = $this->invokeMethod($repository, 'createQuery', [['name' => 'test']]);
-        $queries = $this->getStaticValueProperty(Repository::class, 'queries');
+        $phqlRepo = $this->invokeMethod($repository, 'createPhql', [null, ['name' => 'test']]);
+        $query = $this->invokeMethod($repository, 'getQuery', [$phqlRepo]);
+
+        $queries = $this->getValueProperty($repository, 'queries');
 
         $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
         $this->assertCount(1, $queries);
         $this->assertArrayHasKey($phql, $queries);
         $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
 
-        $query = $this->invokeMethod($repository, 'createQuery', [['name' => 'test_2']]);
-        $queries = $this->getStaticValueProperty(Repository::class, 'queries');
+        $phqlRepo = $this->invokeMethod($repository, 'createPhql', [null, ['name' => 'test_2']]);
+        $query = $this->invokeMethod($repository, 'getQuery', [$phqlRepo]);
+
+        $queries = $this->getValueProperty($repository, 'queries');
         $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
         $this->assertCount(1, $queries);
         $this->assertArrayHasKey($phql, $queries);
         $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
 
-        $query = $this->invokeMethod($repository, 'createQuery', [['id' => 'test_2']]);
-        $queries = $this->getStaticValueProperty(Repository::class, 'queries');
+        $phqlRepo = $this->invokeMethod($repository, 'createPhql', [null, ['id' => 2]]);
+        $query = $this->invokeMethod($repository, 'getQuery', [$phqlRepo]);
+
+        $queries = $this->getValueProperty($repository, 'queries');
         $this->assertEquals($this->getValueProperty($expectedSecond, '_phql'), $this->getValueProperty($query, '_phql'));
         $this->assertCount(2, $queries);
         $this->assertArrayHasKey($phqlSecond, $queries);
@@ -283,7 +313,7 @@ class RepositoryTest extends TestCase
         $modelsManager->expects($this->any())->method('createQuery')->willReturn($query);
 
         $repository = new StubRepository;
-        $this->setStaticValueProperty(Repository::class, 'queries', []);
+//        $this->setStaticValueProperty(Repository::class, 'queries', []);
 
         $count = 0;
 

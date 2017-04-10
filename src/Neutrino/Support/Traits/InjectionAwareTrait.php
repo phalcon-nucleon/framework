@@ -10,7 +10,6 @@ use Phalcon\DiInterface;
  *
  *  @package Neutrino\Support\Traits
  *
- * @property-read \Neutrino\Cache\CacheStrategy          $cache
  * @property-read \Phalcon\Mvc\Application               $app
  * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
  */

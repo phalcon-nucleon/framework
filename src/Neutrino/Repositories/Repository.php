@@ -5,7 +5,13 @@ namespace Neutrino\Repositories;
 use Neutrino\Interfaces\Repositories\RepositoryInterface;
 use Neutrino\Repositories\Exceptions\TransactionException;
 use Phalcon\Di\Injectable;
+use Phalcon\Text;
 
+/**
+ * Class Repository
+ *
+ * @package Neutrino\Repositories
+ */
 abstract class Repository extends Injectable implements RepositoryInterface
 {
     /** @var \Neutrino\Model */
@@ -35,7 +41,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
             throw new \RuntimeException(static::class . ' must have a $modelClass.');
         }
 
-        $this->alias = \Phalcon\Text::random(\Phalcon\Text::RANDOM_ALPHA, 3);
+        $this->alias = Text::random(Text::RANDOM_ALPHA, 3);
     }
 
     /**
@@ -91,8 +97,6 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
     /**
      * @param array $params
-     * @param bool  $create
-     *
      * @param bool  $create
      *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
@@ -175,7 +179,6 @@ abstract class Repository extends Injectable implements RepositoryInterface
      * foreach($repository->each() as $model){
      *     // ... do some stuff
      * }
-     *
      *
      * @param array    $params
      * @param null|int $start

@@ -227,9 +227,7 @@ function str_random($length = 16)
  */
 function str_quickRandom($length = 16)
 {
-    $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-    return str_substr(str_shuffle(str_repeat($pool, $length)), 0, $length);
+    return str_substr(str_shuffle(str_repeat('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', $length)), 0, $length);
 }
 
 /**
@@ -441,8 +439,8 @@ function str_callRandom($size)
             return openssl_random_pseudo_bytes($size);
         case 'mcrypt_create_iv':
             return mcrypt_create_iv($size, MCRYPT_DEV_URANDOM);
-        case 'str_quickRandom':
-            return str_quickRandom($size);
+        case '\Phalcon\Text':
+            return \Phalcon\Text::random(\Phalcon\Text::RANDOM_ALNUM, $size);
         default:
             if (function_exists('random_bytes')) {
                 $randFunc = 'random_bytes';
@@ -451,7 +449,7 @@ function str_callRandom($size)
             } elseif (function_exists('openssl_random_pseudo_bytes')) {
                 $randFunc = 'openssl_random_pseudo_bytes';
             } else {
-                $randFunc = 'str_quickRandom';
+                $randFunc = '\Phalcon\Text';
             }
 
             return str_callRandom($size);

@@ -2,6 +2,11 @@
 
 namespace Neutrino\Interfaces\Repositories;
 
+/**
+ * Interface RepositoryInterface
+ *
+ * @package Neutrino\Interfaces\Repositories
+ */
 interface RepositoryInterface
 {
     /**
@@ -41,51 +46,58 @@ interface RepositoryInterface
 
     /**
      * @param array $params
+     * @param bool  $create
+     * @param bool  $withTransaction
      *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
      */
-    public function firstOrNew(array $params = []);
+    public function firstOrNew(array $params = [], $create = false, $withTransaction = false);
 
     /**
      * @param array $params
+     * @param bool  $withTransaction
      *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
      */
-    public function firstOrCreate(array $params = []);
+    public function firstOrCreate(array $params = [], $withTransaction = false);
 
     /**
      * Appel la methode create sur le, ou les, models transmis, dans une transaction.
      *
      * @param \Neutrino\Model|\Neutrino\Model[]|\Phalcon\Mvc\Model|\Phalcon\Mvc\Model[] $value
+     * @param bool                                                                      $withTransaction
      *
      * @return bool
      */
-    public function create($value);
+    public function create($value, $withTransaction = true);
 
     /**
      * Appel la methode save sur le, ou les, models transmis, dans une transaction.
      *
      * @param \Neutrino\Model|\Neutrino\Model[]|\Phalcon\Mvc\Model|\Phalcon\Mvc\Model[] $value
+     * @param bool                                                                      $withTransaction
      *
      * @return bool
      */
-    public function save($value);
+    public function save($value, $withTransaction = true);
 
     /**
      * Appel la methode update sur le, ou les, models transmis, dans une transaction.
      *
      * @param \Neutrino\Model|\Neutrino\Model[]|\Phalcon\Mvc\Model|\Phalcon\Mvc\Model[] $value
+     * @param bool                                                                      $withTransaction
      *
      * @return bool
      */
-    public function update($value);
+    public function update($value, $withTransaction = true);
 
     /**
      * Appel la methode delete sur le, ou les, models transmis, dans une transaction.
      *
      * @param \Neutrino\Model|\Neutrino\Model[]|\Phalcon\Mvc\Model|\Phalcon\Mvc\Model[] $value
+     * @param bool                                                                      $withTransaction
      *
      * @return bool
      */
-    public function delete($value);
+    public function delete($value, $withTransaction = true);
 }

@@ -4,7 +4,9 @@ namespace Neutrino\Repositories;
 
 use Neutrino\Interfaces\Repositories\RepositoryInterface;
 use Neutrino\Repositories\Exceptions\TransactionException;
+use Phalcon\Db\Column;
 use Phalcon\Di\Injectable;
+use Phalcon\Mvc\Model\Transaction;
 use Phalcon\Text;
 
 /**
@@ -76,7 +78,10 @@ abstract class Repository extends Injectable implements RepositoryInterface
     {
         return $this
             ->getQuery($this->createPhql(null, $params, $orders, $limit, $offset))
-            ->execute($this->createBindParams($params, $limit, $offset));
+            ->execute(
+                $_params = $this->createBindParams($params, $limit, $offset),
+                $this->createBindType($_params)
+            );
     }
 
     /**
@@ -92,17 +97,21 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
         $query->setUniqueRow(true);
 
-        return $query->execute($this->createBindParams($params, null, $offset));
+        return $query->execute(
+            $_params = $this->createBindParams($params, null, $offset),
+            $this->createBindType($_params)
+        );
     }
 
     /**
      * @param array $params
      * @param bool  $create
+     * @param bool  $withTransaction
      *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
      * @throws \Neutrino\Repositories\Exceptions\TransactionException
      */
-    public function firstOrNew(array $params = [], $create = false)
+    public function firstOrNew(array $params = [], $create = false, $withTransaction = false)
     {
         $model = $this->first($params);
 
@@ -115,7 +124,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
                 $model->$key = $param;
             }
 
-            if ($create && $this->create($model) === false) {
+            if ($create && $this->create($model, $withTransaction) === false) {
                 throw new TransactionException(__METHOD__ . ': can\'t create model : ' . get_class($model));
             };
         }
@@ -125,53 +134,73 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
     /**
      * @param array $params
+     * @param bool  $withTransaction
      *
      * @return \Neutrino\Model|\Phalcon\Mvc\Model
-     * @throws \Neutrino\Repositories\Exceptions\TransactionException
      */
-    public function firstOrCreate(array $params = [])
+    public function firstOrCreate(array $params = [], $withTransaction = false)
     {
-        return $this->firstOrNew($params, true);
+        return $this->firstOrNew($params, true, $withTransaction);
     }
 
     /**
      * @param \Neutrino\Model|\Neutrino\Model[] $value
+     * @param bool                              $withTransaction
      *
      * @return bool
      */
-    public function create($value)
+    public function create($value, $withTransaction = true)
     {
-        return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        if ($withTransaction) {
+            return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        }
+
+        return $this->basicCall(is_array($value) ? $value : [$value], __FUNCTION__);
     }
 
     /**
      * @param \Neutrino\Model|\Neutrino\Model[] $value
+     * @param bool                              $withTransaction
      *
      * @return bool
      */
-    public function save($value)
+    public function save($value, $withTransaction = true)
     {
-        return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        if ($withTransaction) {
+            return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        }
+
+        return $this->basicCall(is_array($value) ? $value : [$value], __FUNCTION__);
     }
 
     /**
      * @param \Neutrino\Model|\Neutrino\Model[] $value
+     * @param bool                              $withTransaction
      *
      * @return bool
      */
-    public function update($value)
+    public function update($value, $withTransaction = true)
     {
-        return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        if ($withTransaction) {
+            return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        }
+
+        return $this->basicCall(is_array($value) ? $value : [$value], __FUNCTION__);
     }
 
     /**
      * @param \Neutrino\Model|\Neutrino\Model[] $value
+     * @param bool                              $withTransaction
      *
      * @return bool
      */
-    public function delete($value)
+    public function delete($value, $withTransaction = true)
     {
-        return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        if ($withTransaction) {
+            return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        }
+
+        return $this->basicCall(is_array($value) ? $value : [$value], __FUNCTION__);
     }
 
     /**
@@ -204,15 +233,21 @@ abstract class Repository extends Injectable implements RepositoryInterface
         $query = $this->getQuery($this->createPhql(null, $params, null, true, true));
 
         $nb = ceil(($end - $start) / $pad);
+        $idx = 0;
         for ($i = 0; $i < $nb; $i++) {
-            $results = $query->execute($this->createBindParams($params, $pad, ($start + ($pad * $i))));
+            $results = $query->execute(
+                $_params = $this->createBindParams($params, $pad, ($start + ($pad * $i))),
+                $this->createBindType($_params)
+            );
 
             $empty = true;
 
             foreach ($results as $result) {
                 $empty = false;
 
-                yield $result;
+                yield $idx => $result;
+
+                $idx++;
             }
 
             if ($empty) {
@@ -242,12 +277,12 @@ abstract class Repository extends Injectable implements RepositoryInterface
     {
         $phql = 'SELECT';
 
-        if(empty($columns)) {
+        if (empty($columns)) {
             $phql .= ' *';
         } else {
-            if(is_string($columns)){
+            if (is_string($columns)) {
                 $phql .= ' ' . $columns;
-            } elseif(is_array($columns)) {
+            } elseif (is_array($columns)) {
                 $phql .= $this->alias . '.' . implode(', ' . $this->alias . '.', $columns);
             } else {
                 $phql .= ' *';
@@ -257,15 +292,17 @@ abstract class Repository extends Injectable implements RepositoryInterface
         $phql .= " FROM {$this->modelClass} AS {$this->alias}";
 
         foreach ($params as $key => $where) {
-            $operator = '=';
-
             if (is_array($where)) {
-                $operator = 'IN';
-            } elseif (is_string($where)) {
-                $operator = 'LIKE';
-            }
+                $keys = array_map(function ($k) use ($key) {
+                    return $key . '_' . $k;
+                }, array_keys($where));
 
-            $clauses[] = "{$this->alias}.$key $operator :$key:";
+                $clauses[] = "{$this->alias}.$key IN (:" . implode(':, :', $keys) . ':)';
+            } elseif (is_string($where)) {
+                $clauses[] = "{$this->alias}.$key LIKE :$key:";
+            } else {
+                $clauses[] = "{$this->alias}.$key = :$key:";
+            }
         }
 
         if (!empty($clauses)) {
@@ -305,15 +342,69 @@ abstract class Repository extends Injectable implements RepositoryInterface
      */
     protected function createBindParams(array $params = [], $limit = null, $offset = null)
     {
+        $_params = [];
+
         if (isset($limit)) {
-            $params["{$this->alias}_limit_phql"] = $limit;
+            $_params["{$this->alias}_limit_phql"] = $limit;
         }
 
         if (isset($offset)) {
-            $params["{$this->alias}_offset_phql"] = $offset;
+            $_params["{$this->alias}_offset_phql"] = $offset;
         }
 
-        return $params;
+        foreach ($params as $key => $value) {
+            if (is_array($value)) {
+                foreach ($value as $k => $val) {
+                    $_params[$key . '_' . $k] = $val;
+                }
+            } else {
+                $_params[$key] = $value;
+            }
+        }
+
+        return $_params;
+    }
+
+    /**
+     * @param array $params
+     *
+     * @return array
+     */
+    protected function createBindType(array $params = [])
+    {
+        $types = [];
+
+        foreach ($params as $param => $value) {
+            if (is_array($value)) {
+                foreach ($value as $key => $val) {
+                    $types[$key] = $this->getBindType($val);
+                }
+            } else {
+                $types[$param] = $this->getBindType($value);
+            }
+        }
+
+        return $types;
+    }
+
+    /**
+     * @param null|bool|int|float|double|string $value
+     *
+     * @return int
+     */
+    protected function getBindType($value)
+    {
+        if (is_null($value)) {
+            return Column::BIND_PARAM_NULL;
+        } elseif (is_bool($value)) {
+            return Column::BIND_PARAM_BOOL;
+        } elseif (is_int($value)) {
+            return Column::BIND_PARAM_INT;
+        } elseif (is_float($value) || is_double($value)) {
+            return Column::BIND_PARAM_DECIMAL;
+        } else {
+            return Column::BIND_PARAM_STR;
+        }
     }
 
     /**
@@ -331,20 +422,14 @@ abstract class Repository extends Injectable implements RepositoryInterface
     }
 
     /**
-     * @param \Neutrino\Model[]|\Phalcon\Mvc\Model[] $values
-     * @param string                                 $method
+     * @param array $values
+     * @param       $method
      *
      * @return bool
      */
-    protected function transactionCall(array $values, $method)
+    protected function basicCall(array $values, $method)
     {
-        if (empty($values)) {
-            return true;
-        }
-
         try {
-            $this->db->begin();
-
             $this->messages = [];
 
             foreach ($values as $item) {
@@ -356,16 +441,58 @@ abstract class Repository extends Injectable implements RepositoryInterface
             if (!empty($this->messages)) {
                 throw new TransactionException(get_class(arr_get($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
             }
+        } catch (\Exception $e) {
+            $this->messages[] = $e->getMessage();
 
-            if ($this->db->commit() === false) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param \Neutrino\Model[]|\Phalcon\Mvc\Model[] $values
+     * @param string                                 $method
+     *
+     * @return bool
+     */
+    protected function transactionCall(array $values, $method)
+    {
+        if (empty($values)) {
+            return true;
+        }
+
+        /** @var Transaction $tx */
+        $tx = $this->getDI()->getShared(Transaction\Manager::class)->get();
+
+        try {
+            $this->messages = [];
+
+            foreach ($values as $item) {
+
+                $item->setTransaction($tx);
+
+                if ($item->$method() === false) {
+                    $this->messages = array_merge($this->messages, $item->getMessages());
+
+                    $tx->rollback();
+                }
+            }
+
+            if (!empty($this->messages)) {
+                throw new TransactionException(get_class(arr_get($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
+            }
+
+            if ($tx->commit() === false) {
                 throw new TransactionException('Commit failed.');
             }
 
             return true;
         } catch (\Exception $e) {
             $this->messages[] = $e->getMessage();
-
-            $this->db->rollback();
+            if (!is_null($messages = $tx->getMessages())) {
+                $this->messages = array_merge($this->messages, $messages);
+            }
 
             return false;
         }

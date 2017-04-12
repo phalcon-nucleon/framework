@@ -173,28 +173,60 @@ class RepositoryTest extends TestCase
     {
         return [
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias}',
+                [], // bindParams
+                [], // bindTypes
                 null, [], null, null, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} LIMIT :{alias}_limit_phql:',
+                ['{alias}_limit_phql' => 1], // bindParams
+                ['{alias}_limit_phql' => Column::BIND_PARAM_INT], // bindTypes
                 null, [], null, 1, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name = :name:',
+                ['name' => 1], // bindParams
+                ['name' => Column::BIND_PARAM_INT], // bindTypes
                 null, ['name' => 1], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name IN :name:',
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name IN (:name_0:, :name_1:)',
+                ['name_0' => 'abc', 'name_1' => 'xyz'], // bindParams
+                ['name_0' => Column::BIND_PARAM_STR, 'name_1' => Column::BIND_PARAM_STR], // bindTypes
                 null, ['name' => ['abc', 'xyz']], null, null, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name IN (:name_a:, :name_b:)',
+                ['name_a' => 'abc', 'name_b' => 'xyz'], // bindParams
+                ['name_a' => Column::BIND_PARAM_STR, 'name_b' => Column::BIND_PARAM_STR], // bindTypes
+                null, ['name' => ['a' => 'abc', 'b' => 'xyz']], null, null, null],
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name IN (:name_0:, :name_1:) AND {alias}.status IN (:status_0:, :status_1:, :status_2:)',
+                ['name_0' => 'abc', 'name_1' => 'xyz', 'status_0' => 1, 'status_1' => 2, 'status_2' => 3], // bindParams
+                ['name_0' => Column::BIND_PARAM_STR, 'name_1' => Column::BIND_PARAM_STR, 'status_0' => Column::BIND_PARAM_INT, 'status_1' => Column::BIND_PARAM_INT, 'status_2' => Column::BIND_PARAM_INT], // bindTypes
+                null, ['name' => ['abc', 'xyz'], 'status' => [1, 2, 3]], null, null, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name:',
+                ['name' => 'test'], // bindParams
+                ['name' => Column::BIND_PARAM_STR], // bindTypes
                 null, ['name' => 'test'], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.id = :id: AND {alias}.name LIKE :name: AND {alias}.status IN :status:',
+            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.id = :id: AND {alias}.name LIKE :name: AND {alias}.status IN (:status_0:, :status_1:, :status_2:)',
+                ['id' => 10, 'name' => 'abc', 'status_0' => 1, 'status_1' => 2, 'status_2' => 3], // bindParams
+                ['id' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR, 'status_0' => Column::BIND_PARAM_INT, 'status_1' => Column::BIND_PARAM_INT, 'status_2' => Column::BIND_PARAM_INT], // bindTypes
                 null, ['id' => 10, 'name' => 'abc', 'status' => [1, 2, 3]], null, null, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: LIMIT :{alias}_limit_phql:',
+                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
+                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
                 null, ['name' => 'test'], null, 1, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name ASC LIMIT :{alias}_limit_phql:',
+                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
+                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
                 null, ['name' => 'test'], ['name'], 1, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name ASC LIMIT :{alias}_limit_phql:',
+                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
+                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
                 null, ['name' => 'test'], ['name' => 'ASC'], 1, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name DESC LIMIT :{alias}_limit_phql:',
+                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
+                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
                 null, ['name' => 'test'], ['name' => 'DESC'], 1, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.id ASC, {alias}.name DESC LIMIT :{alias}_limit_phql:',
+                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
+                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
                 null, ['name' => 'test'], ['id', 'name' => 'DESC'], 1, null],
             ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.id ASC, {alias}.name DESC LIMIT :{alias}_limit_phql: OFFSET :{alias}_offset_phql:',
+                ['{alias}_limit_phql' => 1, '{alias}_offset_phql' => 1, 'name' => 'test',], // bindParams
+                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, '{alias}_offset_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
                 null, ['name' => 'test'], ['id', 'name' => 'DESC'], 1, 1],
         ];
     }
@@ -202,22 +234,36 @@ class RepositoryTest extends TestCase
     /**
      * @dataProvider dataCreateQuery
      */
-    public function testCreateQuery($phql, $columns, $wheres, $orders, $limit, $offset)
+    public function testCreateQuery($expectedPhql, $expectedBindParams, $expectedBindTypes, $columns, $wheres, $orders, $limit, $offset)
     {
         $repository = new StubRepository;
 
         $alias = $this->getValueProperty($repository, "alias");
 
-        $phql = str_replace('{alias}', $alias, $phql);
+        $expectedPhql = str_replace('{alias}', $alias, $expectedPhql);
+        $bindParams = [];
+        foreach ($expectedBindParams as $key => $expectedBindParam) {
+            $bindParams[str_replace('{alias}', $alias, $key)] = $expectedBindParam;
+        }
+        $expectedBindParams = $bindParams;
 
-        //$expected = $this->getDI()->getShared('modelsManager')->createQuery($phql);
+        $bindTypes = [];
+        foreach ($expectedBindTypes as $key => $expectedBindType) {
+            $bindTypes[str_replace('{alias}', $alias, $key)] = $expectedBindType;
+        }
+        $expectedBindTypes = $bindTypes;
 
         $query = $this->invokeMethod($repository, 'createPhql', [$columns, $wheres, $orders, $limit, $offset]);
-        //$queries = $this->getStaticValueProperty(Repository::class, 'queries');
 
-        //$this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
-        $this->assertEquals($phql, $query);
-        //$this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
+        $this->assertEquals($expectedPhql, $query);
+
+        $bindParams = $this->invokeMethod($repository, 'createBindParams', [$wheres, $limit, $offset]);
+
+        $this->assertEquals($expectedBindParams, $bindParams);
+
+        $bindTypes = $this->invokeMethod($repository, 'createBindType', [$bindParams, $limit, $offset]);
+
+        $this->assertEquals($expectedBindTypes, $bindTypes);
     }
 
     public function testCreateQueryMultiple()

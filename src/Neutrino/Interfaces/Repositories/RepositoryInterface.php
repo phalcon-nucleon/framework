@@ -29,10 +29,11 @@ interface RepositoryInterface
      * @param array      $params Wheres Criteria ...
      * @param array|null $order  Order By ...
      * @param int|null   $limit  Limit By ...
+     * @param int|null   $offset OffSet ...
      *
      * @return \Neutrino\Model[]|\Phalcon\Mvc\Model[]|\Phalcon\Mvc\Model\ResultsetInterface
      */
-    public function find(array $params = [], array $order = null, $limit = null);
+    public function find(array $params = [], array $order = null, $limit = null, $offset = null);
 
     /**
      * Recherche & renvoie le premier model selon les criteria transmis
@@ -100,4 +101,20 @@ interface RepositoryInterface
      * @return bool
      */
     public function delete($value, $withTransaction = true);
+
+    /**
+     * Use as :
+     * foreach($repository->each() as $model){
+     *     // ... do some stuff
+     * }
+     *
+     * @param array      $params
+     * @param null|int   $start
+     * @param null|int   $end
+     * @param int        $pad
+     * @param array|null $order
+     *
+     * @return \Generator|\Neutrino\Model[]|\Phalcon\Mvc\Model[]
+     */
+    public function each(array $params = [], $start = null, $end = null, $pad = 100, array $order = null);
 }

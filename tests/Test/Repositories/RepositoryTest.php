@@ -4,7 +4,7 @@ namespace Test\Repositories;
 
 use Neutrino\Constants\Services;
 use Neutrino\Model;
-use Neutrino\Repositories\Repository;
+use Neutrino\Repositories\RepositoryPhql;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\Manager as ModelManager;
 use Phalcon\Mvc\Model\Message;
@@ -15,23 +15,23 @@ class RepositoryTest extends TestCase
 {
     /**
      * @expectedException \RuntimeException
-     * @expectedExceptionMessage StubWrongRepository must have a $modelClass.
+     * @expectedExceptionMessage StubWrongRepositoryPhql must have a $modelClass.
      */
     public function testWrongContructor()
     {
-        new StubWrongRepository;
+        new StubWrongRepositoryPhql;
     }
 
     public function testContructor()
     {
-        $this->assertInstanceOf(StubRepository::class, new StubRepository);
+        $this->assertInstanceOf(StubRepositoryPhql::class, new StubRepositoryPhql);
     }
 
     public function testCount()
     {
         $this->mockCount(1);
 
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $this->assertEquals(1, $repository->count());
     }
@@ -52,7 +52,7 @@ class RepositoryTest extends TestCase
         //$this->setValueProperty(Repository::class, 'queries', []);
         $this->mockDb(count($data), $data);
 
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $result = $repository->all();
 
@@ -68,7 +68,7 @@ class RepositoryTest extends TestCase
     {
         $this->mockDb(count([['id' => 1, 'name' => 't1']]), [['id' => 1, 'name' => 't1']]);
 
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $result = $repository->first();
 
@@ -84,7 +84,7 @@ class RepositoryTest extends TestCase
     {
         $this->mockDb(count($data), $data);
 
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $result = $repository->find();
 
@@ -101,7 +101,7 @@ class RepositoryTest extends TestCase
     {
         $this->markTestIncomplete('Test to redo');
         $this->mockDb(0, null);
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $model = new StubModelTest;
         $model->name = 'test';
@@ -113,7 +113,7 @@ class RepositoryTest extends TestCase
     public function testSaveFailed()
     {
         $this->mockDb(0, null);
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $model = new StubModelTest;
 
@@ -124,14 +124,14 @@ class RepositoryTest extends TestCase
             '_field'   => "name",
             '_model'   => null,
             '_code'    => 0
-        ]), 'Test\Repositories\StubModelTest:save: failed. Show Test\Repositories\StubRepository::getMessages().'], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:save: failed. Show Test\Repositories\StubRepositoryPhql::getMessages().'], $repository->getMessages());
     }
 
     public function testUpdate()
     {
         $this->markTestIncomplete('Test to redo');
         $this->mockDb(0, null);
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $model = new StubModelTest;
         $model->name = 'test';
@@ -143,7 +143,7 @@ class RepositoryTest extends TestCase
     public function testUpdateFailed()
     {
         $this->mockDb(0, null);
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $model = new StubModelTest;
         $model->name = 'test';
@@ -155,13 +155,13 @@ class RepositoryTest extends TestCase
             '_field'   => null,
             '_model'   => null,
             '_code'    => 0,
-        ]), 'Test\Repositories\StubModelTest:update: failed. Show Test\Repositories\StubRepository::getMessages().'], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:update: failed. Show Test\Repositories\StubRepositoryPhql::getMessages().'], $repository->getMessages());
     }
 
     public function testDelete()
     {
         $this->mockDb(0, null);
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $model = new StubModelTest;
 
@@ -236,7 +236,7 @@ class RepositoryTest extends TestCase
      */
     public function testCreateQuery($expectedPhql, $expectedBindParams, $expectedBindTypes, $columns, $wheres, $orders, $limit, $offset)
     {
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 
         $alias = $this->getValueProperty($repository, "alias");
 
@@ -268,7 +268,7 @@ class RepositoryTest extends TestCase
 
     public function testCreateQueryMultiple()
     {
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
         //$this->setStaticValueProperty(Repository::class, 'queries', []);
 
         $alias = $this->getValueProperty($repository, "alias");
@@ -358,7 +358,7 @@ class RepositoryTest extends TestCase
 
         $modelsManager->expects($this->any())->method('createQuery')->willReturn($query);
 
-        $repository = new StubRepository;
+        $repository = new StubRepositoryPhql;
 //        $this->setStaticValueProperty(Repository::class, 'queries', []);
 
         $count = 0;
@@ -412,7 +412,7 @@ class RepositoryTest extends TestCase
     }
 }
 
-class StubWrongRepository extends Repository
+class StubWrongRepositoryPhql extends RepositoryPhql
 {
     protected $modelClass = '';
 }
@@ -455,7 +455,7 @@ class StubModelTest extends Model
     }
 }
 
-class StubRepository extends Repository
+class StubRepositoryPhql extends RepositoryPhql
 {
     protected $modelClass = StubModelTest::class;
 }

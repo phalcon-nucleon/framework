@@ -2,9 +2,6 @@
 
 namespace Neutrino\Repositories;
 
-use Neutrino\Interfaces\Repositories\RepositoryInterface;
-use Neutrino\Repositories\Exceptions\TransactionException;
-
 /**
  * Class RepositoryModel
  *

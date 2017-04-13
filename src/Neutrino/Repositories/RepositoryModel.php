@@ -10,7 +10,7 @@ use Neutrino\Repositories\Exceptions\TransactionException;
  *
  * @package Neutrino\Repositories
  */
-abstract class RepositoryModel implements RepositoryInterface
+abstract class RepositoryModel extends Repository
 {
     /** @var \Neutrino\Model */
     protected $modelClass;

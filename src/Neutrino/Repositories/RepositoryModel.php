@@ -103,13 +103,13 @@ abstract class RepositoryModel extends Repository
 
     /**
      * @param array      $params
-     * @param array|null $order
+     * @param array|null $orders
      * @param null       $limit
      * @param null       $offset
      *
      * @return array
      */
-    protected function paramsToCriteria(array $params = [], array $order = null, $limit = null, $offset = null)
+    protected function paramsToCriteria(array $params = [], array $orders = null, $limit = null, $offset = null)
     {
         $clauses = [];
 

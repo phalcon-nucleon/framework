@@ -197,8 +197,6 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
                 if ($item->$method() === false) {
                     $this->messages = array_merge($this->messages, $item->getMessages());
-
-                    $tx->rollback();
                 }
             }
 
@@ -212,6 +210,8 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
             return true;
         } catch (\Exception $e) {
+            $tx->rollback();
+
             $this->messages[] = $e->getMessage();
             if (!is_null($messages = $tx->getMessages())) {
                 $this->messages = array_merge($this->messages, $messages);

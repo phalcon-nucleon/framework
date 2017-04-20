@@ -4,6 +4,8 @@ namespace Test\Repositories;
 
 use Neutrino\Constants\Services;
 use Neutrino\Model;
+use Neutrino\Repositories\Repository;
+use Neutrino\Repositories\RepositoryModel;
 use Neutrino\Repositories\RepositoryPhql;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\Manager as ModelManager;
@@ -15,23 +17,23 @@ class RepositoryTest extends TestCase
 {
     /**
      * @expectedException \RuntimeException
-     * @expectedExceptionMessage StubWrongRepositoryPhql must have a $modelClass.
+     * @expectedExceptionMessage StubWrongRepositoryModel must have a $modelClass.
      */
     public function testWrongContructor()
     {
-        new StubWrongRepositoryPhql;
+        new StubWrongRepositoryModel;
     }
 
     public function testContructor()
     {
-        $this->assertInstanceOf(StubRepositoryPhql::class, new StubRepositoryPhql);
+        $this->assertInstanceOf(StubRepositoryModel::class, new StubRepositoryModel);
     }
 
     public function testCount()
     {
         $this->mockCount(1);
 
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $this->assertEquals(1, $repository->count());
     }
@@ -52,7 +54,7 @@ class RepositoryTest extends TestCase
         //$this->setValueProperty(Repository::class, 'queries', []);
         $this->mockDb(count($data), $data);
 
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $result = $repository->all();
 
@@ -68,7 +70,7 @@ class RepositoryTest extends TestCase
     {
         $this->mockDb(count([['id' => 1, 'name' => 't1']]), [['id' => 1, 'name' => 't1']]);
 
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $result = $repository->first();
 
@@ -84,7 +86,7 @@ class RepositoryTest extends TestCase
     {
         $this->mockDb(count($data), $data);
 
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $result = $repository->find();
 
@@ -101,7 +103,7 @@ class RepositoryTest extends TestCase
     {
         $this->markTestIncomplete('Test to redo');
         $this->mockDb(0, null);
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $model = new StubModelTest;
         $model->name = 'test';
@@ -113,7 +115,7 @@ class RepositoryTest extends TestCase
     public function testSaveFailed()
     {
         $this->mockDb(0, null);
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $model = new StubModelTest;
 
@@ -124,14 +126,14 @@ class RepositoryTest extends TestCase
             '_field'   => "name",
             '_model'   => null,
             '_code'    => 0
-        ]), 'Test\Repositories\StubModelTest:save: failed. Show Test\Repositories\StubRepositoryPhql::getMessages().'], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:save: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
     }
 
     public function testUpdate()
     {
         $this->markTestIncomplete('Test to redo');
         $this->mockDb(0, null);
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $model = new StubModelTest;
         $model->name = 'test';
@@ -143,7 +145,7 @@ class RepositoryTest extends TestCase
     public function testUpdateFailed()
     {
         $this->mockDb(0, null);
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $model = new StubModelTest;
         $model->name = 'test';
@@ -155,158 +157,18 @@ class RepositoryTest extends TestCase
             '_field'   => null,
             '_model'   => null,
             '_code'    => 0,
-        ]), 'Test\Repositories\StubModelTest:update: failed. Show Test\Repositories\StubRepositoryPhql::getMessages().'], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:update: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
     }
 
     public function testDelete()
     {
         $this->mockDb(0, null);
-        $repository = new StubRepositoryPhql;
+        $repository = new StubRepositoryModel;
 
         $model = new StubModelTest;
 
         $this->assertTrue($repository->delete($model));
         $this->assertTrue($repository->delete([$model, $model]));
-    }
-
-    public function dataCreateQuery()
-    {
-        return [
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias}',
-                [], // bindParams
-                [], // bindTypes
-                null, [], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} LIMIT :{alias}_limit_phql:',
-                ['{alias}_limit_phql' => 1], // bindParams
-                ['{alias}_limit_phql' => Column::BIND_PARAM_INT], // bindTypes
-                null, [], null, 1, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name = :name:',
-                ['name' => 1], // bindParams
-                ['name' => Column::BIND_PARAM_INT], // bindTypes
-                null, ['name' => 1], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name IN (:name_0:, :name_1:)',
-                ['name_0' => 'abc', 'name_1' => 'xyz'], // bindParams
-                ['name_0' => Column::BIND_PARAM_STR, 'name_1' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => ['abc', 'xyz']], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name IN (:name_a:, :name_b:)',
-                ['name_a' => 'abc', 'name_b' => 'xyz'], // bindParams
-                ['name_a' => Column::BIND_PARAM_STR, 'name_b' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => ['a' => 'abc', 'b' => 'xyz']], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name IN (:name_0:, :name_1:) AND {alias}.status IN (:status_0:, :status_1:, :status_2:)',
-                ['name_0' => 'abc', 'name_1' => 'xyz', 'status_0' => 1, 'status_1' => 2, 'status_2' => 3], // bindParams
-                ['name_0' => Column::BIND_PARAM_STR, 'name_1' => Column::BIND_PARAM_STR, 'status_0' => Column::BIND_PARAM_INT, 'status_1' => Column::BIND_PARAM_INT, 'status_2' => Column::BIND_PARAM_INT], // bindTypes
-                null, ['name' => ['abc', 'xyz'], 'status' => [1, 2, 3]], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name:',
-                ['name' => 'test'], // bindParams
-                ['name' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => 'test'], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.id = :id: AND {alias}.name LIKE :name: AND {alias}.status IN (:status_0:, :status_1:, :status_2:)',
-                ['id' => 10, 'name' => 'abc', 'status_0' => 1, 'status_1' => 2, 'status_2' => 3], // bindParams
-                ['id' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR, 'status_0' => Column::BIND_PARAM_INT, 'status_1' => Column::BIND_PARAM_INT, 'status_2' => Column::BIND_PARAM_INT], // bindTypes
-                null, ['id' => 10, 'name' => 'abc', 'status' => [1, 2, 3]], null, null, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: LIMIT :{alias}_limit_phql:',
-                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
-                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => 'test'], null, 1, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name ASC LIMIT :{alias}_limit_phql:',
-                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
-                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => 'test'], ['name'], 1, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name ASC LIMIT :{alias}_limit_phql:',
-                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
-                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => 'test'], ['name' => 'ASC'], 1, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.name DESC LIMIT :{alias}_limit_phql:',
-                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
-                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => 'test'], ['name' => 'DESC'], 1, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.id ASC, {alias}.name DESC LIMIT :{alias}_limit_phql:',
-                ['{alias}_limit_phql' => 1, 'name' => 'test'], // bindParams
-                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => 'test'], ['id', 'name' => 'DESC'], 1, null],
-            ["SELECT * FROM " . StubModelTest::class . ' AS {alias} WHERE {alias}.name LIKE :name: ORDER BY {alias}.id ASC, {alias}.name DESC LIMIT :{alias}_limit_phql: OFFSET :{alias}_offset_phql:',
-                ['{alias}_limit_phql' => 1, '{alias}_offset_phql' => 1, 'name' => 'test',], // bindParams
-                ['{alias}_limit_phql' => Column::BIND_PARAM_INT, '{alias}_offset_phql' => Column::BIND_PARAM_INT, 'name' => Column::BIND_PARAM_STR], // bindTypes
-                null, ['name' => 'test'], ['id', 'name' => 'DESC'], 1, 1],
-        ];
-    }
-
-    /**
-     * @dataProvider dataCreateQuery
-     */
-    public function testCreateQuery($expectedPhql, $expectedBindParams, $expectedBindTypes, $columns, $wheres, $orders, $limit, $offset)
-    {
-        $repository = new StubRepositoryPhql;
-
-        $alias = $this->getValueProperty($repository, "alias");
-
-        $expectedPhql = str_replace('{alias}', $alias, $expectedPhql);
-        $bindParams = [];
-        foreach ($expectedBindParams as $key => $expectedBindParam) {
-            $bindParams[str_replace('{alias}', $alias, $key)] = $expectedBindParam;
-        }
-        $expectedBindParams = $bindParams;
-
-        $bindTypes = [];
-        foreach ($expectedBindTypes as $key => $expectedBindType) {
-            $bindTypes[str_replace('{alias}', $alias, $key)] = $expectedBindType;
-        }
-        $expectedBindTypes = $bindTypes;
-
-        $query = $this->invokeMethod($repository, 'createPhql', [$columns, $wheres, $orders, $limit, $offset]);
-
-        $this->assertEquals($expectedPhql, $query);
-
-        $bindParams = $this->invokeMethod($repository, 'createBindParams', [$wheres, $limit, $offset]);
-
-        $this->assertEquals($expectedBindParams, $bindParams);
-
-        $bindTypes = $this->invokeMethod($repository, 'createBindType', [$bindParams, $limit, $offset]);
-
-        $this->assertEquals($expectedBindTypes, $bindTypes);
-    }
-
-    public function testCreateQueryMultiple()
-    {
-        $repository = new StubRepositoryPhql;
-        //$this->setStaticValueProperty(Repository::class, 'queries', []);
-
-        $alias = $this->getValueProperty($repository, "alias");
-
-        $expected = $this->getDI()->getShared('modelsManager')->createQuery(
-            $phql = 'SELECT * FROM ' . StubModelTest::class . " AS $alias WHERE $alias.name LIKE :name:"
-        );
-        $expectedSecond = $this->getDI()->getShared('modelsManager')->createQuery(
-            $phqlSecond = 'SELECT * FROM ' . StubModelTest::class . " AS $alias WHERE $alias.id = :id:"
-        );
-
-        $phqlRepo = $this->invokeMethod($repository, 'createPhql', [null, ['name' => 'test']]);
-        $query = $this->invokeMethod($repository, 'getQuery', [$phqlRepo]);
-
-        $queries = $this->getValueProperty($repository, 'queries');
-
-        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
-        $this->assertCount(1, $queries);
-        $this->assertArrayHasKey($phql, $queries);
-        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
-
-        $phqlRepo = $this->invokeMethod($repository, 'createPhql', [null, ['name' => 'test_2']]);
-        $query = $this->invokeMethod($repository, 'getQuery', [$phqlRepo]);
-
-        $queries = $this->getValueProperty($repository, 'queries');
-        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($query, '_phql'));
-        $this->assertCount(1, $queries);
-        $this->assertArrayHasKey($phql, $queries);
-        $this->assertEquals($this->getValueProperty($expected, '_phql'), $this->getValueProperty($queries[$phql], '_phql'));
-
-        $phqlRepo = $this->invokeMethod($repository, 'createPhql', [null, ['id' => 2]]);
-        $query = $this->invokeMethod($repository, 'getQuery', [$phqlRepo]);
-
-        $queries = $this->getValueProperty($repository, 'queries');
-        $this->assertEquals($this->getValueProperty($expectedSecond, '_phql'), $this->getValueProperty($query, '_phql'));
-        $this->assertCount(2, $queries);
-        $this->assertArrayHasKey($phqlSecond, $queries);
-        $this->assertEquals($this->getValueProperty($expectedSecond, '_phql'), $this->getValueProperty($queries[$phqlSecond], '_phql'));
     }
 
     public function dataEach()
@@ -328,6 +190,7 @@ class RepositoryTest extends TestCase
      */
     public function testEach($start, $end, $pad, $e_count, $e_call)
     {
+        $d = [];
         $nb = floor(($end - $start) / $pad);
 
         $rest = ($end - $start) % $pad;
@@ -336,37 +199,33 @@ class RepositoryTest extends TestCase
         for ($i = 0; $i < $nb; $i++) {
             $data = [];
             for ($j = 0; $j < $pad; $j++) {
-                $data[] = StubModelTest::make();
+                $data[] = $d[] = StubModelTest::make(null, true);
             }
             $datas[] = $data;
         }
 
+
         $cdatas = count($datas);
         for ($i = 0; $i < $rest; $i++) {
-            $datas[$cdatas][] = StubModelTest::make();
+            $datas[$cdatas][] = $d[] = StubModelTest::make(null, true);
         }
 
-        $query = $this->createMock(ModelQuery::class);
-        $builder = $query->expects($this->exactly($e_call))
-            ->method('execute');
-
-        if (!empty($datas)) {
-            $builder->willReturn(...$datas);
-        }
-
-        $modelsManager = $this->mockService(Services::MODELS_MANAGER, ModelManager::class, true);
-
-        $modelsManager->expects($this->any())->method('createQuery')->willReturn($query);
-
-        $repository = new StubRepositoryPhql;
-//        $this->setStaticValueProperty(Repository::class, 'queries', []);
+        $repository = new StubRepositoryModel;
 
         $count = 0;
+        $page = 0;
+        if (isset($datas[0])) {
+            $this->mockDb(count($datas[0]), $datas[0]);
+        }
 
         foreach ($repository->each([], $start, $end, $pad) as $item) {
             $this->assertInstanceOf(StubModelTest::class, $item);
 
             $count++;
+            if ($count % $pad === 0 && $count !== $e_count) {
+                $page++;
+                $this->mockDb(count($datas[$page]), $datas[$page]);
+            }
         }
 
         $this->assertEquals($e_count, $count);
@@ -412,7 +271,7 @@ class RepositoryTest extends TestCase
     }
 }
 
-class StubWrongRepositoryPhql extends RepositoryPhql
+class StubWrongRepositoryModel extends Repository
 {
     protected $modelClass = '';
 }
@@ -439,14 +298,18 @@ class StubModelTest extends Model
     /**
      * @param null $name
      *
-     * @return \Test\Repositories\StubModelTest
+     * @return \Test\Repositories\StubModelTest|array
      */
-    public static function make($name = null)
+    public static function make($name = null, $asArray = false)
     {
         if (is_null($name)) {
             $name = str_random();
         }
-
+        if ($asArray) {
+            return [
+                'name' => $name
+            ];
+        }
         $model = new self;
 
         $model->name = $name;
@@ -455,7 +318,7 @@ class StubModelTest extends Model
     }
 }
 
-class StubRepositoryPhql extends RepositoryPhql
+class StubRepositoryModel extends Repository
 {
     protected $modelClass = StubModelTest::class;
 }

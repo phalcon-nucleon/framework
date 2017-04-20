@@ -68,7 +68,8 @@ class RepositoryTest extends TestCase
 
     public function testFirst()
     {
-        $this->mockDb(count([['id' => 1, 'name' => 't1']]), [['id' => 1, 'name' => 't1']]);
+        $data =  [['id' => 1, 'name' => 't1']];
+        $this->mockDb(count($data), $data);
 
         $repository = new StubRepositoryModel;
 
@@ -77,6 +78,33 @@ class RepositoryTest extends TestCase
         $this->assertInstanceOf(StubModelTest::class, $result);
 
         $this->assertEquals(['id' => 1, 'name' => 't1'], $result->toArray());
+    }
+
+    public function testFirstOrNewFound()
+    {
+        $data =  [['id' => 1, 'name' => 't1']];
+        $this->mockDb(count($data), $data);
+
+        $repository = new StubRepositoryModel;
+
+        $result = $repository->firstOrNew();
+
+        $this->assertInstanceOf(StubModelTest::class, $result);
+
+        $this->assertEquals(['id' => 1, 'name' => 't1'], $result->toArray());
+    }
+
+    public function testFirstOrNewNotFound()
+    {
+        $this->mockDb(0, []);
+
+        $repository = new StubRepositoryModel;
+
+        $result = $repository->firstOrNew(['name' => 'name']);
+
+        $this->assertInstanceOf(StubModelTest::class, $result);
+
+        $this->assertEquals(['id' => null, 'name' => 'name'], $result->toArray());
     }
 
     /**
@@ -129,6 +157,23 @@ class RepositoryTest extends TestCase
         ]), 'Test\Repositories\StubModelTest:save: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
     }
 
+    public function testSaveFailedWithoutTransaction()
+    {
+        $this->mockDb(0, null);
+        $repository = new StubRepositoryModel;
+
+        $model = new StubModelTest;
+
+        $this->assertFalse($repository->save($model, false));
+        $this->assertEquals([Message::__set_state([
+            '_type'    => "PresenceOf",
+            '_message' => "name is required",
+            '_field'   => "name",
+            '_model'   => null,
+            '_code'    => 0
+        ]), 'Test\Repositories\StubModelTest:save: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
+    }
+
     public function testUpdate()
     {
         $this->markTestIncomplete('Test to redo');
@@ -151,6 +196,24 @@ class RepositoryTest extends TestCase
         $model->name = 'test';
 
         $this->assertFalse($repository->update($model));
+        $this->assertEquals([Message::__set_state([
+            '_type'    => 'InvalidUpdateAttempt',
+            '_message' => 'Record cannot be updated because it does not exist',
+            '_field'   => null,
+            '_model'   => null,
+            '_code'    => 0,
+        ]), 'Test\Repositories\StubModelTest:update: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
+    }
+
+    public function testUpdateFailedWithoutTransaction()
+    {
+        $this->mockDb(0, null);
+        $repository = new StubRepositoryModel;
+
+        $model = new StubModelTest;
+        $model->name = 'test';
+
+        $this->assertFalse($repository->update($model, false));
         $this->assertEquals([Message::__set_state([
             '_type'    => 'InvalidUpdateAttempt',
             '_message' => 'Record cannot be updated because it does not exist',

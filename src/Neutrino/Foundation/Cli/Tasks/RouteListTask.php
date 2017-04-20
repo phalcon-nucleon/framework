@@ -70,6 +70,11 @@ class RouteListTask extends Task
         $this->table($datas);
     }
 
+    /**
+     * List the Http Routes
+     *
+     * @return \Phalcon\Mvc\Router\RouteInterface[]
+     */
     protected function getHttpRoutes()
     {
         Router::clearResolvedInstances();

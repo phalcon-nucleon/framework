@@ -2,6 +2,11 @@
 
 namespace Neutrino\Cli\Output;
 
+/**
+ * Class Group
+ *
+ * @package Neutrino\Cli\Output
+ */
 class Group
 {
     protected $output;

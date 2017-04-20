@@ -4,6 +4,11 @@ namespace Neutrino\Dotenv;
 
 use Neutrino\Dotenv;
 
+/**
+ * Class Loader
+ *
+ * @package Neutrino\Dotenv
+ */
 class Loader
 {
     private static $has_putenv;
@@ -40,6 +45,11 @@ class Loader
         return true;
     }
 
+    /**
+     * Check if function putenv exist
+     *
+     * @return bool
+     */
     public static function hasPutenv()
     {
         if (isset(self::$has_putenv)) {

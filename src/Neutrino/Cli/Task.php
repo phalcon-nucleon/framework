@@ -16,11 +16,10 @@ use Phalcon\Events\Event;
  *
  *  @package Neutrino\Cli
  *
- * @property-read \Neutrino\Cache\CacheStrategy          $cache
- * @property-read \Phalcon\Mvc\Application               $app
- * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
- * @property-read \Neutrino\Cli\Router                   $router
- * @property-read \Phalcon\Cli\Dispatcher                $dispatcher
+ * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
+ * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
+ * @property-read \Neutrino\Cli\Router                                                                  $router
+ * @property-read \Phalcon\Cli\Dispatcher                                                               $dispatcher
  */
 abstract class Task extends PhalconTask
 {

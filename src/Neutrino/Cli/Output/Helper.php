@@ -4,6 +4,11 @@ namespace Neutrino\Cli\Output;
 
 use Neutrino\Version;
 
+/**
+ * Class Helper
+ *
+ * @package Neutrino\Cli\Output
+ */
 final class Helper
 {
     private static $reflections = [];
@@ -32,6 +37,13 @@ final class Helper
         return self::strlen(self::removeDecoration($string));
     }
 
+    /**
+     * Return the len of a string
+     *
+     * @param $string
+     *
+     * @return int
+     */
     public static function strlen($string)
     {
         if (false === $encoding = mb_detect_encoding($string, null, true)) {

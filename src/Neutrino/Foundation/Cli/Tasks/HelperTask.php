@@ -13,6 +13,9 @@ use Phalcon\Cli\Router\Route;
  */
 class HelperTask extends Task
 {
+    /**
+     * @override
+     */
     public function beforeExecuteRoute()
     {
         // Parent overload to prevent check the help option existence

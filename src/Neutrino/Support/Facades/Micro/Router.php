@@ -1,8 +1,9 @@
 <?php
 
-namespace Neutrino\Support\Facades;
+namespace Neutrino\Support\Facades\Micro;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\Facades\Facade;
 
 /**
  * Class Route
@@ -10,7 +11,7 @@ use Neutrino\Constants\Services;
  *  @package Neutrino\Support\Facades
  *
  * @method static \Phalcon\Cli\Router\RouteInterface addTask(string $pattern, mixed $paths, mixed $httpMethods = null, mixed $position = null) Adds a route to the router (CLI Only)
- *          
+ *
  * @method static string getRewriteUri() Get rewrite info. This info is read from $_GET['_url']. This returns '/' if the rewrite information cannot be read
  * @method static \Phalcon\Mvc\RouterInterface setUriSource(mixed $uriSource) Sets the URI source. One of the URI_SOURCE_constants
  * @method static \Phalcon\Mvc\RouterInterface removeExtraSlashes(bool $remove) Set whether router must remove the extra slashes in the handled routes
@@ -40,7 +41,7 @@ use Neutrino\Constants\Services;
  * @method static \Phalcon\Mvc\Router\RouteInterface getMatchedRoute() Returns the route that matchs the handled URI
  * @method static array getMatches() Returns the sub expressions in the regular expression matched
  * @method static bool wasMatched() Checks if the router macthes any of the defined routes
- * @method static \Phalcon\Mvc\Router\RouteInterface[] getRoutes() Returns all the routes defined in the router
+ * @method static \Phalcon\Mvc\Router\RouteInterface getRoutes() Returns all the routes defined in the router
  * @method static \Phalcon\Mvc\Router\RouteInterface|bool getRouteById(mixed $id) Returns a route object by its id
  * @method static \Phalcon\Mvc\Router\RouteInterface|bool getRouteByName(string $name) Returns a route object by its name
  * @method static bool isExactControllerName() Returns whether controller name should not be mangled
@@ -54,6 +55,6 @@ class Router extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return Services::ROUTER;
+        return Services::MICRO_ROUTER;
     }
 }

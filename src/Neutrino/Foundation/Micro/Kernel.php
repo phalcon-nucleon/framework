@@ -86,7 +86,7 @@ abstract class Kernel extends MicroKernel implements Kernelable
      * @param array $modules
      * @param bool  $merge
      */
-    final public function registerModules(array $modules, $merge = false)
+    final public function registerModules(array $modules = [], $merge = false)
     {
 
     }

@@ -67,10 +67,12 @@ trait Kernelize
      * @param array $modules
      * @param bool  $merge
      */
-    public function registerModules(array $modules, $merge = false)
+    public function registerModules(array $modules = [], $merge = false)
     {
-        if (!empty($this->modules)) {
-            parent::registerModules(array_merge($this->modules, $modules), $merge);
+        $modules = array_merge($this->modules, $modules);
+
+        if (!empty($modules)) {
+            parent::registerModules($modules, $merge);
         }
     }
 
@@ -106,7 +108,7 @@ trait Kernelize
         $emClass = $this->eventsManagerClass;
 
         if(!empty($emClass)){
-            $em = new EventsManager;
+            $em = new $emClass;
 
             $this->setEventsManager($em);
         }

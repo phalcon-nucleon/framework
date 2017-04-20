@@ -9,7 +9,7 @@ use Neutrino\Test\FuncTestCase;
  */
 abstract class TestCase extends FuncTestCase
 {
-    use TraitTestCase;
+    use TraitTestCase, TraitTestUtils;
 
     public static $cache_dir = __DIR__ . '/../../.data/';
 

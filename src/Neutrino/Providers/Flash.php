@@ -11,36 +11,28 @@ use Phalcon\Flash\Direct as FlashDirect;
  *
  * @package Neutrino\Foundation\Bootstrap
  */
-class Flash extends BasicProvider
+class Flash extends Provider
 {
-    protected $class = FlashDirect::class;
-
     protected $name = Services::FLASH;
 
     protected $shared = false;
 
     protected $aliases = [FlashDirect::class];
 
-    protected $options = [
-        'arguments' => [
-            ['type'  => 'parameter',
-             'value' => [
-                 'error'   => 'alert alert-danger',
-                 'success' => 'alert alert-success',
-                 'notice'  => 'alert alert-info',
-                 'warning' => 'alert alert-warning'
-             ]]
-        ],
-        'calls'     => [
-            [
-                'method'    => 'setImplicitFlush',
-                'arguments' => [
-                    [
-                        'type'  => 'parameter',
-                        'value' => false,
-                    ]
-                ]
-            ],
-        ]
-    ];
+    /**
+     * @return \Phalcon\Flash\Direct
+     */
+    protected function register()
+    {
+        $flash = new FlashDirect([
+            'error'   => 'alert alert-danger',
+            'success' => 'alert alert-success',
+            'notice'  => 'alert alert-info',
+            'warning' => 'alert alert-warning'
+        ]);
+
+        $flash->setImplicitFlush(false);
+
+        return $flash;
+    }
 }

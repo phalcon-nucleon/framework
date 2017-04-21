@@ -3,7 +3,7 @@
 namespace Neutrino\Providers\Http;
 
 use Neutrino\Constants\Services;
-use Neutrino\Providers\BasicProvider;
+use Neutrino\Providers\Provider;
 
 
 /**
@@ -11,27 +11,23 @@ use Neutrino\Providers\BasicProvider;
  *
  * @package Neutrino\Foundation\Bootstrap
  */
-class Router extends BasicProvider
+class Router extends Provider
 {
-    protected $class = \Phalcon\Mvc\Router::class;
-
     protected $name = Services::ROUTER;
 
     protected $shared = true;
 
     protected $aliases = [\Phalcon\Mvc\Router::class];
 
-    protected $options = [
-        'arguments' => [
-            ['type'  => 'parameter',
-             'value' => false]
-        ],
-        'calls'     => [
-            ['method'    => 'setUriSource',
-             'arguments' => [
-                 ['type'  => 'parameter',
-                 'value' => \Phalcon\Mvc\Router::URI_SOURCE_SERVER_REQUEST_URI]
-             ]]
-        ]
-    ];
+    /**
+     * @return \Phalcon\Mvc\Router
+     */
+    protected function register()
+    {
+        $router = new \Phalcon\Mvc\Router(false);
+
+        $router->setUriSource(\Phalcon\Mvc\Router::URI_SOURCE_SERVER_REQUEST_URI);
+
+        return $router;
+    }
 }

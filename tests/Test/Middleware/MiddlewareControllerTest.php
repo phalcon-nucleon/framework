@@ -46,16 +46,16 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals($controller, $controller->except(['test']));
 
         $this->assertEquals([
-            'only'   => ['test'],
-            'except' => ['test']
+            'only'   => ['test'=>true],
+            'except' => ['test'=>true]
         ], $this->getValueProperty($controller, 'filter', \Neutrino\Foundation\Middleware\Controller::class));
 
         $this->assertEquals($controller, $controller->only(null));
         $this->assertEquals($controller, $controller->except(null));
 
         $this->assertEquals([
-            'only'   => ['test'],
-            'except' => ['test']
+            'only'   => ['test'=>true],
+            'except' => ['test'=>true]
         ], $this->getValueProperty($controller, 'filter', \Neutrino\Foundation\Middleware\Controller::class));
 
         $this->assertEquals($controller, $controller->only([]));

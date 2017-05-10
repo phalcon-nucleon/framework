@@ -2,6 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
+use Neutrino\Dotenv;
 use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 
@@ -30,10 +31,7 @@ class OptimizeTaskTest extends TestCase
 
     public function setUp()
     {
-        global $config;
-
-        $config['paths']['base'] = __DIR__ . '/../../../';
-        $config['paths']['vendor'] = __DIR__ . '/../../../vendor/';
+        Dotenv::put('BASE_PATH', __DIR__ . '/../../../');
 
         mkdir(__DIR__ . '/../../../bootstrap/compile', 0777, true);
         mkdir(__DIR__ . '/../../../vendor/composer', 0777, true);
@@ -111,9 +109,9 @@ class OptimizeTaskTest extends TestCase
             'namespace_4' => array('dir_5', 'dir_6'),
         ]);
 
-        $this->dispatchCli('luxury optimize --memory -q');
+        $this->dispatchCli('quark optimize --memory -q');
 
-        $file = file_get_contents(__DIR__ . '/../../../' . '/bootstrap/compile/loader.php');
+        $file = file_get_contents(__DIR__ . '/../../../bootstrap/compile/loader.php');
 
         $this->assertEquals(
             '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL .
@@ -149,7 +147,7 @@ class OptimizeTaskTest extends TestCase
             'Class\Class_2' => 'file_2.php'
         ]);
 
-        $this->dispatchCli('luxury optimize -q');
+        $this->dispatchCli('quark optimize -q');
 
         $file = file_get_contents(__DIR__ . '/../../../' . '/bootstrap/compile/loader.php');
 

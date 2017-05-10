@@ -36,9 +36,7 @@ class ClearCompiledTaskTest extends TestCase
 
     public function setUp()
     {
-        global $config;
-
-        $config['paths']['base'] = __DIR__ . '/../../../';
+        Dotenv::put('BASE_PATH', __DIR__ . '/../../../');
 
         mkdir(__DIR__ . '/../../../' . '/bootstrap/compile', 0777, true);
 
@@ -61,9 +59,7 @@ class ClearCompiledTaskTest extends TestCase
     {
         file_put_contents(__DIR__ . '/../../../' . '/bootstrap/compile/loader.php', '<?php');
 
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../../');
-
-        $this->dispatchCli('luxury clear-compiled -q');
+        $this->dispatchCli('quark clear-compiled -q');
 
         $this->assertEquals([], glob(__DIR__ . '/../../../' . '/bootstrap/compile/*.*'));
     }

@@ -65,7 +65,7 @@ abstract class Kernel extends Application implements Kernelable
      */
     public function registerRoutes()
     {
-        require Dotenv::env('BASE_PATH') .'/routes/http.php';
+        require BASE_PATH .'/routes/http.php';
     }
 
     public function boot()

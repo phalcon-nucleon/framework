@@ -11,18 +11,10 @@ class Version extends \Phalcon\Version
     {
         return [
             1, // major
-            2, // medium
+            0, // medium
             0, // minor
-            2, // special
-            0  // number
+            1, // special
+            null  // number
         ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function get()
-    {
-        return str_replace(' ', '-', parent::get());
     }
 }

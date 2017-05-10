@@ -253,6 +253,9 @@ class HandlerTest extends TestCase
         Handler::register();
 
         trigger_error('msg', E_USER_ERROR);
+
+        restore_error_handler();
+        restore_exception_handler();
     }
 }
 

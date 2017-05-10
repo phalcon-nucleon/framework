@@ -22,3 +22,6 @@ $config = [];
 |
 */
 require __DIR__ . '/../vendor/autoload.php';
+
+define('APP_ENV', 'test');
+define('BASE_PATH', __DIR__ . '/.fake/nucleon_app');

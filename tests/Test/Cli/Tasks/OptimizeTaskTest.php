@@ -31,27 +31,17 @@ class OptimizeTaskTest extends TestCase
 
     public function setUp()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../../');
-
-        mkdir(__DIR__ . '/../../../bootstrap/compile', 0777, true);
-        mkdir(__DIR__ . '/../../../vendor/composer', 0777, true);
-
         parent::setUp();
     }
 
     public function tearDown()
     {
-        foreach (glob(__DIR__ . '/../../../bootstrap/compile/*.*') as $file) {
+        foreach (glob(BASE_PATH . '/bootstrap/compile/*.php') as $file) {
             @unlink($file);
         }
-        foreach (glob(__DIR__ . '/../../../vendor/composer/*.*') as $file) {
+        foreach (glob(BASE_PATH . '/vendor/composer/*.*') as $file) {
             @unlink($file);
         }
-
-        @rmdir(__DIR__ . '/../../../bootstrap/compile');
-        @rmdir(__DIR__ . '/../../../bootstrap');
-        @rmdir(__DIR__ . '/../../../vendor/composer');
-        @rmdir(__DIR__ . '/../../../vendor');
 
         parent::tearDown();
     }
@@ -59,7 +49,7 @@ class OptimizeTaskTest extends TestCase
     private function mockAutoloadFiles($files)
     {
         file_put_contents(
-            __DIR__ . '/../../../vendor/composer/autoload_files.php',
+            BASE_PATH . '/vendor/composer/autoload_files.php',
             '<?php' . PHP_EOL .
             'return ' . var_export($files, true) . ';'
         );
@@ -68,7 +58,7 @@ class OptimizeTaskTest extends TestCase
     private function mockAutoloadNamespaces($namespaces)
     {
         file_put_contents(
-            __DIR__ . '/../../../vendor/composer/autoload_namespaces.php',
+            BASE_PATH . '/vendor/composer/autoload_namespaces.php',
             '<?php' . PHP_EOL .
             'return ' . var_export($namespaces, true) . ';'
         );
@@ -77,7 +67,7 @@ class OptimizeTaskTest extends TestCase
     private function mockAutoloadPsr4($psr4)
     {
         file_put_contents(
-            __DIR__ . '/../../../vendor/composer/autoload_psr4.php',
+            BASE_PATH . '/vendor/composer/autoload_psr4.php',
             '<?php' . PHP_EOL .
             'return ' . var_export($psr4, true) . ';'
         );
@@ -86,7 +76,7 @@ class OptimizeTaskTest extends TestCase
     private function mockAutoloadClassmap($classmap)
     {
         file_put_contents(
-            __DIR__ . '/../../../vendor/composer/autoload_classmap.php',
+            BASE_PATH . '/vendor/composer/autoload_classmap.php',
             '<?php' . PHP_EOL .
             'return ' . var_export($classmap, true) . ';'
         );
@@ -111,7 +101,7 @@ class OptimizeTaskTest extends TestCase
 
         $this->dispatchCli('quark optimize --memory -q');
 
-        $file = file_get_contents(__DIR__ . '/../../../bootstrap/compile/loader.php');
+        $file = file_get_contents(BASE_PATH . '/bootstrap/compile/loader.php');
 
         $this->assertEquals(
             '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL .
@@ -149,7 +139,7 @@ class OptimizeTaskTest extends TestCase
 
         $this->dispatchCli('quark optimize -q');
 
-        $file = file_get_contents(__DIR__ . '/../../../' . '/bootstrap/compile/loader.php');
+        $file = file_get_contents(BASE_PATH . '/bootstrap/compile/loader.php');
 
         $this->assertEquals(
             '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL .

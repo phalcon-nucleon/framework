@@ -36,31 +36,24 @@ class ClearCompiledTaskTest extends TestCase
 
     public function setUp()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../../');
-
-        mkdir(__DIR__ . '/../../../' . '/bootstrap/compile', 0777, true);
-
         parent::setUp();
     }
 
     public function tearDown()
     {
-        foreach (glob(__DIR__ . '/../../../' . '/bootstrap/compile/*.*') as $file) {
+        foreach (glob(BASE_PATH . '/bootstrap/compile/*.php') as $file) {
             @unlink($file);
         }
-
-        @rmdir(__DIR__ . '/../../../' . '/bootstrap/compile');
-        @rmdir(__DIR__ . '/../../../' . '/bootstrap');
 
         parent::tearDown();
     }
 
     public function testTask()
     {
-        file_put_contents(__DIR__ . '/../../../' . '/bootstrap/compile/loader.php', '<?php');
+        file_put_contents(BASE_PATH . '/bootstrap/compile/loader.php', '<?php');
 
         $this->dispatchCli('quark clear-compiled -q');
 
-        $this->assertEquals([], glob(__DIR__ . '/../../../' . '/bootstrap/compile/*.*'));
+        $this->assertEquals([], glob(BASE_PATH . '/bootstrap/compile/*.php'));
     }
 }

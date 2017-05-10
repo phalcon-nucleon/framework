@@ -87,7 +87,7 @@ class RouteListTask extends Task
 
         $httpRouterProvider->registering();
 
-        require Dotenv::env('BASE_PATH') .'/routes/http.php';
+        require BASE_PATH .'/routes/http.php';
 
         $routes = Router::getRoutes();
 

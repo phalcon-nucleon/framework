@@ -43,7 +43,7 @@ class Handler
      */
     public static function register()
     {
-        switch (Dotenv::env('APP_ENV')) {
+        switch (APP_ENV) {
             case Env::TEST:
             case Env::DEVELOPMENT:
             case Env::STAGING:

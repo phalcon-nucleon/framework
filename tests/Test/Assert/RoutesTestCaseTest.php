@@ -49,8 +49,6 @@ class RoutesTestCaseTest extends TestCase
 
     public function testGetRoutes()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../Stub');
-
         $routesTestCase = $this->getStub();
 
         $expectedRoutes = [

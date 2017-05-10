@@ -29,9 +29,9 @@ class OptimizeTask extends Task
     public function mainAction()
     {
         $this->optimizer = new Composer(
-            Dotenv::env('BASE_PATH') . '/bootstrap/compile/loader.php',
-            Dotenv::env('BASE_PATH') . '/vendor/composer',
-            Dotenv::env('BASE_PATH')
+            BASE_PATH . '/bootstrap/compile/loader.php',
+            BASE_PATH . '/vendor/composer',
+            BASE_PATH
         );
 
         if ($this->hasOption('m', 'memory')) {
@@ -80,12 +80,12 @@ class OptimizeTask extends Task
     {
         $preloader = (new Factory())->create(['skip' => true]);
 
-        $handle = $preloader->prepareOutput(Dotenv::env('BASE_PATH') . '/bootstrap/compile/compile.php');
+        $handle = $preloader->prepareOutput(BASE_PATH . '/bootstrap/compile/compile.php');
 
         $files = require __DIR__ . '/Optimize/compile.php';
 
-        if (file_exists(Dotenv::env('BASE_PATH') . '/config/compile.php')) {
-            $files = array_merge($files, require Dotenv::env('BASE_PATH') . '/config/compile.php');
+        if (file_exists(BASE_PATH . '/config/compile.php')) {
+            $files = array_merge($files, require BASE_PATH . '/config/compile.php');
         }
 
         foreach ($files as $file) {

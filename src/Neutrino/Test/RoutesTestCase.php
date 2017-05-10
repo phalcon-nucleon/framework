@@ -32,7 +32,7 @@ abstract class RoutesTestCase extends FuncTestCase
 
         (new Router())->registering();
 
-        require Dotenv::env('BASE_PATH') . '/routes/http.php';
+        require BASE_PATH . '/routes/http.php';
 
         $routes = [];
         foreach ($di->getShared('router')->getRoutes() as $route) {

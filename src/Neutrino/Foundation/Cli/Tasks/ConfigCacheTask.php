@@ -25,9 +25,9 @@ class ConfigCacheTask extends Task
     {
         $this->info('Generating configuration cache');
 
-        $config = Loader::raw(Dotenv::env('BASE_PATH'), ['compile']);
+        $config = Loader::raw(BASE_PATH, ['compile']);
 
-        $handle = fopen(Dotenv::env('BASE_PATH') . '/bootstrap/compile/config.php', 'w');
+        $handle = fopen(BASE_PATH . '/bootstrap/compile/config.php', 'w');
 
         if ($handle === false) {
             throw new \Exception;

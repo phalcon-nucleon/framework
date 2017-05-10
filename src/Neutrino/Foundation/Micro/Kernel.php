@@ -98,7 +98,7 @@ abstract class Kernel extends MicroKernel implements Kernelable
      */
     public function registerRoutes()
     {
-        require Dotenv::env('BASE_PATH') .'/routes/micro.php';
+        require BASE_PATH .'/routes/micro.php';
     }
 
     /**

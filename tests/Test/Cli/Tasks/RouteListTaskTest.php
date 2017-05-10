@@ -22,7 +22,6 @@ class RouteListTaskTest extends TestCase
 
     public function testGetHttpRoute()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../Stub');
         $expectedRoutes = [
             ['pattern' => '/get', 'paths' => ['controller' => 'Stub', 'action' => 'index']]
         ];
@@ -92,8 +91,6 @@ class RouteListTaskTest extends TestCase
 
     public function testMainActionNoSubstitution()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../Stub');
-
         $expected = [
             'write' => ['exactly' => 8, 'consecutive' => [
                 ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],

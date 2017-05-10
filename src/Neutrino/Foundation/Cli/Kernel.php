@@ -76,7 +76,7 @@ abstract class Kernel extends Console implements Kernelable
      */
     public function registerRoutes()
     {
-        require Dotenv::env('BASE_PATH') .'/routes/cli.php';
+        require BASE_PATH .'/routes/cli.php';
     }
 
     public function boot(){}

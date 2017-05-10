@@ -10,7 +10,7 @@ class Version extends \Phalcon\Version
     protected static function _getVersion()
     {
         return [
-            1, // major
+            0, // major
             2, // medium
             0, // minor
             2, // special

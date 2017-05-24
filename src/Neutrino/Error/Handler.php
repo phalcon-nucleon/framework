@@ -22,7 +22,6 @@ namespace Neutrino\Error;
 
 use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
-use Neutrino\Dotenv;
 use Phalcon\Di;
 use Phalcon\Http\Response;
 use Phalcon\Logger;

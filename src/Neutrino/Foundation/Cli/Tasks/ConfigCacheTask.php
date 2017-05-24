@@ -4,7 +4,6 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
 use Neutrino\Config\Loader;
-use Neutrino\Dotenv;
 
 /**
  * Class ConfigCacheTask

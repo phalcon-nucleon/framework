@@ -5,7 +5,6 @@ namespace Test\Cli\Tasks;
 use Neutrino\Cli\Output\ConsoleOutput;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Constants\Services;
-use Neutrino\Dotenv;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Events\Manager;
@@ -50,8 +49,6 @@ class RouteListTaskTest extends TestCase
 
     public function testMainAction()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../Stub');
-
         $expected = [
             'write' => ['exactly' => 8, 'consecutive' => [
                 ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],

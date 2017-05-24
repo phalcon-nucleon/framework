@@ -2,7 +2,6 @@
 
 namespace Test\Assert;
 
-use Neutrino\Dotenv;
 use Neutrino\Http\Standards\Method;
 use Neutrino\Test\RoutesTestCase;
 use Phalcon\Mvc\Router\Route;

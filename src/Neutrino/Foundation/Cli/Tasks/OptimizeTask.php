@@ -4,7 +4,6 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use ClassPreloader\Factory;
 use Neutrino\Cli\Task;
-use Neutrino\Dotenv;
 use Neutrino\Optimizer\Composer;
 
 /**

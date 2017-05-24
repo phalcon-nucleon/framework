@@ -2,7 +2,6 @@
 
 namespace Neutrino\Foundation\Cli;
 
-use Neutrino\Dotenv;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Cli\Console;

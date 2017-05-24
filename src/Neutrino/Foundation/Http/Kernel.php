@@ -2,7 +2,6 @@
 
 namespace Neutrino\Foundation\Http;
 
-use Neutrino\Dotenv;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Di\FactoryDefault as Di;

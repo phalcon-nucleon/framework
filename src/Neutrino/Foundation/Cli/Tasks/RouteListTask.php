@@ -5,7 +5,6 @@ namespace Neutrino\Foundation\Cli\Tasks;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
-use Neutrino\Dotenv;
 use Neutrino\Support\Facades\Router;
 
 /**

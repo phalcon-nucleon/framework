@@ -2,7 +2,6 @@
 
 namespace Neutrino\Test;
 
-use Neutrino\Dotenv;
 use Neutrino\Providers\Http\Router;
 use Neutrino\Support\Facades\Facade;
 use Neutrino\Test\Helpers\RoutesTrait;

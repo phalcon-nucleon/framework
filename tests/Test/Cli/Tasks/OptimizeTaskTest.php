@@ -2,7 +2,6 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Dotenv;
 use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 

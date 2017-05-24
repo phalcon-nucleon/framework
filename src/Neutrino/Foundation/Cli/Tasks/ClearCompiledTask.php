@@ -3,7 +3,6 @@
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
-use Neutrino\Dotenv;
 
 /**
  * Class ClearCompiledTask

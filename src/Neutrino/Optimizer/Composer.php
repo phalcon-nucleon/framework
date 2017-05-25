@@ -48,7 +48,7 @@ class Composer
      */
     public function optimizeMemory()
     {
-        //$this->composer->dumpautoload(false);
+        $this->composer->dumpautoload(false);
 
         $files      = $this->autoload->getFiles();
         $namespaces = $this->autoload->getNamespaces();
@@ -77,7 +77,7 @@ class Composer
      */
     public function optimizeProcess()
     {
-        //$this->composer->dumpautoload(true);
+        $this->composer->dumpautoload(true);
 
         $files   = $this->autoload->getFiles();
         $classes = $this->autoload->getClassmap();

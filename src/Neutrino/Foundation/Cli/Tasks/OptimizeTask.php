@@ -48,6 +48,7 @@ class OptimizeTask extends Task
         }
 
         $this->info('Compiling common classes');
+
         $this->optimizeClass();
 
         foreach ($this->compileTasks as $compileTask) {

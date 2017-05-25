@@ -24,6 +24,11 @@ class ConfigCacheTask extends Task
     {
         $this->info('Generating configuration cache');
 
+        self::generateCache();
+    }
+
+    public static function generateCache()
+    {
         $config = Loader::raw(BASE_PATH, ['compile']);
 
         $handle = fopen(BASE_PATH . '/bootstrap/compile/config.php', 'w');

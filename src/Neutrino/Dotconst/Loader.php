@@ -2,6 +2,7 @@
 
 namespace Neutrino\Dotconst;
 
+use Neutrino\Dotconst\Exception\Exception;
 use Neutrino\Dotconst\Exception\InvalidFileException;
 
 /**
@@ -25,6 +26,9 @@ class Loader
     {
         if (!$compilePath || !self::fromCompile($compilePath)) {
             foreach (self::fromFiles($path) as $const => $value) {
+                if (defined($const)) {
+                    throw new Exception('Constant ' . $const . ' already defined');
+                }
                 define($const, $value);
             };
         }

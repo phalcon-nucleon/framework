@@ -105,6 +105,5 @@ abstract class Kernel extends MicroKernel implements Kernelable
      */
     public function boot()
     {
-        // TODO: Implement boot() method.
     }
 }

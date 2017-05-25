@@ -1,12 +1,6 @@
 <?php
 
-use Phalcon\Loader;
-
-$loader = new Loader;
-
-$loader->registerDirs([__DIR__], true);
-
-$loader->register();
+global $config;
 
 $config = [];
 
@@ -23,6 +17,6 @@ $config = [];
 */
 require __DIR__ . '/../vendor/autoload.php';
 
-\Neutrino\Dotconst\Loader::load(__DIR__.'/.fake/nucleon_app');
+\Neutrino\Dotconst\Loader::load(__DIR__.'/.fake/nucleon.app');
 
 echo $version = Neutrino\Version::get() . PHP_EOL;

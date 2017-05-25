@@ -7,6 +7,6 @@ namespace Neutrino\Dotconst\Exception;
  *
  * @package Neutrino\Dotenv\Exception
  */
-class InvalidFileException extends \Exception
+class InvalidFileException extends Exception
 {
 }

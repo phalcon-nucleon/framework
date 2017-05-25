@@ -51,7 +51,7 @@ class ThrottleTest extends TestCase
             }
         }
 
-        usleep(1000000);
+        sleep(1);
         $this->dispatch('/');
 
         $response = $this->app->response;

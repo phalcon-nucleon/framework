@@ -18,6 +18,11 @@ class OptimizeTask extends Task
      */
     private $optimizer;
 
+    private $compileTasks = [
+        ConfigCacheTask::class,
+        DotconstCacheTask::class
+    ];
+
     /**
      * Optimize the autoloader.
      *
@@ -42,13 +47,14 @@ class OptimizeTask extends Task
             $this->error('Autoloader generation has failed');
         }
 
+        $this->info('Compiling common classes');
         $this->optimizeClass();
 
-        $this->info('Compiling common classes');
+        foreach ($this->compileTasks as $compileTask) {
+            $compileTask = new $compileTask;
 
-        $this->dispatcher->forward([
-            'task' => ConfigCacheTask::class
-        ]);
+            $compileTask->mainAction();
+        }
     }
 
     /**

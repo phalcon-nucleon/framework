@@ -26,8 +26,7 @@ return [
     $path . '/Interfaces/Middleware/BeforeInterface.php',
     $path . '/Interfaces/Middleware/FinishInterface.php',
 
-    $path . '/Dotenv/Loader.php',
-    $path . '/Dotenv.php',
+    $path . '/Dotconst/Loader.php',
 
     $path . '/Config/Loader.php',
 

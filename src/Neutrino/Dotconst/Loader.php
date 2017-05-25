@@ -21,6 +21,8 @@ class Loader
      *
      * @param string $path Path to ".const.ini" files
      * @param string $compilePath
+     *
+     * @throws \Neutrino\Dotconst\Exception\Exception
      */
     public static function load($path, $compilePath = null)
     {
@@ -107,9 +109,12 @@ class Loader
     {
         array_walk_recursive($config, function (&$value) use ($dir) {
             $value = self::variabilize('php/const:([\w:\\\\]+)', $value, function ($match) {
-                $value = constant($match[1]);
-
                 return constant($match[1]);
+            });
+            $value = self::variabilize('php/env:(\w+)(?::(\w+))?', $value, function ($match) {
+                $value = getenv($match[1]);
+
+                return $value === false ? (isset($match[2]) ? $match[2] : null) : $value;
             });
             $value = self::variabilize('php/dir(?::(/[\w\-. ]+))?', $value, function ($match) use ($dir) {
                 return self::normalizePath($dir . (isset($match[1]) ? $match[1] : ''));

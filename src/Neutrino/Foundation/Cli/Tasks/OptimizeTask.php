@@ -9,6 +9,8 @@ use Neutrino\Optimizer\Composer;
 /**
  * Class OptimizeTask
  *
+ * @property-read \Neutrino\Opcache\Manager $opcache
+ *
  * @package Neutrino\Foundation\Cli
  */
 class OptimizeTask extends Task
@@ -50,6 +52,24 @@ class OptimizeTask extends Task
         $this->info('Compiling common classes');
 
         $this->optimizeClass();
+
+        $this->info('Try opcache revalidate files generated');
+        try {
+            $res = true;
+            foreach ([
+                         BASE_PATH . '/bootstrap/compile/loader.php',
+                         BASE_PATH . '/bootstrap/compile/compile.php'
+                     ] as $file) {
+                $res &= $this->opcache->invalidate($file, true);
+                $res &= $this->opcache->compile($file);
+            }
+        } catch (\Exception $e) {
+            $res = false;
+        }
+
+        if(!$this->hasOption('withoutOpache')){
+            $this->info( $res ? 'Opcache revalidated with success' : 'Opcache revalidation fail');
+        }
 
         foreach ($this->compileTasks as $compileTask) {
             $compileTask = new $compileTask;

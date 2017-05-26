@@ -47,7 +47,7 @@ class Group
     {
         $this->generateGroupData();
 
-        $tableOutput = new Table($this->output, [], [], Table::NO_STYLE);
+        $tableOutput = new Table($this->output, [], [], Table::NO_STYLE | Table::NO_HEADER);
         $table = [];
         foreach ($this->groups['default'] as $key => $value) {
             $table[] = [$key, $value];
@@ -73,7 +73,7 @@ class Group
             foreach ($datas as $key => $value) {
                 $table[] = [$key, $value];
             }
-            $tableOutput->setDatas($table)->display(false);
+            $tableOutput->setDatas($table)->display();
         }
     }
 }

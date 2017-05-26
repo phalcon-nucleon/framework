@@ -80,7 +80,7 @@ class Table
 
     protected function separator()
     {
-        if ($this->style & self::NO_STYLE) {
+        if (!$this->withStyle()) {
             return;
         }
         $line = '+';
@@ -92,11 +92,11 @@ class Table
 
     protected function header()
     {
-        if ($this->style & self::NO_HEADER) {
+        if (!$this->withHeader()) {
             return;
         }
 
-        $closure = $this->style & self::NO_STYLE ? '' : '|';
+        $closure = $this->withStyle() ? '|' : '';
         $line = $closure;
         foreach ($this->columns as $column => $opts) {
             $line .= ' ' . Helper::strPad(str_upper($column), $opts['size'], ' ') . ' ' . $closure;
@@ -104,19 +104,19 @@ class Table
         $this->output->write($line, true);
     }
 
-    public function display($header = true)
+    public function display()
     {
         $this->generateColumns();
 
-        $this->separator();
+        if ($this->withHeader()) {
+            $this->separator();
 
-        if ($header) {
             $this->header();
         }
 
         $this->separator();
 
-        $closure = $this->style & self::NO_STYLE ? '' : '|';
+        $closure = $this->withStyle() ? '|' : '';
         foreach ($this->datas as $data) {
             $line = $closure;
             foreach ($this->columns as $column => $opts) {
@@ -126,5 +126,15 @@ class Table
         }
 
         $this->separator();
+    }
+
+    protected function withHeader()
+    {
+        return !($this->style & self::NO_HEADER);
+    }
+
+    protected function withStyle()
+    {
+        return !($this->style & self::NO_STYLE);
     }
 }

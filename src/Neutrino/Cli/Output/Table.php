@@ -11,9 +11,9 @@ class Table
 {
     const NO_STYLE = 1;
 
-    const STYLE_DEFAULT = 2;
+    const NO_HEADER = 2;
 
-    const NO_HEADER = 4;
+    const STYLE_DEFAULT = 4;
 
     protected $output;
 

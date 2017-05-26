@@ -60,10 +60,10 @@ class OpcacheTask extends Task
         $this->info('Interned Strings Status : ');
 
         $this->table([
-            'size'   => $status['interned_strings_usage']['buffer_size'],
-            'used'   => $status['interned_strings_usage']['used_memory'],
-            'free'   => $status['interned_strings_usage']['free_memory'],
-            'number' => $status['interned_strings_usage']['number_of_strings'],
+            ['size', $status['interned_strings_usage']['buffer_size']],
+            ['used', $status['interned_strings_usage']['used_memory']],
+            ['free', $status['interned_strings_usage']['free_memory']],
+            ['number', $status['interned_strings_usage']['number_of_strings']],
         ], [], Table::NO_STYLE | Table::NO_HEADER);
 
         $this->info('Statistics : ');

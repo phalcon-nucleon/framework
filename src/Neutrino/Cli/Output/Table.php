@@ -5,13 +5,15 @@ namespace Neutrino\Cli\Output;
 /**
  * Class Table
  *
- *  @package Neutrino\Cli\Output
+ * @package Neutrino\Cli\Output
  */
 class Table
 {
-    const STYLE_DEFAULT = 'default';
+    const NO_STYLE = 1;
 
-    const NO_STYLE = 'no-style';
+    const STYLE_DEFAULT = 2;
+
+    const NO_HEADER = 4;
 
     protected $output;
 
@@ -27,17 +29,18 @@ class Table
      * @param ConsoleOutput $output
      * @param array         $datas
      * @param array         $headers
-     * @param string        $style
+     * @param int           $style
      */
     public function __construct(
         ConsoleOutput $output,
         array $datas = [],
         array $headers = [],
         $style = self::STYLE_DEFAULT
-    ) {
+    )
+    {
         $this->output = $output;
-        $this->datas  = $datas;
-        $this->style  = $style;
+        $this->datas = $datas;
+        $this->style = $style;
 
         foreach ($headers as $header) {
             $this->columns[$header] = [];
@@ -77,7 +80,7 @@ class Table
 
     protected function separator()
     {
-        if ($this->style === self::NO_STYLE) {
+        if ($this->style & self::NO_STYLE) {
             return;
         }
         $line = '+';
@@ -89,8 +92,12 @@ class Table
 
     protected function header()
     {
-        $closure = $this->style === self::NO_STYLE ? '' : '|';
-        $line    = $closure;
+        if ($this->style & self::NO_HEADER) {
+            return;
+        }
+
+        $closure = $this->style & self::NO_STYLE ? '' : '|';
+        $line = $closure;
         foreach ($this->columns as $column => $opts) {
             $line .= ' ' . Helper::strPad(str_upper($column), $opts['size'], ' ') . ' ' . $closure;
         }
@@ -109,7 +116,7 @@ class Table
 
         $this->separator();
 
-        $closure = $this->style === self::NO_STYLE ? '' : '|';
+        $closure = $this->style & self::NO_STYLE ? '' : '|';
         foreach ($this->datas as $data) {
             $line = $closure;
             foreach ($this->columns as $column => $opts) {

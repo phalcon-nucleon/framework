@@ -17,4 +17,12 @@ class Version extends \Phalcon\Version
             null  // number
         ];
     }
+
+    /**
+     * @inheritdoc
+     */
+    public static function get()
+    {
+        return str_replace(' ', '-', parent::get());
+    }
 }

@@ -5,7 +5,7 @@ namespace Neutrino\Cli\Output;
 /**
  * Class ConsoleOutput
  *
- *  @package Neutrino\Cli\Output
+ * @package Neutrino\Cli\Output
  */
 class ConsoleOutput
 {

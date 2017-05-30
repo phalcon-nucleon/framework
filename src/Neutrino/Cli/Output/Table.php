@@ -63,7 +63,7 @@ class Table
     {
         foreach ($this->datas as $data) {
             foreach ($data as $column => $value) {
-                if (!arr_has($this->columns, $column) || !arr_has($this->columns[$column], 'size')) {
+                if (empty($this->columns[$column]) || empty($this->columns[$column]['size'])) {
                     $this->columns[$column] = [
                         'size' => max(Helper::strlenWithoutDecoration($column), Helper::strlenWithoutDecoration($value))
                     ];

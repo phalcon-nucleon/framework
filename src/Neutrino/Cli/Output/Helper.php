@@ -174,7 +174,7 @@ final class Helper
      */
     private static function getReflection($class)
     {
-        if (!arr_has(self::$reflections, $class)) {
+        if (!isset(self::$reflections[$class])) {
             self::$reflections[$class] = new \ReflectionClass($class);
         }
 

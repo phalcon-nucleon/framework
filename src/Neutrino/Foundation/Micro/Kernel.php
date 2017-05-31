@@ -97,13 +97,6 @@ abstract class Kernel extends MicroKernel implements Kernelable
      */
     public function registerRoutes()
     {
-        require BASE_PATH .'/routes/micro.php';
-    }
-
-    /**
-     * @return void
-     */
-    public function boot()
-    {
+        require BASE_PATH . '/routes/micro.php';
     }
 }

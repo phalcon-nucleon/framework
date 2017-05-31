@@ -136,4 +136,24 @@ trait Kernelize
         // Register Di on Application
         $this->setDI($di);
     }
+
+    /**
+     * @return void
+     */
+    public function boot()
+    {
+        if (!is_null($em = $this->getEventsManager())) {
+            $em->fire(\Neutrino\Constants\Events\Kernel::BOOT, $this);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function terminate()
+    {
+        if (!is_null($em = $this->getEventsManager())) {
+            $em->fire(\Neutrino\Constants\Events\Kernel::TERMINATE, $this);
+        }
+    }
 }

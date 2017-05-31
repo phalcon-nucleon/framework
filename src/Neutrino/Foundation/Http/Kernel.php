@@ -15,7 +15,9 @@ use Phalcon\Mvc\Application;
  */
 abstract class Kernel extends Application implements Kernelable
 {
-    use Kernelize;
+    use Kernelize {
+        boot as _boot;
+    }
 
     /**
      * Return the Provider List to load.
@@ -69,6 +71,8 @@ abstract class Kernel extends Application implements Kernelable
 
     public function boot()
     {
+        $this->_boot();
+
         $this->useImplicitView(isset($this->config->view->implicit) ? $this->config->view->implicit : false);
     }
 }

@@ -9,13 +9,15 @@ use Neutrino\Providers\Provider;
 /**
  * Class Router
  *
- *  @package Neutrino\Foundation\Bootstrap
+ * @package Neutrino\Foundation\Bootstrap
  */
 class Router extends Provider
 {
     protected $name = Services::ROUTER;
 
     protected $shared = true;
+
+    protected $aliases = [\Phalcon\Mvc\Router::class];
 
     /**
      * @return \Phalcon\Mvc\Router

@@ -8,13 +8,15 @@ use Neutrino\Providers\Provider;
 /**
  * Class Dispatcher
  *
- *  @package Neutrino\Providers
+ * @package Neutrino\Providers
  */
 class Dispatcher extends Provider
 {
     protected $name = Services::DISPATCHER;
 
     protected $shared = true;
+
+    protected $aliases = [\Phalcon\Mvc\Dispatcher::class];
 
     /**
      * @return \Phalcon\Mvc\Dispatcher

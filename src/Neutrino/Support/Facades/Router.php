@@ -40,7 +40,7 @@ use Neutrino\Constants\Services;
  * @method static \Phalcon\Mvc\Router\RouteInterface getMatchedRoute() Returns the route that matchs the handled URI
  * @method static array getMatches() Returns the sub expressions in the regular expression matched
  * @method static bool wasMatched() Checks if the router macthes any of the defined routes
- * @method static \Phalcon\Mvc\Router\RouteInterface getRoutes() Returns all the routes defined in the router
+ * @method static \Phalcon\Mvc\Router\RouteInterface[] getRoutes() Returns all the routes defined in the router
  * @method static \Phalcon\Mvc\Router\RouteInterface|bool getRouteById(mixed $id) Returns a route object by its id
  * @method static \Phalcon\Mvc\Router\RouteInterface|bool getRouteByName(string $name) Returns a route object by its name
  * @method static bool isExactControllerName() Returns whether controller name should not be mangled

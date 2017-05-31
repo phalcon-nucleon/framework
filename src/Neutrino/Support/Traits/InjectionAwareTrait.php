@@ -8,11 +8,10 @@ use Phalcon\DiInterface;
 /**
  * Trait InjectionAwareTrait
  *
- *  @package Neutrino\Support\Traits
+ * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
+ * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
  *
- * @property-read \Neutrino\Cache\CacheStrategy          $cache
- * @property-read \Phalcon\Mvc\Application               $app
- * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
+ * @package Neutrino\Support\Traits
  */
 trait InjectionAwareTrait
 {
@@ -47,6 +46,13 @@ trait InjectionAwareTrait
         return $this->_di;
     }
 
+    /**
+     * Magic method __get
+     *
+     * @param string $name
+     *
+     * @return mixed
+     */
     public function __get($name)
     {
         if (!isset($this->$name)) {

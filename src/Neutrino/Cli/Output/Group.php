@@ -2,8 +2,11 @@
 
 namespace Neutrino\Cli\Output;
 
-use Neutrino\Support\Str;
-
+/**
+ * Class Group
+ *
+ * @package Neutrino\Cli\Output
+ */
 class Group
 {
     protected $output;
@@ -28,7 +31,7 @@ class Group
     {
         foreach ($this->datas as $key => $data) {
             $washKey = Helper::removeDecoration($key);
-            if (Str::contains($washKey, ':')) {
+            if (str_contains($washKey, ':')) {
                 $keys = explode(':', $washKey);
 
                 $group = $keys[0];
@@ -64,7 +67,7 @@ class Group
 
         foreach ($this->groups as $group => $datas) {
             if ($group != 'default') {
-                $this->output->write($group, true);
+                $this->output->notice($group);
             }
             $table = [];
             foreach ($datas as $key => $value) {

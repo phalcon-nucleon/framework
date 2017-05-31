@@ -2,6 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
+use Neutrino\Dotenv;
 use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 
@@ -12,6 +13,22 @@ use Test\TestCase\TestCase;
  */
 class ClearCompiledTaskTest extends TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        // Force Enable Decoration for windows
+        putenv('TERM=xterm');
+    }
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        // Force Enable Decoration for windows
+        putenv('TERM=');
+    }
+
     protected static function kernelClassInstance()
     {
         return StubKernelCli::class;
@@ -19,9 +36,7 @@ class ClearCompiledTaskTest extends TestCase
 
     public function setUp()
     {
-        global $config;
-
-        $config['paths']['base'] = __DIR__ . '/../../../';
+        Dotenv::put('BASE_PATH', __DIR__ . '/../../../');
 
         mkdir(__DIR__ . '/../../../' . '/bootstrap/compile', 0777, true);
 
@@ -44,7 +59,7 @@ class ClearCompiledTaskTest extends TestCase
     {
         file_put_contents(__DIR__ . '/../../../' . '/bootstrap/compile/loader.php', '<?php');
 
-        $this->dispatchCli('luxury clear-compiled -q');
+        $this->dispatchCli('quark clear-compiled -q');
 
         $this->assertEquals([], glob(__DIR__ . '/../../../' . '/bootstrap/compile/*.*'));
     }

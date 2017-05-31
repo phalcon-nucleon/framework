@@ -9,13 +9,15 @@ use Phalcon\Flash\Direct as FlashDirect;
 /**
  * Class Flash
  *
- *  @package Neutrino\Foundation\Bootstrap
+ * @package Neutrino\Foundation\Bootstrap
  */
 class Flash extends Provider
 {
     protected $name = Services::FLASH;
 
     protected $shared = false;
+
+    protected $aliases = [FlashDirect::class];
 
     /**
      * @return \Phalcon\Flash\Direct

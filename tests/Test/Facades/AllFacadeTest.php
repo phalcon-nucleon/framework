@@ -49,8 +49,7 @@ class AllFacadeTest extends TestCase
     {
         $this->assertEquals(
             $serviceName,
-            $this->getPrivateMethod($facadeClass, 'getFacadeAccessor')
-                ->invoke($facadeClass, 'getFacadeAccessor')
+            $this->invokeStaticMethod($facadeClass, 'getFacadeAccessor')
         );
     }
 }

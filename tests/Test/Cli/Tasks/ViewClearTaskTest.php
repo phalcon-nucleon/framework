@@ -2,6 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
+use Neutrino\Dotenv;
 use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 
@@ -21,6 +22,8 @@ class ViewClearTaskTest extends TestCase
     public function setUp()
     {
         global $config;
+
+        Dotenv::put('BASE_PATH', __DIR__ . '/../../../');
 
         $config['view']['compiled_path'] = __DIR__ . '/../../../storage/views/';
 
@@ -45,7 +48,7 @@ class ViewClearTaskTest extends TestCase
     {
         file_put_contents(__DIR__ . '/../../../storage/views/view.php', '<?php');
 
-        $this->dispatchCli('luxury view:clear -q');
+        $this->dispatchCli('quark view:clear -q');
 
         $this->assertEquals([], glob(__DIR__ . '/../../../storage/views/*.*'));
     }

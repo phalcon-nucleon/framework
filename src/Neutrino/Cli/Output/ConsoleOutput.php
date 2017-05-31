@@ -28,26 +28,51 @@ class ConsoleOutput
         }
     }
 
+    /**
+     * Write a string as information output.
+     *
+     * @param string $str
+     */
     public function info($str)
     {
         $this->write(Decorate::info($str), true);
     }
 
+    /**
+     * Write a string as notice output.
+     *
+     * @param string $str
+     */
     public function notice($str)
     {
         $this->write(Decorate::notice($str), true);
     }
 
+    /**
+     * Write a string as warning output.
+     *
+     * @param string $str
+     */
     public function warn($str)
     {
         $this->write(Decorate::warn($str), true);
     }
 
+    /**
+     * Write a string as error output.
+     *
+     * @param string $str
+     */
     public function error($str)
     {
         $this->write(Decorate::error($str), true);
     }
 
+    /**
+     * Write a string as question output.
+     *
+     * @param string $str
+     */
     public function question($str)
     {
         $this->write(Decorate::question($str), true);

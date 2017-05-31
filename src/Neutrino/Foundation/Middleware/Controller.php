@@ -71,11 +71,11 @@ abstract class Controller extends Listener
 
         $enable = true;
         if (isset($this->filter['only'])) {
-            $enable = in_array($action, $this->filter['only']);
+            $enable = isset($this->filter['only'][$action]);
         }
 
         if ($enable && isset($this->filter['except'])) {
-            $enable = !in_array($action, $this->filter['except']);
+            $enable = !isset($this->filter['except'][$action]);
         }
 
         return $enable;
@@ -174,7 +174,7 @@ abstract class Controller extends Listener
         }
 
         foreach ($filters as $item) {
-            $this->filter[$type][] = $item;
+            $this->filter[$type][$item] = true;
         }
 
         return $this;

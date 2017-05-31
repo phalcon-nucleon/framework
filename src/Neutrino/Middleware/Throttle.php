@@ -13,7 +13,7 @@ use Phalcon\Events\Event;
 /**
  * Class Throttle
  *
- *  @package Neutrino\Middleware
+ * @package Neutrino\Middleware
  */
 abstract class Throttle extends ControllerMiddleware implements BeforeInterface, AfterInterface
 {
@@ -60,7 +60,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
             throw new \RuntimeException(static::class . '->name is empty.');
         }
 
-        $this->max   = $max;
+        $this->max = $max;
         $this->decay = $decay;
     }
 
@@ -119,7 +119,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
         /** @var \Phalcon\Http\Request $request */
         $request = $this->{Services::REQUEST};
         /** @var \Phalcon\Mvc\Router $router */
-        $router  = $this->{Services::ROUTER};
+        $router = $this->{Services::ROUTER};
 
         return sha1(
             $router->getModuleName() .
@@ -146,21 +146,21 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
         $limiter = $this->getLimiter();
 
         $response->setHeader('X-RateLimit-Limit', $this->max);
-        $response->setHeader(
-            'X-RateLimit-Remaining',
-            $limiter->retriesLeft($signature, $this->max, $this->decay)
-        );
-
         if ($tooManyAttempts) {
-            $response->setHeader('X-RateLimit-Remaining', 0);
-
             $msg = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
 
-            $response->setContent($msg);
-            $response->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg);
-            $response->setHeader(
+            $response
+                ->setContent($msg)
+                ->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg)
+                ->setHeader('X-RateLimit-Remaining', 0)
+                ->setHeader(
                 'Retry-After',
                 $limiter->availableIn($signature, $this->decay)
+            );
+        } else {
+            $response->setHeader(
+                'X-RateLimit-Remaining',
+                $limiter->retriesLeft($signature, $this->max, $this->decay)
             );
         }
     }
@@ -173,7 +173,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
     protected function getLimiter()
     {
         if (!isset($this->limiter)) {
-            $this->limiter = new RateLimiter($this->name);
+            $this->limiter = $this->getDI()->get(RateLimiter::class, [$this->name]);
         }
 
         return $this->limiter;

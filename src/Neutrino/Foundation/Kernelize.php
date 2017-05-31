@@ -12,7 +12,7 @@ use Phalcon\Events\Manager as EventsManager;
 /**
  * Class HttpKernel
  *
- *  @package Neutrino\Foundation
+ * @package Neutrino\Foundation
  */
 trait Kernelize
 {
@@ -21,7 +21,19 @@ trait Kernelize
      */
     public function registerServices()
     {
-        foreach ($this->providers as $provider) {
+        /** @var Di $di */
+        $di = $this->getDI();
+
+        foreach ($this->providers as $name => $provider) {
+            if(is_string($name)){
+                $service = new Di\Service($name, $provider, true);
+
+                $di->setRaw($name, $service);
+                $di->setRaw($provider, $service);
+
+                continue;
+            }
+
             /* @var \Neutrino\Interfaces\Providable $prv */
             $prv = new $provider();
 
@@ -50,6 +62,21 @@ trait Kernelize
     }
 
     /**
+     * This methods registers the middlewares to be used by the application
+     *
+     * @param array $modules
+     * @param bool  $merge
+     */
+    public function registerModules(array $modules = [], $merge = false)
+    {
+        $modules = array_merge($this->modules, $modules);
+
+        if (!empty($modules)) {
+            parent::registerModules($modules, $merge);
+        }
+    }
+
+    /**
      * Attach an Listener
      *
      * @param Listener $listener
@@ -73,14 +100,18 @@ trait Kernelize
      *
      * @return void
      */
-    public function bootstrap(Config $config)
+    public final function bootstrap(Config $config)
     {
-        $diClass = $this->dependencyInjection;
-
         /** @var \Phalcon\Application $this */
-        $em = new EventsManager;
 
-        $this->setEventsManager($em);
+        $diClass = $this->dependencyInjection;
+        $emClass = $this->eventsManagerClass;
+
+        if(!empty($emClass)){
+            $em = new $emClass;
+
+            $this->setEventsManager($em);
+        }
 
         Di::reset();
 
@@ -90,9 +121,11 @@ trait Kernelize
         $di->setShared(Services::APP, $this);
         $di->setShared(Services::CONFIG, $config);
 
-        $di->setInternalEventsManager($em);
+        if(!empty($em)){
+            $di->setInternalEventsManager($em);
 
-        $di->setShared(Services::EVENTS_MANAGER, $em);
+            $di->setShared(Services::EVENTS_MANAGER, $em);
+        }
 
         // Register Global Di
         Di::setDefault($di);

@@ -53,23 +53,6 @@ class OptimizeTask extends Task
 
         $this->optimizeClass();
 
-        if(!$this->hasOption('withoutOpache')) {
-            $this->info('Try opcache force invalidate files generated');
-            try {
-                $res = true;
-                foreach ([
-                             BASE_PATH . '/bootstrap/compile/loader.php',
-                             BASE_PATH . '/bootstrap/compile/compile.php'
-                         ] as $file) {
-                    $res &= $this->opcache->invalidate($file, true);
-                }
-            } catch (\Exception $e) {
-                $res = false;
-            }
-
-            $this->info($res ? 'Opcache invalidate with success' : 'Opcache invalidate fail');
-        }
-
         foreach ($this->compileTasks as $compileTask) {
             $compileTask = new $compileTask;
 

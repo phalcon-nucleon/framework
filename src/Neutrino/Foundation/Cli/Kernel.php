@@ -24,7 +24,6 @@ use Phalcon\Events\Manager as EventManager;
 abstract class Kernel extends Console implements Kernelable
 {
     use Kernelize {
-        boot as _boot;
         terminate as _terminate;
     }
 
@@ -86,20 +85,23 @@ abstract class Kernel extends Console implements Kernelable
         require BASE_PATH . '/routes/cli.php';
     }
 
-    public function boot()
+    public function handle(array $arguments = null)
     {
+        if (!empty($arguments)) {
+            $this->setArgument($arguments);
+        }
+
         if ($this->isHelp()) {
-            $this->_arguments = array_merge($this->_arguments, [
+            $this->_arguments = [
                 'task'   => HelperTask::class,
                 'action' => 'main',
                 'params' => [
-                    'task'   => Arr::get($this->_arguments, 'task'),
-                    'action' => Arr::get($this->_arguments, 'action'),
+                    'arguments'   => $this->_arguments,
                 ]
-            ]);
+            ];
         }
 
-        $this->_boot();
+        parent::handle($arguments);
     }
 
     public function terminate()

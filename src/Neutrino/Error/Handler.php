@@ -41,10 +41,10 @@ class Handler
      */
     public static function register()
     {
-        set_error_handler(function($errno, $errstr, $errfile, $errline){
+        set_error_handler(function ($errno, $errstr, $errfile, $errline) {
             self::handleError($errno, $errstr, $errfile, $errline);
         });
-        set_exception_handler(function($e){
+        set_exception_handler(function ($e) {
             self::handleException($e);
         });
 
@@ -106,18 +106,20 @@ class Handler
     {
         $di = Di::getDefault();
 
-        if (is_null($di)) {
+        if (is_null($di)
+            || is_null($config = $di->getShared(Services::CONFIG))
+            || !isset($config->error)
+            || is_null($logger = $di->getShared(Services::LOGGER))
+        ) {
             $type = static::getErrorType($error->type);
             error_log("$type: {$error->message} in {$error->file} on line {$error->line}", $error->type);
 
             return null;
         }
 
-        /* @var \Phalcon\Config $config */
-        $config = $di->getShared(Services::CONFIG)->error;
-
         /* @var \Phalcon\Logger\Adapter $logger */
-        $logger = $di->getShared(Services::LOGGER);
+        /* @var \Phalcon\Config $config */
+        $config = $config->error;
 
         $type    = static::getErrorType($error->type);
         $message = "$type: {$error->message} in {$error->file} on line {$error->line}";

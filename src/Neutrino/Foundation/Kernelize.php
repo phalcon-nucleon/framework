@@ -3,11 +3,11 @@
 namespace Neutrino\Foundation;
 
 use Neutrino\Constants\Services;
+use Neutrino\Error\Handler;
 use Neutrino\Events\Listener;
 use Neutrino\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Di;
-use Phalcon\Events\Manager as EventsManager;
 
 /**
  * Class HttpKernel
@@ -103,6 +103,7 @@ trait Kernelize
     public final function bootstrap(Config $config)
     {
         /** @var \Phalcon\Application $this */
+        Handler::register();
 
         $diClass = $this->dependencyInjection;
         $emClass = $this->eventsManagerClass;

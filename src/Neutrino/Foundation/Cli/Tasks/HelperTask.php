@@ -15,24 +15,35 @@ use Phalcon\Cli\Router\Route;
  */
 class HelperTask extends Task
 {
-    /**
-     * @override
-     */
-    public function beforeExecuteRoute()
-    {
-        // Parent overload to prevent check the help option existence
-    }
-
     public function mainAction()
     {
         $this->{Services::APP}->displayNeutrinoVersion();
 
+        if ($this->hasArg('arguments')) {
+            $this->router->handle($this->getArg('arguments'));
+
+            if (!$this->router->wasMatched()) {
+                if (is_null($route = $this->tryHandle($this->getArg('arguments')))) {
+                    throw new \Exception('route not found');
+                }
+                $task   = Arr::get($route, 'task');
+                $action = Arr::get($route, 'action', 'main') . $this->dispatcher->getActionSuffix();
+            } else {
+                $task   = $this->router->getTaskName();
+                $action = ($this->router->getActionName() ?: 'main') . $this->dispatcher->getActionSuffix();
+            }
+
+        } else {
+            $task   = $this->getArg('task');
+            $action = $this->getArg('action') . $this->dispatcher->getActionSuffix();
+        }
+
         $infos = Helper::getTaskInfos(
-            $this->getArg('task'),
-            $this->getArg('action') . $this->dispatcher->getActionSuffix()
+            $task,
+            $action
         );
 
-        $route = $this->resolveRoute($this->getArg('task'), $this->getArg('action'));
+        $route = $this->resolveRoute($task, $action);
 
         if (!empty($route)) {
             $this->line('Usage :');
@@ -73,7 +84,7 @@ class HelperTask extends Task
             $paths = $route->getPaths();
 
             if ($paths['task'] == $class) {
-                if (Arr::fetch($paths, 'action', 'main') == $action) {
+                if (Arr::fetch($paths, 'action', 'main' . $this->dispatcher->getActionSuffix()) == $action) {
                     $findedRoute = $route;
                     break;
                 }
@@ -82,6 +93,31 @@ class HelperTask extends Task
 
         if (!empty($findedRoute)) {
             return $findedRoute;
+        }
+
+        return null;
+    }
+
+    private function tryHandle($arg)
+    {
+        $routes = $this->router->getRoutes();
+
+        $findedRoute = null;
+        foreach ($routes as $route) {
+            /** @var Route $route */
+            $pattern = $route->getCompiledPattern();
+
+            do {
+                $old     = $pattern;
+                $pattern = preg_replace('/\([^\(\)]*\)(?:[+*]|\{[\d,]\})?/', '', $pattern);
+            } while ($pattern !== $old);
+
+            $pattern = trim(preg_replace('/ /', '\s*', $pattern));
+
+            if (preg_match($pattern, trim($arg))) {
+
+                return $route->getPaths();
+            }
         }
 
         return null;

@@ -69,10 +69,8 @@ trait Kernelize
      */
     public function registerModules(array $modules = [], $merge = false)
     {
-        $modules = array_merge($this->modules, $modules);
-
-        if (!empty($modules)) {
-            parent::registerModules($modules, $merge);
+        if (!empty($this->modules) || !empty($modules)) {
+            parent::registerModules(array_merge($this->modules, $modules), $merge);
         }
     }
 

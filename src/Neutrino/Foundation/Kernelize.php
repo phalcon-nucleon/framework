@@ -8,7 +8,6 @@ use Neutrino\Events\Listener;
 use Neutrino\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Di;
-use Phalcon\Events\Manager as EventsManager;
 
 /**
  * Class HttpKernel

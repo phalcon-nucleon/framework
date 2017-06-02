@@ -20,9 +20,7 @@
 */
 namespace Neutrino\Error;
 
-use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
-use Neutrino\Dotenv;
 use Phalcon\Di;
 use Phalcon\Http\Response;
 use Phalcon\Logger;
@@ -43,27 +41,16 @@ class Handler
      */
     public static function register()
     {
-        switch (Dotenv::env('APP_ENV')) {
-            case Env::TEST:
-            case Env::DEVELOPMENT:
-            case Env::STAGING:
-                ini_set('display_errors', 1);
-                error_reporting(-1);
-                break;
-            case Env::PRODUCTION:
-            default:
-                ini_set('display_errors', 0);
-                error_reporting(0);
-                break;
-        }
-
-        set_error_handler(self::class . '::handleError');
-
-        set_exception_handler(self::class . '::handleException');
+        set_error_handler(function($errno, $errstr, $errfile, $errline){
+            self::handleError($errno, $errstr, $errfile, $errline);
+        });
+        set_exception_handler(function($e){
+            self::handleException($e);
+        });
 
         register_shutdown_function(function () {
-            if (!is_null($options = error_get_last())) {
-                static::handle(new Error($options));
+            if (!is_null($e = error_get_last())) {
+                static::handle(new Error($e));
             }
         });
     }

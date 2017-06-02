@@ -44,9 +44,13 @@ class Bootstrap
         $kernel->registerMiddlewares();
         $kernel->registerListeners();
         $kernel->registerRoutes();
-        $kernel->registerModules([]);
+        $kernel->registerModules();
 
         $kernel->boot();
+
+        register_shutdown_function(function () use ($kernel) {
+            $kernel->terminate();
+        });
 
         return $kernel;
     }

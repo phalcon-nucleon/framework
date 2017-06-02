@@ -58,7 +58,7 @@ interface Kernelable
      *
      * @return
      */
-    public function registerModules(array $modules, $merge = false);
+    public function registerModules(array $modules = [], $merge = false);
 
     /**
      * @return void

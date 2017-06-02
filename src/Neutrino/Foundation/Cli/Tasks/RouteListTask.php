@@ -5,7 +5,9 @@ namespace Neutrino\Foundation\Cli\Tasks;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
+use Neutrino\Support\Arr;
 use Neutrino\Support\Facades\Router;
+use Neutrino\Support\Str;
 
 /**
  * Class RouteListTask
@@ -41,7 +43,7 @@ class RouteListTask extends Task
             if (is_array($httpMethods)) {
                 $httpMethods = implode('|', $httpMethods);
             }
-            $middlewares = arr_fetch($paths, 'middleware');
+            $middlewares = Arr::fetch($paths, 'middleware');
             if (is_array($middlewares)) {
                 $_middlewares = [];
                 foreach ($middlewares as $key => $middleware) {
@@ -60,8 +62,8 @@ class RouteListTask extends Task
                 'name'       => $route->getName(),
                 'method'     => $httpMethods,
                 'pattern'    => $compiled,
-                'action'     => arr_fetch($paths, 'namespace', 'App\\Http\\Controllers') .
-                    '\\' . str_capitalize($paths['controller']) . 'Controller::' . $paths['action'],
+                'action'     => Arr::fetch($paths, 'namespace', 'App\\Http\\Controllers') .
+                    '\\' . Str::capitalize($paths['controller']) . 'Controller::' . $paths['action'],
                 'middleware' => $middleware
             ];
         }

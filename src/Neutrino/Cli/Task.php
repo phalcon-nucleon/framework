@@ -11,7 +11,9 @@ use Neutrino\Cli\Question\ChoiceQuestion;
 use Neutrino\Cli\Question\ConfirmationQuestion;
 use Neutrino\Cli\Question\Question;
 use Neutrino\Constants\Events;
+use Neutrino\Error\Handler;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
+use Neutrino\Support\Arr;
 use Phalcon\Cli\Task as PhalconTask;
 use Phalcon\Events\Event;
 
@@ -88,6 +90,8 @@ abstract class Task extends PhalconTask
         $this->error('Exception : ' . get_class($exception));
         $this->error($exception->getMessage());
         $this->error($exception->getTraceAsString());
+
+        Handler::handleException($exception);
 
         return false;
     }
@@ -230,7 +234,7 @@ abstract class Task extends PhalconTask
      */
     protected function getArg($name, $default = null)
     {
-        return arr_fetch($this->getArgs(), $name, $default);
+        return Arr::fetch($this->getArgs(), $name, $default);
     }
 
     /**
@@ -242,7 +246,7 @@ abstract class Task extends PhalconTask
      */
     protected function hasArg($name)
     {
-        return arr_has($this->getArgs(), $name);
+        return Arr::has($this->getArgs(), $name);
     }
 
     /**
@@ -265,7 +269,7 @@ abstract class Task extends PhalconTask
      */
     protected function getOption($name, $default = null)
     {
-        return arr_fetch($this->getOptions(), $name, $default);
+        return Arr::fetch($this->getOptions(), $name, $default);
     }
 
     /**
@@ -278,7 +282,7 @@ abstract class Task extends PhalconTask
     protected function hasOption(...$options)
     {
         foreach ($options as $option) {
-            if (arr_has($this->getOptions(), $option)) {
+            if (Arr::has($this->getOptions(), $option)) {
                 return true;
             }
         }

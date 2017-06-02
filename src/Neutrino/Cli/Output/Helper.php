@@ -54,7 +54,7 @@ final class Helper
     }
 
     /**
-     * Correct str_pad wrong output when str is decorate
+     * Correct Str::pad wrong output when str is decorate
      *
      * @param string $str
      * @param int    $size

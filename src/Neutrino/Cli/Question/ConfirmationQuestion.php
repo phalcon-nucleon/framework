@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: xlzi590
- * Date: 30/05/2017
- * Time: 14:44
- */
 
 namespace Neutrino\Cli\Question;
-
 
 class ConfirmationQuestion extends Question
 {

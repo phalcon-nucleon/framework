@@ -11,7 +11,7 @@ use Phalcon\Di\Service;
  *
  * @package Neutrino\Providers
  *
- * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
+ * @property-read \Neutrino\Foundation\Http\Kernel|\Neutrino\Foundation\Cli\Kernel|\Neutrino\Foundation\Micro\Kernel $application
  * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
  */
 abstract class Provider extends Injectable implements Providable

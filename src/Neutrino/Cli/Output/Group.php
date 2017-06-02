@@ -20,10 +20,10 @@ class Group
     /**
      * Group constructor.
      *
-     * @param ConsoleOutput $output
-     * @param array         $datas
+     * @param Writer $output
+     * @param array  $datas
      */
-    public function __construct(ConsoleOutput $output, array $datas = [])
+    public function __construct(Writer $output, array $datas = [])
     {
         $this->output = $output;
         $this->datas = $datas;

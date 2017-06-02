@@ -2,7 +2,7 @@
 
 namespace Neutrino\Cli;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Output\QuestionHelper;
@@ -11,6 +11,7 @@ use Neutrino\Cli\Question\ChoiceQuestion;
 use Neutrino\Cli\Question\ConfirmationQuestion;
 use Neutrino\Cli\Question\Question;
 use Neutrino\Constants\Events;
+use Neutrino\Constants\Services;
 use Neutrino\Error\Handler;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Support\Arr;
@@ -26,56 +27,17 @@ use Phalcon\Events\Event;
  * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
  * @property-read \Neutrino\Cli\Router                                                                  $router
  * @property-read \Phalcon\Cli\Dispatcher                                                               $dispatcher
+ * @property-read \Neutrino\Cli\Output\Writer                                                           $output
  */
 abstract class Task extends PhalconTask
 {
-    /**
-     * @var ConsoleOutput
-     */
-    protected $output;
-
     public function onConstruct()
     {
-        $this->output = new ConsoleOutput($this->hasOption('q', 'quiet'));
-
         $em = $this->dispatcher->getEventsManager();
 
         $em->attach(Events\Dispatch::BEFORE_EXCEPTION, function (Event $event, $dispatcher, \Exception $exception) {
             return $this->handleException($exception);
         });
-
-        if (($this->hasOption('s', 'stats')) && !$this->dispatcher->wasForwarded()) {
-            $em->attach(Events\Cli\Application::AFTER_HANDLE, function () {
-                $this->displayStats();
-            });
-        }
-
-        $em->attach(Events\Cli\Application::AFTER_HANDLE, function () {
-            $this->output->clean();
-        });
-    }
-
-    /**
-     * Handle help option & forward to HelperTask
-     *
-     * @return bool
-     */
-    public function beforeExecuteRoute()
-    {
-        if ($this->hasOption('h', 'help')) {
-            $this->dispatcher->forward([
-                'task'   => HelperTask::class,
-                'action' => 'main',
-                'params' => [
-                    'task'   => $this->dispatcher->getHandlerClass(),
-                    'action' => $this->dispatcher->getActionName(),
-                ]
-            ]);
-
-            return false;
-        }
-
-        return true;
     }
 
     /**
@@ -94,20 +56,6 @@ abstract class Task extends PhalconTask
         Handler::handleException($exception);
 
         return false;
-    }
-
-    public function displayStats()
-    {
-        $this->line('');
-        $this->line('Stats : ');
-        $this->line("\tmem:" . Decorate::info(memory_get_usage()));
-        $this->line("\tmem.peak:" . Decorate::info(memory_get_peak_usage()));
-        $this->line("\ttime:" . Decorate::info((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'])));
-    }
-
-    public function displayNeutrinoVersion()
-    {
-        $this->output->write(Helper::neutrinoVersion() . PHP_EOL, true);
     }
 
     /**

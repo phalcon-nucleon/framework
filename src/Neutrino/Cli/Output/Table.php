@@ -29,13 +29,13 @@ class Table
     /**
      * Table constructor.
      *
-     * @param ConsoleOutput $output
-     * @param array         $datas
-     * @param array         $headers
-     * @param int           $style
+     * @param Writer $output
+     * @param array  $datas
+     * @param array  $headers
+     * @param int    $style
      */
     public function __construct(
-        ConsoleOutput $output,
+        Writer $output,
         array $datas = [],
         array $headers = [],
         $style = self::STYLE_DEFAULT

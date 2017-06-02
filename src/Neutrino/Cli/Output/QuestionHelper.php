@@ -8,7 +8,7 @@ use Neutrino\Cli\Question\Question;
 
 final class QuestionHelper
 {
-    public static function ask(ConsoleOutput $output, $input, Question $question)
+    public static function ask(Writer $output, $input, Question $question)
     {
         if (!isset($input)) {
             $input = STDIN;
@@ -42,7 +42,7 @@ final class QuestionHelper
         return $response;
     }
 
-    private static function prompt(ConsoleOutput $output, Question $question)
+    private static function prompt(Writer $output, Question $question)
     {
         $output->question($question->getQuestion());
 
@@ -58,7 +58,7 @@ final class QuestionHelper
         }
     }
 
-    private static function doAsk(ConsoleOutput $output, $input, Question $question)
+    private static function doAsk(Writer $output, $input, Question $question)
     {
         self::prompt($output, $question);
 

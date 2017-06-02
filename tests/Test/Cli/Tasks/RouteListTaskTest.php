@@ -2,7 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
@@ -69,7 +69,7 @@ class RouteListTaskTest extends TestCase
         $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($eventManager);
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
 
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->createMock(Writer::class);
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);
@@ -109,7 +109,7 @@ class RouteListTaskTest extends TestCase
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
         $dispatcher->expects($this->any())->method('getOptions')->willReturn(['no-substitution' => true]);
 
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->createMock(Writer::class);
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);

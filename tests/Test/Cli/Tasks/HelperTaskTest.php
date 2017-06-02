@@ -2,7 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
@@ -111,7 +111,7 @@ class HelperTaskTest extends TestCase
                 'action' => $action,
             ]);
 
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->createMock(Writer::class);
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);

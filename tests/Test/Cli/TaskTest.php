@@ -2,7 +2,7 @@
 
 namespace Test\Cli;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
@@ -139,7 +139,7 @@ class TaskTest extends TestCase
      */
     public function testOutput($func, $str)
     {
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->createMock(Writer::class);
 
         $mock->expects($this->once())
             ->method($func)
@@ -154,7 +154,7 @@ class TaskTest extends TestCase
 
     public function testLine()
     {
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->createMock(Writer::class);
 
         $mock->expects($this->once())
             ->method('write')
@@ -169,7 +169,7 @@ class TaskTest extends TestCase
 
     public function testDisplayStats()
     {
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->createMock(Writer::class);
 
         $mock->expects($this->exactly(5))
             ->method('write')
@@ -184,7 +184,7 @@ class TaskTest extends TestCase
 
     public function testHandleExpection()
     {
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->createMock(Writer::class);
 
         $mock->expects($this->exactly(3))
             ->method('error')

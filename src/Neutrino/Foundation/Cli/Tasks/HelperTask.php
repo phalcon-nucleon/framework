@@ -4,13 +4,14 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
-use Phalcon\Cli\Router\Route;
+use Neutrino\Constants\Services;
 use Neutrino\Support\Arr;
+use Phalcon\Cli\Router\Route;
 
 /**
  * Class HelperTask
  *
- *  @package Neutrino\Foundation\Cli
+ * @package Neutrino\Foundation\Cli
  */
 class HelperTask extends Task
 {
@@ -24,7 +25,7 @@ class HelperTask extends Task
 
     public function mainAction()
     {
-        $this->displayNeutrinoVersion();
+        $this->{Services::APP}->displayNeutrinoVersion();
 
         $infos = Helper::getTaskInfos(
             $this->getArg('task'),

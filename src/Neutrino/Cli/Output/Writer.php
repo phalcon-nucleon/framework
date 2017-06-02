@@ -2,12 +2,14 @@
 
 namespace Neutrino\Cli\Output;
 
+use Neutrino\Constants\Services;
+
 /**
  * Class ConsoleOutput
  *
  * @package Neutrino\Cli\Output
  */
-class ConsoleOutput
+class Writer
 {
     /**
      * @var bool
@@ -27,6 +29,17 @@ class ConsoleOutput
             ob_start();
         }
     }
+
+    /**
+     * Write a string.
+     *
+     * @param string $str
+     */
+    public function line($str)
+    {
+        $this->write($str, true);
+    }
+
 
     /**
      * Write a string as information output.

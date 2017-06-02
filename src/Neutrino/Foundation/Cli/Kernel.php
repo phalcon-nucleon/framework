@@ -2,8 +2,13 @@
 
 namespace Neutrino\Foundation\Cli;
 
+use Neutrino\Cli\Output\Decorate;
+use Neutrino\Cli\Output\Helper;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
+use Neutrino\Support\Arr;
 use Phalcon\Cli\Console;
 use Phalcon\Di\FactoryDefault\Cli as Di;
 use Phalcon\Events\Manager as EventManager;
@@ -11,14 +16,17 @@ use Phalcon\Events\Manager as EventManager;
 /**
  * Class Cli
  *
- *  @package Neutrino\Foundation\Kernel
+ * @package Neutrino\Foundation\Kernel
  *
  * @property-read \Neutrino\Cli\Router    $router
  * @property-read \Phalcon\Cli\Dispatcher $dispatcher
  */
 abstract class Kernel extends Console implements Kernelable
 {
-    use Kernelize;
+    use Kernelize {
+        boot as _boot;
+        terminate as _terminate;
+    }
 
     /**
      * Return the Provider List to load.
@@ -75,6 +83,64 @@ abstract class Kernel extends Console implements Kernelable
      */
     public function registerRoutes()
     {
-        require BASE_PATH .'/routes/cli.php';
+        require BASE_PATH . '/routes/cli.php';
+    }
+
+    public function boot()
+    {
+        if ($this->isHelp()) {
+            $this->_arguments = array_merge($this->_arguments, [
+                'task'   => HelperTask::class,
+                'action' => 'main',
+                'params' => [
+                    'task'   => Arr::get($this->_arguments, 'task'),
+                    'action' => Arr::get($this->_arguments, 'action'),
+                ]
+            ]);
+        }
+
+        $this->_boot();
+    }
+
+    public function terminate()
+    {
+        $this->_terminate();
+
+        if ($this->withStats()) {
+            $this->displayStats();
+        }
+
+        $this->{Services\Cli::OUTPUT}->clean();
+    }
+
+    public function isQuiet()
+    {
+        return isset($this->_options['q']) || isset($this->_options['quiet']);
+    }
+
+    public function isHelp()
+    {
+        return isset($this->_options['h']) || isset($this->_options['help']);
+    }
+
+    public function withStats()
+    {
+        return isset($this->_options['s']) || isset($this->_options['stats']);
+    }
+
+    public function displayStats()
+    {
+        /** @var \Neutrino\Cli\Output\Writer $output */
+        $output = $this->{Services\Cli::OUTPUT};
+        $output->line('');
+        $output->line('Stats : ');
+        $output->line("\tmem:" . Decorate::info(memory_get_usage()));
+        $output->line("\tmem.peak:" . Decorate::info(memory_get_peak_usage()));
+        $output->line("\ttime:" . Decorate::info((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'])));
+    }
+
+    public function displayNeutrinoVersion()
+    {
+        $this->{Services\Cli::OUTPUT}->write(Helper::neutrinoVersion() . PHP_EOL, true);
     }
 }

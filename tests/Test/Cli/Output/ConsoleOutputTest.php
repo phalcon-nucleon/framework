@@ -2,13 +2,13 @@
 
 namespace Test\Cli\Output;
 
-use Test\Stub\StubConsoleOutput;
+use Test\Stub\StubOutput;
 
 class ConsoleOutputTest extends \PHPUnit_Framework_TestCase
 {
     private function output($quiet = false)
     {
-        return new StubConsoleOutput($quiet);
+        return new StubOutput($quiet);
     }
 
     public function setUp()

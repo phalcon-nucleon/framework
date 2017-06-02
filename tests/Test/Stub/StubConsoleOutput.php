@@ -9,9 +9,9 @@
 namespace Test\Stub;
 
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\Writer;
 
-class StubConsoleOutput extends ConsoleOutput
+class StubOutput extends Writer
 {
     public $out;
 

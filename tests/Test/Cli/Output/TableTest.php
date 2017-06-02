@@ -2,9 +2,9 @@
 
 namespace Test\Cli\Output;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Output\Table;
-use Test\Stub\StubConsoleOutput;
+use Test\Stub\StubOutput;
 use Test\TestCase\TestCase;
 
 /**
@@ -15,11 +15,11 @@ use Test\TestCase\TestCase;
 class TableTest extends TestCase
 {
     /**
-     * @return mixed|ConsoleOutput
+     * @return mixed|Writer
      */
     private function consoleOutput()
     {
-        return new StubConsoleOutput();
+        return new StubOutput();
     }
 
     public function dataGenerateColumns()

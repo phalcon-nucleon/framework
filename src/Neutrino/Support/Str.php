@@ -132,6 +132,21 @@ class Str
         return mb_strlen($value);
     }
 
+    public static function levenshtein($word, $words, $sort_flags = SORT_REGULAR)
+    {
+        foreach ($words as $w) {
+            $result[$w] = levenshtein($word, $w);
+        }
+
+        if ($sort_flags & SORT_DESC) {
+            arsort($result, $sort_flags);
+        } else {
+            asort($result, $sort_flags);
+        }
+
+        return $result;
+    }
+
     /**
      * Limit the number of characters in a string.
      *

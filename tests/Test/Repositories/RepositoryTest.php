@@ -7,6 +7,7 @@ use Neutrino\Model;
 use Neutrino\Repositories\Repository;
 use Neutrino\Repositories\RepositoryModel;
 use Neutrino\Repositories\RepositoryPhql;
+use Neutrino\Support\Str;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\Manager as ModelManager;
 use Phalcon\Mvc\Model\Message;
@@ -366,7 +367,7 @@ class StubModelTest extends Model
     public static function make($name = null, $asArray = false)
     {
         if (is_null($name)) {
-            $name = str_random();
+            $name = Str::random();
         }
         if ($asArray) {
             return [

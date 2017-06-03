@@ -85,7 +85,7 @@ class StubCache extends Backend implements BackendInterface
 
         $found = [];
         foreach ($this->registry as $key => $value) {
-            if (str_startsWith($key, $prefix)) {
+            if (Str::startsWith($key, $prefix)) {
                 $found[$key] = $value;
             }
         }

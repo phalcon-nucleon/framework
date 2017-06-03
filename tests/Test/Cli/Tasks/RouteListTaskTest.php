@@ -69,7 +69,8 @@ class RouteListTaskTest extends TestCase
         $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($eventManager);
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
 
-        $mock = $this->createMock(Writer::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);
@@ -80,8 +81,6 @@ class RouteListTaskTest extends TestCase
         }
 
         $task = new RouteListTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->mainAction();
     }
@@ -109,7 +108,8 @@ class RouteListTaskTest extends TestCase
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
         $dispatcher->expects($this->any())->method('getOptions')->willReturn(['no-substitution' => true]);
 
-        $mock = $this->createMock(Writer::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);
@@ -120,8 +120,6 @@ class RouteListTaskTest extends TestCase
         }
 
         $task = new RouteListTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->mainAction();
     }

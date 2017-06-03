@@ -78,51 +78,6 @@ class TaskTest extends TestCase
         $this->assertEquals($options, $this->invokeMethod($task, 'getArgs', []));
     }
 
-    public function testBeforeExecuteRouteForwardHelper()
-    {
-        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
-
-        $dispatcher->expects($this->any())
-            ->method('getOptions')
-            ->willReturn(['h' => true]);
-
-        $dispatcher->expects($this->once())
-            ->method('getHandlerClass')
-            ->willReturn(Task::class);
-
-        $dispatcher->expects($this->once())
-            ->method('getActionName')
-            ->willReturn('main');
-
-        $dispatcher->expects($this->once())
-            ->method('forward')
-            ->with([
-                'task'   => HelperTask::class,
-                'action' => 'main',
-                'params' => [
-                    'task'   => Task::class,
-                    'action' => 'main',
-                ]
-            ]);
-
-        $task = $this->stubTask();
-
-        $this->assertFalse($task->beforeExecuteRoute());
-    }
-
-    public function testBeforeExecuteRouteNotForwardHelper()
-    {
-        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
-
-        $dispatcher->expects($this->any())
-            ->method('getOptions')
-            ->willReturn([]);
-
-        $task = $this->stubTask();
-
-        $this->assertTrue($task->beforeExecuteRoute());
-    }
-
     public function dataOutput()
     {
         return [
@@ -139,15 +94,13 @@ class TaskTest extends TestCase
      */
     public function testOutput($func, $str)
     {
-        $mock = $this->createMock(Writer::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
         $mock->expects($this->once())
             ->method($func)
             ->with($str);
 
         $task = $this->stubTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->$func($str);
     }
@@ -160,31 +113,16 @@ class TaskTest extends TestCase
             ->method('write')
             ->with('test', true);
 
-        $task = $this->stubTask();
+        $this->mockService(Services\Cli::OUTPUT, $mock, true);
 
-        $this->setValueProperty($task, 'output', $mock);
+        $task = $this->stubTask();
 
         $task->line('test');
     }
 
-    public function testDisplayStats()
-    {
-        $mock = $this->createMock(Writer::class);
-
-        $mock->expects($this->exactly(5))
-            ->method('write')
-            ->with($this->anything());
-
-        $task = $this->stubTask();
-
-        $this->setValueProperty($task, 'output', $mock);
-
-        $task->displayStats();
-    }
-
     public function testHandleExpection()
     {
-        $mock = $this->createMock(Writer::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
         $mock->expects($this->exactly(3))
             ->method('error')
@@ -195,8 +133,6 @@ class TaskTest extends TestCase
             );
 
         $task = $this->stubTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->handleException(new \Exception('test', 123));
     }

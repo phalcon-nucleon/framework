@@ -166,7 +166,12 @@ abstract class Task extends PhalconTask
      */
     protected function getArgs()
     {
-        return explode(Route::getDelimiter(), $this->dispatcher->getParams());
+        $args = $this->dispatcher->getParams();
+        if (is_string($args)) {
+            return explode(Route::getDelimiter(), $args);
+        }
+
+        return $args;
     }
 
     /**

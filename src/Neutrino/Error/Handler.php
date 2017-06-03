@@ -20,6 +20,7 @@
 */
 namespace Neutrino\Error;
 
+use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
 use Neutrino\Support\Arr;
 use Phalcon\Di;
@@ -42,6 +43,10 @@ class Handler
      */
     public static function register()
     {
+        if (APP_ENV === Env::TEST) {
+            return;
+        }
+
         set_error_handler(function ($errno, $errstr, $errfile, $errline) {
             self::handleError($errno, $errstr, $errfile, $errline);
         });
@@ -107,8 +112,8 @@ class Handler
         $di = Di::getDefault();
 
         if (is_null($di)
-            || is_null($config = $di->getShared(Services::CONFIG))
-            || is_null($logger = $di->getShared(Services::LOGGER))
+            || !$di->has(Services::CONFIG)
+            || !$di->has(Services::LOGGER)
         ) {
             if (APP_DEBUG) {
                 if ($error->isException) {
@@ -160,6 +165,9 @@ class Handler
 
         /* @var \Phalcon\Logger\Adapter $logger */
         /* @var \Phalcon\Config $config */
+
+        $logger = $di->getShared(Services::LOGGER);
+        $config = $di->getShared(Services::CONFIG);
 
         $type    = static::getErrorType($error->type);
         $message = "$type: {$error->message} in {$error->file} on line {$error->line}";

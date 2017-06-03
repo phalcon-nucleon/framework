@@ -25,7 +25,7 @@ class RouterTest extends TestCase
              'task',
              ['task' => ListTask::class, 'action' => 'action']]
             ,
-            ['task :param:', ListTask::class, 'action', [],
+            ['task {param}', ListTask::class, 'action', [],
              'task ([[:alnum:]]+)',
              ['task' => ListTask::class, 'action' => 'action', 'param' => 1]
             ],

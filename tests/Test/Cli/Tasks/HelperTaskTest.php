@@ -111,7 +111,8 @@ class HelperTaskTest extends TestCase
                 'action' => $action,
             ]);
 
-        $mock = $this->createMock(Writer::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);
@@ -122,8 +123,6 @@ class HelperTaskTest extends TestCase
         }
 
         $task = new HelperTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->mainAction();
     }

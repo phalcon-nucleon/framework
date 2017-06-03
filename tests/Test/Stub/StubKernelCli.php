@@ -4,6 +4,7 @@ namespace Test\Stub;
 
 use Neutrino\Foundation\Cli\Kernel as CliApplication;
 use Neutrino\Providers\Cli\Dispatcher;
+use Neutrino\Providers\Cli\Output;
 use Neutrino\Providers\Cli\Router;
 
 /**
@@ -19,6 +20,7 @@ class StubKernelCli extends CliApplication
      * @var string[]
      */
     protected $providers = [
+        Output::class,
         Dispatcher::class,
         Router::class
     ];

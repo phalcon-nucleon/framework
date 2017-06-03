@@ -160,7 +160,8 @@ class ListTaskTest extends TestCase
         $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($this->createMock(Manager::class));
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
 
-        $mock = $this->createMock(Writer::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))->method($func);
 
@@ -170,8 +171,6 @@ class ListTaskTest extends TestCase
         }
 
         $task = new ListTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->mainAction();
     }

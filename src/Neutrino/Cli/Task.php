@@ -2,19 +2,16 @@
 
 namespace Neutrino\Cli;
 
-use Neutrino\Cli\Output\Writer;
-use Neutrino\Cli\Output\Decorate;
-use Neutrino\Cli\Output\Helper;
+use Neutrino\Cli\Output\Block;
 use Neutrino\Cli\Output\QuestionHelper;
 use Neutrino\Cli\Output\Table;
 use Neutrino\Cli\Question\ChoiceQuestion;
 use Neutrino\Cli\Question\ConfirmationQuestion;
 use Neutrino\Cli\Question\Question;
 use Neutrino\Constants\Events;
-use Neutrino\Constants\Services;
 use Neutrino\Error\Handler;
-use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Support\Arr;
+use Phalcon\Cli\Router\Route;
 use Phalcon\Cli\Task as PhalconTask;
 use Phalcon\Events\Event;
 
@@ -23,11 +20,11 @@ use Phalcon\Events\Event;
  *
  * @package Neutrino\Cli
  *
- * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
- * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
- * @property-read \Neutrino\Cli\Router                                                                  $router
- * @property-read \Phalcon\Cli\Dispatcher                                                               $dispatcher
- * @property-read \Neutrino\Cli\Output\Writer                                                           $output
+ * @property-read \Neutrino\Foundation\Cli\Kernel        $application
+ * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
+ * @property-read \Neutrino\Cli\Router                   $router
+ * @property-read \Phalcon\Cli\Dispatcher                $dispatcher
+ * @property-read \Neutrino\Cli\Output\Writer            $output
  */
 abstract class Task extends PhalconTask
 {
@@ -49,10 +46,6 @@ abstract class Task extends PhalconTask
      */
     public function handleException(\Exception $exception)
     {
-        $this->error('Exception : ' . get_class($exception));
-        $this->error($exception->getMessage());
-        $this->error($exception->getTraceAsString());
-
         Handler::handleException($exception);
 
         return false;
@@ -161,6 +154,10 @@ abstract class Task extends PhalconTask
         (new Table($this->output, $datas, $headers, $style))->display();
     }
 
+    public function block($lines, $style, $padding = 4)
+    {
+        (new Block($this->output, $style, ['padding' => $padding]))->draw($lines);
+    }
 
     /**
      * Return all agruments pass to the cli
@@ -169,7 +166,7 @@ abstract class Task extends PhalconTask
      */
     protected function getArgs()
     {
-        return $this->dispatcher->getParams();
+        return explode(Route::getDelimiter(), $this->dispatcher->getParams());
     }
 
     /**

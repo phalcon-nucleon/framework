@@ -26,7 +26,7 @@ trait Kernelize
         $di = $this->getDI();
 
         foreach ($this->providers as $name => $provider) {
-            if(is_string($name)){
+            if (is_string($name)) {
                 $service = new Di\Service($name, $provider, true);
 
                 $di->setRaw($name, $service);
@@ -102,14 +102,12 @@ trait Kernelize
     public final function bootstrap(Config $config)
     {
         /** @var \Phalcon\Application $this */
-        if (APP_ENV === Env::TEST) {
-            Handler::register();
-        }
+        Handler::setOutputLvl($this->errorHandlerLvl);
 
         $diClass = $this->dependencyInjection;
         $emClass = $this->eventsManagerClass;
 
-        if(!empty($emClass)){
+        if (!empty($emClass)) {
             $em = new $emClass;
 
             $this->setEventsManager($em);
@@ -123,7 +121,7 @@ trait Kernelize
         $di->setShared(Services::APP, $this);
         $di->setShared(Services::CONFIG, $config);
 
-        if(!empty($em)){
+        if (!empty($em)) {
             $di->setInternalEventsManager($em);
 
             $di->setShared(Services::EVENTS_MANAGER, $em);

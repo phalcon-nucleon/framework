@@ -2,6 +2,7 @@
 
 namespace Neutrino\Foundation\Http;
 
+use Neutrino\Error\Handler;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Di\FactoryDefault as Di;
@@ -62,11 +63,19 @@ abstract class Kernel extends Application implements Kernelable
     protected $eventsManagerClass = EventManager::class;
 
     /**
+     * Error Handler Outputs
+     *
+     * @var int
+     */
+    protected $errorHandlerLvl = Handler::OUTPUT_PHPLOG | Handler::OUTPUT_LOGGER | Handler::OUTPUT_VIEW;
+
+
+    /**
      * Register the routes of the application.
      */
     public function registerRoutes()
     {
-        require BASE_PATH .'/routes/http.php';
+        require BASE_PATH . '/routes/http.php';
     }
 
     public function boot()

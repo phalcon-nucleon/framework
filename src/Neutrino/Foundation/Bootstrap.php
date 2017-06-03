@@ -59,7 +59,9 @@ class Bootstrap
         $kernel->boot();
 
         if (($response = $kernel->handle()) instanceof Response) {
-            $response->send();
+            if (!$response->isSent()) {
+                $response->send();
+            }
         };
 
         $kernel->terminate();

@@ -4,6 +4,7 @@ namespace Neutrino\Foundation;
 
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Config;
+use Phalcon\Http\Response;
 
 /**
  * Class Application
@@ -57,7 +58,9 @@ class Bootstrap
     {
         $kernel->boot();
 
-        $kernel->handle();
+        if (($response = $kernel->handle()) instanceof Response) {
+            $response->send();
+        };
 
         $kernel->terminate();
     }

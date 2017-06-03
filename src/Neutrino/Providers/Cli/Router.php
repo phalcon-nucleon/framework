@@ -7,6 +7,7 @@ use Neutrino\Cli\Router as NeutrinoRouter;
 use Neutrino\Foundation\Cli\Tasks\ClearCompiledTask;
 use Neutrino\Foundation\Cli\Tasks\ConfigCacheTask;
 use Neutrino\Foundation\Cli\Tasks\ConfigClearTask;
+use Neutrino\Foundation\Cli\Tasks\DefaultTask;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OpcacheTask;
@@ -33,7 +34,7 @@ class Router extends Provider
     {
         $router = new NeutrinoRouter(false);
 
-        $router->setDefaultTask(ListTask::class);
+        $router->setDefaultTask(DefaultTask::class);
 
         $router->addTask('help ( .*)*', HelperTask::class);
         $router->addTask('list', ListTask::class);

@@ -8,8 +8,8 @@ use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
-use Neutrino\Support\Arr;
 use Phalcon\Cli\Console;
+use Phalcon\Cli\Router\Route;
 use Phalcon\Di\FactoryDefault\Cli as Di;
 use Phalcon\Events\Manager as EventManager;
 
@@ -96,12 +96,21 @@ abstract class Kernel extends Console implements Kernelable
                 'task'   => HelperTask::class,
                 'action' => 'main',
                 'params' => [
-                    'arguments'   => $this->_arguments,
+                    'arguments' => $this->_arguments,
                 ]
             ];
         }
 
         parent::handle($arguments);
+    }
+
+    public function getArguments($raw = false)
+    {
+        if ($raw) {
+            return $this->_arguments;
+        } else {
+            return explode(Route::getDelimiter(), $this->_arguments);
+        }
     }
 
     public function terminate()

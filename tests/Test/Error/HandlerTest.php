@@ -245,7 +245,7 @@ class HandlerTest extends TestCase
 
     public function testHandleError()
     {
-        $msg = 'E_USER_ERROR: user error in ' . __FILE__ . ' on line ' . (__LINE__ + 6);
+        $msg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : user error in ' . __FILE__ . ' on line ' . (__LINE__ + 6));
 
         $this->mockLogger(Logger::ERROR, $msg);
 
@@ -256,7 +256,7 @@ class HandlerTest extends TestCase
 
     public function testTriggerError()
     {
-        $expectedMsg = 'E_USER_ERROR: msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8);
+        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8));
 
         $this->expectOutputString($expectedMsg);
 

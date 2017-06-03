@@ -290,13 +290,17 @@ class Handler
 
         if ($full || APP_DEBUG) {
             if ($verbose) {
-                $lines[] = $type
-                    . ($error->isException ? ' : ' . get_class($error->exception) : ' : Error')
-                    . '[' . (empty($error->type) ? 0 : ' : ' . $error->type) . ']'
-                    . (empty($error->message) ? '' : ' : ' . $error->message)
+                $head = $type;
+
+                if ($error->isException) {
+                    $head .= ' : ' . get_class($error->exception) . '[' . (empty($error->type) ? 0 : $error->type) . ']';
+                }
+
+                $head .= (empty($error->message) ? '' : ' : ' . $error->message)
                     . ' in ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $error->file))
                     . ' on line ' . $error->line;
 
+                $lines[] = $head;
                 if ($error->isException) {
                     $lines[] = '';
 

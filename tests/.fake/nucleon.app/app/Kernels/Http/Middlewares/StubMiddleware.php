@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Kernels\Http\Middlewares;
 
 use Neutrino\Constants\Events\Http\Application as AppEvent;
 use Neutrino\Foundation\Middleware\Application as ApplicationMiddleware;

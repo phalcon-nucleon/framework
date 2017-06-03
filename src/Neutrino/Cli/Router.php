@@ -32,7 +32,7 @@ class Router extends \Phalcon\Cli\Router
         foreach ($matches[0] as $k => $match) {
             $command = str_replace($match, '([[:alnum:]]+)', $command);
 
-            $params[str_replace(':', '', $match)] = $k + 1;
+            $params[substr($match, 1, -1)] = $k + 1;
         }
 
         return $this->add($command, $params);

@@ -1,9 +1,9 @@
 <?php
 namespace Test\Providers;
 
+use Fake\Kernels\Cli\StubKernelCliEmpty;
 use Neutrino\Constants\Services;
 use Neutrino\Providers\Cli\Router;
-use Test\Stub\StubKernelCliEmpty;
 use Test\TestCase\TestCase;
 
 /**

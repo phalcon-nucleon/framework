@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Kernels\Cli\Tasks;
 
 use Neutrino\Cli\Task;
 

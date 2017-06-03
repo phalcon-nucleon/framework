@@ -1,10 +1,10 @@
 <?php
 namespace Test\Cli;
 
+use Fake\Kernels\Cli\StubKernelCli;
 use Neutrino\Cli\Router;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
-use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 
 class RouterTest extends TestCase

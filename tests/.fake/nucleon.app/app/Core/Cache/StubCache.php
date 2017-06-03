@@ -1,7 +1,8 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Core\Cache;
 
+use Neutrino\Support\Str;
 use Phalcon\Cache\Backend;
 use Phalcon\Cache\BackendInterface;
 use Phalcon\Cache\Frontend\None;
@@ -75,7 +76,7 @@ class StubCache extends Backend implements BackendInterface
      *
      * @param string $prefix
      *
-     * @return array
+     * @return \ArrayAccess|array
      */
     public function queryKeys($prefix = null)
     {

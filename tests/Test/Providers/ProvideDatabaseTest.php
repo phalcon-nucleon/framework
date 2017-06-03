@@ -2,9 +2,9 @@
 
 namespace Test\Providers;
 
+use Fake\Kernels\Http\StubKernelHttpEmpty;
 use Neutrino\Constants\Services;
 use Neutrino\Providers\Database;
-use Test\Stub\StubKernelHttpEmpty;
 use Test\TestCase\TestCase;
 
 /**

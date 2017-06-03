@@ -121,7 +121,9 @@ abstract class Kernel extends Console implements Kernelable
             $this->displayStats();
         }
 
-        $this->{Services\Cli::OUTPUT}->clean();
+        if ($this->getDI()->has(Services\Cli::OUTPUT)) {
+            $this->{Services\Cli::OUTPUT}->clean();
+        };
     }
 
     public function isQuiet()

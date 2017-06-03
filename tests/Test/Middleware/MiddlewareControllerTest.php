@@ -2,9 +2,9 @@
 
 namespace Test\Middleware;
 
+use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Middleware\Controller;
-use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 
 /**

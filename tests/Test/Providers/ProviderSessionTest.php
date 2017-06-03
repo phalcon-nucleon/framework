@@ -2,11 +2,11 @@
 
 namespace Test\Providers;
 
+use Fake\Kernels\Http\StubKernelHttpEmpty;
 use Neutrino\Constants\Services;
 use Neutrino\Providers\Session;
 use Phalcon\Session\Adapter\Files;
 use Phalcon\Session\Bag;
-use Test\Stub\StubKernelHttpEmpty;
 use Test\TestCase\TestCase;
 
 /**

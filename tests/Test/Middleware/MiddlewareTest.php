@@ -2,11 +2,11 @@
 
 namespace Test\Middleware;
 
+use Fake\Kernels\Http\Controllers\StubController;
 use Test\Middleware\Stub\ApplicationMiddlewareStub;
 use Test\Middleware\Stub\ControllerForwardMiddlewareStub;
 use Test\Middleware\Stub\ControllerMiddlewareStub;
 use Test\Middleware\Stub\DispatchMiddlewareStub;
-use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 use Test\TestCase\TestListenize;
 

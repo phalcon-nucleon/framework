@@ -2,7 +2,7 @@
 
 namespace Test\Cli\Output;
 
-use Test\Stub\StubOutput;
+use Fake\Kernels\Cli\Output\StubOutput;
 
 class ConsoleOutputTest extends \PHPUnit_Framework_TestCase
 {

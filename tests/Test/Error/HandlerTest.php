@@ -125,7 +125,7 @@ class HandlerTest extends TestCase
     public function mockLogger($expectedLogger, $expectedMessage)
     {
         $logger = $this->mockService(Services::LOGGER, Logger\Adapter\File::class, true);
-        
+
         $logger->expects($this->any())->method('setFormatter');
         $logger->expects($this->any())->method('log')->with($expectedLogger, $expectedMessage);
     }
@@ -222,7 +222,13 @@ class HandlerTest extends TestCase
 
     public function testHandleException()
     {
-        $msg = 'Uncaught exception: some exception in ' . __FILE__. ' on line ' . (__LINE__+6);
+        try {
+            throw new \Exception();
+        } catch (\Exception $e) {
+            ;
+        }
+
+        $msg = 'Uncaught exception: some exception in ' . __FILE__ . ' on line ' . (__LINE__ + 6) . PHP_EOL . $e->getTraceAsString();
 
         $this->mockLogger(Logger::ERROR, $msg);
 
@@ -233,7 +239,7 @@ class HandlerTest extends TestCase
 
     public function testHandleError()
     {
-        $msg = 'E_USER_ERROR: user error in ' . __FILE__. ' on line ' . (__LINE__+6);
+        $msg = 'E_USER_ERROR: user error in ' . __FILE__ . ' on line ' . (__LINE__ + 6);
 
         $this->mockLogger(Logger::ERROR, $msg);
 

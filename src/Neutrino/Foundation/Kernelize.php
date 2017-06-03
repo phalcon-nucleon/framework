@@ -2,6 +2,7 @@
 
 namespace Neutrino\Foundation;
 
+use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
 use Neutrino\Error\Handler;
 use Neutrino\Events\Listener;
@@ -101,7 +102,9 @@ trait Kernelize
     public final function bootstrap(Config $config)
     {
         /** @var \Phalcon\Application $this */
-        Handler::register();
+        if (APP_ENV === Env::TEST) {
+            Handler::register();
+        }
 
         $diClass = $this->dependencyInjection;
         $emClass = $this->eventsManagerClass;

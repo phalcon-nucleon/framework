@@ -2,9 +2,10 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Cli\Output\Writer;
+use Fake\Kernels\Cli\StubKernelCli;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
@@ -12,7 +13,6 @@ use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;
-use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 
 class ListTaskTest extends TestCase

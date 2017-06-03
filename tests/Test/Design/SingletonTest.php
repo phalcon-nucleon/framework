@@ -2,7 +2,7 @@
 
 namespace Test\Design;
 
-use Test\Stub\StubSingleton;
+use Fake\Core\StubSingleton;
 use Test\TestCase\TestCase;
 
 class SingletonTest extends TestCase

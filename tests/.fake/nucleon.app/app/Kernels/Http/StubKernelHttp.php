@@ -1,7 +1,9 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Kernels\Http;
 
+use Fake\Core\Listeners\StubListener;
+use Fake\Kernels\Http\Middlewares\StubMiddleware;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Http\Kernel as HttpApplication;
 use Neutrino\Providers;
@@ -23,11 +25,11 @@ class StubKernelHttp extends HttpApplication
          */
         //LoggerProvider::class,
         Providers\Url::class,
+        Providers\Http\Router::class,
+        Providers\Http\Dispatcher::class,
         //FlashProvider::class,
         //SessionProvider::class,
-        Providers\Http\Router::class,
-        //ViewProvider::class,
-        Providers\Http\Dispatcher::class,
+        //Providers\View::class,
         Providers\Cache::class,
         //DatabaseProvider::class,
         /*
@@ -70,34 +72,34 @@ class StubKernelHttp extends HttpApplication
         $router = $this->getDI()->getShared(Services::ROUTER);
 
         $router->addGet('/', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'index'
         ]);
         $router->addPost('/', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'index'
         ]);
         $router->addGet('/return', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'return'
         ]);
         $router->addGet('/redirect', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'redirect'
         ]);
         $router->addGet('/parameted/([\w_-]+)(?:/:int)?', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'index',
             'tags'   => 1,
             'page'   => 2,
         ]);
         $router->addGet('/forwarded', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'forwarded'
         ]);

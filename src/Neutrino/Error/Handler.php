@@ -43,10 +43,6 @@ class Handler
      */
     public static function register()
     {
-        if (APP_ENV === Env::TEST) {
-            return;
-        }
-
         set_error_handler(function ($errno, $errstr, $errfile, $errline) {
             self::handleError($errno, $errstr, $errfile, $errline);
         });

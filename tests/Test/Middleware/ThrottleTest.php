@@ -1,12 +1,12 @@
 <?php
 namespace Test\Middleware;
 
+use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
 use Neutrino\Http\Middleware\ThrottleRequest;
 use Neutrino\Http\Standards\StatusCode;
 use Neutrino\Middleware\Throttle;
 use Phalcon\Http\Response;
-use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 use Test\TestCase\UseCaches;
 
@@ -24,7 +24,7 @@ class ThrottleTest extends TestCase
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stubthrottled',
             'action'     => 'index'
         ]);
@@ -70,13 +70,13 @@ class ThrottleTest extends TestCase
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stubthrottled',
             'action'     => 'index'
         ]);
 
         $this->app->router->addGet('/throttled', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stubthrottled',
             'action'     => 'throttled'
         ]);
@@ -141,7 +141,7 @@ class ThrottleTest extends TestCase
         StubController::$middlewares = [];
 
         $this->app->router->addGet('/route-throttled', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'index',
             'middleware' => [ThrottleRequest::class => [10, 60]]

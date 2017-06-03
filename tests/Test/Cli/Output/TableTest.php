@@ -2,9 +2,9 @@
 
 namespace Test\Cli\Output;
 
-use Neutrino\Cli\Output\Writer;
+use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Table;
-use Test\Stub\StubOutput;
+use Neutrino\Cli\Output\Writer;
 use Test\TestCase\TestCase;
 
 /**

@@ -2,6 +2,7 @@
 
 namespace Neutrino\Foundation;
 
+use Neutrino\Interfaces\Kernelable;
 use Phalcon\Config;
 
 /**
@@ -46,12 +47,18 @@ class Bootstrap
         $kernel->registerRoutes();
         $kernel->registerModules();
 
+        return $kernel;
+    }
+
+    /**
+     * @param \Neutrino\Interfaces\Kernelable|\Phalcon\Application $kernel
+     */
+    public function run(Kernelable $kernel)
+    {
         $kernel->boot();
 
-        register_shutdown_function(function () use ($kernel) {
-            $kernel->terminate();
-        });
+        $kernel->handle();
 
-        return $kernel;
+        $kernel->terminate();
     }
 }

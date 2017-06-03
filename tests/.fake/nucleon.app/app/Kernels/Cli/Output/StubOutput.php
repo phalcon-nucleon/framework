@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Kernels\Cli\Output;
 
 use Neutrino\Cli\Output\Writer;
 

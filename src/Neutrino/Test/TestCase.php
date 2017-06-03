@@ -3,6 +3,7 @@
 namespace Neutrino\Test;
 
 use Mockery;
+use Neutrino\Constants\Services;
 use Neutrino\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Config as PhConfig;
@@ -50,6 +51,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         // Creating the application
         $this->lxApp = new \Neutrino\Foundation\Bootstrap(new PhConfig($config));
         $this->app   = $this->lxApp->make($this->kernel());
+        $this->app->boot();
     }
 
     /**
@@ -72,6 +74,8 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     {
         Mockery::close();
         Facade::clearResolvedInstances();
+
+        $this->app->terminate();
         $this->app->getDI()->reset();
         $this->app = null;
 

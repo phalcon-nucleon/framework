@@ -84,7 +84,7 @@ class HelperTask extends Task
             $paths = $route->getPaths();
 
             if ($paths['task'] == $class) {
-                if (Arr::fetch($paths, 'action', 'main' . $this->dispatcher->getActionSuffix()) == $action) {
+                if (Arr::fetch($paths, 'action', 'main') . $this->dispatcher->getActionSuffix() == $action) {
                     $findedRoute = $route;
                     break;
                 }

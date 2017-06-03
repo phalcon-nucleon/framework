@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Core;
 
 use Neutrino\Support\DesignPatterns\Singleton;
 

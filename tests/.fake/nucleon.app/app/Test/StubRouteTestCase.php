@@ -1,7 +1,8 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Test;
 
+use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Test\RoutesTestCase;
 use Test\TestCase\TraitTestCase;
 

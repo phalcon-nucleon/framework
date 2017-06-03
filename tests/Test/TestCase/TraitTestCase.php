@@ -2,7 +2,7 @@
 
 namespace Test\TestCase;
 
-use Test\Stub\StubKernelHttp;
+use Fake\Kernels\Http\StubKernelHttp;
 
 /**
  * Class TraitTestCase

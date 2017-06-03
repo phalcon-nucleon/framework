@@ -2,12 +2,11 @@
 
 namespace Test\Http;
 
+use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
 use Neutrino\Http\Middleware\Csrf;
 use Phalcon\Security;
 use Phalcon\Session\Adapter;
-use Phalcon\Version;
-use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 
 class CsrfTest extends TestCase

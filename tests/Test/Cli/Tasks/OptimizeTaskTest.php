@@ -2,7 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
-use Test\Stub\StubKernelCli;
+use Fake\Kernels\Cli\StubKernelCli;
 use Test\TestCase\TestCase;
 
 class OptimizeTaskTest extends TestCase

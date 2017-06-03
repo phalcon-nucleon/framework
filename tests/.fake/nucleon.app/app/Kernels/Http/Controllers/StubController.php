@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Kernels\Http\Controllers;
 
 use Neutrino\Http\Controller;
 

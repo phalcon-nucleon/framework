@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Kernels\Http;
 
 use Neutrino\Foundation\Http\Kernel as HttpApplication;
 use Phalcon\Di;

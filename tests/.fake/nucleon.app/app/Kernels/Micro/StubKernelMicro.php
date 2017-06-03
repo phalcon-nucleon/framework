@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Kernels\Micro;
 
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Micro\Kernel;

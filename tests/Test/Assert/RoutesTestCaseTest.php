@@ -2,11 +2,11 @@
 
 namespace Test\Assert;
 
+use Fake\Kernels\Http\Controllers\StubController;
+use Fake\Test\StubRouteTestCase;
 use Neutrino\Http\Standards\Method;
 use Neutrino\Test\RoutesTestCase;
 use Phalcon\Mvc\Router\Route;
-use Test\Stub\StubController;
-use Test\Stub\StubRouteTestCase;
 use Test\TestCase\TestCase;
 use Test\TestCase\TraitTestCase;
 

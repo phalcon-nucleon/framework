@@ -2,14 +2,14 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Cli\Output\Writer;
+use Fake\Kernels\Cli\StubKernelCli;
 use Neutrino\Cli\Output\Decorate;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Phalcon\Cli\Dispatcher;
-use Phalcon\Events\Manager;
 use Phalcon\Cli\Router;
-use Test\Stub\StubKernelCli;
+use Phalcon\Events\Manager;
 use Test\TestCase\TestCase;
 
 class RouteListTaskTest extends TestCase
@@ -51,14 +51,14 @@ class RouteListTaskTest extends TestCase
     {
         $expected = [
             'write' => ['exactly' => 8, 'consecutive' => [
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN   | ACTION                                     | MIDDLEWARE                    |'],
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index |                               |'],
-                ['|        |      | POST     | /post     | Test\Stub\StubController::index            |                               |'],
-                ['|        |      | GET      | /u/'.Decorate::notice('{user}').' | Test\Stub\StubController::index            |                               |'],
-                ['|        |      | GET|HEAD | /get-head | Test\Stub\StubController::index            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
+                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN   | ACTION                                              | MIDDLEWARE                    |'],
+                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
+                ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index          |                               |'],
+                ['|        |      | POST     | /post     | Fake\Kernels\Http\Controllers\StubController::index |                               |'],
+                ['|        |      | GET      | /u/'.Decorate::notice('{user}').' | Fake\Kernels\Http\Controllers\StubController::index |                               |'],
+                ['|        |      | GET|HEAD | /get-head | Fake\Kernels\Http\Controllers\StubController::index | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
+                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
             ]]
         ];
 
@@ -89,14 +89,14 @@ class RouteListTaskTest extends TestCase
     {
         $expected = [
             'write' => ['exactly' => 8, 'consecutive' => [
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN   | ACTION                                     | MIDDLEWARE                    |'],
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index |                               |'],
-                ['|        |      | POST     | /post     | Test\Stub\StubController::index            |                               |'],
-                ['|        |      | GET      | /u/:int   | Test\Stub\StubController::index            |                               |'],
-                ['|        |      | GET|HEAD | /get-head | Test\Stub\StubController::index            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
+                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN   | ACTION                                              | MIDDLEWARE                    |'],
+                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
+                ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index          |                               |'],
+                ['|        |      | POST     | /post     | Fake\Kernels\Http\Controllers\StubController::index |                               |'],
+                ['|        |      | GET      | /u/:int   | Fake\Kernels\Http\Controllers\StubController::index |                               |'],
+                ['|        |      | GET|HEAD | /get-head | Fake\Kernels\Http\Controllers\StubController::index | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
+                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
             ]]
         ];
 

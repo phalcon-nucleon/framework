@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Kernels\Cli;
 
 use Neutrino\Foundation\Cli\Kernel as CliApplication;
 use Neutrino\Providers\Cli\Dispatcher;

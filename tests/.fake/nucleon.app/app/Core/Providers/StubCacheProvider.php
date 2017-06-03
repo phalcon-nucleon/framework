@@ -1,7 +1,8 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Core\Providers;
 
+use Fake\Core\Cache\StubCache;
 use Neutrino\Constants\Services;
 use Neutrino\Providers\Provider;
 

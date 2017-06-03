@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Stub;
+namespace Fake\Core\Listeners;
 
 use Neutrino\Constants\Events;
 use Neutrino\Events\Listener;

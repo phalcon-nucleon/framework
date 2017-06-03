@@ -21,6 +21,7 @@
 namespace Neutrino\Error;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\Arr;
 use Phalcon\Di;
 use Phalcon\Http\Response;
 use Phalcon\Logger;
@@ -47,7 +48,6 @@ class Handler
         set_exception_handler(function ($e) {
             self::handleException($e);
         });
-
         register_shutdown_function(function () {
             if (!is_null($e = error_get_last())) {
                 static::handle(new Error($e));
@@ -108,10 +108,51 @@ class Handler
 
         if (is_null($di)
             || is_null($config = $di->getShared(Services::CONFIG))
-            || !isset($config->error)
             || is_null($logger = $di->getShared(Services::LOGGER))
         ) {
+            if (APP_DEBUG) {
+                if ($error->isException) {
+                    $title = get_class($error->exception) . ' [' . $error->type . '] : ' . $error->exception->getMessage();
+
+                    $lines = array_merge([
+                        'in ' . $error->file . ' on line ' . $error->line,
+                        '',
+                        'Trace : ',
+                    ], array_map(function ($value) {
+                        $strs = [];
+                        //foreach ($value as $item) {
+                        if (is_array($value)) {
+                            $strs[] = var_dump(array_keys($value), true);
+                        } else {
+                            $strs[] = $value;
+                        }
+
+                        //}
+
+                        return implode(' ', $strs);
+                    }, explode("\n", $error->exception->getTraceAsString())));
+                } else {
+                    $title = 'Error [' . $error->type . '] : ' . self::getErrorType($error->type);
+
+                    $lines = [
+                        $error->message,
+                        'in ' . $error->file,
+                        'on line ' . $error->line,
+                    ];
+                }
+
+                $maxlen = strlen($title);
+
+                echo '+' . str_pad('-', (int)min(60, ($maxlen + 2) * 1.25), '-') . '+' . PHP_EOL;
+                echo '| ' . str_pad($title, (int)min(60, ($maxlen + 2) * 1.25 - 2), ' ', STR_PAD_RIGHT) . ' |' . PHP_EOL;
+                echo '+' . str_pad('-', (int)min(60, ($maxlen + 2) * 1.25), '-') . '+' . PHP_EOL;
+                foreach ($lines as $line) {
+                    echo '|  ' . $line . PHP_EOL;
+                }
+            }
+
             $type = static::getErrorType($error->type);
+
             error_log("$type: {$error->message} in {$error->file} on line {$error->line}", $error->type);
 
             return null;
@@ -119,18 +160,22 @@ class Handler
 
         /* @var \Phalcon\Logger\Adapter $logger */
         /* @var \Phalcon\Config $config */
-        $config = $config->error;
 
         $type    = static::getErrorType($error->type);
         $message = "$type: {$error->message} in {$error->file} on line {$error->line}";
 
-        if (isset($config['formatter'])) {
-            $formatter = null;
+        if ($error->isException) {
+            $message .= PHP_EOL . $error->exception->getTraceAsString();
+        }
 
-            if ($config['formatter'] instanceof Formatter) {
-                $formatter = $config['formatter'];
-            } elseif (is_array($config['formatter'])) {
-                $formatterOpts = $config['formatter'];
+        if (Arr::has($config, 'error.formatter')) {
+            $configFormat = Arr::get($config, 'error.formatter');
+            $formatter    = null;
+
+            if ($configFormat instanceof Formatter) {
+                $formatter = $configFormat;
+            } elseif (is_array($configFormat)) {
+                $formatterOpts = $configFormat;
                 $format        = null;
                 $dateFormat    = null;
 
@@ -173,22 +218,22 @@ class Handler
                 /* @var \Phalcon\Http\Response $response */
                 $response = $di->getShared(Services::RESPONSE);
 
-                $dispatcher->setNamespaceName($config['namespace']);
-                $dispatcher->setControllerName($config['controller']);
-                $dispatcher->setActionName($config['action']);
+                $dispatcher->setNamespaceName(Arr::get($config, 'error.namespace'));
+                $dispatcher->setControllerName(Arr::get($config, 'error.controller'));
+                $dispatcher->setActionName(Arr::get($config, 'error.action'));
                 $dispatcher->setParams(['error' => $error]);
 
                 $view->start();
                 $dispatcher->dispatch();
                 $view->render(
-                    $config['controller'],
-                    $config['action'],
+                    Arr::get($config, 'error.controller'),
+                    Arr::get($config, 'error.action'),
                     $dispatcher->getParams()
                 );
                 $view->finish();
 
                 return $response->setContent($view->getContent())->send();
-            } else {
+            } elseif (APP_DEBUG) {
                 echo $message;
             }
         }

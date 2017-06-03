@@ -114,11 +114,6 @@ class HandlerTest extends TestCase
             'E_USER_ERROR'        => [E_USER_ERROR, Logger::ERROR],
         ];
 
-        foreach ($datas as &$data) {
-            $data[] =
-                Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::{{__FUNCTION__}} in ' . __FILE__ . ' on line 120';
-        }
-
         return $datas;
     }
 
@@ -126,36 +121,50 @@ class HandlerTest extends TestCase
     {
         $logger = $this->mockService(Services::LOGGER, Logger\Adapter\File::class, true);
 
-        $logger->expects($this->any())->method('setFormatter');
-        $logger->expects($this->any())->method('log')->with($expectedLogger, $expectedMessage);
+        $logger->expects($this->once())->method('setFormatter');
+        $logger->expects($this->once())->method('log')->with($expectedLogger, $expectedMessage);
     }
 
     /**
      * @dataProvider dataHandleError
      */
-    public function testHandleErrorWithoutView($errorCode, $expectedLogger, $expectedMessage)
+    public function testHandleErrorWithoutView($errorCode, $expectedLogger)
     {
-        $expectedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $expectedMessage);
+        Handler::setOutputLvl(Handler::OUTPUT_VIEW | Handler::OUTPUT_LOGGER);
 
-        $this->mockLogger($expectedLogger, $expectedMessage);
-
-        $this->expectOutputString($expectedMessage);
-
-        Handler::handle(new Error([
+        $error = new Error([
             'type'    => $errorCode,
             'message' => __METHOD__,
             'file'    => __FILE__,
             'line'    => 120,
             'isError' => true,
-        ]));
+        ]);
+
+        $expectedMessage = $this->invokeStaticMethod(Handler::class, 'format', [$error, false, true]);
+
+        $this->mockLogger($expectedLogger, $expectedMessage);
+
+        $this->expectOutputString($expectedMessage);
+
+        Handler::handle($error);
     }
 
     /**
      * @dataProvider dataHandleError
      */
-    public function testHandleErrorWithView($errorCode, $expectedLogger, $expectedMessage)
+    public function testHandleErrorWithView($errorCode, $expectedLogger)
     {
-        $expectedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $expectedMessage);
+        Handler::setOutputLvl(Handler::OUTPUT_VIEW | Handler::OUTPUT_LOGGER);
+
+        $error = new Error([
+            'type'    => $errorCode,
+            'message' => __METHOD__,
+            'file'    => __FILE__,
+            'line'    => 120,
+            'isError' => true,
+        ]);
+
+        $expectedMessage = $this->invokeStaticMethod(Handler::class, 'format', [$error, false, true]);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
@@ -168,16 +177,7 @@ class HandlerTest extends TestCase
 
         $this->expectOutputString($expectedMessage);
 
-        $response = Handler::handle(new Error([
-            'type'    => $errorCode,
-            'message' => __METHOD__,
-            'file'    => __FILE__,
-            'line'    => 120,
-            'isError' => true,
-        ]));
-
-        $this->assertTrue($response->isSent());
-        $this->assertEquals($expectedMessage, $response->getContent());
+        Handler::handle($error);
     }
 
     public function dataHandleWarning()
@@ -194,47 +194,53 @@ class HandlerTest extends TestCase
             'E_USER_DEPRECATED' => [E_USER_DEPRECATED, Logger::INFO],
         ];
 
-        foreach ($datas as &$data) {
-            $data[] =
-                Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::testHandleWarning in ' . __FILE__ . ' on line 120';
-        }
-
         return $datas;
     }
 
     /**
      * @dataProvider dataHandleWarning
      */
-    public function testHandleWarning($errorCode, $expectedLogger, $expectedMessage)
+    public function testHandleWarning($errorCode, $expectedLogger)
     {
-        $this->mockLogger($expectedLogger, $expectedMessage);
+        Handler::setOutputLvl(Handler::OUTPUT_VIEW | Handler::OUTPUT_LOGGER);
 
-        $this->expectOutputString('');
-
-        Handler::handle(new Error([
+        $error = new Error([
             'type'    => $errorCode,
             'message' => __METHOD__,
             'file'    => __FILE__,
             'line'    => 120,
             'isError' => true,
-        ]));
+        ]);
+
+        $expectedMessage = $this->invokeStaticMethod(Handler::class, 'format', [$error, false, true]);
+
+        $this->mockLogger($expectedLogger, $expectedMessage);
+
+        $this->expectOutputString('');
+
+        Handler::handle($error);
     }
 
     public function testHandleException()
     {
-        try {
-            throw new \Exception();
-        } catch (\Exception $e) {
-            ;
-        }
+        Handler::setOutputLvl(Handler::OUTPUT_VIEW | Handler::OUTPUT_LOGGER);
 
-        $msg = 'Uncaught exception: some exception in ' . __FILE__ . ' on line ' . (__LINE__ + 6) . PHP_EOL . $e->getTraceAsString();
+        $e = new \Exception();
+
+        $msg = $this->invokeStaticMethod(Handler::class, 'format', [new Error([
+            'type'        => $e->getCode(),
+            'message'     => $e->getMessage(),
+            'file'        => $e->getFile(),
+            'line'        => $e->getLine(),
+            'isException' => true,
+            'exception'   => $e,
+        ]), false, true]);
 
         $this->mockLogger(Logger::ERROR, $msg);
 
         $this->expectOutputString($msg);
 
-        Handler::handleException(new \Exception('some exception'));
+        Handler::handleException($e);
     }
 
     public function testHandleError()

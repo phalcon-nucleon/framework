@@ -20,6 +20,7 @@
 */
 namespace Neutrino\Error;
 
+use Neutrino\Cli\Output\Block;
 use Neutrino\Constants\Services;
 use Neutrino\Support\Arr;
 use Phalcon\Di;
@@ -35,6 +36,19 @@ use Phalcon\Logger\Formatter\Line as FormatterLine;
  */
 class Handler
 {
+    const OUTPUT_PHPLOG = 1;
+    const OUTPUT_LOGGER = 2;
+    const OUTPUT_VIEW   = 4;
+    const OUTPUT_JSON   = 8;
+    const OUTPUT_CLI    = 16;
+
+    private static $outputLvl = self::OUTPUT_PHPLOG;
+
+    public static function setOutputLvl($lvl)
+    {
+        self::$outputLvl = $lvl;
+    }
+
     /**
      * Registers itself as error and exception handler.
      *
@@ -99,149 +113,283 @@ class Handler
      * Logs the error and dispatches an error controller.
      *
      * @param  \Neutrino\Error\Error $error
-     *
-     * @return null|Response
      */
     public static function handle(Error $error)
     {
-        $di = Di::getDefault();
+        if (self::OUTPUT_PHPLOG & self::$outputLvl) {
+            self::outputErrorLog($error);
+        }
 
-        if (is_null($di)
-            || !$di->has(Services::CONFIG)
-            || !$di->has(Services::LOGGER)
+        if (self::OUTPUT_LOGGER & self::$outputLvl) {
+            self::outputLogger($error);
+        }
+
+        $type = $error->type;
+        if ($type == 0 ||
+            $type == E_ERROR ||
+            $type == E_PARSE ||
+            $type == E_CORE_ERROR ||
+            $type == E_COMPILE_ERROR ||
+            $type == E_USER_ERROR ||
+            $type == E_RECOVERABLE_ERROR
         ) {
-            if (APP_DEBUG) {
-                if ($error->isException) {
-                    $title = get_class($error->exception) . ' [' . $error->type . '] : ' . $error->exception->getMessage();
+            if (self::OUTPUT_VIEW & self::$outputLvl) {
+                self::outputView($error);
+            }
+            if (self::OUTPUT_JSON & self::$outputLvl) {
+                self::outputJson($error);
+            }
+            if (self::OUTPUT_CLI & self::$outputLvl) {
+                self::outputCli($error);
+            }
+        }
+    }
 
-                    $lines = array_merge([
-                        'in ' . $error->file . ' on line ' . $error->line,
-                        '',
-                        'Trace : ',
-                    ], array_map(function ($value) {
-                        $strs = [];
-                        //foreach ($value as $item) {
-                        if (is_array($value)) {
-                            $strs[] = var_dump(array_keys($value), true);
-                        } else {
-                            $strs[] = $value;
-                        }
+    private static function outputErrorLog(Error $error)
+    {
+        error_log(self::format($error), 0);
+    }
 
-                        //}
+    private static function outputLogger(Error $error)
+    {
+        $di = Di::getDefault();
+        if ($di && $di->has(Services::LOGGER)) {
+            /* @var \Phalcon\Logger\Adapter $logger */
+            /* @var \Phalcon\Config $config */
+            $logger = $di->getShared(Services::LOGGER);
 
-                        return implode(' ', $strs);
-                    }, explode("\n", $error->exception->getTraceAsString())));
-                } else {
-                    $title = 'Error [' . $error->type . '] : ' . self::getErrorType($error->type);
+            $config = [];
+            if ($di->has(Services::CONFIG)) {
+                $config = $di->getShared(Services::CONFIG);
+            }
 
-                    $lines = [
-                        $error->message,
-                        'in ' . $error->file,
-                        'on line ' . $error->line,
-                    ];
+            if (Arr::has($config, 'error.formatter')) {
+                $configFormat = Arr::get($config, 'error.formatter');
+                $formatter    = null;
+
+                if ($configFormat instanceof Formatter) {
+                    $formatter = $configFormat;
+                } elseif (is_array($configFormat)) {
+                    $formatterOpts = $configFormat;
+                    $format        = null;
+                    $dateFormat    = null;
+
+                    if (isset($formatter['format'])) {
+                        $format = $formatter['format'];
+                    }
+
+                    if (isset($formatterOpts['dateFormat'])) {
+                        $dateFormat = $formatterOpts['dateFormat'];
+                    } elseif (isset($formatterOpts['date_format'])) {
+                        $dateFormat = $formatterOpts['date_format'];
+                    } elseif (isset($formatterOpts['date'])) {
+                        $dateFormat = $formatterOpts['date'];
+                    }
+
+                    $formatter = new FormatterLine($format, $dateFormat);
                 }
 
-                $maxlen = strlen($title);
-
-                echo '+' . str_pad('-', (int)min(60, ($maxlen + 2) * 1.25), '-') . '+' . PHP_EOL;
-                echo '| ' . str_pad($title, (int)min(60, ($maxlen + 2) * 1.25 - 2), ' ', STR_PAD_RIGHT) . ' |' . PHP_EOL;
-                echo '+' . str_pad('-', (int)min(60, ($maxlen + 2) * 1.25), '-') . '+' . PHP_EOL;
-                foreach ($lines as $line) {
-                    echo '|  ' . $line . PHP_EOL;
+                if ($formatter) {
+                    $logger->setFormatter($formatter);
                 }
             }
 
-            $type = static::getErrorType($error->type);
-
-            error_log("$type: {$error->message} in {$error->file} on line {$error->line}", $error->type);
-
-            return null;
+            $logger->log(static::getLogType($error->type), self::format($error, true, true));
         }
+    }
 
-        /* @var \Phalcon\Logger\Adapter $logger */
-        /* @var \Phalcon\Config $config */
-
-        $logger = $di->getShared(Services::LOGGER);
+    private static function outputView(Error $e)
+    {
+        $di     = Di::getDefault();
         $config = $di->getShared(Services::CONFIG);
 
-        $type    = static::getErrorType($error->type);
-        $message = "$type: {$error->message} in {$error->file} on line {$error->line}";
-
-        if ($error->isException) {
-            $message .= PHP_EOL . $error->exception->getTraceAsString();
-        }
-
-        if (Arr::has($config, 'error.formatter')) {
-            $configFormat = Arr::get($config, 'error.formatter');
-            $formatter    = null;
-
-            if ($configFormat instanceof Formatter) {
-                $formatter = $configFormat;
-            } elseif (is_array($configFormat)) {
-                $formatterOpts = $configFormat;
-                $format        = null;
-                $dateFormat    = null;
-
-                if (isset($formatter['format'])) {
-                    $format = $formatter['format'];
-                }
-
-                if (isset($formatterOpts['dateFormat'])) {
-                    $dateFormat = $formatterOpts['dateFormat'];
-                } elseif (isset($formatterOpts['date_format'])) {
-                    $dateFormat = $formatterOpts['date_format'];
-                } elseif (isset($formatterOpts['date'])) {
-                    $dateFormat = $formatterOpts['date'];
-                }
-
-                $formatter = new FormatterLine($format, $dateFormat);
-            }
-
-            if ($formatter) {
-                $logger->setFormatter($formatter);
-            }
-        }
-
-        $logger->log(static::getLogType($error->type), $message);
-
-        $i = $error->type;
-        if ($i == 0 ||
-            $i == E_ERROR ||
-            $i == E_PARSE ||
-            $i == E_CORE_ERROR ||
-            $i == E_COMPILE_ERROR ||
-            $i == E_USER_ERROR ||
-            $i == E_RECOVERABLE_ERROR
-        ) {
+        if ($di) {
             if ($di->has(Services::VIEW)) {
-                /* @var \Phalcon\Mvc\Dispatcher $dispatcher */
-                $dispatcher = $di->getShared(Services::DISPATCHER);
                 /* @var \Phalcon\Mvc\View $view */
                 $view = $di->getShared(Services::VIEW);
-                /* @var \Phalcon\Http\Response $response */
-                $response = $di->getShared(Services::RESPONSE);
-
-                $dispatcher->setNamespaceName(Arr::get($config, 'error.namespace'));
-                $dispatcher->setControllerName(Arr::get($config, 'error.controller'));
-                $dispatcher->setActionName(Arr::get($config, 'error.action'));
-                $dispatcher->setParams(['error' => $error]);
-
                 $view->start();
-                $dispatcher->dispatch();
-                $view->render(
-                    Arr::get($config, 'error.controller'),
-                    Arr::get($config, 'error.action'),
-                    $dispatcher->getParams()
-                );
+                if (Arr::has($config, 'error.dispatcher.namespace')
+                    && Arr::has($config, 'error.dispatcher.controller')
+                    && Arr::has($config, 'error.dispatcher.action')
+                ) {
+                    /* @var \Phalcon\Mvc\Dispatcher $dispatcher */
+                    $dispatcher = $di->getShared(Services::DISPATCHER);
+                    $dispatcher->setNamespaceName(Arr::get($config, 'error.dispatcher.namespace'));
+                    $dispatcher->setControllerName(Arr::get($config, 'error.dispatcher.controller'));
+                    $dispatcher->setActionName(Arr::get($config, 'error.dispatcher.action'));
+                    $dispatcher->setParams(['error' => $e]);
+                    $dispatcher->dispatch();
+                } elseif (Arr::has($config, 'error.view.path')
+                    && Arr::has($config, 'error.view.file')
+                ) {
+                    $view->render(
+                        Arr::get($config, 'error.view.path'),
+                        Arr::get($config, 'error.view.file'),
+                        ['error' => $e]
+                    );
+                } else {
+                    $view->setContent(self::format($e, false, true));
+                }
                 $view->finish();
 
-                return $response->setContent($view->getContent())->send();
-            } elseif (APP_DEBUG) {
-                echo $message;
+                if ($di->has(Services::RESPONSE) && ($response =
+                        $di->getShared(Services::RESPONSE)) instanceof Response && !$response->isSent()
+                ) {
+                    $response
+                        ->setStatusCode(500)
+                        ->setContent($view->getContent())
+                        ->send();
+
+                    return;
+                } else {
+                    echo $view->getContent();
+
+                    return;
+                }
             }
         }
 
-        return null;
+        echo self::format($e, false, true);
+    }
+
+    private static function outputJson(Error $error)
+    {
+        $di = Di::getDefault();
+
+        if ($di
+            && $di->has(Services::RESPONSE)
+            && ($response = $di->getShared(Services::RESPONSE)) instanceof Response && !$response->isSent()
+        ) {
+            $response
+                ->setStatusCode(500)
+                ->setContent(json_encode($error))
+                ->send();
+        } else {
+            echo json_encode($error);
+        }
+    }
+
+    private static function outputCli(Error $error)
+    {
+        $di = Di::getDefault();
+
+        if ($di && $di->has(Services\Cli::OUTPUT)) {
+            $output = $di->getShared(Services\Cli::OUTPUT);
+
+            $block = new Block($output, 'warn', ['padding' => 4]);
+
+            $block->draw(explode("\n", self::format($error, false, true)));
+        } else {
+            echo self::format($error, false, true);
+        }
+    }
+
+    private static function format(Error $error, $full = false, $verbose = false)
+    {
+        $type = static::getErrorType($error->type);
+
+        if ($full || APP_DEBUG) {
+            if ($verbose) {
+                $lines[] = $type
+                    . ($error->isException ? ' : ' . get_class($error->exception) : ' : Error')
+                    . '[' . (empty($error->type) ? 0 : ' : ' . $error->type) . ']'
+                    . (empty($error->message) ? '' : ' : ' . $error->message)
+                    . ' in ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $error->file))
+                    . ' on line ' . $error->line;
+
+                if ($error->isException) {
+                    $lines[] = '';
+
+                    foreach ($error->exception->getTrace() as $idx => $trace) {
+                        $row = $id = '#' . $idx . ' ';
+
+                        if (isset($trace['class'])) {
+                            $row .= $trace['class'] . '::';
+                        }
+                        if (isset($trace['function'])) {
+                            $row .= $trace['function'];
+                        }
+
+                        $args = [];
+                        foreach ($trace['args'] as $arg) {
+                            switch (gettype($arg)) {
+                                case 'array':
+                                    if (!empty($arg)) {
+                                        $found = [];
+                                        foreach ($arg as $item) {
+                                            $type = gettype($item);
+                                            if ($type == 'object') {
+                                                $type = get_class($item);
+                                            }
+                                            if (!isset($found[$type])) {
+                                                $found[$type] = 0;
+                                            }
+
+                                            $found[$type]++;
+                                        }
+
+                                        asort($found, SORT_DESC);
+                                        reset($found);
+                                        $key = key($found);
+                                        if ($found[$key] == count($arg)) {
+                                            $args[] = $key . '[]';
+                                        } else {
+                                            $args[] = 'Array';
+                                        }
+                                    } else {
+                                        $args[] = 'Array';
+                                    }
+
+                                    break;
+                                case 'object':
+                                    $args[] = get_class($arg);
+                                    break;
+                                case 'NULL':
+                                    $args[] = 'null';
+                                    break;
+                                case 'unknown type':
+                                    $args[] = '?';
+                                    break;
+                                case 'boolean':
+                                case 'integer':
+                                case 'double':
+                                case 'string':
+                                case 'resource':
+                                default:
+                                    $args[] = $arg;
+                                    break;
+                            }
+                        }
+                        $row .= '(' . implode(', ', $args) . ')';
+
+                        $lines[] = $row;
+
+                        $row = str_repeat(' ', strlen($id)) . 'in : ';
+                        if (isset($trace['file'])) {
+                            $row .= ' ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $trace['file']));
+                            if (isset($trace['line'])) {
+                                $row .= '(' . $trace['line'] . ')';
+                            }
+                            $row .= ':';
+                        } else {
+                            $row .= '[internal function]';
+                        }
+
+                        $lines[] = $row;
+                    }
+
+                    array_map('trim', $lines);
+                }
+            } else {
+                $lines[] = "$type: {$error->message} in {$error->file} on line {$error->line}";
+            }
+
+            $message = implode("\n", $lines);
+        } else {
+            $message = 'Something went wrong.';
+        }
+
+        return $message;
     }
 
     /**

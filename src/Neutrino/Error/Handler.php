@@ -20,7 +20,6 @@
 */
 namespace Neutrino\Error;
 
-use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
 use Neutrino\Support\Arr;
 use Phalcon\Di;

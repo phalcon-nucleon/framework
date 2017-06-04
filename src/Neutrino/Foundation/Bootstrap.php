@@ -46,7 +46,7 @@ class Bootstrap
         $kernel->registerMiddlewares();
         $kernel->registerListeners();
         $kernel->registerRoutes();
-        $kernel->registerModules();
+        $kernel->registerModules([]);
 
         return $kernel;
     }

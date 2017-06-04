@@ -2,7 +2,7 @@
 
 namespace Neutrino\Foundation\Micro;
 
-use Neutrino\Error\Handler;
+use Neutrino\Error;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Neutrino\Micro\Middleware;
@@ -58,7 +58,7 @@ abstract class Kernel extends MicroKernel implements Kernelable
      *
      * @var int
      */
-    protected $errorHandlerLvl = Handler::OUTPUT_PHPLOG | Handler::OUTPUT_LOGGER | Handler::OUTPUT_JSON;
+    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Json::class];
 
     /**
      * This methods registers the middlewares to be used by the application
@@ -72,6 +72,8 @@ abstract class Kernel extends MicroKernel implements Kernelable
 
     /**
      * @param \Neutrino\Micro\Middleware $middleware
+     *
+     * @throws \RuntimeException
      */
     protected function registerMiddleware(Middleware $middleware)
     {

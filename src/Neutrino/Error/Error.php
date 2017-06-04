@@ -51,6 +51,7 @@ class Error implements \ArrayAccess
     {
         $defaults = [
             'type'        => -1,
+            'code'        => 0,
             'message'     => 'No error message',
             'file'        => '',
             'line'        => '',
@@ -66,6 +67,87 @@ class Error implements \ArrayAccess
         }
 
         $this->attributes['typeStr'] = Handler::getErrorType($this->attributes['type']);
+    }
+
+    /**
+     * @param \Exception|\Error|\Throwable $e
+     *
+     * @return \Neutrino\Error\Error
+     */
+    public static function fromException($e)
+    {
+        return new static([
+            'type'        => $e->getCode(),
+            'message'     => $e->getMessage(),
+            'file'        => $e->getFile(),
+            'line'        => $e->getLine(),
+            'isException' => true,
+            'exception'   => $e,
+        ]);
+    }
+
+    public static function fromError($errno, $errstr, $errfile, $errline)
+    {
+        return new static([
+            'type'    => $errno,
+            'message' => $errstr,
+            'file'    => $errfile,
+            'line'    => $errline,
+            'isError' => true,
+        ]);
+    }
+
+    public function getErrorType()
+    {
+        switch ($this->type) {
+            case 0:
+                return 'Uncaught exception';
+            case E_ERROR:
+                return 'E_ERROR';
+            case E_WARNING:
+                return 'E_WARNING';
+            case E_PARSE:
+                return 'E_PARSE';
+            case E_NOTICE:
+                return 'E_NOTICE';
+            case E_CORE_ERROR:
+                return 'E_CORE_ERROR';
+            case E_CORE_WARNING:
+                return 'E_CORE_WARNING';
+            case E_COMPILE_ERROR:
+                return 'E_COMPILE_ERROR';
+            case E_COMPILE_WARNING:
+                return 'E_COMPILE_WARNING';
+            case E_USER_ERROR:
+                return 'E_USER_ERROR';
+            case E_USER_WARNING:
+                return 'E_USER_WARNING';
+            case E_USER_NOTICE:
+                return 'E_USER_NOTICE';
+            case E_STRICT:
+                return 'E_STRICT';
+            case E_RECOVERABLE_ERROR:
+                return 'E_RECOVERABLE_ERROR';
+            case E_DEPRECATED:
+                return 'E_DEPRECATED';
+            case E_USER_DEPRECATED:
+                return 'E_USER_DEPRECATED';
+        }
+
+        return (string)$this->type;
+    }
+
+    public function isFateful()
+    {
+        $type = $this->type;
+
+        return $type == 0 ||
+            $type == E_ERROR ||
+            $type == E_PARSE ||
+            $type == E_CORE_ERROR ||
+            $type == E_COMPILE_ERROR ||
+            $type == E_USER_ERROR ||
+            $type == E_RECOVERABLE_ERROR;
     }
 
     /**

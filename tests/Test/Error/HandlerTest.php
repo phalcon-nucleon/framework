@@ -5,6 +5,8 @@ namespace Test\Error;
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Handler;
+use Neutrino\Error\Helper;
+use Neutrino\Error\Writer as ErrorWriter;
 use Neutrino\Http\Controller;
 use Phalcon\Logger;
 use Test\TestCase\TestCase;
@@ -65,7 +67,7 @@ class HandlerTest extends TestCase
      */
     public function testGetLogType($errorType, $logType)
     {
-        $this->assertEquals($logType, Handler::getLogType($errorType));
+        $this->assertEquals($logType, ErrorWriter\Logger::getLogType($errorType));
     }
 
     public function dataErrorType()
@@ -130,7 +132,7 @@ class HandlerTest extends TestCase
      */
     public function testHandleErrorWithoutView($errorCode, $expectedLogger)
     {
-        Handler::setOutputLvl(Handler::OUTPUT_VIEW | Handler::OUTPUT_LOGGER);
+        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
 
         $error = new Error([
             'type'    => $errorCode,
@@ -140,7 +142,7 @@ class HandlerTest extends TestCase
             'isError' => true,
         ]);
 
-        $expectedMessage = $this->invokeStaticMethod(Handler::class, 'format', [$error, false, true]);
+        $expectedMessage = Helper::format($error, false, true);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
@@ -154,7 +156,7 @@ class HandlerTest extends TestCase
      */
     public function testHandleErrorWithView($errorCode, $expectedLogger)
     {
-        Handler::setOutputLvl(Handler::OUTPUT_VIEW | Handler::OUTPUT_LOGGER);
+        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
 
         $error = new Error([
             'type'    => $errorCode,
@@ -164,7 +166,7 @@ class HandlerTest extends TestCase
             'isError' => true,
         ]);
 
-        $expectedMessage = $this->invokeStaticMethod(Handler::class, 'format', [$error, false, true]);
+        $expectedMessage = Helper::format($error, false, true);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
@@ -202,7 +204,7 @@ class HandlerTest extends TestCase
      */
     public function testHandleWarning($errorCode, $expectedLogger)
     {
-        Handler::setOutputLvl(Handler::OUTPUT_VIEW | Handler::OUTPUT_LOGGER);
+        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
 
         $error = new Error([
             'type'    => $errorCode,
@@ -212,7 +214,7 @@ class HandlerTest extends TestCase
             'isError' => true,
         ]);
 
-        $expectedMessage = $this->invokeStaticMethod(Handler::class, 'format', [$error, false, true]);
+        $expectedMessage = Helper::format($error, false, true);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
@@ -223,18 +225,18 @@ class HandlerTest extends TestCase
 
     public function testHandleException()
     {
-        Handler::setOutputLvl(Handler::OUTPUT_VIEW | Handler::OUTPUT_LOGGER);
+        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
 
         $e = new \Exception();
 
-        $msg = $this->invokeStaticMethod(Handler::class, 'format', [new Error([
+        $msg = Helper::format(new Error([
             'type'        => $e->getCode(),
             'message'     => $e->getMessage(),
             'file'        => $e->getFile(),
             'line'        => $e->getLine(),
             'isException' => true,
             'exception'   => $e,
-        ]), false, true]);
+        ]), false, true);
 
         $this->mockLogger(Logger::ERROR, $msg);
 

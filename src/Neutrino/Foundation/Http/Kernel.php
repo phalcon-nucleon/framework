@@ -2,7 +2,7 @@
 
 namespace Neutrino\Foundation\Http;
 
-use Neutrino\Error\Handler;
+use Neutrino\Error;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Di\FactoryDefault as Di;
@@ -67,7 +67,7 @@ abstract class Kernel extends Application implements Kernelable
      *
      * @var int
      */
-    protected $errorHandlerLvl = Handler::OUTPUT_PHPLOG | Handler::OUTPUT_LOGGER | Handler::OUTPUT_VIEW;
+    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\View::class];
 
 
     /**

@@ -5,7 +5,7 @@ namespace Neutrino\Foundation\Cli;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Constants\Services;
-use Neutrino\Error\Handler;
+use Neutrino\Error;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
@@ -75,7 +75,7 @@ abstract class Kernel extends Console implements Kernelable
      *
      * @var int
      */
-    protected $errorHandlerLvl = Handler::OUTPUT_PHPLOG | Handler::OUTPUT_LOGGER | Handler::OUTPUT_CLI;
+    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Cli::class];
 
     /**
      * Application constructor.

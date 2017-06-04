@@ -102,7 +102,7 @@ trait Kernelize
     public final function bootstrap(Config $config)
     {
         /** @var \Phalcon\Application $this */
-        Handler::setOutputLvl($this->errorHandlerLvl);
+        Handler::setWriter(...$this->errorHandlerLvl);
 
         $diClass = $this->dependencyInjection;
         $emClass = $this->eventsManagerClass;

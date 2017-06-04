@@ -2,7 +2,6 @@
 
 namespace Neutrino\Foundation;
 
-use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
 use Neutrino\Error\Handler;
 use Neutrino\Events\Listener;
@@ -113,10 +112,10 @@ trait Kernelize
             $this->setEventsManager($em);
         }
 
-        Di::reset();
-
         /** @var Di $di */
+        Di::reset();
         $di = new $diClass;
+        Di::setDefault($di);
 
         $di->setShared(Services::APP, $this);
         $di->setShared(Services::CONFIG, $config);
@@ -126,9 +125,6 @@ trait Kernelize
 
             $di->setShared(Services::EVENTS_MANAGER, $em);
         }
-
-        // Register Global Di
-        Di::setDefault($di);
 
         // Register Di on Facade
         Facade::setDependencyInjection($di);

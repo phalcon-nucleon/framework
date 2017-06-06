@@ -21,11 +21,16 @@ class ProvideDatabaseTest extends TestCase
 
         $config = array_merge($config, [
             'database' => [
-                'adapter' => \Phalcon\Db\Adapter\Pdo\Sqlite::class,
-                'options' => [
-                    'dbname' => 'dbname'
-                ]
-            ],
+                'default'     => 'sqlite',
+                'connections' => [
+                    'sqlite' => [
+                        'adapter' => \Phalcon\Db\Adapter\Pdo\Sqlite::class,
+                        'options' => [
+                            'dbname' => 'dbname'
+                        ]
+                    ]
+                ],
+            ]
         ]);
 
         parent::setUp();

@@ -104,23 +104,33 @@ trait Kernelize
         Handler::setWriter(...$this->errorHandlerLvl);
 
         $diClass = $this->dependencyInjection;
+
+        if (empty($diClass)) {
+            $di = Di::getDefault();
+        } else {
+            Di::reset();
+
+            /** @var Di $di */
+            $di = new $diClass;
+
+            // Global Register Di
+            Di::setDefault($di);
+        }
+
+        // Register Di on Application
+        $this->setDI($di);
+
+        // Register Default Shared instance
+        $di->setShared(Services::APP, $this);
+        $di->setShared(Services::CONFIG, $config);
+
         $emClass = $this->eventsManagerClass;
 
         if (!empty($emClass)) {
             $em = new $emClass;
 
             $this->setEventsManager($em);
-        }
 
-        /** @var Di $di */
-        Di::reset();
-        $di = new $diClass;
-        Di::setDefault($di);
-
-        $di->setShared(Services::APP, $this);
-        $di->setShared(Services::CONFIG, $config);
-
-        if (!empty($em)) {
             $di->setInternalEventsManager($em);
 
             $di->setShared(Services::EVENTS_MANAGER, $em);
@@ -128,9 +138,6 @@ trait Kernelize
 
         // Register Di on Facade
         Facade::setDependencyInjection($di);
-
-        // Register Di on Application
-        $this->setDI($di);
     }
 
     /**

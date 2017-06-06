@@ -26,9 +26,7 @@ class CacheStrategy extends Strategy implements BackendInterface
 
         $this->default = $cache->default;
 
-        foreach ($cache->stores as $name => $cache) {
-            $this->supported[] = $name;
-        }
+        $this->supported = array_keys((array)$cache->stores);
     }
 
     /**

@@ -7,6 +7,11 @@ use Fake\Kernels\Cli\Tasks\StubTask;
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
+use Neutrino\Error\Error;
+use Neutrino\Error\Handler;
+use Neutrino\Error\Helper;
+use Neutrino\Error\Writer\Cli;
+use Neutrino\Error\Writer\View;
 use Phalcon\Cli\Dispatcher;
 use Test\TestCase\TestCase;
 
@@ -119,20 +124,33 @@ class TaskTest extends TestCase
 
     public function testHandleExpection()
     {
-        $this->markTestSkipped('Test to redo');
+        Handler::setWriter(Cli::class);
 
         $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
-        $mock->expects($this->exactly(3))
-            ->method('error')
-            ->withConsecutive(
-                ['Exception : Exception'],
-                ['test'],
-                [$this->anything()]
-            );
+        $e = new \Exception('test', 123);
+
+        $messages = Helper::format(Error::fromException($e), true, true);
+
+        $lines = explode("\n", $messages);
+
+        $maxlen = 0;
+        foreach ($lines as $line) {
+            $maxlen = max($maxlen, strlen($line));
+        }
+
+        $with[] = [str_repeat(' ', $maxlen + 4)];
+        foreach ($lines as $line) {
+            $with[] = ['  ' . str_pad($line, $maxlen, ' ', STR_PAD_RIGHT) . '  '];
+        }
+        $with[] = [str_repeat(' ', $maxlen + 4)];
+
+        $mock->expects($this->exactly(count($lines) + 2))
+            ->method('warn')
+            ->withConsecutive(...$with);
 
         $task = $this->stubTask();
 
-        $task->handleException(new \Exception('test', 123));
+        $task->handleException($e);
     }
 }

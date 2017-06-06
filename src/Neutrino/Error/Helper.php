@@ -16,7 +16,7 @@ class Helper
                 $head = $error->getErrorType();
 
                 if ($error->isException) {
-                    $head .= ' : ' . get_class($error->exception) . '[' . (empty($error->type) ? 0 : $error->type) . ']';
+                    $head .= ' : ' . get_class($error->exception) . '[' . $error->code . ']';
                 }
 
                 $head .= (empty($error->message) ? '' : ' : ' . $error->message)

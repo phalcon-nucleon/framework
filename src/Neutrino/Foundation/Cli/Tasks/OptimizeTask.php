@@ -54,9 +54,9 @@ class OptimizeTask extends Task
         $this->optimizeClass();
 
         foreach ($this->compileTasks as $compileTask) {
-            $compileTask = new $compileTask;
-
-            $compileTask->mainAction();
+            $this->application->handle([
+                'task' => $compileTask
+            ]);
         }
     }
 

@@ -15,7 +15,6 @@ use Phalcon\Di;
  */
 class Cli implements Writable
 {
-
     public function handle(Error $error)
     {
         if (!$error->isFateful()) {
@@ -29,7 +28,7 @@ class Cli implements Writable
 
             $block = new Block($output, 'warn', ['padding' => 4]);
 
-            $block->draw(explode("\n", self::format($error, false, true)));
+            $block->draw(explode("\n", Helper::format($error, false, true)));
         } else {
             echo Helper::format($error, false, true);
         }

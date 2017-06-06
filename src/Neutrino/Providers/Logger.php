@@ -60,6 +60,6 @@ class Logger extends Provider
             throw new \RuntimeException('Required parameter {options} missing.');
         }
 
-        return new $adapter($name, $config->options->toArray());
+        return new $adapter($name, (array)$config->options);
     }
 }

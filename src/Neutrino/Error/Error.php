@@ -27,6 +27,7 @@ use Neutrino\Support\Arr;
  * @package Phalcon\Error
  *
  * @property-read int        type
+ * @property-read int        code
  * @property-read string     typeStr
  * @property-read string     message
  * @property-read string     file
@@ -77,7 +78,8 @@ class Error implements \ArrayAccess
     public static function fromException($e)
     {
         return new static([
-            'type'        => $e->getCode(),
+            'type'        => -1,
+            'code'        => $e->getCode(),
             'message'     => $e->getMessage(),
             'file'        => $e->getFile(),
             'line'        => $e->getLine(),
@@ -90,6 +92,7 @@ class Error implements \ArrayAccess
     {
         return new static([
             'type'    => $errno,
+            'code'    => $errno,
             'message' => $errstr,
             'file'    => $errfile,
             'line'    => $errline,
@@ -100,7 +103,7 @@ class Error implements \ArrayAccess
     public function getErrorType()
     {
         switch ($this->type) {
-            case 0:
+            case -1:
                 return 'Uncaught exception';
             case E_ERROR:
                 return 'E_ERROR';
@@ -141,7 +144,7 @@ class Error implements \ArrayAccess
     {
         $type = $this->type;
 
-        return $type == 0 ||
+        return $type == -1 ||
             $type == E_ERROR ||
             $type == E_PARSE ||
             $type == E_CORE_ERROR ||

@@ -135,7 +135,8 @@ class HandlerTest extends TestCase
         Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
 
         $error = new Error([
-            'type'    => $errorCode,
+            'type'    => is_null($errorCode) ? -1 : $errorCode,
+            'code'    => $errorCode,
             'message' => __METHOD__,
             'file'    => __FILE__,
             'line'    => 120,
@@ -159,7 +160,8 @@ class HandlerTest extends TestCase
         Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
 
         $error = new Error([
-            'type'    => $errorCode,
+            'type'    => is_null($errorCode) ? -1 : $errorCode,
+            'code'    => $errorCode,
             'message' => __METHOD__,
             'file'    => __FILE__,
             'line'    => 120,
@@ -230,7 +232,8 @@ class HandlerTest extends TestCase
         $e = new \Exception();
 
         $msg = Helper::format(new Error([
-            'type'        => $e->getCode(),
+            'type'        => -1,
+            'code'        => $e->getCode(),
             'message'     => $e->getMessage(),
             'file'        => $e->getFile(),
             'line'        => $e->getLine(),

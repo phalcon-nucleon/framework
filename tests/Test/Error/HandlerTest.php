@@ -247,6 +247,8 @@ class HandlerTest extends TestCase
 
     public function testHandleError()
     {
+        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
+
         $msg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : user error in ' . __FILE__ . ' on line ' . (__LINE__ + 6));
 
         $this->mockLogger(Logger::ERROR, $msg);
@@ -258,6 +260,8 @@ class HandlerTest extends TestCase
 
     public function testTriggerError()
     {
+        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
+
         $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8));
 
         $this->expectOutputString($expectedMsg);

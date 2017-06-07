@@ -96,7 +96,9 @@ abstract class Kernel extends Console implements Kernelable
     public function handle(array $arguments = null)
     {
         if (!empty($arguments)) {
-            $this->setArgument($arguments);
+            // In php5.6, setArgument will modify the $ arguments variable, even if it is not passed by reference.
+            // We therefore clone the contents of $ arguments to converse the data.
+            $this->setArgument(array_merge([], $arguments));
         }
 
         if ($this->isHelp()) {

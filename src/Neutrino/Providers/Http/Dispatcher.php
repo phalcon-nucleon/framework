@@ -3,7 +3,7 @@
 namespace Neutrino\Providers\Http;
 
 use Neutrino\Constants\Services;
-use Neutrino\Providers\Provider;
+use Neutrino\Support\Provider;
 
 /**
  * Class Dispatcher

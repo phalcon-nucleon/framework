@@ -2,7 +2,7 @@
 
 namespace Test\Providers;
 
-use Neutrino\Providers\Provider;
+use Neutrino\Support\Provider;
 use Test\TestCase\TestCase;
 
 class ProviderTest extends TestCase

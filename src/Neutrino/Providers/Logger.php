@@ -3,6 +3,7 @@
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\Provider;
 use Phalcon\Logger\Adapter\File as FileLoggerAdapter;
 
 /**

@@ -3,6 +3,7 @@
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\SimpleProvider;
 use Phalcon\Annotations\Adapter\Memory as AnnotationsMemory;
 
 
@@ -11,7 +12,7 @@ use Phalcon\Annotations\Adapter\Memory as AnnotationsMemory;
  *
  *  @package Neutrino\Providers
  */
-class Annotations extends BasicProvider
+class Annotations extends SimpleProvider
 {
     protected $class = AnnotationsMemory::class;
 

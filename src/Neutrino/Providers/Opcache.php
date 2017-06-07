@@ -4,13 +4,14 @@ namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 use Neutrino\Opcache\Manager as OpcacheManager;
+use Neutrino\Support\SimpleProvider;
 
 /**
  * Class Auth
  *
  *  @package Neutrino\Providers
  */
-class Opcache extends BasicProvider
+class Opcache extends SimpleProvider
 {
     protected $class = OpcacheManager::class;
 

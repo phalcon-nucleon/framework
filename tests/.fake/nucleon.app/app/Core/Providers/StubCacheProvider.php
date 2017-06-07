@@ -4,7 +4,7 @@ namespace Fake\Core\Providers;
 
 use Fake\Core\Cache\StubCache;
 use Neutrino\Constants\Services;
-use Neutrino\Providers\Provider;
+use Neutrino\Support\Provider;
 
 /**
  * Class StubCacheProvider

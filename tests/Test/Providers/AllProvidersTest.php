@@ -16,7 +16,7 @@ use Neutrino\Providers\Filter;
 use Neutrino\Providers\Flash;
 use Neutrino\Providers\Model;
 use Neutrino\Providers\ModelsMetaData;
-use Neutrino\Providers\Provider;
+use Neutrino\Support\Provider;
 use Neutrino\Providers\Security;
 use Neutrino\Providers\Url;
 use Neutrino\Providers\View;

@@ -14,7 +14,7 @@ use Neutrino\Foundation\Cli\Tasks\OpcacheTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Neutrino\Foundation\Cli\Tasks\ViewClearTask;
-use Neutrino\Providers\Provider;
+use Neutrino\Support\Provider;
 
 /**
  * Class Router

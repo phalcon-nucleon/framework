@@ -1,6 +1,6 @@
 <?php
 
-namespace Neutrino\Providers;
+namespace Neutrino\Support;
 
 use Neutrino\Interfaces\Providable;
 use Phalcon\Di\Injectable;
@@ -14,7 +14,7 @@ use Phalcon\Di\Service;
  * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
  * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
  */
-abstract class BasicProvider extends Injectable implements Providable
+abstract class SimpleProvider extends Injectable implements Providable
 {
     /**
      * Class to provide

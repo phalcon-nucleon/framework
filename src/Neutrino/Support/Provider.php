@@ -1,6 +1,6 @@
 <?php
 
-namespace Neutrino\Providers;
+namespace Neutrino\Support;
 
 use Neutrino\Interfaces\Providable;
 use Phalcon\Di\Injectable;

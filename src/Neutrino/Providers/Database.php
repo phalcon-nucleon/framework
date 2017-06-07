@@ -3,6 +3,7 @@
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\Provider;
 
 
 /**

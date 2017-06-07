@@ -4,7 +4,7 @@ namespace Neutrino\Providers\Cli;
 
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
-use Neutrino\Providers\Provider;
+use Neutrino\Support\Provider;
 
 /**
  * Class Output

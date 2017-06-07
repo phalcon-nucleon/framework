@@ -6,7 +6,7 @@ use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
 use Phalcon\Di;
-use Phalcon\Logger;
+use Phalcon\Logger as Phogger;
 
 /**
  * Class Flash
@@ -15,7 +15,9 @@ use Phalcon\Logger;
  */
 class Flash implements Writable
 {
-
+    /**
+     * @param \Neutrino\Error\Error $error
+     */
     public function handle(Error $error)
     {
         $di = Di::getDefault();
@@ -26,16 +28,16 @@ class Flash implements Writable
             $flash = $di->getShared(Services::FLASH);
 
             switch (Helper::getLogType($error->type)) {
-                case Logger::CRITICAL:
-                case Logger::EMERGENCY:
-                case Logger::ERROR:
+                case Phogger::CRITICAL:
+                case Phogger::EMERGENCY:
+                case Phogger::ERROR:
                     $flash->error(Helper::format($error, false, true));
                     break;
-                case Logger::WARNING:
+                case Phogger::WARNING:
                     $flash->warning(Helper::format($error, false, true));
                     break;
-                case Logger::NOTICE:
-                case Logger::INFO:
+                case Phogger::NOTICE:
+                case Phogger::INFO:
                     $flash->notice(Helper::format($error, false, true));
                     break;
             }

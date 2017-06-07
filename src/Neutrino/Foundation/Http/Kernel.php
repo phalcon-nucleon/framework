@@ -67,7 +67,7 @@ abstract class Kernel extends Application implements Kernelable
      *
      * @var int
      */
-    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\View::class];
+    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Flash::class, Error\Writer\View::class];
 
 
     /**

@@ -4,8 +4,8 @@ namespace Neutrino\Error\Writer;
 
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
-use Neutrino\Support\Facades\Response;
 use Phalcon\Di;
+use Phalcon\Http\Response;
 
 /**
  * Class Json
@@ -25,11 +25,13 @@ class Json implements Writable
 
         if ($di
             && $di->has(Services::RESPONSE)
-            && ($response = $di->getShared(Services::RESPONSE)) instanceof Response && !$response->isSent()
+            && ($response = $di->getShared(Services::RESPONSE)) instanceof Response
+            && !$response->isSent()
         ) {
+            /** @var \Phalcon\Http\Response $response */
             $response
                 ->setStatusCode(500)
-                ->setContent(json_encode($error))
+                ->setJsonContent($error)
                 ->send();
         } else {
             echo json_encode($error);

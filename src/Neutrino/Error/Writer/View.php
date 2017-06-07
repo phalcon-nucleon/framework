@@ -24,9 +24,13 @@ class View implements Writable
         }
 
         $di     = Di::getDefault();
-        $config = $di->getShared(Services::CONFIG);
 
-        if ($di) {
+        if (!is_null($di)) {
+            $config = [];
+            if($di->has(Services::CONFIG)){
+                $config = $di->getShared(Services::CONFIG);
+            }
+
             if ($di->has(Services::VIEW)) {
                 /* @var \Phalcon\Mvc\View $view */
                 $view = $di->getShared(Services::VIEW);
@@ -55,8 +59,9 @@ class View implements Writable
                 }
                 $view->finish();
 
-                if ($di->has(Services::RESPONSE) && ($response =
-                        $di->getShared(Services::RESPONSE)) instanceof Response && !$response->isSent()
+                if ($di->has(Services::RESPONSE)
+                    && ($response = $di->getShared(Services::RESPONSE)) instanceof Response
+                    && !$response->isSent()
                 ) {
                     $response
                         ->setStatusCode(500)

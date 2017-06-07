@@ -36,7 +36,7 @@ use Neutrino\Support\Arr;
  * @property-read bool       isException
  * @property-read bool       isError
  */
-class Error implements \ArrayAccess
+class Error implements \ArrayAccess, \JsonSerializable
 {
     /**
      * @var array
@@ -67,7 +67,7 @@ class Error implements \ArrayAccess
             $this->attributes[$option] = $value;
         }
 
-        $this->attributes['typeStr'] = Handler::getErrorType($this->attributes['type']);
+        $this->attributes['typeStr'] = Helper::getErrorType($this->attributes['type']);
     }
 
     /**
@@ -98,46 +98,6 @@ class Error implements \ArrayAccess
             'line'    => $errline,
             'isError' => true,
         ]);
-    }
-
-    public function getErrorType()
-    {
-        switch ($this->type) {
-            case -1:
-                return 'Uncaught exception';
-            case E_ERROR:
-                return 'E_ERROR';
-            case E_WARNING:
-                return 'E_WARNING';
-            case E_PARSE:
-                return 'E_PARSE';
-            case E_NOTICE:
-                return 'E_NOTICE';
-            case E_CORE_ERROR:
-                return 'E_CORE_ERROR';
-            case E_CORE_WARNING:
-                return 'E_CORE_WARNING';
-            case E_COMPILE_ERROR:
-                return 'E_COMPILE_ERROR';
-            case E_COMPILE_WARNING:
-                return 'E_COMPILE_WARNING';
-            case E_USER_ERROR:
-                return 'E_USER_ERROR';
-            case E_USER_WARNING:
-                return 'E_USER_WARNING';
-            case E_USER_NOTICE:
-                return 'E_USER_NOTICE';
-            case E_STRICT:
-                return 'E_STRICT';
-            case E_RECOVERABLE_ERROR:
-                return 'E_RECOVERABLE_ERROR';
-            case E_DEPRECATED:
-                return 'E_DEPRECATED';
-            case E_USER_DEPRECATED:
-                return 'E_USER_DEPRECATED';
-        }
-
-        return (string)$this->type;
     }
 
     public function isFateful()
@@ -244,5 +204,18 @@ class Error implements \ArrayAccess
         if (isset($this->attributes[$offset])) {
             unset($this->attributes[$offset]);
         }
+    }
+
+    /**
+     * Specify data which should be serialized to JSON
+     *
+     * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php
+     * @return mixed data which can be serialized by <b>json_encode</b>,
+     *        which is a value of any type other than a resource.
+     * @since 5.4.0
+     */
+    function jsonSerialize()
+    {
+        return $this->attributes;
     }
 }

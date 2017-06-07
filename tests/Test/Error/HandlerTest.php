@@ -92,14 +92,14 @@ class HandlerTest extends TestCase
      */
     public function testGetLogType($errorType, $logType)
     {
-        $this->assertEquals($logType, ErrorWriter\Logger::getLogType($errorType));
+        $this->assertEquals($logType, Helper::getLogType($errorType));
     }
 
     public function dataErrorType()
     {
         return [
             '1234'                => [1234, '1234'],
-            'Uncaught exception'  => [0, 'Uncaught exception'],
+            'Uncaught exception'  => [-1, 'Uncaught exception'],
             'E_ERROR'             => [E_ERROR, 'E_ERROR'],
             'E_WARNING'           => [E_WARNING, 'E_WARNING'],
             'E_PARSE'             => [E_PARSE, 'E_PARSE'],
@@ -126,7 +126,7 @@ class HandlerTest extends TestCase
      */
     public function testGetErrorType($code, $type)
     {
-        $this->assertEquals($type, Handler::getErrorType($code));
+        $this->assertEquals($type, Helper::getErrorType($code));
     }
 
     public function dataHandleError()

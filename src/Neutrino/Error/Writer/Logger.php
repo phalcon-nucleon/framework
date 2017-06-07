@@ -62,43 +62,8 @@ class Logger implements Writable
                 }
             }
 
-            $logger->log(static::getLogType($error->type), Helper::format($error, true, true));
+            $logger->log(Helper::getLogType($error->type), Helper::format($error, true, true));
         }
     }
 
-    /**
-     * Maps error code to a log type.
-     *
-     * @param  integer $code
-     *
-     * @return integer
-     */
-    public static function getLogType($code)
-    {
-        switch ($code) {
-            case E_PARSE:
-                return \Phalcon\Logger::CRITICAL;
-            case E_COMPILE_ERROR:
-            case E_CORE_ERROR:
-            case E_ERROR:
-                return \Phalcon\Logger::EMERGENCY;
-            case E_RECOVERABLE_ERROR:
-            case E_USER_ERROR:
-                return \Phalcon\Logger::ERROR;
-            case E_WARNING:
-            case E_USER_WARNING:
-            case E_CORE_WARNING:
-            case E_COMPILE_WARNING:
-                return \Phalcon\Logger::WARNING;
-            case E_NOTICE:
-            case E_USER_NOTICE:
-                return \Phalcon\Logger::NOTICE;
-            case E_STRICT:
-            case E_DEPRECATED:
-            case E_USER_DEPRECATED:
-                return \Phalcon\Logger::INFO;
-        }
-
-        return \Phalcon\Logger::ERROR;
-    }
 }

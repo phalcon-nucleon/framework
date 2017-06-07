@@ -37,24 +37,28 @@ class Logger implements Writable
 
                 if ($configFormat instanceof Formatter) {
                     $formatter = $configFormat;
-                } elseif (is_array($configFormat)) {
-                    $formatterOpts = $configFormat;
-                    $format        = null;
-                    $dateFormat    = null;
+                } elseif (is_array($configFormat) || $configFormat instanceof \Phalcon\Config) {
+                    $formatter  = FormatterLine::class;
+                    $format     = null;
+                    $dateFormat = null;
 
-                    if (isset($formatter['format'])) {
-                        $format = $formatter['format'];
+                    if (isset($configFormat['formatter'])) {
+                        $formatter = $configFormat['formatter'];
                     }
 
-                    if (isset($formatterOpts['dateFormat'])) {
-                        $dateFormat = $formatterOpts['dateFormat'];
-                    } elseif (isset($formatterOpts['date_format'])) {
-                        $dateFormat = $formatterOpts['date_format'];
-                    } elseif (isset($formatterOpts['date'])) {
-                        $dateFormat = $formatterOpts['date'];
+                    if (isset($configFormat['format'])) {
+                        $format = $configFormat['format'];
                     }
 
-                    $formatter = new FormatterLine($format, $dateFormat);
+                    if (isset($configFormat['dateFormat'])) {
+                        $dateFormat = $configFormat['dateFormat'];
+                    } elseif (isset($configFormat['date_format'])) {
+                        $dateFormat = $configFormat['date_format'];
+                    } elseif (isset($configFormat['date'])) {
+                        $dateFormat = $configFormat['date'];
+                    }
+
+                    $formatter = new $formatter($format, $dateFormat);
                 }
 
                 if ($formatter) {

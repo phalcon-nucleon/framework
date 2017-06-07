@@ -31,7 +31,7 @@ use Neutrino\Error\Writer\Writable;
 class Handler
 {
     /** @var Writable[] */
-    private static $writers = [Phplog::class];
+    private static $writers = [Phplog::class => null];
 
     public static function setWriter(...$writers)
     {

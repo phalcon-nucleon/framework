@@ -18,6 +18,22 @@ use Test\TestCase\TestCase;
  */
 class HandlerTest extends TestCase
 {
+    private static $defaultErrorLog;
+
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        self::$defaultErrorLog = ini_get('error_log');
+    }
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        ini_set('error_log', self::$defaultErrorLog);
+    }
+
     public function setUp()
     {
         parent::setUp();
@@ -32,6 +48,15 @@ class HandlerTest extends TestCase
             'controller' => 'Stuberror',
             'action'     => 'index',
         ];
+    }
+
+    public function tearDown()
+    {
+        parent::tearDown();
+
+        if (file_exists(__DIR__ . '/error.log')) {
+            unlink(__DIR__ . '/error.log');
+        }
     }
 
     /**
@@ -263,9 +288,12 @@ class HandlerTest extends TestCase
 
     public function testTriggerError()
     {
-        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
+        Handler::setWriter(ErrorWriter\Phplog::class, ErrorWriter\Logger::class, ErrorWriter\View::class);
 
-        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8));
+        $cur_error_log = ini_get('error_log');
+        ini_set('error_log', __DIR__ . '/error.log');
+
+        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : msg in ' . __FILE__ . ' on line ' . (__LINE__ + 9));
 
         $this->expectOutputString($expectedMsg);
 
@@ -273,10 +301,59 @@ class HandlerTest extends TestCase
 
         Handler::register();
 
+        $date = date('d-M-Y H:i:s e');
         trigger_error('msg', E_USER_ERROR);
 
+        ini_set('error_log', $cur_error_log);
         restore_error_handler();
         restore_exception_handler();
+
+        $r = fopen(__DIR__ . '/error.log', 'r');
+
+        $lines = [];
+        while (!feof($r)) {
+            if (($str = fgets($r)) !== false) {
+                $lines[] = $str;
+            }
+        }
+        fclose($r);
+        unlink(__DIR__ . '/error.log');
+        $this->assertCount(1, $lines);
+        $this->assertEquals(trim($lines[0]), '[' . $date . '] ' . $expectedMsg);
+    }
+
+    public function testTriggerErrorDefaultWriter()
+    {
+        Handler::setWriter(ErrorWriter\Phplog::class);
+
+        $cur_error_log = ini_get('error_log');
+        ini_set('error_log', __DIR__ . '/error.log');
+
+        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : msg in ' . __FILE__ . ' on line ' . (__LINE__ + 7));
+
+        $this->expectOutputString(null);
+
+        Handler::register();
+
+        $date = date('d-M-Y H:i:s e');
+        trigger_error('msg', E_USER_ERROR);
+
+        ini_set('error_log', $cur_error_log);
+        restore_error_handler();
+        restore_exception_handler();
+
+        $r = fopen(__DIR__ . '/error.log', 'r');
+
+        $lines = [];
+        while (!feof($r)) {
+            if (($str = fgets($r)) !== false) {
+                $lines[] = $str;
+            }
+        }
+        fclose($r);
+        unlink(__DIR__ . '/error.log');
+        $this->assertCount(1, $lines);
+        $this->assertEquals(trim($lines[0]), '[' . $date . '] ' . $expectedMsg);
     }
 }
 

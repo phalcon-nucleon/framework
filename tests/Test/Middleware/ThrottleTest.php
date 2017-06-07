@@ -65,8 +65,6 @@ class ThrottleTest extends TestCase
 
     public function testThrottleFiltered()
     {
-        $this->markTestIncomplete('Test to redo');
-
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [

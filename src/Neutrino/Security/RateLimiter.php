@@ -164,8 +164,7 @@ class RateLimiter extends Injectable
      */
     public function availableIn($key, $decaySeconds)
     {
-        $time = $this->{Services::CACHE}
-            ->get($this->name . $key . $this->klock, $decaySeconds);
+        $time = $this->{Services::CACHE}->get($this->name . $key . $this->klock, $decaySeconds);
 
         return $time - time();
     }

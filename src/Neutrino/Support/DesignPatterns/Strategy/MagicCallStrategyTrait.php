@@ -2,7 +2,12 @@
 
 namespace Neutrino\Support\DesignPatterns\Strategy;
 
-trait MagicForwardStrategyTrait
+/**
+ * Class MagicCallStrategyTrait
+ *
+ * @package Neutrino\Support\DesignPatterns\Strategy
+ */
+trait MagicCallStrategyTrait
 {
     public function __call($name, $arguments)
     {

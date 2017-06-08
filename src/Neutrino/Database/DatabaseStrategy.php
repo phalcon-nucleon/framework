@@ -7,7 +7,7 @@ use Neutrino\Support\DesignPatterns\Strategy;
 
 class DatabaseStrategy extends Strategy
 {
-    use Strategy\MagicForwardStrategyTrait;
+    use Strategy\MagicCallStrategyTrait;
 
     /**
      * CacheStrategy constructor.

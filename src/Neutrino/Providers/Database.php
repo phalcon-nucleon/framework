@@ -31,12 +31,7 @@ class Database extends Injectable implements Providable
 
             foreach ((array)$this->{Services::CONFIG}->database->connections as $name => $connection) {
                 $di->setShared(Services::DB . '.' . $name, function () use ($connection) {
-                    $connection = (array)$connection;
-
-                    $adapter = $connection['adapter'];
-                    unset($connection['adapter']);
-
-                    return new $adapter($connection);
+                    return new $connection['adapter']((array)$connection['config']);
                 });
             }
         } else {
@@ -44,12 +39,7 @@ class Database extends Injectable implements Providable
             $serviceName = Services::DB . '.' . $database['default'];
 
             $service = new Service($serviceName, function () use ($connection) {
-                $connection = (array)$connection;
-
-                $adapter = $connection['adapter'];
-                unset($connection['adapter']);
-
-                return new $adapter($connection);
+                return new $connection['adapter']((array)$connection['config']);
             }, true);
 
             $di->setRaw($serviceName, $service);

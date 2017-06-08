@@ -41,8 +41,9 @@ class Database extends Injectable implements Providable
             }
         } else {
             $connection = array_shift($connections);
+            $serviceName = Services::DB . '.' . $database['default'];
 
-            $service = new Service(Services::DB . '.' . $database['default'], function () use ($connection) {
+            $service = new Service($serviceName, function () use ($connection) {
                 $connection = (array)$connection;
 
                 $adapter = $connection['adapter'];
@@ -51,7 +52,7 @@ class Database extends Injectable implements Providable
                 return new $adapter($connection);
             }, true);
 
-            $di->setRaw(Services::DB . '.' . $database['default'], $service);
+            $di->setRaw($serviceName, $service);
             $di->setRaw(Services::DB, $service);
         }
     }

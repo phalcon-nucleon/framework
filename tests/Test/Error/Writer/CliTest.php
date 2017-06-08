@@ -15,10 +15,10 @@ class CliTest extends TestCase
     public function dataHandle()
     {
         $error = Error::fromException(new \Exception());
-        $data[] = [Helper::format($error, false, true), 'error', $error];
+        $data[] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'error', $error];
+        $data[] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
         $data[] = [null, 'warning', $error];
@@ -30,10 +30,10 @@ class CliTest extends TestCase
         $data[] = [null, 'notice', $error];
 
         $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'error', $error];
+        $data[] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'error', $error];
+        $data[] = [Helper::format($error), 'error', $error];
 
         return $data;
     }

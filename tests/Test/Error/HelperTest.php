@@ -139,10 +139,8 @@ class HelperTest extends TestCase
         $trace = "\n\n".trim($trace);
 
         return [
-            [$msg, $errorException, true, false],
-            [$msg . $trace, $errorException, true, true],
-            [str_replace(DIRECTORY_SEPARATOR, '/', 'E_ERROR : msg in ' . __FILE__ . ' on line ' . __LINE__), Error::fromError(E_ERROR, 'msg', __FILE__, __LINE__), true, true],
-            [str_replace(DIRECTORY_SEPARATOR, '/', 'E_ERROR : msg in ' . __FILE__ . ' on line ' . __LINE__), Error::fromError(E_ERROR, 'msg', __FILE__, __LINE__), true, false],
+            [$msg . $trace, $errorException],
+            [str_replace(DIRECTORY_SEPARATOR, '/', 'E_ERROR : msg in ' . __FILE__ . ' on line ' . __LINE__), Error::fromError(E_ERROR, 'msg', __FILE__, __LINE__)],
         ];
     }
 
@@ -154,11 +152,9 @@ class HelperTest extends TestCase
      *
      * @param $expected
      * @param $error
-     * @param $full
-     * @param $verbose
      */
-    public function testFormat($expected, $error, $full, $verbose)
+    public function testFormat($expected, $error)
     {
-        $this->assertEquals($expected, Helper::format($error, $full, $verbose));
+        $this->assertEquals($expected, Helper::format($error));
     }
 }

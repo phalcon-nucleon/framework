@@ -20,6 +20,10 @@ class Flash implements Writable
      */
     public function handle(Error $error)
     {
+        if (!APP_DEBUG) {
+            return;
+        }
+
         $di = Di::getDefault();
 
         if (!is_null($di) && $di->has(Services::FLASH)) {
@@ -31,14 +35,14 @@ class Flash implements Writable
                 case Phogger::CRITICAL:
                 case Phogger::EMERGENCY:
                 case Phogger::ERROR:
-                    $flash->error(Helper::format($error, false, true));
+                    $flash->error(Helper::format($error));
                     break;
                 case Phogger::WARNING:
-                    $flash->warning(Helper::format($error, false, true));
+                    $flash->warning(Helper::format($error));
                     break;
                 case Phogger::NOTICE:
                 case Phogger::INFO:
-                    $flash->notice(Helper::format($error, false, true));
+                    $flash->notice(Helper::format($error));
                     break;
             }
         }

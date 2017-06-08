@@ -168,7 +168,7 @@ class HandlerTest extends TestCase
             'isError' => true,
         ]);
 
-        $expectedMessage = Helper::format($error, false, true);
+        $expectedMessage = Helper::format($error);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
@@ -193,7 +193,7 @@ class HandlerTest extends TestCase
             'isError' => true,
         ]);
 
-        $expectedMessage = Helper::format($error, false, true);
+        $expectedMessage = Helper::format($error);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
@@ -241,7 +241,7 @@ class HandlerTest extends TestCase
             'isError' => true,
         ]);
 
-        $expectedMessage = Helper::format($error, false, true);
+        $expectedMessage = Helper::format($error);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
@@ -264,7 +264,7 @@ class HandlerTest extends TestCase
             'line'        => $e->getLine(),
             'isException' => true,
             'exception'   => $e,
-        ]), false, true);
+        ]));
 
         $this->mockLogger(Logger::ERROR, $msg);
 

@@ -66,7 +66,7 @@ class Logger implements Writable
                 }
             }
 
-            $logger->log(Helper::getLogType($error->type), Helper::format($error, true, true));
+            $logger->log(Helper::getLogType($error->type), Helper::format($error));
         }
     }
 

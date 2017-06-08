@@ -17,6 +17,7 @@
   |          Nikita Vershinin <endeveit@gmail.com>                         |
   +------------------------------------------------------------------------+
 */
+
 namespace Neutrino\Error;
 
 use Neutrino\Support\Arr;
@@ -216,6 +217,18 @@ class Error implements \ArrayAccess, \JsonSerializable
      */
     function jsonSerialize()
     {
-        return $this->attributes;
+        $json = $this->attributes;
+
+        if ($this->attributes['isException']) {
+            $exception = $this->attributes['exception'];
+            $json['exception'] = [
+                'class'   => get_class($exception),
+                'code'    => $exception->getCode(),
+                'message' => $exception->getMessage(),
+                'traces'  => $exception->getTrace(),
+            ];
+        }
+
+        return $json;
     }
 }

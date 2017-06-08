@@ -23,7 +23,7 @@ class View implements Writable
             return;
         }
 
-        $di     = Di::getDefault();
+        $di = Di::getDefault();
 
         if (!is_null($di)) {
             $config = [];
@@ -55,7 +55,7 @@ class View implements Writable
                         ['error' => $error]
                     );
                 } else {
-                    $view->setContent(Helper::format($error, false, true));
+                    $view->setContent(APP_DEBUG ? Helper::format($error) : 'Whoops. Something went wrong.');
                 }
                 $view->finish();
 
@@ -77,6 +77,6 @@ class View implements Writable
             }
         }
 
-        echo Helper::format($error, false, true);
+        echo APP_DEBUG ? Helper::format($error) : 'Whoops. Something went wrong.';
     }
 }

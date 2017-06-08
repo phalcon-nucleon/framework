@@ -28,9 +28,9 @@ class Cli implements Writable
 
             $block = new Block($output, 'warn', ['padding' => 4]);
 
-            $block->draw(explode("\n", Helper::format($error, false, true)));
+            $block->draw(explode("\n", Helper::format($error)));
         } else {
-            echo Helper::format($error, false, true);
+            echo Helper::format($error);
         }
     }
 }

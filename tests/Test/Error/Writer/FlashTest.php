@@ -13,25 +13,25 @@ class FlashTest extends TestCase
     public function dataHandle()
     {
         $error = Error::fromException(new \Exception());
-        $data[] = [Helper::format($error, false, true), 'error', $error];
+        $data[] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'error', $error];
+        $data[] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'warning', $error];
+        $data[] = [Helper::format($error), 'warning', $error];
 
         $error = Error::fromError(E_NOTICE, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'notice', $error];
+        $data[] = [Helper::format($error), 'notice', $error];
 
         $error = Error::fromError(E_STRICT, 'E_STRICT', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'notice', $error];
+        $data[] = [Helper::format($error), 'notice', $error];
 
         $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'error', $error];
+        $data[] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), 'error', $error];
+        $data[] = [Helper::format($error), 'error', $error];
 
         return $data;
     }

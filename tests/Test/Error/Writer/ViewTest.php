@@ -98,7 +98,7 @@ class ViewTest extends TestCase
                 $view->expects($this->never())->method('getContent');
                 $view->expects($this->never())->method('render');
 
-                $this->expectOutputString(Helper::format($error, false, true));
+                $this->expectOutputString(Helper::format($error));
                 break;
             case 'view.noConfig':
                 $dispatcher->expects($this->never())->method('setNamespaceName');
@@ -110,8 +110,8 @@ class ViewTest extends TestCase
                 $view->expects($this->never())->method('render');
                 $view->expects($this->once())->method('start');
                 $view->expects($this->once())->method('finish');
-                $view->expects($this->once())->method('setContent')->with(Helper::format($error, false, true));
-                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error, false, true));
+                $view->expects($this->once())->method('setContent')->with(Helper::format($error));
+                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error));
 
                 break;
             case 'view.config':
@@ -129,7 +129,7 @@ class ViewTest extends TestCase
                 $view->expects($this->once())->method('start');
                 $view->expects($this->once())->method('finish');
                 $view->expects($this->never())->method('setContent');
-                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error, false, true));
+                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error));
 
                 break;
             case 'dispatcher':
@@ -142,7 +142,7 @@ class ViewTest extends TestCase
                 $view->expects($this->once())->method('start');
                 $view->expects($this->once())->method('finish');
                 $view->expects($this->never())->method('setContent');
-                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error, false, true));
+                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error));
                 break;
         }
 
@@ -156,7 +156,7 @@ class ViewTest extends TestCase
 
                 $mock->expects($this->once())
                     ->method('setContent')
-                    ->with(Helper::format($error, false, true))
+                    ->with(Helper::format($error))
                     ->will($this->returnSelf());
                 $mock->expects($this->once())
                     ->method('setStatusCode')
@@ -179,7 +179,7 @@ class ViewTest extends TestCase
                 $mock->expects($this->never())
                     ->method('send');
 
-                $this->expectOutputString(Helper::format($error, false, true));
+                $this->expectOutputString(Helper::format($error));
                 break;
             case 'nothing':
                 $dispatcher->expects($this->never())->method('setNamespaceName');

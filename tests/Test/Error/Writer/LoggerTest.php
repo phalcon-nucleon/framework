@@ -14,25 +14,25 @@ class LoggerTest extends TestCase
     public function dataHandle()
     {
         $error = Error::fromException(new \Exception());
-        $data[] = [Helper::format($error, false, true), \Phalcon\Logger::ERROR, $error];
+        $data[] = [Helper::format($error), \Phalcon\Logger::ERROR, $error];
 
         $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), \Phalcon\Logger::EMERGENCE, $error];
+        $data[] = [Helper::format($error), \Phalcon\Logger::EMERGENCE, $error];
 
         $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), \Phalcon\Logger::WARNING, $error];
+        $data[] = [Helper::format($error), \Phalcon\Logger::WARNING, $error];
 
         $error = Error::fromError(E_NOTICE, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), \Phalcon\Logger::NOTICE, $error];
+        $data[] = [Helper::format($error), \Phalcon\Logger::NOTICE, $error];
 
         $error = Error::fromError(E_STRICT, 'E_STRICT', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), \Phalcon\Logger::INFO, $error];
+        $data[] = [Helper::format($error), \Phalcon\Logger::INFO, $error];
 
         $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), \Phalcon\Logger::CRITICAL, $error];
+        $data[] = [Helper::format($error), \Phalcon\Logger::CRITICAL, $error];
 
         $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error, false, true), \Phalcon\Logger::ERROR, $error];
+        $data[] = [Helper::format($error), \Phalcon\Logger::ERROR, $error];
 
         return $data;
     }

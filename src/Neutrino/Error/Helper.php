@@ -11,61 +11,50 @@ use Phalcon\Logger;
  */
 class Helper
 {
-    public static function format(Error $error, $full = false, $verbose = true)
+    public static function format(Error $error)
     {
-        if ($full || APP_DEBUG) {
-            $head = self::getErrorType($error->type);
+        $lines[] = self::getErrorType($error->type)
+            . ($error->isException ? ' : ' . get_class($error->exception) . '[' . $error->code . ']' : '')
+            . (empty($error->message) ? '' : ' : ' . $error->message)
+            . ' in ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $error->file))
+            . ' on line ' . $error->line;
 
-            if ($error->isException) {
-                $head .= ' : ' . get_class($error->exception) . '[' . $error->code . ']';
-            }
+        if ($error->isException) {
+            $lines[] = '';
 
-            $head .= (empty($error->message) ? '' : ' : ' . $error->message)
-                . ' in ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $error->file))
-                . ' on line ' . $error->line;
+            foreach ($error->exception->getTrace() as $idx => $trace) {
+                $row = $id = '#' . $idx . ' ';
 
-            $lines[] = $head;
-            if ($verbose && $error->isException) {
-                $lines[] = '';
-
-                foreach ($error->exception->getTrace() as $idx => $trace) {
-                    $row = $id = '#' . $idx . ' ';
-
-                    if (isset($trace['class'])) {
-                        $row .= $trace['class'] . '::';
-                    }
-                    if (isset($trace['function'])) {
-                        $row .= $trace['function'];
-                    }
-
-                    $args = [];
-                    foreach ($trace['args'] as $arg) {
-                        $args[] = self::verboseType($arg);
-                    }
-                    $row .= '(' . implode(', ', $args) . ')';
-
-                    $lines[] = $row;
-
-                    $row = str_repeat(' ', strlen($id)) . 'in : ';
-                    if (isset($trace['file'])) {
-                        $row .= str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $trace['file']));
-                        if (isset($trace['line'])) {
-                            $row .= '(' . $trace['line'] . ')';
-                        }
-                    } else {
-                        $row .= '[internal function]';
-                    }
-
-                    $lines[] = $row;
+                if (isset($trace['class'])) {
+                    $row .= $trace['class'] . '::';
                 }
-            }
+                if (isset($trace['function'])) {
+                    $row .= $trace['function'];
+                }
 
-            $message = implode("\n", $lines);
-        } else {
-            $message = 'Something went wrong.';
+                $args = [];
+                foreach ($trace['args'] as $arg) {
+                    $args[] = self::verboseType($arg);
+                }
+                $row .= '(' . implode(', ', $args) . ')';
+
+                $lines[] = $row;
+
+                $row = str_repeat(' ', strlen($id)) . 'in : ';
+                if (isset($trace['file'])) {
+                    $row .= str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $trace['file']));
+                    if (isset($trace['line'])) {
+                        $row .= '(' . $trace['line'] . ')';
+                    }
+                } else {
+                    $row .= '[internal function]';
+                }
+
+                $lines[] = $row;
+            }
         }
 
-        return $message;
+        return implode("\n", $lines);
     }
 
     public static function verboseType($value)

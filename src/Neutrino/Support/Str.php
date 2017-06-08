@@ -132,13 +132,21 @@ class Str
         return mb_strlen($value);
     }
 
-    public static function levenshtein($word, $words, $sort_flags = SORT_REGULAR)
+    /**
+     * @param string   $word
+     * @param string[] $words
+     * @param int      $order
+     * @param int      $sort_flags
+     *
+     * @return mixed
+     */
+    public static function levenshtein($word, $words, $order = SORT_ASC, $sort_flags = SORT_REGULAR)
     {
         foreach ($words as $w) {
             $result[$w] = levenshtein($word, $w);
         }
 
-        if ($sort_flags & SORT_DESC) {
+        if ($order & SORT_DESC) {
             arsort($result, $sort_flags);
         } else {
             asort($result, $sort_flags);

@@ -204,6 +204,27 @@ class StrFuncTest extends TestCase
         $this->assertEquals('Мама', Str::ucfirst('мама'));
         $this->assertEquals('Мама мыла раму', Str::ucfirst('мама мыла раму'));
     }
+
+    public function dataLevenshtein()
+    {
+        return [
+            [['abc', 'bcd', 'xyz'], 'abc', ['bcd', 'xyz', 'abc'], SORT_ASC],
+            [['xyz', 'bcd', 'abc'], 'abc', ['bcd', 'xyz', 'abc'], SORT_DESC],
+        ];
+    }
+
+    /**
+     * @dataProvider dataLevenshtein
+     *
+     * @param $expected
+     * @param $word
+     * @param $words
+     * @param $sort
+     */
+    public function testLevenshtein($expected, $word, $words, $sort)
+    {
+        $this->assertEquals($expected, array_keys(Str::levenshtein($word, $words, $sort)));
+    }
 }
 
 class StringableObjectStub

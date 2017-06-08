@@ -29,7 +29,7 @@ class Database extends Injectable implements Providable
         if (count($connections) > 1) {
             $di->setShared(Services::DB, DatabaseStrategy::class);
 
-            foreach ((array)$this->{Services::CONFIG}->database->connections as $name => $connection) {
+            foreach ($connections as $name => $connection) {
                 $di->setShared(Services::DB . '.' . $name, function () use ($connection) {
                     return new $connection['adapter']((array)$connection['config']);
                 });

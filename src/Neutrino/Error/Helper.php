@@ -79,9 +79,9 @@ class Helper
     {
         switch ($type = gettype($value)) {
             case 'array':
-                if (!empty($arg)) {
+                if (!empty($value)) {
                     $found = [];
-                    foreach ($arg as $item) {
+                    foreach ($value as $item) {
                         $type = gettype($item);
                         if ($type == 'object') {
                             $type = get_class($item);

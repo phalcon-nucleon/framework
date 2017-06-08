@@ -2,6 +2,7 @@
 
 namespace Test\Error;
 
+use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
 use Phalcon\Logger as Phogger;
 use Test\TestCase\TestCase;
@@ -16,9 +17,10 @@ class HelperTest extends TestCase
             ['123', 123],
             ['123.123', 123.123],
             ["'str'", 'str'],
+            ["string(9)", '123456789'],
             ['stdClass', new \stdClass()],
-            ['stdClass[]', [new \stdClass()]],
-            ['stdClass[]', [new \stdClass(), new \stdClass(), new \stdClass(), new \stdClass()]],
+            ['stdClass[1]', [new \stdClass()]],
+            ['stdClass[4]', [new \stdClass(), new \stdClass(), new \stdClass(), new \stdClass()]],
             ['Array', [new \stdClass(), null, new \stdClass(), 123]],
         ];
     }
@@ -39,6 +41,7 @@ class HelperTest extends TestCase
         $this->assertEquals('resource', Helper::verboseType($f = fopen('php://memory', 'r')));
         fclose($f);
     }
+
     /**
      * @dataProvider dataVerboseType
      */
@@ -108,5 +111,54 @@ class HelperTest extends TestCase
     public function testGetLogType($expected, $value)
     {
         $this->assertEquals($expected, Helper::getLogType($value));
+    }
+
+    public function dataFormat()
+    {
+        $errorException = Error::fromException($e = new \Exception('msg', 123));
+
+        $msg = str_replace(DIRECTORY_SEPARATOR, '/', 'Uncaught exception : Exception[123] : msg in ' . $e->getFile() . ' on line ' . $e->getLine());
+
+        $trace = '';
+
+        foreach ($e->getTrace() as $i => $t) {
+            $trace .= '#' . $i . ' '
+                . (isset($t['class']) ? $t['class'] . '::' : '')
+                . (isset($t['function']) ? $t['function'] : '')
+                . '(' . implode(', ', array_map('\Neutrino\Error\Helper::verboseType', $t['args'])) . ')'
+                . "\n";
+
+            $trace .= str_repeat(' ', strlen('#' . $i . ' ')) . 'in : '
+                . (isset($t['file'])
+                    ? str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $t['file'])) . (isset($t['line']) ? '(' . $t['line'] . ')' : '')
+                    : '[internal function]')
+            ;
+            $trace .= "\n";
+        }
+
+        $trace = "\n\n".trim($trace);
+
+        return [
+            [$msg, $errorException, true, false],
+            [$msg . $trace, $errorException, true, true],
+            [str_replace(DIRECTORY_SEPARATOR, '/', 'E_ERROR : msg in ' . __FILE__ . ' on line ' . __LINE__), Error::fromError(E_ERROR, 'msg', __FILE__, __LINE__), true, true],
+            [str_replace(DIRECTORY_SEPARATOR, '/', 'E_ERROR : msg in ' . __FILE__ . ' on line ' . __LINE__), Error::fromError(E_ERROR, 'msg', __FILE__, __LINE__), true, false],
+        ];
+    }
+
+    /**
+     * @dataProvider dataFormat
+     *
+     * @depends      testVerboseType
+     * @depends      testGetErrorType
+     *
+     * @param $expected
+     * @param $error
+     * @param $full
+     * @param $verbose
+     */
+    public function testFormat($expected, $error, $full, $verbose)
+    {
+        $this->assertEquals($expected, Helper::format($error, $full, $verbose));
     }
 }

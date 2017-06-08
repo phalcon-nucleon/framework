@@ -14,57 +14,50 @@ class Helper
     public static function format(Error $error, $full = false, $verbose = true)
     {
         if ($full || APP_DEBUG) {
-            if ($verbose) {
-                $head = self::getErrorType($error->type);
+            $head = self::getErrorType($error->type);
 
-                if ($error->isException) {
-                    $head .= ' : ' . get_class($error->exception) . '[' . $error->code . ']';
-                }
+            if ($error->isException) {
+                $head .= ' : ' . get_class($error->exception) . '[' . $error->code . ']';
+            }
 
-                $head .= (empty($error->message) ? '' : ' : ' . $error->message)
-                    . ' in ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $error->file))
-                    . ' on line ' . $error->line;
+            $head .= (empty($error->message) ? '' : ' : ' . $error->message)
+                . ' in ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $error->file))
+                . ' on line ' . $error->line;
 
-                $lines[] = $head;
-                if ($error->isException) {
-                    $lines[] = '';
+            $lines[] = $head;
+            if ($verbose && $error->isException) {
+                $lines[] = '';
 
-                    foreach ($error->exception->getTrace() as $idx => $trace) {
-                        $row = $id = '#' . $idx . ' ';
+                foreach ($error->exception->getTrace() as $idx => $trace) {
+                    $row = $id = '#' . $idx . ' ';
 
-                        if (isset($trace['class'])) {
-                            $row .= $trace['class'] . '::';
-                        }
-                        if (isset($trace['function'])) {
-                            $row .= $trace['function'];
-                        }
-
-                        $args = [];
-                        foreach ($trace['args'] as $arg) {
-                            $args[] = self::verboseType($arg);
-                        }
-                        $row .= '(' . implode(', ', $args) . ')';
-
-                        $lines[] = $row;
-
-                        $row = str_repeat(' ', strlen($id)) . 'in : ';
-                        if (isset($trace['file'])) {
-                            $row .= ' ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $trace['file']));
-                            if (isset($trace['line'])) {
-                                $row .= '(' . $trace['line'] . ')';
-                            }
-                            $row .= ':';
-                        } else {
-                            $row .= '[internal function]';
-                        }
-
-                        $lines[] = $row;
+                    if (isset($trace['class'])) {
+                        $row .= $trace['class'] . '::';
+                    }
+                    if (isset($trace['function'])) {
+                        $row .= $trace['function'];
                     }
 
-                    array_map('trim', $lines);
+                    $args = [];
+                    foreach ($trace['args'] as $arg) {
+                        $args[] = self::verboseType($arg);
+                    }
+                    $row .= '(' . implode(', ', $args) . ')';
+
+                    $lines[] = $row;
+
+                    $row = str_repeat(' ', strlen($id)) . 'in : ';
+                    if (isset($trace['file'])) {
+                        $row .= str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $trace['file']));
+                        if (isset($trace['line'])) {
+                            $row .= '(' . $trace['line'] . ')';
+                        }
+                    } else {
+                        $row .= '[internal function]';
+                    }
+
+                    $lines[] = $row;
                 }
-            } else {
-                $lines[] = self::getErrorType($error->type) . ": {$error->message} in {$error->file} on line {$error->line}";
             }
 
             $message = implode("\n", $lines);
@@ -89,7 +82,7 @@ class Helper
                         $found[$type] = true;
                     }
 
-                    return count($found) === 1 ? $type . '[]' : 'Array';
+                    return count($found) === 1 ? $type . '[' . count($value) . ']' : 'Array';
                 }
 
                 return 'Array';
@@ -102,6 +95,9 @@ class Helper
             case 'resource':
                 return $type;
             case 'string':
+                if (strlen($value) > 8) {
+                    return 'string(' . strlen($value) . ')';
+                }
             case 'boolean':
             case 'integer':
             case 'double':

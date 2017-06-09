@@ -220,12 +220,13 @@ class Error implements \ArrayAccess, \JsonSerializable
         $json = $this->attributes;
 
         if ($this->attributes['isException']) {
-            $exception = $this->attributes['exception'];
+            /** @var \Exception $exception */
+            $exception         = $this->attributes['exception'];
             $json['exception'] = [
                 'class'   => get_class($exception),
                 'code'    => $exception->getCode(),
                 'message' => $exception->getMessage(),
-                'traces'  => $exception->getTrace(),
+                'traces'  => Helper::formatExceptionTrace($exception)
             ];
         }
 

@@ -13,34 +13,23 @@ class Helper
 {
     public static function format(Error $error)
     {
-        $lines[] = self::getErrorType($error->type)
-            . ($error->isException ? ' : ' . get_class($error->exception) . '[' . $error->code . ']' : '')
-            . (empty($error->message) ? '' : ' : ' . $error->message)
-            . ' in : ' . str_replace(DIRECTORY_SEPARATOR, '/', $error->file)
-            . '(' . $error->line . ')';
+        $lines[] = self::getErrorType($error->type);
+        if($error->isException){
+            $lines[] = '  Class : ' . get_class($error->exception);
+            $lines[] = '  Code : ' . $error->code;
+        }
+
+        $lines[] = '  Message : ' . $error->message;
+
+        $lines[] = ' in : ' . str_replace(DIRECTORY_SEPARATOR, '/', $error->file) . '(' . $error->line . ')';
 
         if ($error->isException) {
             $lines[] = '';
 
-            foreach ($error->exception->getTrace() as $idx => $trace) {
-                $row = $id = '#' . $idx . ' ';
+            foreach (self::formatExceptionTrace($error->exception) as $trace) {
+                $lines[] = '#' . $trace['id'] . ' ' . $trace['func'];
 
-                if (isset($trace['class'])) {
-                    $row .= $trace['class'] . '::';
-                }
-                if (isset($trace['function'])) {
-                    $row .= $trace['function'];
-                }
-
-                $args = [];
-                foreach ($trace['args'] as $arg) {
-                    $args[] = self::verboseType($arg);
-                }
-                $row .= '(' . implode(', ', $args) . ')';
-
-                $lines[] = $row;
-
-                $row = str_repeat(' ', strlen($id)) . 'in : ';
+                $row = str_repeat(' ', strlen($trace['id'])+2) . 'in : ';
                 if (isset($trace['file'])) {
                     $row .= str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
                     if (isset($trace['line'])) {
@@ -52,9 +41,54 @@ class Helper
 
                 $lines[] = $row;
             }
+
         }
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * @param \Exception $exception
+     *
+     * @return array
+     */
+    public static function formatExceptionTrace($exception)
+    {
+        $traces = [];
+
+        foreach ($exception->getTrace() as $idx => $trace) {
+            $_trace = [];
+
+            $_trace['id'] = $idx;
+
+            $_trace['func'] = '';
+            if (isset($trace['class'])) {
+                $_trace['func'] = $trace['class'] . '::';
+            }
+            if (isset($trace['function'])) {
+                $_trace['func'] .= $trace['function'];
+            }
+
+            $args = [];
+            foreach ($trace['args'] as $arg) {
+                $args[] = self::verboseType($arg);
+            }
+            $_trace['func'] .= '(' . implode(', ', $args) . ')';
+
+            if (isset($trace['file'])) {
+                $_trace['file'] = str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
+
+                if (isset($trace['line'])) {
+                    $_trace['file'] .= '(' . $trace['line'] . ')';
+                }
+            } else {
+                $_trace['file'] = '[internal function]';
+            }
+
+            $traces[] = $_trace;
+        }
+
+        return $traces;
     }
 
     public static function verboseType($value)

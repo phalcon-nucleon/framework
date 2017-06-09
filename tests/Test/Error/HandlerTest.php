@@ -277,7 +277,7 @@ class HandlerTest extends TestCase
     {
         Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
 
-        $msg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : user error in ' . __FILE__ . ' on line ' . (__LINE__ + 6));
+        $msg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : user error\n in : " . __FILE__ . '(' . (__LINE__ + 6).')');
 
         $this->mockLogger(Logger::ERROR, $msg);
 
@@ -293,7 +293,7 @@ class HandlerTest extends TestCase
         $cur_error_log = ini_get('error_log');
         ini_set('error_log', __DIR__ . '/error.log');
 
-        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : msg in ' . __FILE__ . ' on line ' . (__LINE__ + 9));
+        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : msg\n in : " . __FILE__ . '(' . (__LINE__ + 9).')');
 
         $this->expectOutputString($expectedMsg);
 
@@ -313,13 +313,13 @@ class HandlerTest extends TestCase
         $lines = [];
         while (!feof($r)) {
             if (($str = fgets($r)) !== false) {
-                $lines[] = $str;
+                $lines[] = trim($str, "\n\r");
             }
         }
         fclose($r);
         unlink(__DIR__ . '/error.log');
-        $this->assertCount(1, $lines);
-        $this->assertEquals(trim($lines[0]), '[' . $date . '] ' . $expectedMsg);
+        $this->assertCount(3, $lines);
+        $this->assertEquals('[' . $date . '] ' . $expectedMsg, implode("\n", $lines));
     }
 
     public function testTriggerErrorDefaultWriter()
@@ -329,7 +329,7 @@ class HandlerTest extends TestCase
         $cur_error_log = ini_get('error_log');
         ini_set('error_log', __DIR__ . '/error.log');
 
-        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', 'E_USER_ERROR : msg in ' . __FILE__ . ' on line ' . (__LINE__ + 7));
+        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : msg\n in : " . __FILE__ . '(' . (__LINE__ + 7).')');
 
         $this->expectOutputString(null);
 
@@ -347,13 +347,13 @@ class HandlerTest extends TestCase
         $lines = [];
         while (!feof($r)) {
             if (($str = fgets($r)) !== false) {
-                $lines[] = $str;
+                $lines[] = trim($str, "\n\r");
             }
         }
         fclose($r);
         unlink(__DIR__ . '/error.log');
-        $this->assertCount(1, $lines);
-        $this->assertEquals(trim($lines[0]), '[' . $date . '] ' . $expectedMsg);
+        $this->assertCount(3, $lines);
+        $this->assertEquals('[' . $date . '] ' . $expectedMsg, implode("\n", $lines));
     }
 }
 

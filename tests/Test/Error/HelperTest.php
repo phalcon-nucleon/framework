@@ -117,7 +117,7 @@ class HelperTest extends TestCase
     {
         $errorException = Error::fromException($e = new \Exception('msg', 123));
 
-        $msg = str_replace(DIRECTORY_SEPARATOR, '/', 'Uncaught exception : Exception[123] : msg in ' . $e->getFile() . ' on line ' . $e->getLine());
+        $msg = str_replace(DIRECTORY_SEPARATOR, '/', "Uncaught exception\n  Class : Exception\n  Code : 123\n  Message : msg\n in : " . $e->getFile() . '(' . $e->getLine() . ')');
 
         $trace = '';
 
@@ -138,9 +138,11 @@ class HelperTest extends TestCase
 
         $trace = "\n\n".trim($trace);
 
+        $msg = str_replace(DIRECTORY_SEPARATOR, '/', "Uncaught exception\n  Class : Exception\n  Code : 123\n  Message : msg\n in : " . $e->getFile() . '(' . $e->getLine() . ')');
+
         return [
             [$msg . $trace, $errorException],
-            [str_replace(DIRECTORY_SEPARATOR, '/', 'E_ERROR : msg in ' . __FILE__ . ' on line ' . __LINE__), Error::fromError(E_ERROR, 'msg', __FILE__, __LINE__)],
+            [str_replace(DIRECTORY_SEPARATOR, '/', "E_ERROR\n  Message : msg\n in : " . __FILE__ . '(' . __LINE__ . ')'), Error::fromError(E_ERROR, 'msg', __FILE__, __LINE__)],
         ];
     }
 

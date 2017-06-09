@@ -254,11 +254,7 @@ class StrFuncTest extends TestCase
      */
     public function testNormalizePath($expected, $path)
     {
-        $reflecion = new \ReflectionClass(Loader::class);
-        $method = $reflecion->getMethod('normalizePath');
-        $method->setAccessible(true);
-
-        $this->assertEquals($expected, $method->invoke(null, $path));
+        $this->assertEquals($expected, Str::normalizePath($path));
     }
 
 }

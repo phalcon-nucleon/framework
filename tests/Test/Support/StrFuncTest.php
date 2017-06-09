@@ -225,6 +225,42 @@ class StrFuncTest extends TestCase
     {
         $this->assertEquals($expected, array_keys(Str::levenshtein($word, $words, $sort)));
     }
+
+    public function dataNormalizePath()
+    {
+        $s = DIRECTORY_SEPARATOR;
+
+        return [
+            ['', ''],
+            [$s, '/'],
+            [$s . '0', '/0/'],
+            [$s . 'home', '/home/'],
+            ['home', 'home/'],
+            [$s . 'home', '/home/test/..'],
+            [$s . 'home', '/home/test/../'],
+            [$s . 'home' . $s . 'some', '/home/test/.././some'],
+            [$s . 'home' . $s . 'some', '/../home/test/.././some'],
+            [$s . 'hello' . $s . '0' . $s . 'you', '/hello/0//how/../are/../you'],
+            [$s . 'hello' . $s . '0' . $s . 'are' . $s . 'you', '/ /hello/0// / /how/../are/you/./././'],
+            [$s . 'hello' . $s . '0.0' . $s . 'are' . $s . 'you', '/ /hello/0.0/././././////how/../are/you'],
+        ];
+    }
+
+    /**
+     * @dataProvider dataNormalizePath
+     *
+     * @param $expected
+     * @param $path
+     */
+    public function testNormalizePath($expected, $path)
+    {
+        $reflecion = new \ReflectionClass(Loader::class);
+        $method = $reflecion->getMethod('normalizePath');
+        $method->setAccessible(true);
+
+        $this->assertEquals($expected, $method->invoke(null, $path));
+    }
+
 }
 
 class StringableObjectStub

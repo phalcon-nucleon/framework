@@ -4,6 +4,7 @@ namespace Neutrino\Dotconst;
 
 use Neutrino\Dotconst\Exception\Exception;
 use Neutrino\Dotconst\Exception\InvalidFileException;
+use Neutrino\Support\Str;
 
 /**
  * Class Loader
@@ -117,7 +118,7 @@ class Loader
                 return $value === false ? (isset($match[2]) ? $match[2] : null) : $value;
             });
             $value = self::variabilize('php/dir(?::(/[\w\-. ]+))?', $value, function ($match) use ($dir) {
-                return self::normalizePath($dir . (isset($match[1]) ? $match[1] : ''));
+                return Str::normalizePath($dir . (isset($match[1]) ? $match[1] : ''));
             });
         });
 
@@ -184,41 +185,5 @@ class Loader
         }
 
         return $flatten;
-    }
-
-    /**
-     * @param $path
-     *
-     * @return string
-     */
-    private static function normalizePath($path)
-    {
-        if (empty($path)) {
-            return '';
-        }
-
-        $path = str_replace(DIRECTORY_SEPARATOR, '/', $path);
-
-        $parts = explode('/', $path);
-
-        $safe = [];
-        foreach ($parts as $idx => $part) {
-            if (($idx == 0 && empty($part))) {
-                $safe[] = '';
-            } elseif (trim($part) == "" || $part == '.') {
-            } elseif ('..' == $part) {
-                if (null === array_pop($safe) || empty($safe)) {
-                    $safe[] = '';
-                }
-            } else {
-                $safe[] = $part;
-            }
-        }
-
-        if (count($safe) === 1 && $safe[0] === '') {
-            return DIRECTORY_SEPARATOR;
-        }
-
-        return implode(DIRECTORY_SEPARATOR, $safe);
     }
 }

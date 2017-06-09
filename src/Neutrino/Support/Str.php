@@ -454,6 +454,42 @@ class Str
         return Str::upper(Str::substr($string, 0, 1)) . Str::substr($string, 1);
     }
 
+    /**
+     * @param $path
+     *
+     * @return string
+     */
+    public static function normalizePath($path)
+    {
+        if (empty($path)) {
+            return '';
+        }
+
+        $path = str_replace(DIRECTORY_SEPARATOR, '/', $path);
+
+        $parts = explode('/', $path);
+
+        $safe = [];
+        foreach ($parts as $idx => $part) {
+            if (($idx == 0 && empty($part))) {
+                $safe[] = '';
+            } elseif (trim($part) == "" || $part == '.') {
+            } elseif ('..' == $part) {
+                if (null === array_pop($safe) || empty($safe)) {
+                    $safe[] = '';
+                }
+            } else {
+                $safe[] = $part;
+            }
+        }
+
+        if (count($safe) === 1 && $safe[0] === '') {
+            return DIRECTORY_SEPARATOR;
+        }
+
+        return implode(DIRECTORY_SEPARATOR, $safe);
+    }
+
     private static function callRandom($size)
     {
         static $randFunc;

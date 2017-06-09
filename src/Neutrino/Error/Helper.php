@@ -16,8 +16,8 @@ class Helper
         $lines[] = self::getErrorType($error->type)
             . ($error->isException ? ' : ' . get_class($error->exception) . '[' . $error->code . ']' : '')
             . (empty($error->message) ? '' : ' : ' . $error->message)
-            . ' in ' . str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $error->file))
-            . ' on line ' . $error->line;
+            . ' in : ' . str_replace(DIRECTORY_SEPARATOR, '/', $error->file)
+            . '(' . $error->line . ')';
 
         if ($error->isException) {
             $lines[] = '';
@@ -42,7 +42,7 @@ class Helper
 
                 $row = str_repeat(' ', strlen($id)) . 'in : ';
                 if (isset($trace['file'])) {
-                    $row .= str_replace(DIRECTORY_SEPARATOR, '/', str_replace(BASE_PATH, '{base_path}', $trace['file']));
+                    $row .= str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
                     if (isset($trace['line'])) {
                         $row .= '(' . $trace['line'] . ')';
                     }

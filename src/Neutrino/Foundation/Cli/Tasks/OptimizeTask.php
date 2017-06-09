@@ -4,7 +4,10 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use ClassPreloader\Factory;
 use Neutrino\Cli\Task;
+use Neutrino\Error\Error;
+use Neutrino\Error\Helper;
 use Neutrino\Optimizer\Composer;
+use Neutrino\Support\Str;
 
 /**
  * Class OptimizeTask
@@ -98,9 +101,11 @@ class OptimizeTask extends Task
 
         foreach ($files as $file) {
             try {
-                fwrite($handle, $preloader->getCode($file, false) . PHP_EOL);
+                fwrite($handle, $preloader->getCode(Str::normalizePath($file), false) . PHP_EOL);
             } catch (\Exception $e) {
-                //
+                $this->block(array_merge([
+                    "File : " . Str::normalizePath($file),
+                ], explode("\n", Helper::format(Error::fromException($e)))), 'warn', 4);
             }
         }
 

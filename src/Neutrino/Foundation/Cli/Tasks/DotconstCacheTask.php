@@ -22,7 +22,7 @@ class DotconstCacheTask extends Task
      */
     public function mainAction()
     {
-        $this->info('Generating dotconst compile & cache');
+        $this->info('Generating dotconst cache');
 
         self::generateCache();
     }

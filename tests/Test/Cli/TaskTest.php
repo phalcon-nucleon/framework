@@ -124,7 +124,7 @@ class TaskTest extends TestCase
 
     public function testHandleExpection()
     {
-        Handler::setWriter(Cli::class);
+        Handler::setWriters([Cli::class]);
 
         $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 

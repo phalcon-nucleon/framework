@@ -157,7 +157,7 @@ class HandlerTest extends TestCase
      */
     public function testHandleErrorWithoutView($errorCode, $expectedLogger)
     {
-        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
 
         $error = new Error([
             'type'    => is_null($errorCode) ? -1 : $errorCode,
@@ -182,7 +182,7 @@ class HandlerTest extends TestCase
      */
     public function testHandleErrorWithView($errorCode, $expectedLogger)
     {
-        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
 
         $error = new Error([
             'type'    => is_null($errorCode) ? -1 : $errorCode,
@@ -231,7 +231,7 @@ class HandlerTest extends TestCase
      */
     public function testHandleWarning($errorCode, $expectedLogger)
     {
-        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
 
         $error = new Error([
             'type'    => $errorCode,
@@ -252,7 +252,7 @@ class HandlerTest extends TestCase
 
     public function testHandleException()
     {
-        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
 
         $e = new \Exception();
 
@@ -275,7 +275,7 @@ class HandlerTest extends TestCase
 
     public function testHandleError()
     {
-        Handler::setWriter(ErrorWriter\Logger::class, ErrorWriter\View::class);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
 
         $msg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : user error\n in : " . __FILE__ . '(' . (__LINE__ + 6).')');
 
@@ -288,7 +288,7 @@ class HandlerTest extends TestCase
 
     public function testTriggerError()
     {
-        Handler::setWriter(ErrorWriter\Phplog::class, ErrorWriter\Logger::class, ErrorWriter\View::class);
+        Handler::setWriters([ErrorWriter\Phplog::class, ErrorWriter\Logger::class, ErrorWriter\View::class]);
 
         $cur_error_log = ini_get('error_log');
         ini_set('error_log', __DIR__ . '/error.log');
@@ -324,7 +324,7 @@ class HandlerTest extends TestCase
 
     public function testTriggerErrorDefaultWriter()
     {
-        Handler::setWriter(ErrorWriter\Phplog::class);
+        Handler::setWriters([ErrorWriter\Phplog::class]);
 
         $cur_error_log = ini_get('error_log');
         ini_set('error_log', __DIR__ . '/error.log');

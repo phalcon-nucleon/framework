@@ -33,7 +33,10 @@ class Handler
     /** @var Writable[] */
     private static $writers = [Phplog::class => null];
 
-    public static function setWriter(...$writers)
+    /**
+     * @param array $writers
+     */
+    public static function setWriters(array $writers)
     {
         self::$writers = array_fill_keys($writers, null);
     }

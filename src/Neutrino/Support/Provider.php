@@ -39,14 +39,14 @@ abstract class Provider extends Injectable implements Providable
     final public function __construct()
     {
         if (empty($this->name) || !is_string($this->name)) {
-            throw new \RuntimeException('BasicProvider "' . static::class . '::$name" isn\'t valid.');
+            throw new \RuntimeException('Provider "' . static::class . '::$name" isn\'t valid.');
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function registering()
+    final public function registering()
     {
         $self = $this;
 

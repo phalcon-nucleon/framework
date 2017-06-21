@@ -57,14 +57,14 @@ abstract class SimpleProvider extends Injectable implements Providable
     final public function __construct()
     {
         if (empty($this->name) || !is_string($this->name)) {
-            throw new \RuntimeException('BasicProvider "' . static::class . '::$name" isn\'t valid.');
+            throw new \RuntimeException('Provider "' . static::class . '::$name" isn\'t valid.');
         }
         if (empty($this->class) || !is_string($this->class)) {
-            throw new \RuntimeException('BasicProvider "' . static::class . '::$class" isn\'t valid.');
+            throw new \RuntimeException('Provider "' . static::class . '::$class" isn\'t valid.');
         }
     }
 
-    public function registering()
+    final public function registering()
     {
         if (empty($this->options)) {
             $definition = $this->class;

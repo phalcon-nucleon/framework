@@ -82,13 +82,14 @@ class HelperTaskTest extends TestCase
             ]],
             [OptimizeTask::class, 'main', [
                 'info'  => ['exactly' => 1],
-                'write' => ['exactly' => 6, 'consecutive' => [
+                'write' => ['exactly' => 7, 'consecutive' => [
                     [Helper::neutrinoVersion() . PHP_EOL, true],
                     ['Usage :', true],
                     ['Description :', true],
                     ["\t" . 'Optimize the autoloader.', true],
                     ['Options :', true],
                     ["\t" . '-m, --memory: Optimize memory.', true],
+                    ["\t" . '-f, --force: Force optimization.', true],
                 ]]
             ]],
         ];

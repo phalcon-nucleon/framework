@@ -98,7 +98,7 @@ class OptimizeTaskTest extends TestCase
             'namespace_4' => array('dir_5', 'dir_6'),
         ]);
 
-        $this->dispatchCli('quark optimize --memory -q');
+        $this->dispatchCli('quark optimize --memory --force -q');
 
         $file = file_get_contents(BASE_PATH . '/bootstrap/compile/loader.php');
 
@@ -136,7 +136,7 @@ class OptimizeTaskTest extends TestCase
             'Class\Class_2' => 'file_2.php'
         ]);
 
-        $this->dispatchCli('quark optimize -q');
+        $this->dispatchCli('quark optimize --force -q');
 
         $file = file_get_contents(BASE_PATH . '/bootstrap/compile/loader.php');
 

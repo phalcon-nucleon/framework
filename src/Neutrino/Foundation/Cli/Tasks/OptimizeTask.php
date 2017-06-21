@@ -32,9 +32,17 @@ class OptimizeTask extends Task
      * @description Optimize the autoloader.
      *
      * @option      -m, --memory: Optimize memory.
+     * @option      -f, --force: Force optimization.
      */
     public function mainAction()
     {
+        if(APP_DEBUG && !$this->hasOption('f', 'force')){
+            $this->info('Application is in debug mode.');
+            $this->info('For optimize in debug please use the --force, -f option.');
+
+            return;
+        }
+
         $this->optimizer = new Composer(
             BASE_PATH . '/bootstrap/compile/loader.php',
             BASE_PATH . '/vendor/composer',

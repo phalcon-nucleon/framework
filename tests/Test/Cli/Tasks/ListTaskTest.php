@@ -56,7 +56,7 @@ class ListTaskTest extends TestCase
             [[
                  'description' => 'Optimize the autoloader.',
                  'cmd'         => Decorate::info('optimize'),
-                 'options'     => '-m, --memory: Optimize memory.',
+                 'options'     => '-m, --memory: Optimize memory., -f, --force: Force optimization.',
              ], 'optimize', OptimizeTask::class, 'mainAction']
         ];
     }
@@ -99,7 +99,7 @@ class ListTaskTest extends TestCase
             [[
                  'description' => 'Optimize the autoloader.',
                  'cmd'         => Decorate::info('optimize'),
-                 'options'     => '-m, --memory: Optimize memory.',
+                 'options'     => '-m, --memory: Optimize memory., -f, --force: Force optimization.',
              ], new Route('optimize', ['task' => OptimizeTask::class])]
         ];
     }

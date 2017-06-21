@@ -23,7 +23,7 @@ class Database extends Injectable implements Providable
     {
         $di = $this->getDI();
 
-        $database = (array)$this->{Services::CONFIG}->database;
+        $database = (array)$di->getShared(Services::CONFIG)->database;
         $connections = (array)$database['connections'];
 
         if (count($connections) > 1) {

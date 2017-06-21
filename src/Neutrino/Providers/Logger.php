@@ -25,9 +25,9 @@ class Logger extends Provider
     protected function register()
     {
         /** @var \Phalcon\Config|\stdClass $config */
-        $config = $this->{Services::CONFIG}->log;
+        $config = $this->getDI()->getShared(Services::CONFIG)->log;
 
-        $adapter = isset($config->adapter) ? $config->adapter : 'empty';
+        $adapter = isset($config->adapter) ? $config->adapter : null;
         switch ($adapter) {
             case null:
             case FileLoggerAdapter::class:

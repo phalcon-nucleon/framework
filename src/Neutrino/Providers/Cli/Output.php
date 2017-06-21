@@ -26,6 +26,6 @@ class Output extends Provider
      */
     protected function register()
     {
-        return new Writer($this->application->isQuiet());
+        return new Writer($this->getDI()->getShared(Services::APP)->isQuiet());
     }
 }

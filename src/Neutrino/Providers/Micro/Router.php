@@ -17,8 +17,4 @@ class Router extends SimpleProvider
     protected $name = Services::MICRO_ROUTER;
 
     protected $shared = true;
-
-    protected $aliases = [
-        \Neutrino\Micro\Router::class
-    ];
 }

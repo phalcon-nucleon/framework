@@ -128,7 +128,7 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write'  => ['exactly' => 11, 'consecutive' => [
+            'write'  => ['exactly' => 9, 'consecutive' => [
                 //['Available Commands :'],
                 [Helper::neutrinoVersion() . PHP_EOL, true],
                 [' ' . Decorate::info('help ( .*)*') . '                                    ', true],
@@ -138,18 +138,14 @@ class ListTaskTest extends TestCase
                 //['config', true],
                 [' ' . Decorate::info('config:cache') . '    Cache the configuration.       ', true],
                 [' ' . Decorate::info('config:clear') . '    Clear the configuration cache. ', true],
-                //['opcache', true],
-                [' ' . Decorate::info('opcache:reset') . '   Opcache reset.                 ', true],
-                [' ' . Decorate::info('opcache:status') . '  Output Opcache status.         ', true],
                 //['route', true],
                 [' ' . Decorate::info('route:list') . '      List all routes.               ', true],
                 //['view', true],
                 [' ' . Decorate::info('view:clear') . '      Clear all compiled view files. ', true],
             ]],
-            'notice' => ['exactly' => 5, 'consecutive' => [
+            'notice' => ['exactly' => 4, 'consecutive' => [
                 ['Available Commands :'],
                 ['config'],
-                ['opcache'],
                 ['route'],
                 ['view'],
             ]]

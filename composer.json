@@ -13,8 +13,7 @@
   "require": {
     "php": ">=5.6",
     "ext-phalcon": ">=3.1",
-    "classpreloader/classpreloader": "~3.0",
-    "neutrino/opcache": "dev-master"
+    "classpreloader/classpreloader": "~3.0"
   },
   "require-dev": {
     "phalcon/devtools": "dev-master",

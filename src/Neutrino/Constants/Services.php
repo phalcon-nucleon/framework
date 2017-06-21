@@ -42,5 +42,4 @@ final class Services
     const TAG                 = 'tag';
     const URL                 = 'url';
     const VIEW                = 'view';
-    const OPCACHE             = 'opcache';
 }

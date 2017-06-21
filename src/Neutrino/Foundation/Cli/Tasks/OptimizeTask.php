@@ -12,8 +12,6 @@ use Neutrino\Support\Str;
 /**
  * Class OptimizeTask
  *
- * @property-read \Neutrino\Opcache\Manager $opcache
- *
  * @package Neutrino\Foundation\Cli
  */
 class OptimizeTask extends Task

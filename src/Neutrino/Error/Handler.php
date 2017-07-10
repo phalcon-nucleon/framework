@@ -54,11 +54,6 @@ class Handler
         set_exception_handler(function ($e) {
             self::handleException($e);
         });
-        register_shutdown_function(function () {
-            if (!is_null($e = error_get_last())) {
-                static::handle(new Error($e));
-            }
-        });
     }
 
     /**

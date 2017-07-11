@@ -18,7 +18,8 @@ class DefaultTask extends Task
         $arguments = array_filter($this->application->getArguments());
 
         if (empty($arguments)) {
-            return $this->application->handle(['task' => ListTask::class]);
+            $this->application->handle(['task' => ListTask::class]);
+            return;
         }
 
         $lines[] = 'Command "' . implode(Route::getDelimiter(), $arguments) . '" not found.';

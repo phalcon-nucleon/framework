@@ -26,8 +26,8 @@ class HelperTask extends Task
                 if (is_null($route = $this->tryHandle($this->getArg('arguments')))) {
                     throw new \Exception('route not found');
                 }
-                $task   = Arr::get($route, 'task');
-                $action = Arr::get($route, 'action', 'main') . $this->dispatcher->getActionSuffix();
+                $task   = Arr::fetch($route, 'task');
+                $action = Arr::fetch($route, 'action', 'main') . $this->dispatcher->getActionSuffix();
             } else {
                 $task   = $this->router->getTaskName();
                 $action = ($this->router->getActionName() ?: 'main') . $this->dispatcher->getActionSuffix();

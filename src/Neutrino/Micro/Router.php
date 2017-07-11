@@ -393,8 +393,8 @@ class Router extends Injectable implements RouterInterface
             return function () use ($path) {
                 /** @var Micro $this */
 
-                $controller = Arr::get($path, 'controller');
-                $action = Arr::get($path, 'action');
+                $controller = Arr::fetch($path, 'controller');
+                $action = Arr::fetch($path, 'action');
 
                 $handler = $this->getDI()->get($controller);
 

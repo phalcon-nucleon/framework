@@ -2,17 +2,34 @@
 
 namespace Neutrino\Cli\Question;
 
+/**
+ * Class ConfirmationQuestion
+ *
+ * @package Neutrino\Cli\Question
+ */
 class ConfirmationQuestion extends Question
 {
     protected $answerRegex;
 
-    public function __construct($question, $default = true, $answerRegex = '/^(?:y|o)/i')
+    /**
+     * ConfirmationQuestion constructor.
+     *
+     * @param string $question
+     * @param bool   $default
+     * @param string $trueAnswerRegex
+     */
+    public function __construct($question, $default = true, $trueAnswerRegex = '/^(?:y|o)/i')
     {
         parent::__construct($question, (bool)$default);
 
-        $this->answerRegex = $answerRegex;
+        $this->answerRegex = $trueAnswerRegex;
     }
 
+    /**
+     * @param $response
+     *
+     * @return bool|null|string
+     */
     public function normalize($response)
     {
         if (is_bool($response)) {

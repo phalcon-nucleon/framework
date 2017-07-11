@@ -6,8 +6,22 @@ use Neutrino\Cli\Question\ChoiceQuestion;
 use Neutrino\Cli\Question\ConfirmationQuestion;
 use Neutrino\Cli\Question\Question;
 
+/**
+ * Class QuestionHelper
+ *
+ * @package Neutrino\Cli\Output
+ */
 final class QuestionHelper
 {
+    /**
+     * Do the ask of an question
+     *
+     * @param \Neutrino\Cli\Output\Writer     $output
+     * @param resource                        $input
+     * @param \Neutrino\Cli\Question\Question $question
+     *
+     * @return null|string
+     */
     public static function ask(Writer $output, $input, Question $question)
     {
         if (!isset($input)) {
@@ -27,7 +41,7 @@ final class QuestionHelper
                     break;
                 }
 
-                $output->warn('You must select of these choices : ' . implode(', ', $question->getChoices()));
+                $output->warn('You must select one of these choices : ' . implode(', ', $question->getChoices()));
 
                 $response = self::doAsk($output, $input, $question);
             }
@@ -35,7 +49,7 @@ final class QuestionHelper
             $response = self::doAsk($output, $input, $question);
         }
 
-        if (empty($response)) {
+        if (is_null($response) || $response === '') {
             return $question->getDefault();
         }
 
@@ -48,7 +62,7 @@ final class QuestionHelper
 
         switch (true) {
             case  $question instanceof ChoiceQuestion:
-                $output->info('Choice one : ' . implode(', ', $question->getChoices()));
+                $output->info('[' . implode(', ', $question->getChoices()) . ']' . (empty($question->getDefault() ? '' : ' (' . $question->getDefault() . ')')));
                 break;
             case $question instanceof ConfirmationQuestion:
                 $output->info('[yes, no] (' . ($question->getDefault() ? 'y' : 'n') . ')');
@@ -63,6 +77,5 @@ final class QuestionHelper
         self::prompt($output, $question);
 
         return $question->normalize(fgets($input));
-
     }
 }

@@ -8,12 +8,9 @@ use Neutrino\Cli\Output\Table;
 use Neutrino\Cli\Question\ChoiceQuestion;
 use Neutrino\Cli\Question\ConfirmationQuestion;
 use Neutrino\Cli\Question\Question;
-use Neutrino\Constants\Events;
-use Neutrino\Error\Handler;
 use Neutrino\Support\Arr;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Cli\Task as PhalconTask;
-use Phalcon\Events\Event;
 
 /**
  * Class Task
@@ -28,29 +25,6 @@ use Phalcon\Events\Event;
  */
 abstract class Task extends PhalconTask
 {
-    public function onConstruct()
-    {
-        $em = $this->dispatcher->getEventsManager();
-
-        $em->attach(Events\Dispatch::BEFORE_EXCEPTION, function (Event $event, $dispatcher, \Exception $exception) {
-            return $this->handleException($exception);
-        });
-    }
-
-    /**
-     * Handle Exception and output them.
-     *
-     * @param \Exception $exception
-     *
-     * @return bool
-     */
-    public function handleException(\Exception $exception)
-    {
-        Handler::handleException($exception);
-
-        return false;
-    }
-
     /**
      * @param string $str
      */
@@ -129,7 +103,7 @@ abstract class Task extends PhalconTask
      *
      * @return null|string
      */
-    public function choices($str, array $choices, $maxAttempts = 0, $default = null)
+    public function choices($str, array $choices, $default = null, $maxAttempts = 0)
     {
         return $this->ask(new ChoiceQuestion($str, $choices, $maxAttempts, $default));
     }
@@ -154,6 +128,11 @@ abstract class Task extends PhalconTask
         (new Table($this->output, $datas, $headers, $style))->display();
     }
 
+    /**
+     * @param array $lines
+     * @param int   $style
+     * @param int   $padding
+     */
     public function block($lines, $style, $padding = 4)
     {
         (new Block($this->output, $style, ['padding' => $padding]))->draw($lines);

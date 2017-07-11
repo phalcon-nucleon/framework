@@ -121,36 +121,4 @@ class TaskTest extends TestCase
 
         $task->line('test');
     }
-
-    public function testHandleExpection()
-    {
-        Handler::setWriters([Cli::class]);
-
-        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
-
-        $e = new \Exception('test', 123);
-
-        $messages = Helper::format(Error::fromException($e), true, true);
-
-        $lines = explode("\n", $messages);
-
-        $maxlen = 0;
-        foreach ($lines as $line) {
-            $maxlen = max($maxlen, strlen($line));
-        }
-
-        $with[] = [str_repeat(' ', $maxlen + 4)];
-        foreach ($lines as $line) {
-            $with[] = ['  ' . str_pad($line, $maxlen, ' ', STR_PAD_RIGHT) . '  '];
-        }
-        $with[] = [str_repeat(' ', $maxlen + 4)];
-
-        $mock->expects($this->exactly(count($lines) + 2))
-            ->method('warn')
-            ->withConsecutive(...$with);
-
-        $task = $this->stubTask();
-
-        $task->handleException($e);
-    }
 }

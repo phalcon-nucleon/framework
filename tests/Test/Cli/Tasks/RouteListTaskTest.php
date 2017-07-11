@@ -50,15 +50,16 @@ class RouteListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write' => ['exactly' => 8, 'consecutive' => [
-                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN   | ACTION                                              | MIDDLEWARE                    |'],
-                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index          |                               |'],
-                ['|        |      | POST     | /post     | Fake\Kernels\Http\Controllers\StubController::index |                               |'],
-                ['|        |      | GET      | /u/'.Decorate::notice('{user}').' | Fake\Kernels\Http\Controllers\StubController::index |                               |'],
-                ['|        |      | GET|HEAD | /get-head | Fake\Kernels\Http\Controllers\StubController::index | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
+            'write' => ['exactly' => 9, 'consecutive' => [
+                ['+--------+------+----------+-----------------------------+------------------------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN                     | ACTION                                               | MIDDLEWARE                    |'],
+                ['+--------+------+----------+-----------------------------+------------------------------------------------------+-------------------------------+'],
+                ['|        |      | GET      | /get                        | App\Http\Controllers\StubController::index           |                               |'],
+                ['|        |      | POST     | /post                       | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
+                ['|        |      | GET      | /u/'.Decorate::notice('{user}').'                   | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
+                ['|        |      | GET|HEAD | /get-head                   | Fake\Kernels\Http\Controllers\StubController::index  | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
+                ['|        |      | GET      | /back/'.Decorate::notice('{controller}').'/'.Decorate::notice('{action}').' | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'::'.Decorate::notice('{action}').' |                               |'],
+                ['+--------+------+----------+-----------------------------+------------------------------------------------------+-------------------------------+'],
             ]]
         ];
 
@@ -88,15 +89,16 @@ class RouteListTaskTest extends TestCase
     public function testMainActionNoSubstitution()
     {
         $expected = [
-            'write' => ['exactly' => 8, 'consecutive' => [
-                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN   | ACTION                                              | MIDDLEWARE                    |'],
-                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index          |                               |'],
-                ['|        |      | POST     | /post     | Fake\Kernels\Http\Controllers\StubController::index |                               |'],
-                ['|        |      | GET      | /u/:int   | Fake\Kernels\Http\Controllers\StubController::index |                               |'],
-                ['|        |      | GET|HEAD | /get-head | Fake\Kernels\Http\Controllers\StubController::index | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['+--------+------+----------+-----------+-----------------------------------------------------+-------------------------------+'],
+            'write' => ['exactly' => 9, 'consecutive' => [
+                ['+--------+------+----------+---------------------------+------------------------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN                   | ACTION                                               | MIDDLEWARE                    |'],
+                ['+--------+------+----------+---------------------------+------------------------------------------------------+-------------------------------+'],
+                ['|        |      | GET      | /get                      | App\Http\Controllers\StubController::index           |                               |'],
+                ['|        |      | POST     | /post                     | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
+                ['|        |      | GET      | /u/:int                   | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
+                ['|        |      | GET|HEAD | /get-head                 | Fake\Kernels\Http\Controllers\StubController::index  | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
+                ['|        |      | GET      | /back/:controller/:action | Fake\Kernels\Http\Controllers\{controller}::{action} |                               |'],
+                ['+--------+------+----------+---------------------------+------------------------------------------------------+-------------------------------+'],
             ]]
         ];
 

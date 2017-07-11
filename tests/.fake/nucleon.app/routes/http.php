@@ -26,3 +26,8 @@ Router::add('/get-head', [
     'namespace'  => \Fake\Kernels\Http\Controllers::class,
     'middleware' => \Neutrino\Http\Middleware\Csrf::class
 ], ['GET', 'HEAD']);
+
+
+Router::addGet('/back/:controller/:action', [
+    'namespace'  => \Fake\Kernels\Http\Controllers::class
+]);

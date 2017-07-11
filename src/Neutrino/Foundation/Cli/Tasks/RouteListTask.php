@@ -2,6 +2,7 @@
 
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
@@ -12,7 +13,7 @@ use Neutrino\Support\Str;
 /**
  * Class RouteListTask
  *
- *  @package Neutrino\Foundation\Cli
+ * @package Neutrino\Foundation\Cli
  */
 class RouteListTask extends Task
 {
@@ -47,7 +48,7 @@ class RouteListTask extends Task
             if (is_array($middlewares)) {
                 $_middlewares = [];
                 foreach ($middlewares as $key => $middleware) {
-                    if(is_int($key)){
+                    if (is_int($key)) {
                         $_middlewares[] = $middleware;
                     } else {
                         $_middlewares[] = $key;
@@ -57,13 +58,26 @@ class RouteListTask extends Task
             } else {
                 $middleware = $middlewares;
             }
+
+            if (Arr::has($paths, 'controller')) {
+                $controller = Str::capitalize($paths['controller']) . 'Controller';
+            } else {
+                $controller = Decorate::notice('{controller}');
+            }
+
+            if (Arr::has($paths, 'action')) {
+                $action = $paths['action'];
+            } else {
+                $action = Decorate::notice('{action}');
+            }
+
             $datas[] = [
                 'domain'     => $route->getHostname(),
                 'name'       => $route->getName(),
                 'method'     => $httpMethods,
                 'pattern'    => $compiled,
                 'action'     => Arr::fetch($paths, 'namespace', 'App\\Http\\Controllers') .
-                    '\\' . Str::capitalize($paths['controller']) . 'Controller::' . $paths['action'],
+                    '\\' . $controller . '::' . $action,
                 'middleware' => $middleware
             ];
         }
@@ -88,7 +102,7 @@ class RouteListTask extends Task
 
         $httpRouterProvider->registering();
 
-        require BASE_PATH .'/routes/http.php';
+        require BASE_PATH . '/routes/http.php';
 
         $routes = Router::getRoutes();
 

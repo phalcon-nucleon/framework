@@ -30,7 +30,7 @@ class ThrottleTest extends TestCase
         ]);
 
         $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MINOR) >= 2){
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
             $status = StatusCode::TOO_MANY_REQUESTS;
         } else {
             $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;

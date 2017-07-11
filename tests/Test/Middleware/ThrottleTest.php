@@ -30,7 +30,11 @@ class ThrottleTest extends TestCase
         ]);
 
         $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MINOR) >= 2){
+            $status = StatusCode::TOO_MANY_REQUESTS;
+        } else {
+            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        }
         for ($i = 1; $i <= 11; $i++) {
             // WHEN
             $this->dispatch('/');

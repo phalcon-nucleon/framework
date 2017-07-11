@@ -97,7 +97,7 @@ class RouteListTaskTest extends TestCase
                 ['|        |      | POST     | /post                     | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
                 ['|        |      | GET      | /u/:int                   | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
                 ['|        |      | GET|HEAD | /get-head                 | Fake\Kernels\Http\Controllers\StubController::index  | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['|        |      | GET      | /back/:controller/:action | Fake\Kernels\Http\Controllers\{controller}::{action} |                               |'],
+                ['|        |      | GET      | /back/:controller/:action | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'::'.Decorate::notice('{action}').' |                               |'],
                 ['+--------+------+----------+---------------------------+------------------------------------------------------+-------------------------------+'],
             ]]
         ];

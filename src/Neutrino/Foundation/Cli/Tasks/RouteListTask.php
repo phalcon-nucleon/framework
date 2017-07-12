@@ -9,6 +9,7 @@ use Neutrino\Constants\Services;
 use Neutrino\Support\Arr;
 use Neutrino\Support\Facades\Router;
 use Neutrino\Support\Str;
+use Phalcon\Di\Service;
 
 /**
  * Class RouteListTask
@@ -26,10 +27,10 @@ class RouteListTask extends Task
      */
     public function mainAction()
     {
-        $routes = $this->getHttpRoutes();
+        $infos = $this->getHttpRoutesInfos();
 
         $datas = [];
-        foreach ($routes as $route) {
+        foreach ($infos['routes'] as $route) {
             /** @var \Phalcon\Mvc\Router\Route $route */
             $paths = $route->getPaths();
 
@@ -60,10 +61,12 @@ class RouteListTask extends Task
             }
 
             if (Arr::has($paths, 'controller')) {
-                $controller = Str::capitalize($paths['controller']) . 'Controller';
+                $controller = Str::capitalize($paths['controller']);
             } else {
                 $controller = Decorate::notice('{controller}');
             }
+
+            $controller .= Arr::fetch($infos, 'controllerSuffix', '');
 
             if (Arr::has($paths, 'action')) {
                 $action = $paths['action'];
@@ -71,13 +74,14 @@ class RouteListTask extends Task
                 $action = Decorate::notice('{action}');
             }
 
+            $action .= Arr::fetch($infos, 'actionSuffix', '');
+
             $datas[] = [
                 'domain'     => $route->getHostname(),
                 'name'       => $route->getName(),
                 'method'     => $httpMethods,
                 'pattern'    => $compiled,
-                'action'     => Arr::fetch($paths, 'namespace', 'App\\Http\\Controllers') .
-                    '\\' . $controller . '::' . $action,
+                'action'     => Arr::fetch($paths, 'namespace', Arr::fetch($infos['defaults'], 'namespace')) . '\\' . $controller . '::' . $action,
                 'middleware' => $middleware
             ];
         }
@@ -88,30 +92,47 @@ class RouteListTask extends Task
     /**
      * List the Http Routes
      *
-     * @return \Phalcon\Mvc\Router\RouteInterface[]
+     * @return array
      */
-    protected function getHttpRoutes()
+    protected function getHttpRoutesInfos()
     {
         Router::clearResolvedInstances();
 
         $cliRouter = $this->router;
+        $cliDispatcher = $this->dispatcher;
 
         $this->di->remove(Services::ROUTER);
+        $this->di->remove(Services::DISPATCHER);
 
         $httpRouterProvider = new \Neutrino\Providers\Http\Router;
-
         $httpRouterProvider->registering();
+        $httpDispatcherProvider = new \Neutrino\Providers\Http\Dispatcher;
+        $httpDispatcherProvider->registering();
 
         require BASE_PATH . '/routes/http.php';
+        /** @var \Phalcon\Mvc\Dispatcher $httpDispatcher */
+        $httpDispatcher = $this->di->get(Services::DISPATCHER);
+        $reflexionProperty = (new \ReflectionClass(get_class($httpDispatcher)))->getProperty('_handlerSuffix');
+        $reflexionProperty->setAccessible(true);
 
         $routes = Router::getRoutes();
+        $defaults = Router::getDefaults();
+        $actionSuffix = $httpDispatcher->getActionSuffix();
+        $controllerSuffix = $reflexionProperty->getValue($httpDispatcher);
 
         Router::clearResolvedInstances();
 
         $this->di->remove(Services::ROUTER);
+        $this->di->remove(Services::DISPATCHER);
 
         $this->di->setShared(Services::ROUTER, $cliRouter);
+        $this->di->setShared(Services::DISPATCHER, $cliDispatcher);
 
-        return $routes;
+        return [
+            'routes'           => $routes,
+            'defaults'         => $defaults,
+            'actionSuffix'     => $actionSuffix,
+            'controllerSuffix' => $controllerSuffix,
+        ];
     }
 }

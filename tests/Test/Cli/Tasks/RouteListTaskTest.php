@@ -35,12 +35,15 @@ class RouteListTaskTest extends TestCase
         $task = new RouteListTask();
 
         /** @var Router\Route[] $routes */
-        $routes = $this->invokeMethod($task, 'getHttpRoutes', []);
+        $routes = $this->invokeMethod($task, 'getHttpRoutesInfos', []);
 
         $this->assertInstanceOf(Router::class, $this->getDI()->getShared(Services::ROUTER));
 
+        $this->assertEquals('Controller', $routes['controllerSuffix']);
+        $this->assertEquals('Action', $routes['actionSuffix']);
+
         foreach ($expectedRoutes as $key => $expectedRoute) {
-            $route = $routes[$key];
+            $route = $routes['routes'][$key];
 
             $this->assertEquals($expectedRoute['pattern'], $route->getPattern());
             $this->assertEquals($expectedRoute['paths'], $route->getPaths());
@@ -51,15 +54,15 @@ class RouteListTaskTest extends TestCase
     {
         $expected = [
             'write' => ['exactly' => 9, 'consecutive' => [
-                ['+--------+------+----------+-----------------------------+------------------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN                     | ACTION                                               | MIDDLEWARE                    |'],
-                ['+--------+------+----------+-----------------------------+------------------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get                        | App\Http\Controllers\StubController::index           |                               |'],
-                ['|        |      | POST     | /post                       | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
-                ['|        |      | GET      | /u/'.Decorate::notice('{user}').'                   | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
-                ['|        |      | GET|HEAD | /get-head                   | Fake\Kernels\Http\Controllers\StubController::index  | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['|        |      | GET      | /back/'.Decorate::notice('{controller}').'/'.Decorate::notice('{action}').' | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'::'.Decorate::notice('{action}').' |                               |'],
-                ['+--------+------+----------+-----------------------------+------------------------------------------------------+-------------------------------+'],
+                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN                     | ACTION                                                               | MIDDLEWARE                    |'],
+                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
+                ['|        |      | GET      | /get                        | \StubController::indexAction                                         |                               |'],
+                ['|        |      | POST     | /post                       | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
+                ['|        |      | GET      | /u/'.Decorate::notice('{user}').'                   | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
+                ['|        |      | GET|HEAD | /get-head                   | Fake\Kernels\Http\Controllers\StubController::indexAction            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
+                ['|        |      | GET      | /back/'.Decorate::notice('{controller}').'/'.Decorate::notice('{action}').' | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'Controller::'.Decorate::notice('{action}').'Action |                               |'],
+                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
             ]]
         ];
 
@@ -90,15 +93,15 @@ class RouteListTaskTest extends TestCase
     {
         $expected = [
             'write' => ['exactly' => 9, 'consecutive' => [
-                ['+--------+------+----------+---------------------------+------------------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN                   | ACTION                                               | MIDDLEWARE                    |'],
-                ['+--------+------+----------+---------------------------+------------------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get                      | App\Http\Controllers\StubController::index           |                               |'],
-                ['|        |      | POST     | /post                     | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
-                ['|        |      | GET      | /u/:int                   | Fake\Kernels\Http\Controllers\StubController::index  |                               |'],
-                ['|        |      | GET|HEAD | /get-head                 | Fake\Kernels\Http\Controllers\StubController::index  | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['|        |      | GET      | /back/:controller/:action | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'::'.Decorate::notice('{action}').' |                               |'],
-                ['+--------+------+----------+---------------------------+------------------------------------------------------+-------------------------------+'],
+                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN                   | ACTION                                                               | MIDDLEWARE                    |'],
+                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
+                ['|        |      | GET      | /get                      | \StubController::indexAction                                         |                               |'],
+                ['|        |      | POST     | /post                     | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
+                ['|        |      | GET      | /u/:int                   | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
+                ['|        |      | GET|HEAD | /get-head                 | Fake\Kernels\Http\Controllers\StubController::indexAction            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
+                ['|        |      | GET      | /back/:controller/:action | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'Controller::'.Decorate::notice('{action}').'Action |                               |'],
+                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
             ]]
         ];
 

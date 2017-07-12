@@ -84,7 +84,11 @@ class ThrottleTest extends TestCase
         ]);
 
         $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
+            $status = StatusCode::TOO_MANY_REQUESTS;
+        } else {
+            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        }
         for ($i = 1; $i <= 10; $i++) {
             // WHEN
             $this->dispatch('/');
@@ -111,7 +115,11 @@ class ThrottleTest extends TestCase
 
         $response = $this->app->getDI()->getShared(Services::RESPONSE);
 
-        $this->assertEquals('200 OK', $response->getStatusCode());
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
+            $this->assertEquals(200, $response->getStatusCode());
+        } else {
+            $this->assertEquals('200 OK', $response->getStatusCode());
+        }
         $this->assertEquals('', $response->getContent());
         $this->assertEquals(false, $response->getHeaders()->get('X-RateLimit-Limit'));
         $this->assertEquals(false, $response->getHeaders()->get('X-RateLimit-Remaining'));
@@ -150,7 +158,11 @@ class ThrottleTest extends TestCase
         ]);
 
         $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
+            $status = StatusCode::TOO_MANY_REQUESTS;
+        } else {
+            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        }
         for ($i = 1; $i <= 11; $i++) {
             // WHEN
             $this->dispatch('/route-throttled');

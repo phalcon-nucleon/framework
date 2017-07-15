@@ -70,8 +70,10 @@ class Helper
             }
 
             $args = [];
-            foreach ($trace['args'] as $arg) {
-                $args[] = self::verboseType($arg);
+            if(isset($trace['args'])) {
+                foreach ($trace['args'] as $arg) {
+                    $args[] = self::verboseType($arg);
+                }
             }
             $_trace['func'] .= '(' . implode(', ', $args) . ')';
 

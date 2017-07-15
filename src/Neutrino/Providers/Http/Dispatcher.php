@@ -3,7 +3,7 @@
 namespace Neutrino\Providers\Http;
 
 use Neutrino\Constants\Services;
-use Neutrino\Providers\Provider;
+use Neutrino\Support\Provider;
 
 /**
  * Class Dispatcher
@@ -26,7 +26,7 @@ class Dispatcher extends Provider
         $dispatcher = new \Phalcon\Mvc\Dispatcher();
 
         // Assign the events manager to the dispatcher
-        $dispatcher->setEventsManager($this->{Services::EVENTS_MANAGER});
+        $dispatcher->setEventsManager($this->getDI()->getShared(Services::EVENTS_MANAGER));
 
         return $dispatcher;
     }

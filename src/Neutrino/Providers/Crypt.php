@@ -3,13 +3,14 @@
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\SimpleProvider;
 
 /**
  * Class Crypt
  *
  *  @package Neutrino\Providers
  */
-class Crypt extends BasicProvider
+class Crypt extends SimpleProvider
 {
     protected $class = \Phalcon\Crypt::class;
 

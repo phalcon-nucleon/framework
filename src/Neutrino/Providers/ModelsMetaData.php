@@ -4,6 +4,7 @@ namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 
+use Neutrino\Support\SimpleProvider;
 use Phalcon\Mvc\Model\Metadata\Memory;
 
 /**
@@ -11,7 +12,7 @@ use Phalcon\Mvc\Model\Metadata\Memory;
  *
  *  @package Neutrino\Foundation\Bootstrap
  */
-class ModelsMetaData extends BasicProvider
+class ModelsMetaData extends SimpleProvider
 {
     protected $class = Memory::class;
 

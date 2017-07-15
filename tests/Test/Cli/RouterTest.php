@@ -1,10 +1,10 @@
 <?php
 namespace Test\Cli;
 
+use Fake\Kernels\Cli\StubKernelCli;
 use Neutrino\Cli\Router;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
-use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 
 class RouterTest extends TestCase
@@ -25,7 +25,7 @@ class RouterTest extends TestCase
              'task',
              ['task' => ListTask::class, 'action' => 'action']]
             ,
-            ['task :param:', ListTask::class, 'action', [],
+            ['task {param}', ListTask::class, 'action', [],
              'task ([[:alnum:]]+)',
              ['task' => ListTask::class, 'action' => 'action', 'param' => 1]
             ],

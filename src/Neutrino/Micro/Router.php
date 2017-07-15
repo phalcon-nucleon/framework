@@ -2,6 +2,7 @@
 
 namespace Neutrino\Micro;
 
+use Neutrino\Support\Arr;
 use Phalcon\Di\Injectable;
 use Phalcon\Mvc\Micro;
 use Phalcon\Mvc\Micro\Collection;
@@ -392,8 +393,8 @@ class Router extends Injectable implements RouterInterface
             return function () use ($path) {
                 /** @var Micro $this */
 
-                $controller = arr_get($path, 'controller');
-                $action = arr_get($path, 'action');
+                $controller = isset($path['controller']) ? $path['controller'] : null;
+                $action = isset($path['action']) ? $path['action'] : null;
 
                 $handler = $this->getDI()->get($controller);
 

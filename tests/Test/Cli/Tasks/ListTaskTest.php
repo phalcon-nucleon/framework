@@ -2,9 +2,10 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Fake\Kernels\Cli\StubKernelCli;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
@@ -12,7 +13,6 @@ use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;
-use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 
 class ListTaskTest extends TestCase
@@ -56,7 +56,7 @@ class ListTaskTest extends TestCase
             [[
                  'description' => 'Optimize the autoloader.',
                  'cmd'         => Decorate::info('optimize'),
-                 'options'     => '-m, --memory: Optimize memory.',
+                 'options'     => '-m, --memory: Optimize memory., -f, --force: Force optimization.',
              ], 'optimize', OptimizeTask::class, 'mainAction']
         ];
     }
@@ -99,7 +99,7 @@ class ListTaskTest extends TestCase
             [[
                  'description' => 'Optimize the autoloader.',
                  'cmd'         => Decorate::info('optimize'),
-                 'options'     => '-m, --memory: Optimize memory.',
+                 'options'     => '-m, --memory: Optimize memory., -f, --force: Force optimization.',
              ], new Route('optimize', ['task' => OptimizeTask::class])]
         ];
     }
@@ -156,7 +156,8 @@ class ListTaskTest extends TestCase
         $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($this->createMock(Manager::class));
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
 
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))->method($func);
 
@@ -166,8 +167,6 @@ class ListTaskTest extends TestCase
         }
 
         $task = new ListTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->mainAction();
     }

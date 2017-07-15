@@ -2,12 +2,11 @@
 
 namespace Test\Assert;
 
-use Neutrino\Dotenv;
+use Fake\Kernels\Http\Controllers\StubController;
+use Fake\Test\StubRouteTestCase;
 use Neutrino\Http\Standards\Method;
 use Neutrino\Test\RoutesTestCase;
 use Phalcon\Mvc\Router\Route;
-use Test\Stub\StubController;
-use Test\Stub\StubRouteTestCase;
 use Test\TestCase\TestCase;
 use Test\TestCase\TraitTestCase;
 
@@ -49,8 +48,6 @@ class RoutesTestCaseTest extends TestCase
 
     public function testGetRoutes()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../Stub');
-
         $routesTestCase = $this->getStub();
 
         $expectedRoutes = [

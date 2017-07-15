@@ -65,7 +65,7 @@ class Cache extends Injectable implements Providable
 
                     // Acceptable Adapter (Frontend)
                     $adapter = $cache->adapter;
-                    if (empty($driver)) {
+                    if (empty($adapter)) {
                         $adapter = $cache->frontend;
                     }
                     switch ($adapter) {

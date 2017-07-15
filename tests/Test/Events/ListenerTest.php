@@ -1,10 +1,10 @@
 <?php
 namespace Test;
 
+use Fake\Core\Listeners\StubListener;
 use Neutrino\Constants\Events;
 use Neutrino\Events\Listener;
 use Phalcon\Events\Manager;
-use Test\Stub\StubListener;
 use Test\TestCase\TestCase;
 
 /**

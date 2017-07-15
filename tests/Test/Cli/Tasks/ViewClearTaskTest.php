@@ -2,8 +2,7 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Dotenv;
-use Test\Stub\StubKernelCli;
+use Fake\Kernels\Cli\StubKernelCli;
 use Test\TestCase\TestCase;
 
 /**
@@ -23,30 +22,23 @@ class ViewClearTaskTest extends TestCase
     {
         global $config;
 
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../../');
-
-        $config['view']['compiled_path'] = __DIR__ . '/../../../storage/views/';
-
-        mkdir(__DIR__ . '/../../../storage/views', 0777, true);
+        $config['view']['compiled_path'] = BASE_PATH . '/storage/views/';
 
         parent::setUp();
     }
 
     public function tearDown()
     {
-        foreach (glob(__DIR__ . '/../../../storage/views/*.*') as $file) {
+        foreach (glob(BASE_PATH . '/storage/views/*.*') as $file) {
             @unlink($file);
         }
-
-        @rmdir(__DIR__ . '/../../../storage/views');
-        @rmdir(__DIR__ . '/../../../storage');
 
         parent::tearDown();
     }
 
     public function testTask()
     {
-        file_put_contents(__DIR__ . '/../../../storage/views/view.php', '<?php');
+        file_put_contents(BASE_PATH . '/storage/views/view.php', '<?php');
 
         $this->dispatchCli('quark view:clear -q');
 

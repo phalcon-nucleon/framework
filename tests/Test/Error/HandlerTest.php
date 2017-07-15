@@ -5,6 +5,8 @@ namespace Test\Error;
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Handler;
+use Neutrino\Error\Helper;
+use Neutrino\Error\Writer as ErrorWriter;
 use Neutrino\Http\Controller;
 use Phalcon\Logger;
 use Test\TestCase\TestCase;
@@ -16,6 +18,22 @@ use Test\TestCase\TestCase;
  */
 class HandlerTest extends TestCase
 {
+    private static $defaultErrorLog;
+
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        self::$defaultErrorLog = ini_get('error_log');
+    }
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        ini_set('error_log', self::$defaultErrorLog);
+    }
+
     public function setUp()
     {
         parent::setUp();
@@ -30,6 +48,15 @@ class HandlerTest extends TestCase
             'controller' => 'Stuberror',
             'action'     => 'index',
         ];
+    }
+
+    public function tearDown()
+    {
+        parent::tearDown();
+
+        if (file_exists(__DIR__ . '/error.log')) {
+            unlink(__DIR__ . '/error.log');
+        }
     }
 
     /**
@@ -65,14 +92,14 @@ class HandlerTest extends TestCase
      */
     public function testGetLogType($errorType, $logType)
     {
-        $this->assertEquals($logType, Handler::getLogType($errorType));
+        $this->assertEquals($logType, Helper::getLogType($errorType));
     }
 
     public function dataErrorType()
     {
         return [
             '1234'                => [1234, '1234'],
-            'Uncaught exception'  => [0, 'Uncaught exception'],
+            'Uncaught exception'  => [-1, 'Uncaught exception'],
             'E_ERROR'             => [E_ERROR, 'E_ERROR'],
             'E_WARNING'           => [E_WARNING, 'E_WARNING'],
             'E_PARSE'             => [E_PARSE, 'E_PARSE'],
@@ -99,7 +126,7 @@ class HandlerTest extends TestCase
      */
     public function testGetErrorType($code, $type)
     {
-        $this->assertEquals($type, Handler::getErrorType($code));
+        $this->assertEquals($type, Helper::getErrorType($code));
     }
 
     public function dataHandleError()
@@ -114,48 +141,59 @@ class HandlerTest extends TestCase
             'E_USER_ERROR'        => [E_USER_ERROR, Logger::ERROR],
         ];
 
-        foreach ($datas as &$data) {
-            $data[] =
-                Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::{{__FUNCTION__}} in ' . __FILE__ . ' on line 120';
-        }
-
         return $datas;
     }
 
     public function mockLogger($expectedLogger, $expectedMessage)
     {
         $logger = $this->mockService(Services::LOGGER, Logger\Adapter\File::class, true);
-        
-        $logger->expects($this->any())->method('setFormatter');
-        $logger->expects($this->any())->method('log')->with($expectedLogger, $expectedMessage);
+
+        $logger->expects($this->once())->method('setFormatter');
+        $logger->expects($this->once())->method('log')->with($expectedLogger, $expectedMessage);
     }
 
     /**
      * @dataProvider dataHandleError
      */
-    public function testHandleErrorWithoutView($errorCode, $expectedLogger, $expectedMessage)
+    public function testHandleErrorWithoutView($errorCode, $expectedLogger)
     {
-        $expectedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $expectedMessage);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
+
+        $error = new Error([
+            'type'    => is_null($errorCode) ? -1 : $errorCode,
+            'code'    => $errorCode,
+            'message' => __METHOD__,
+            'file'    => __FILE__,
+            'line'    => 120,
+            'isError' => true,
+        ]);
+
+        $expectedMessage = Helper::format($error);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
         $this->expectOutputString($expectedMessage);
 
-        Handler::handle(new Error([
-            'type'    => $errorCode,
-            'message' => __METHOD__,
-            'file'    => __FILE__,
-            'line'    => 120,
-            'isError' => true,
-        ]));
+        Handler::handle($error);
     }
 
     /**
      * @dataProvider dataHandleError
      */
-    public function testHandleErrorWithView($errorCode, $expectedLogger, $expectedMessage)
+    public function testHandleErrorWithView($errorCode, $expectedLogger)
     {
-        $expectedMessage = str_replace('{{__FUNCTION__}}', __FUNCTION__, $expectedMessage);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
+
+        $error = new Error([
+            'type'    => is_null($errorCode) ? -1 : $errorCode,
+            'code'    => $errorCode,
+            'message' => __METHOD__,
+            'file'    => __FILE__,
+            'line'    => 120,
+            'isError' => true,
+        ]);
+
+        $expectedMessage = Helper::format($error);
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
@@ -168,16 +206,7 @@ class HandlerTest extends TestCase
 
         $this->expectOutputString($expectedMessage);
 
-        $response = Handler::handle(new Error([
-            'type'    => $errorCode,
-            'message' => __METHOD__,
-            'file'    => __FILE__,
-            'line'    => 120,
-            'isError' => true,
-        ]));
-
-        $this->assertTrue($response->isSent());
-        $this->assertEquals($expectedMessage, $response->getContent());
+        Handler::handle($error);
     }
 
     public function dataHandleWarning()
@@ -194,46 +223,61 @@ class HandlerTest extends TestCase
             'E_USER_DEPRECATED' => [E_USER_DEPRECATED, Logger::INFO],
         ];
 
-        foreach ($datas as &$data) {
-            $data[] =
-                Handler::getErrorType($data[0]) . ': ' . __CLASS__ . '::testHandleWarning in ' . __FILE__ . ' on line 120';
-        }
-
         return $datas;
     }
 
     /**
      * @dataProvider dataHandleWarning
      */
-    public function testHandleWarning($errorCode, $expectedLogger, $expectedMessage)
+    public function testHandleWarning($errorCode, $expectedLogger)
     {
-        $this->mockLogger($expectedLogger, $expectedMessage);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
 
-        $this->expectOutputString('');
-
-        Handler::handle(new Error([
+        $error = new Error([
             'type'    => $errorCode,
             'message' => __METHOD__,
             'file'    => __FILE__,
             'line'    => 120,
             'isError' => true,
-        ]));
+        ]);
+
+        $expectedMessage = Helper::format($error);
+
+        $this->mockLogger($expectedLogger, $expectedMessage);
+
+        $this->expectOutputString('');
+
+        Handler::handle($error);
     }
 
     public function testHandleException()
     {
-        $msg = 'Uncaught exception: some exception in ' . __FILE__. ' on line ' . (__LINE__+6);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
+
+        $e = new \Exception();
+
+        $msg = Helper::format(new Error([
+            'type'        => -1,
+            'code'        => $e->getCode(),
+            'message'     => $e->getMessage(),
+            'file'        => $e->getFile(),
+            'line'        => $e->getLine(),
+            'isException' => true,
+            'exception'   => $e,
+        ]));
 
         $this->mockLogger(Logger::ERROR, $msg);
 
         $this->expectOutputString($msg);
 
-        Handler::handleException(new \Exception('some exception'));
+        Handler::handleException($e);
     }
 
     public function testHandleError()
     {
-        $msg = 'E_USER_ERROR: user error in ' . __FILE__. ' on line ' . (__LINE__+6);
+        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
+
+        $msg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : user error\n in : " . __FILE__ . '(' . (__LINE__ + 6).')');
 
         $this->mockLogger(Logger::ERROR, $msg);
 
@@ -244,7 +288,12 @@ class HandlerTest extends TestCase
 
     public function testTriggerError()
     {
-        $expectedMsg = 'E_USER_ERROR: msg in ' . __FILE__ . ' on line ' . (__LINE__ + 8);
+        Handler::setWriters([ErrorWriter\Phplog::class, ErrorWriter\Logger::class, ErrorWriter\View::class]);
+
+        $cur_error_log = ini_get('error_log');
+        ini_set('error_log', __DIR__ . '/error.log');
+
+        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : msg\n in : " . __FILE__ . '(' . (__LINE__ + 9).')');
 
         $this->expectOutputString($expectedMsg);
 
@@ -252,7 +301,59 @@ class HandlerTest extends TestCase
 
         Handler::register();
 
+        $date = date('d-M-Y H:i:s e');
         trigger_error('msg', E_USER_ERROR);
+
+        ini_set('error_log', $cur_error_log);
+        restore_error_handler();
+        restore_exception_handler();
+
+        $r = fopen(__DIR__ . '/error.log', 'r');
+
+        $lines = [];
+        while (!feof($r)) {
+            if (($str = fgets($r)) !== false) {
+                $lines[] = trim($str, "\n\r");
+            }
+        }
+        fclose($r);
+        unlink(__DIR__ . '/error.log');
+        $this->assertCount(3, $lines);
+        $this->assertEquals('[' . $date . '] ' . $expectedMsg, implode("\n", $lines));
+    }
+
+    public function testTriggerErrorDefaultWriter()
+    {
+        Handler::setWriters([ErrorWriter\Phplog::class]);
+
+        $cur_error_log = ini_get('error_log');
+        ini_set('error_log', __DIR__ . '/error.log');
+
+        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : msg\n in : " . __FILE__ . '(' . (__LINE__ + 7).')');
+
+        $this->expectOutputString(null);
+
+        Handler::register();
+
+        $date = date('d-M-Y H:i:s e');
+        trigger_error('msg', E_USER_ERROR);
+
+        ini_set('error_log', $cur_error_log);
+        restore_error_handler();
+        restore_exception_handler();
+
+        $r = fopen(__DIR__ . '/error.log', 'r');
+
+        $lines = [];
+        while (!feof($r)) {
+            if (($str = fgets($r)) !== false) {
+                $lines[] = trim($str, "\n\r");
+            }
+        }
+        fclose($r);
+        unlink(__DIR__ . '/error.log');
+        $this->assertCount(3, $lines);
+        $this->assertEquals('[' . $date . '] ' . $expectedMsg, implode("\n", $lines));
     }
 }
 

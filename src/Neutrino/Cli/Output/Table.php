@@ -2,16 +2,21 @@
 
 namespace Neutrino\Cli\Output;
 
+use Neutrino\Support\Arr;
+use Neutrino\Support\Str;
+
 /**
  * Class Table
  *
- *  @package Neutrino\Cli\Output
+ * @package Neutrino\Cli\Output
  */
 class Table
 {
-    const STYLE_DEFAULT = 'default';
+    const NO_STYLE = 1;
 
-    const NO_STYLE = 'no-style';
+    const NO_HEADER = 2;
+
+    const STYLE_DEFAULT = 4;
 
     protected $output;
 
@@ -24,20 +29,21 @@ class Table
     /**
      * Table constructor.
      *
-     * @param ConsoleOutput $output
-     * @param array         $datas
-     * @param array         $headers
-     * @param string        $style
+     * @param Writer $output
+     * @param array  $datas
+     * @param array  $headers
+     * @param int    $style
      */
     public function __construct(
-        ConsoleOutput $output,
+        Writer $output,
         array $datas = [],
         array $headers = [],
         $style = self::STYLE_DEFAULT
-    ) {
+    )
+    {
         $this->output = $output;
-        $this->datas  = $datas;
-        $this->style  = $style;
+        $this->datas = $datas;
+        $this->style = $style;
 
         foreach ($headers as $header) {
             $this->columns[$header] = [];
@@ -60,7 +66,7 @@ class Table
     {
         foreach ($this->datas as $data) {
             foreach ($data as $column => $value) {
-                if (!arr_has($this->columns, $column) || !arr_has($this->columns[$column], 'size')) {
+                if (empty($this->columns[$column]) || empty($this->columns[$column]['size'])) {
                     $this->columns[$column] = [
                         'size' => max(Helper::strlenWithoutDecoration($column), Helper::strlenWithoutDecoration($value))
                     ];
@@ -77,7 +83,7 @@ class Table
 
     protected function separator()
     {
-        if ($this->style === self::NO_STYLE) {
+        if (!$this->withStyle()) {
             return;
         }
         $line = '+';
@@ -89,35 +95,49 @@ class Table
 
     protected function header()
     {
-        $closure = $this->style === self::NO_STYLE ? '' : '|';
-        $line    = $closure;
+        if (!$this->withHeader()) {
+            return;
+        }
+
+        $closure = $this->withStyle() ? '|' : '';
+        $line = $closure;
         foreach ($this->columns as $column => $opts) {
-            $line .= ' ' . Helper::strPad(str_upper($column), $opts['size'], ' ') . ' ' . $closure;
+            $line .= ' ' . Helper::strPad(Str::upper($column), $opts['size'], ' ') . ' ' . $closure;
         }
         $this->output->write($line, true);
     }
 
-    public function display($header = true)
+    public function display()
     {
         $this->generateColumns();
 
-        $this->separator();
+        if ($this->withHeader()) {
+            $this->separator();
 
-        if ($header) {
             $this->header();
         }
 
         $this->separator();
 
-        $closure = $this->style === self::NO_STYLE ? '' : '|';
+        $closure = $this->withStyle() ? '|' : '';
         foreach ($this->datas as $data) {
             $line = $closure;
             foreach ($this->columns as $column => $opts) {
-                $line .= ' ' . Helper::strPad(arr_fetch($data, $column, ''), $opts['size'], ' ') . ' ' . $closure;
+                $line .= ' ' . Helper::strPad(Arr::fetch($data, $column, ''), $opts['size'], ' ') . ' ' . $closure;
             }
             $this->output->write($line, true);
         }
 
         $this->separator();
+    }
+
+    protected function withHeader()
+    {
+        return !($this->style & self::NO_HEADER);
+    }
+
+    protected function withStyle()
+    {
+        return !($this->style & self::NO_STYLE);
     }
 }

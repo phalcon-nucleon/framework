@@ -3,6 +3,7 @@
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\SimpleProvider;
 
 
 /**
@@ -10,7 +11,7 @@ use Neutrino\Constants\Services;
  *
  *  @package Neutrino\Providers
  */
-class Cookies extends BasicProvider
+class Cookies extends SimpleProvider
 {
     protected $class = \Phalcon\Http\Response\Cookies::class;
 

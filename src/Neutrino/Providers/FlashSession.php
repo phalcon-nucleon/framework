@@ -4,6 +4,7 @@ namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 
+use Neutrino\Support\SimpleProvider;
 use Phalcon\Flash\Session;
 
 /**
@@ -11,7 +12,7 @@ use Phalcon\Flash\Session;
  *
  *  @package Neutrino\Providers
  */
-class FlashSession extends BasicProvider
+class FlashSession extends SimpleProvider
 {
     protected $class = Session::class;
 

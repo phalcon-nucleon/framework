@@ -2,12 +2,14 @@
 
 namespace Neutrino\Foundation;
 
+use Neutrino\Interfaces\Kernelable;
 use Phalcon\Config;
+use Phalcon\Http\Response;
 
 /**
  * Class Application
  *
- * Phalcon Application Bootstrapper
+ * Phalcon Application Bootstrap
  *
  * @package Neutrino\Foundation
  */
@@ -46,8 +48,22 @@ class Bootstrap
         $kernel->registerRoutes();
         $kernel->registerModules([]);
 
+        return $kernel;
+    }
+
+    /**
+     * @param \Neutrino\Interfaces\Kernelable|\Phalcon\Application $kernel
+     */
+    public function run(Kernelable $kernel)
+    {
         $kernel->boot();
 
-        return $kernel;
+        if (($response = $kernel->handle()) instanceof Response) {
+            if (!$response->isSent()) {
+                $response->send();
+            }
+        };
+
+        $kernel->terminate();
     }
 }

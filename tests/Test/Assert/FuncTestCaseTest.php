@@ -2,6 +2,7 @@
 namespace Test\Assert;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\Str;
 use Phalcon\Http\Response;
 use Test\TestCase\TestCase;
 
@@ -43,8 +44,8 @@ class FuncTestCaseTest extends TestCase
      */
     public function testDispatch($method, $url, $params = [])
     {
-        $this->app->router->{'add' . str_capitalize($method)}($url, [
-            'namespace'  => 'Test\Stub',
+        $this->app->router->{'add' . Str::capitalize($method)}($url, [
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'data'
         ]);

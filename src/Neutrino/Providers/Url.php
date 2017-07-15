@@ -3,7 +3,7 @@
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
-
+use Neutrino\Support\Provider;
 
 /**
  * Class Url
@@ -27,7 +27,7 @@ class Url extends Provider
     {
         $url = new \Phalcon\Mvc\Url();
 
-        $url->setBaseUri($this->{Services::CONFIG}->app->base_uri);
+        $url->setBaseUri($this->getDI()->getShared(Services::CONFIG)->app->base_uri);
 
         return $url;
     }

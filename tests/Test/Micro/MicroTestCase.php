@@ -2,7 +2,7 @@
 
 namespace Test\Micro;
 
-use Test\Stub\StubKernelMicro;
+use Fake\Kernels\Micro\StubKernelMicro;
 
 trait MicroTestCase
 {

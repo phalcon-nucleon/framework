@@ -4,33 +4,46 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
+use Neutrino\Constants\Services;
+use Neutrino\Support\Arr;
 use Phalcon\Cli\Router\Route;
 
 /**
  * Class HelperTask
  *
- *  @package Neutrino\Foundation\Cli
+ * @package Neutrino\Foundation\Cli
  */
 class HelperTask extends Task
 {
-    /**
-     * @override
-     */
-    public function beforeExecuteRoute()
-    {
-        // Parent overload to prevent check the help option existence
-    }
-
     public function mainAction()
     {
-        $this->displayNeutrinoVersion();
+        $this->{Services::APP}->displayNeutrinoVersion();
+
+        if ($this->hasArg('arguments')) {
+            $this->router->handle($this->getArg('arguments'));
+
+            if (!$this->router->wasMatched()) {
+                if (is_null($route = $this->tryHandle($this->getArg('arguments')))) {
+                    throw new \Exception('route not found');
+                }
+                $task   = Arr::fetch($route, 'task');
+                $action = Arr::fetch($route, 'action', 'main') . $this->dispatcher->getActionSuffix();
+            } else {
+                $task   = $this->router->getTaskName();
+                $action = ($this->router->getActionName() ?: 'main') . $this->dispatcher->getActionSuffix();
+            }
+
+        } else {
+            $task   = $this->getArg('task');
+            $action = $this->getArg('action') . $this->dispatcher->getActionSuffix();
+        }
 
         $infos = Helper::getTaskInfos(
-            $this->getArg('task'),
-            $this->getArg('action') . $this->dispatcher->getActionSuffix()
+            $task,
+            $action
         );
 
-        $route = $this->resolveRoute($this->getArg('task'), $this->getArg('action'));
+        $route = $this->resolveRoute($task, $action);
 
         if (!empty($route)) {
             $this->line('Usage :');
@@ -40,13 +53,13 @@ class HelperTask extends Task
         $this->line('Description :');
         $this->line("\t" . $infos['description']);
 
-        if (arr_has($infos, 'arguments')) {
+        if (Arr::has($infos, 'arguments')) {
             $this->line('Arguments :');
             foreach ($infos['arguments'] as $argument) {
                 $this->line("\t" . $argument);
             }
         }
-        if (arr_has($infos, 'options')) {
+        if (Arr::has($infos, 'options')) {
             $this->line('Options :');
             foreach ($infos['options'] as $option) {
                 $this->line("\t" . $option);
@@ -71,7 +84,7 @@ class HelperTask extends Task
             $paths = $route->getPaths();
 
             if ($paths['task'] == $class) {
-                if (arr_fetch($paths, 'action', 'main') == $action) {
+                if (Arr::fetch($paths, 'action', 'main') . $this->dispatcher->getActionSuffix() == $action) {
                     $findedRoute = $route;
                     break;
                 }
@@ -80,6 +93,31 @@ class HelperTask extends Task
 
         if (!empty($findedRoute)) {
             return $findedRoute;
+        }
+
+        return null;
+    }
+
+    private function tryHandle($arg)
+    {
+        $routes = $this->router->getRoutes();
+
+        $findedRoute = null;
+        foreach ($routes as $route) {
+            /** @var Route $route */
+            $pattern = $route->getCompiledPattern();
+
+            do {
+                $old     = $pattern;
+                $pattern = preg_replace('/\([^\(\)]*\)(?:[+*]|\{[\d,]\})?/', '', $pattern);
+            } while ($pattern !== $old);
+
+            $pattern = trim(preg_replace('/ /', '\s*', $pattern));
+
+            if (preg_match($pattern, trim($arg))) {
+
+                return $route->getPaths();
+            }
         }
 
         return null;

@@ -8,6 +8,9 @@ Nucleon : Phalcon extended framework. (Kernel)
 
 ## About
 - Powerful bootstrap for Phalcon
+- Optimizer (neutrino\optimizer)
+  - Framework optimizer. Compile the main code & classes that are frequently used into one single file. 
+  - Auto-Loader Optimizer. Transalte the composer autoloader, in Phalcon autoloader.
 - Middleware
   - Logic
   - Throttle middleware
@@ -23,7 +26,7 @@ Nucleon : Phalcon extended framework. (Kernel)
 - Facades
   - Allows you to use the facade pattern
 - Console (neutrino\cli)
-- Dotenv (neutrino\dotenv)
+- Dotconst (neutrino\const)
 
 ## Resource
 - [Phalcon](http://phalconphp.com): Phalcon framework

@@ -4,6 +4,7 @@ namespace Neutrino\Repositories;
 
 use Neutrino\Interfaces\Repositories\RepositoryInterface;
 use Neutrino\Repositories\Exceptions\TransactionException;
+use Neutrino\Support\Arr;
 use Phalcon\Di\Injectable;
 use Phalcon\Mvc\Model\Transaction;
 
@@ -300,7 +301,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
             }
 
             if (!empty($this->messages)) {
-                throw new TransactionException(get_class(arr_get($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
+                throw new TransactionException(get_class(Arr::fetch($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
             }
         } catch (\Exception $e) {
             $this->messages[] = $e->getMessage();
@@ -339,7 +340,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
             }
 
             if (!empty($this->messages)) {
-                throw new TransactionException(get_class(arr_get($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
+                throw new TransactionException(get_class(Arr::fetch($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
             }
 
             if ($tx->commit() === false) {

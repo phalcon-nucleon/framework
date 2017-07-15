@@ -2,6 +2,8 @@
 
 namespace Neutrino\Cli\Output;
 
+use Neutrino\Support\Str;
+
 /**
  * Class Group
  *
@@ -18,10 +20,10 @@ class Group
     /**
      * Group constructor.
      *
-     * @param ConsoleOutput $output
-     * @param array         $datas
+     * @param Writer $output
+     * @param array  $datas
      */
-    public function __construct(ConsoleOutput $output, array $datas = [])
+    public function __construct(Writer $output, array $datas = [])
     {
         $this->output = $output;
         $this->datas = $datas;
@@ -31,7 +33,7 @@ class Group
     {
         foreach ($this->datas as $key => $data) {
             $washKey = Helper::removeDecoration($key);
-            if (str_contains($washKey, ':')) {
+            if (Str::contains($washKey, ':')) {
                 $keys = explode(':', $washKey);
 
                 $group = $keys[0];
@@ -47,7 +49,7 @@ class Group
     {
         $this->generateGroupData();
 
-        $tableOutput = new Table($this->output, [], [], Table::NO_STYLE);
+        $tableOutput = new Table($this->output, [], [], Table::NO_STYLE | Table::NO_HEADER);
         $table = [];
         foreach ($this->groups['default'] as $key => $value) {
             $table[] = [$key, $value];
@@ -73,7 +75,7 @@ class Group
             foreach ($datas as $key => $value) {
                 $table[] = [$key, $value];
             }
-            $tableOutput->setDatas($table)->display(false);
+            $tableOutput->setDatas($table)->display();
         }
     }
 }

@@ -12,27 +12,28 @@
   ],
   "require": {
     "php": ">=5.6",
-    "ext-phalcon": ">=3.0",
+    "ext-phalcon": ">=3.1",
     "classpreloader/classpreloader": "~3.0"
   },
   "require-dev": {
-    "phalcon/devtools": "dev-master",
+    "phalcon/ide-stubs": "dev-master",
     "phpunit/phpunit": "~5.6",
     "mockery/mockery": "~0.9.4",
     "satooshi/php-coveralls": "~1.0"
   },
   "replace" : {
-    "neutrino/dotenv": "self.version",
+    "neutrino/dotconst": "self.version",
     "neutrino/optimizer": "self.version"
   },
   "autoload": {
-    "files": [
-      "src/Neutrino/Support/helpers/arr.php",
-      "src/Neutrino/Support/helpers/obj.php",
-      "src/Neutrino/Support/helpers/str.php"
-    ],
     "psr-4": {
       "Neutrino\\": "src/Neutrino/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Test\\": "tests/Test/",
+      "Fake\\": "tests/.fake/nucleon.app/app/"
     }
   }
 }

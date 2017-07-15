@@ -2,7 +2,7 @@
 
 namespace Neutrino\Foundation\Http;
 
-use Neutrino\Dotenv;
+use Neutrino\Error;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Di\FactoryDefault as Di;
@@ -16,7 +16,9 @@ use Phalcon\Mvc\Application;
  */
 abstract class Kernel extends Application implements Kernelable
 {
-    use Kernelize;
+    use Kernelize {
+        boot as _boot;
+    }
 
     /**
      * Return the Provider List to load.
@@ -61,15 +63,25 @@ abstract class Kernel extends Application implements Kernelable
     protected $eventsManagerClass = EventManager::class;
 
     /**
+     * Error Handler Outputs
+     *
+     * @var int
+     */
+    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Flash::class, Error\Writer\View::class];
+
+
+    /**
      * Register the routes of the application.
      */
     public function registerRoutes()
     {
-        require Dotenv::env('BASE_PATH') .'/routes/http.php';
+        require BASE_PATH . '/routes/http.php';
     }
 
     public function boot()
     {
+        $this->_boot();
+
         $this->useImplicitView(isset($this->config->view->implicit) ? $this->config->view->implicit : false);
     }
 }

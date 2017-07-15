@@ -4,8 +4,10 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use ClassPreloader\Factory;
 use Neutrino\Cli\Task;
-use Neutrino\Dotenv;
+use Neutrino\Error\Error;
+use Neutrino\Error\Helper;
 use Neutrino\Optimizer\Composer;
+use Neutrino\Support\Str;
 
 /**
  * Class OptimizeTask
@@ -19,19 +21,32 @@ class OptimizeTask extends Task
      */
     private $optimizer;
 
+    private $compileTasks = [
+        ConfigCacheTask::class,
+        DotconstCacheTask::class
+    ];
+
     /**
      * Optimize the autoloader.
      *
      * @description Optimize the autoloader.
      *
      * @option      -m, --memory: Optimize memory.
+     * @option      -f, --force: Force optimization.
      */
     public function mainAction()
     {
+        if(APP_DEBUG && !$this->hasOption('f', 'force')){
+            $this->info('Application is in debug mode.');
+            $this->info('For optimize in debug please use the --force, -f option.');
+
+            return;
+        }
+
         $this->optimizer = new Composer(
-            Dotenv::env('BASE_PATH') . '/bootstrap/compile/loader.php',
-            Dotenv::env('BASE_PATH') . '/vendor/composer',
-            Dotenv::env('BASE_PATH')
+            BASE_PATH . '/bootstrap/compile/loader.php',
+            BASE_PATH . '/vendor/composer',
+            BASE_PATH
         );
 
         if ($this->hasOption('m', 'memory')) {
@@ -43,13 +58,15 @@ class OptimizeTask extends Task
             $this->error('Autoloader generation has failed');
         }
 
-        $this->optimizeClass();
-
         $this->info('Compiling common classes');
 
-        $this->dispatcher->forward([
-            'task' => ConfigCacheTask::class
-        ]);
+        $this->optimizeClass();
+
+        foreach ($this->compileTasks as $compileTask) {
+            $this->application->handle([
+                'task' => $compileTask
+            ]);
+        }
     }
 
     /**
@@ -80,19 +97,21 @@ class OptimizeTask extends Task
     {
         $preloader = (new Factory())->create(['skip' => true]);
 
-        $handle = $preloader->prepareOutput(Dotenv::env('BASE_PATH') . '/bootstrap/compile/compile.php');
+        $handle = $preloader->prepareOutput(BASE_PATH . '/bootstrap/compile/compile.php');
 
         $files = require __DIR__ . '/Optimize/compile.php';
 
-        if (file_exists(Dotenv::env('BASE_PATH') . '/config/compile.php')) {
-            $files = array_merge($files, require Dotenv::env('BASE_PATH') . '/config/compile.php');
+        if (file_exists(BASE_PATH . '/config/compile.php')) {
+            $files = array_merge($files, require BASE_PATH . '/config/compile.php');
         }
 
         foreach ($files as $file) {
             try {
-                fwrite($handle, $preloader->getCode($file, false) . PHP_EOL);
+                fwrite($handle, $preloader->getCode(Str::normalizePath($file), false) . PHP_EOL);
             } catch (\Exception $e) {
-                //
+                $this->block(array_merge([
+                    "File : " . Str::normalizePath($file),
+                ], explode("\n", Helper::format(Error::fromException($e)))), 'warn', 4);
             }
         }
 

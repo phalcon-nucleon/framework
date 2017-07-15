@@ -5,7 +5,7 @@ namespace Neutrino\Cli\Output;
 /**
  * Class Decorate
  *
- *  @package Neutrino\Cli\Output
+ * @package Neutrino\Cli\Output
  *
  * @author  Fabien Potencier <fabien@symfony.com>
  * @see     https://github.com/symfony/console/blob/3.0/Formatter/OutputFormatterStyle.php
@@ -80,20 +80,20 @@ class Decorate
             return $text;
         }
 
-        $setCodes = [];
+        $setCodes   = [];
         $unsetCodes = [];
 
         if (null !== $foreground) {
-            $setCodes[] = self::$availableForegroundColors[$foreground]['set'];
+            $setCodes[]   = self::$availableForegroundColors[$foreground]['set'];
             $unsetCodes[] = self::$availableForegroundColors[$foreground]['unset'];
         }
         if (null !== $background) {
-            $setCodes[] = self::$availableBackgroundColors[$background]['set'];
+            $setCodes[]   = self::$availableBackgroundColors[$background]['set'];
             $unsetCodes[] = self::$availableBackgroundColors[$background]['unset'];
         }
         if (!empty($options)) {
             foreach ($options as $option) {
-                $setCodes[] = self::$availableOptions[$option]['set'];
+                $setCodes[]   = self::$availableOptions[$option]['set'];
                 $unsetCodes[] = self::$availableOptions[$option]['unset'];
             }
         }

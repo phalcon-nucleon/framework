@@ -4,6 +4,7 @@ namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 
+use Neutrino\Support\SimpleProvider;
 use Phalcon\Mvc\Model\Transaction\Manager;
 
 /**
@@ -11,7 +12,7 @@ use Phalcon\Mvc\Model\Transaction\Manager;
  *
  *  @package Neutrino\Providers
  */
-class ModelTransactionManager extends BasicProvider
+class ModelTransactionManager extends SimpleProvider
 {
     protected $class = Manager::class;
 

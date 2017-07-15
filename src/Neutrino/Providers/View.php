@@ -35,7 +35,16 @@ class View extends Injectable implements Providable
 
             $view = new \Phalcon\Mvc\View();
 
-            $view->setViewsDir($this->getShared(Services::CONFIG)->view->views_dir);
+            $configView = $this->getShared(Services::CONFIG)->view;
+            if (isset($configView->views_dir)) {
+                $view->setViewsDir($configView->views_dir);
+            }
+            if (isset($configView->partials_dir)) {
+                $view->setPartialsDir($configView->partials_dir);
+            }
+            if (isset($configView->layouts_dir)) {
+                $view->setLayoutsDir($configView->layouts_dir);
+            }
 
             $view->registerEngines([
                 '.volt'  => function ($view, $di) {

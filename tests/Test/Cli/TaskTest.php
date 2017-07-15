@@ -2,13 +2,17 @@
 
 namespace Test\Cli;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Fake\Kernels\Cli\StubKernelCli;
+use Fake\Kernels\Cli\Tasks\StubTask;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
-use Neutrino\Foundation\Cli\Tasks\HelperTask;
+use Neutrino\Error\Error;
+use Neutrino\Error\Handler;
+use Neutrino\Error\Helper;
+use Neutrino\Error\Writer\Cli;
+use Neutrino\Error\Writer\View;
 use Phalcon\Cli\Dispatcher;
-use Test\Stub\StubKernelCli;
-use Test\Stub\StubTask;
 use Test\TestCase\TestCase;
 
 class TaskTest extends TestCase
@@ -78,51 +82,6 @@ class TaskTest extends TestCase
         $this->assertEquals($options, $this->invokeMethod($task, 'getArgs', []));
     }
 
-    public function testBeforeExecuteRouteForwardHelper()
-    {
-        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
-
-        $dispatcher->expects($this->any())
-            ->method('getOptions')
-            ->willReturn(['h' => true]);
-
-        $dispatcher->expects($this->once())
-            ->method('getHandlerClass')
-            ->willReturn(Task::class);
-
-        $dispatcher->expects($this->once())
-            ->method('getActionName')
-            ->willReturn('main');
-
-        $dispatcher->expects($this->once())
-            ->method('forward')
-            ->with([
-                'task'   => HelperTask::class,
-                'action' => 'main',
-                'params' => [
-                    'task'   => Task::class,
-                    'action' => 'main',
-                ]
-            ]);
-
-        $task = $this->stubTask();
-
-        $this->assertFalse($task->beforeExecuteRoute());
-    }
-
-    public function testBeforeExecuteRouteNotForwardHelper()
-    {
-        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
-
-        $dispatcher->expects($this->any())
-            ->method('getOptions')
-            ->willReturn([]);
-
-        $task = $this->stubTask();
-
-        $this->assertTrue($task->beforeExecuteRoute());
-    }
-
     public function dataOutput()
     {
         return [
@@ -139,7 +98,7 @@ class TaskTest extends TestCase
      */
     public function testOutput($func, $str)
     {
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
         $mock->expects($this->once())
             ->method($func)
@@ -147,14 +106,12 @@ class TaskTest extends TestCase
 
         $task = $this->stubTask();
 
-        $this->setValueProperty($task, 'output', $mock);
-
         $task->$func($str);
     }
 
     public function testLine()
     {
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
         $mock->expects($this->once())
             ->method('write')
@@ -162,42 +119,6 @@ class TaskTest extends TestCase
 
         $task = $this->stubTask();
 
-        $this->setValueProperty($task, 'output', $mock);
-
         $task->line('test');
-    }
-
-    public function testDisplayStats()
-    {
-        $mock = $this->createMock(ConsoleOutput::class);
-
-        $mock->expects($this->exactly(5))
-            ->method('write')
-            ->with($this->anything());
-
-        $task = $this->stubTask();
-
-        $this->setValueProperty($task, 'output', $mock);
-
-        $task->displayStats();
-    }
-
-    public function testHandleExpection()
-    {
-        $mock = $this->createMock(ConsoleOutput::class);
-
-        $mock->expects($this->exactly(3))
-            ->method('error')
-            ->withConsecutive(
-                ['Exception : Exception'],
-                ['test'],
-                [$this->anything()]
-            );
-
-        $task = $this->stubTask();
-
-        $this->setValueProperty($task, 'output', $mock);
-
-        $task->handleException(new \Exception('test', 123));
     }
 }

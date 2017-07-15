@@ -7,12 +7,13 @@ use Neutrino\Cli\Router as NeutrinoRouter;
 use Neutrino\Foundation\Cli\Tasks\ClearCompiledTask;
 use Neutrino\Foundation\Cli\Tasks\ConfigCacheTask;
 use Neutrino\Foundation\Cli\Tasks\ConfigClearTask;
+use Neutrino\Foundation\Cli\Tasks\DefaultTask;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Neutrino\Foundation\Cli\Tasks\ViewClearTask;
-use Neutrino\Providers\Provider;
+use Neutrino\Support\Provider;
 
 /**
  * Class Router
@@ -32,15 +33,19 @@ class Router extends Provider
     {
         $router = new NeutrinoRouter(false);
 
-        $router->setDefaultTask(ListTask::class);
+        $router->setDefaultTask(DefaultTask::class);
 
         $router->addTask('help ( .*)*', HelperTask::class);
         $router->addTask('list', ListTask::class);
+
         $router->addTask('optimize', OptimizeTask::class);
         $router->addTask('clear-compiled', ClearCompiledTask::class);
+
         $router->addTask('config:cache', ConfigCacheTask::class);
         $router->addTask('config:clear', ConfigClearTask::class);
+
         $router->addTask('route:list', RouteListTask::class);
+
         $router->addTask('view:clear', ViewClearTask::class);
 
         return $router;

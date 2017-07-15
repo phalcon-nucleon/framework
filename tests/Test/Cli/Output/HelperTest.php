@@ -2,10 +2,10 @@
 
 namespace Test\Cli\Output;
 
+use Fake\Kernels\Cli\Tasks\StubTask;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
 use Phalcon;
-use Test\Stub\StubTask;
 
 class HelperTest extends \PHPUnit_Framework_TestCase
 {

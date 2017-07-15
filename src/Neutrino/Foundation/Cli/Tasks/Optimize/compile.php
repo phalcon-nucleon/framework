@@ -1,8 +1,10 @@
 <?php
 
-$path = __DIR__ . '/../../../../../Neutrino';
+$path = __DIR__ . '/../../../../../Neutrino/';
 
 return [
+    $path . '/Error/Handler.php',
+
     $path . '/Constants/Services.php',
     $path . '/Constants/Env.php',
     $path . '/Constants/Events.php',
@@ -18,6 +20,8 @@ return [
     $path . '/Constants/Events/Model.php',
     $path . '/Constants/Events/View.php',
     $path . '/Constants/Events/Volt.php',
+    $path . '/Constants/Events/Console.php',
+    $path . '/Constants/Events/Kernel.php',
 
     $path . '/Interfaces/Kernelable.php',
     $path . '/Interfaces/Providable.php',
@@ -26,25 +30,23 @@ return [
     $path . '/Interfaces/Middleware/BeforeInterface.php',
     $path . '/Interfaces/Middleware/FinishInterface.php',
 
-    $path . '/Dotenv/Loader.php',
-    $path . '/Dotenv.php',
+    $path . '/Dotconst/Loader.php',
 
     $path . '/Config/Loader.php',
 
     $path . '/Events/Listener.php',
 
-    $path . '/Providers/BasicProvider.php',
-    $path . '/Providers/Provider.php',
+    $path . '/Support/SimpleProvider.php',
+    $path . '/Support/Provider.php',
+
     $path . '/Providers/Http/Dispatcher.php',
     $path . '/Providers/Http/Router.php',
     $path . '/Providers/Micro/Router.php',
     $path . '/Providers/Database.php',
-    $path . '/Providers/Dispatcher.php',
     $path . '/Providers/Cache.php',
     $path . '/Providers/Logger.php',
     $path . '/Providers/Flash.php',
     $path . '/Providers/Session.php',
-    $path . '/Providers/Router.php',
     $path . '/Providers/View.php',
     $path . '/Providers/Url.php',
 
@@ -58,7 +60,6 @@ return [
     $path . '/Support/Facades/Auth.php',
     $path . '/Support/Facades/Cache.php',
     $path . '/Support/Facades/Flash.php',
-    $path . '/Support/Facades/HttpClient.php',
     $path . '/Support/Facades/Log.php',
     $path . '/Support/Facades/Request.php',
     $path . '/Support/Facades/Response.php',
@@ -67,8 +68,6 @@ return [
     $path . '/Support/Facades/Url.php',
     $path . '/Support/Facades/View.php',
     $path . '/Support/Facades/Micro/Router.php',
-
-    $path . '/Error/Handler.php',
 
     $path . '/Foundation/Bootstrap.php',
     $path . '/Foundation/Kernelize.php',

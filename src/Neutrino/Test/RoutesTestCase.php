@@ -2,7 +2,6 @@
 
 namespace Neutrino\Test;
 
-use Neutrino\Dotenv;
 use Neutrino\Providers\Http\Router;
 use Neutrino\Support\Facades\Facade;
 use Neutrino\Test\Helpers\RoutesTrait;
@@ -32,7 +31,7 @@ abstract class RoutesTestCase extends FuncTestCase
 
         (new Router())->registering();
 
-        require Dotenv::env('BASE_PATH') . '/routes/http.php';
+        require BASE_PATH . '/routes/http.php';
 
         $routes = [];
         foreach ($di->getShared('router')->getRoutes() as $route) {

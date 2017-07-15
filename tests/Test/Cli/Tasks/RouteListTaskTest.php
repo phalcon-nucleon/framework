@@ -2,15 +2,14 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Fake\Kernels\Cli\StubKernelCli;
 use Neutrino\Cli\Output\Decorate;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
-use Neutrino\Dotenv;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Phalcon\Cli\Dispatcher;
-use Phalcon\Events\Manager;
 use Phalcon\Cli\Router;
-use Test\Stub\StubKernelCli;
+use Phalcon\Events\Manager;
 use Test\TestCase\TestCase;
 
 class RouteListTaskTest extends TestCase
@@ -22,7 +21,6 @@ class RouteListTaskTest extends TestCase
 
     public function testGetHttpRoute()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../Stub');
         $expectedRoutes = [
             ['pattern' => '/get', 'paths' => ['controller' => 'Stub', 'action' => 'index']]
         ];
@@ -37,12 +35,15 @@ class RouteListTaskTest extends TestCase
         $task = new RouteListTask();
 
         /** @var Router\Route[] $routes */
-        $routes = $this->invokeMethod($task, 'getHttpRoutes', []);
+        $routes = $this->invokeMethod($task, 'getHttpRoutesInfos', []);
 
         $this->assertInstanceOf(Router::class, $this->getDI()->getShared(Services::ROUTER));
 
+        $this->assertEquals('Controller', $routes['controllerSuffix']);
+        $this->assertEquals('Action', $routes['actionSuffix']);
+
         foreach ($expectedRoutes as $key => $expectedRoute) {
-            $route = $routes[$key];
+            $route = $routes['routes'][$key];
 
             $this->assertEquals($expectedRoute['pattern'], $route->getPattern());
             $this->assertEquals($expectedRoute['paths'], $route->getPaths());
@@ -51,18 +52,17 @@ class RouteListTaskTest extends TestCase
 
     public function testMainAction()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../Stub');
-
         $expected = [
-            'write' => ['exactly' => 8, 'consecutive' => [
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN   | ACTION                                     | MIDDLEWARE                    |'],
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index |                               |'],
-                ['|        |      | POST     | /post     | Test\Stub\StubController::index            |                               |'],
-                ['|        |      | GET      | /u/'.Decorate::notice('{user}').' | Test\Stub\StubController::index            |                               |'],
-                ['|        |      | GET|HEAD | /get-head | Test\Stub\StubController::index            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
+            'write' => ['exactly' => 9, 'consecutive' => [
+                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN                     | ACTION                                                               | MIDDLEWARE                    |'],
+                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
+                ['|        |      | GET      | /get                        | \StubController::indexAction                                         |                               |'],
+                ['|        |      | POST     | /post                       | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
+                ['|        |      | GET      | /u/'.Decorate::notice('{user}').'                   | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
+                ['|        |      | GET|HEAD | /get-head                   | Fake\Kernels\Http\Controllers\StubController::indexAction            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
+                ['|        |      | GET      | /back/'.Decorate::notice('{controller}').'/'.Decorate::notice('{action}').' | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'Controller::'.Decorate::notice('{action}').'Action |                               |'],
+                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
             ]]
         ];
 
@@ -73,7 +73,8 @@ class RouteListTaskTest extends TestCase
         $dispatcher->expects($this->any())->method('getEventsManager')->willReturn($eventManager);
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
 
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);
@@ -85,25 +86,22 @@ class RouteListTaskTest extends TestCase
 
         $task = new RouteListTask();
 
-        $this->setValueProperty($task, 'output', $mock);
-
         $task->mainAction();
     }
 
     public function testMainActionNoSubstitution()
     {
-        Dotenv::put('BASE_PATH', __DIR__ . '/../../Stub');
-
         $expected = [
-            'write' => ['exactly' => 8, 'consecutive' => [
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN   | ACTION                                     | MIDDLEWARE                    |'],
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get      | App\Http\Controllers\StubController::index |                               |'],
-                ['|        |      | POST     | /post     | Test\Stub\StubController::index            |                               |'],
-                ['|        |      | GET      | /u/:int   | Test\Stub\StubController::index            |                               |'],
-                ['|        |      | GET|HEAD | /get-head | Test\Stub\StubController::index            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['+--------+------+----------+-----------+--------------------------------------------+-------------------------------+'],
+            'write' => ['exactly' => 9, 'consecutive' => [
+                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN                   | ACTION                                                               | MIDDLEWARE                    |'],
+                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
+                ['|        |      | GET      | /get                      | \StubController::indexAction                                         |                               |'],
+                ['|        |      | POST     | /post                     | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
+                ['|        |      | GET      | /u/:int                   | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
+                ['|        |      | GET|HEAD | /get-head                 | Fake\Kernels\Http\Controllers\StubController::indexAction            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
+                ['|        |      | GET      | /back/:controller/:action | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'Controller::'.Decorate::notice('{action}').'Action |                               |'],
+                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
             ]]
         ];
 
@@ -115,7 +113,8 @@ class RouteListTaskTest extends TestCase
         $dispatcher->expects($this->any())->method('getActionSuffix')->willReturn('Action');
         $dispatcher->expects($this->any())->method('getOptions')->willReturn(['no-substitution' => true]);
 
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);
@@ -126,8 +125,6 @@ class RouteListTaskTest extends TestCase
         }
 
         $task = new RouteListTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->mainAction();
     }

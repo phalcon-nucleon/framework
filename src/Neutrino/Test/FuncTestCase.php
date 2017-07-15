@@ -25,7 +25,11 @@ abstract class FuncTestCase extends TestCase
             $this->getDI()->remove($service);
         }
 
-        $instance = $this->createMock($class);
+        if(is_string($class)){
+            $instance = $this->createMock($class);
+        } else {
+            $instance = $class;
+        }
 
         $this->getDI()->set($service, $instance, $shared);
 

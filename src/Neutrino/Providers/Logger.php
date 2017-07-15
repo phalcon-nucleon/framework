@@ -3,6 +3,7 @@
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
+use Neutrino\Support\Provider;
 use Phalcon\Logger\Adapter\File as FileLoggerAdapter;
 
 /**
@@ -24,9 +25,9 @@ class Logger extends Provider
     protected function register()
     {
         /** @var \Phalcon\Config|\stdClass $config */
-        $config = $this->{Services::CONFIG}->log;
+        $config = $this->getDI()->getShared(Services::CONFIG)->log;
 
-        $adapter = isset($config->adapter) ? $config->adapter : 'empty';
+        $adapter = isset($config->adapter) ? $config->adapter : null;
         switch ($adapter) {
             case null:
             case FileLoggerAdapter::class:
@@ -60,6 +61,6 @@ class Logger extends Provider
             throw new \RuntimeException('Required parameter {options} missing.');
         }
 
-        return new $adapter($name, $config->options->toArray());
+        return new $adapter($name, (array)$config->options);
     }
 }

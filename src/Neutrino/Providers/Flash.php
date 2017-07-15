@@ -4,6 +4,7 @@ namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 
+use Neutrino\Support\Provider;
 use Phalcon\Flash\Direct as FlashDirect;
 
 /**

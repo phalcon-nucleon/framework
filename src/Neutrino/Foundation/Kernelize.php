@@ -3,11 +3,11 @@
 namespace Neutrino\Foundation;
 
 use Neutrino\Constants\Services;
+use Neutrino\Error\Handler;
 use Neutrino\Events\Listener;
 use Neutrino\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Di;
-use Phalcon\Events\Manager as EventsManager;
 
 /**
  * Class HttpKernel
@@ -25,7 +25,7 @@ trait Kernelize
         $di = $this->getDI();
 
         foreach ($this->providers as $name => $provider) {
-            if(is_string($name)){
+            if (is_string($name)) {
                 $service = new Di\Service($name, $provider, true);
 
                 $di->setRaw($name, $service);
@@ -67,12 +67,10 @@ trait Kernelize
      * @param array $modules
      * @param bool  $merge
      */
-    public function registerModules(array $modules = [], $merge = false)
+    public function registerModules(array $modules, $merge = false)
     {
-        $modules = array_merge($this->modules, $modules);
-
-        if (!empty($modules)) {
-            parent::registerModules($modules, $merge);
+        if (!empty($this->modules) || !empty($modules)) {
+            parent::registerModules(array_merge($this->modules, $modules), $merge);
         }
     }
 
@@ -103,37 +101,62 @@ trait Kernelize
     public final function bootstrap(Config $config)
     {
         /** @var \Phalcon\Application $this */
+        Handler::setWriters($this->errorHandlerLvl);
 
         $diClass = $this->dependencyInjection;
-        $emClass = $this->eventsManagerClass;
 
-        if(!empty($emClass)){
-            $em = new $emClass;
+        if (empty($diClass)) {
+            $di = Di::getDefault();
+        } else {
+            Di::reset();
 
-            $this->setEventsManager($em);
+            /** @var Di $di */
+            $di = new $diClass;
+
+            // Global Register Di
+            Di::setDefault($di);
         }
 
-        Di::reset();
+        // Register Di on Application
+        $this->setDI($di);
 
-        /** @var Di $di */
-        $di = new $diClass;
-
+        // Register Default Shared instance
         $di->setShared(Services::APP, $this);
         $di->setShared(Services::CONFIG, $config);
 
-        if(!empty($em)){
+        $emClass = $this->eventsManagerClass;
+
+        if (!empty($emClass)) {
+            $em = new $emClass;
+
+            $this->setEventsManager($em);
+
             $di->setInternalEventsManager($em);
 
             $di->setShared(Services::EVENTS_MANAGER, $em);
         }
 
-        // Register Global Di
-        Di::setDefault($di);
-
         // Register Di on Facade
         Facade::setDependencyInjection($di);
+    }
 
-        // Register Di on Application
-        $this->setDI($di);
+    /**
+     * @return void
+     */
+    public function boot()
+    {
+        if (!is_null($em = $this->getEventsManager())) {
+            $em->fire(\Neutrino\Constants\Events\Kernel::BOOT, $this);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function terminate()
+    {
+        if (!is_null($em = $this->getEventsManager())) {
+            $em->fire(\Neutrino\Constants\Events\Kernel::TERMINATE, $this);
+        }
     }
 }

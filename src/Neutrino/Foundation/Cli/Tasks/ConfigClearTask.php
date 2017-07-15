@@ -3,7 +3,6 @@
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
-use Neutrino\Dotenv;
 
 /**
  * Class ConfigClearTask
@@ -21,7 +20,7 @@ class ConfigClearTask extends Task
      */
     public function mainAction()
     {
-        if(file_exists($file = Dotenv::env('BASE_PATH') . '/bootstrap/compile/config.php')){
+        if(file_exists($file = BASE_PATH . '/bootstrap/compile/config.php')){
             @unlink($file);
         }
 

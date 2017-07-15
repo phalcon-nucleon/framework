@@ -1,12 +1,12 @@
 <?php
 namespace Test\Middleware;
 
+use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
 use Neutrino\Http\Middleware\ThrottleRequest;
 use Neutrino\Http\Standards\StatusCode;
 use Neutrino\Middleware\Throttle;
 use Phalcon\Http\Response;
-use Test\Stub\StubController;
 use Test\TestCase\TestCase;
 use Test\TestCase\UseCaches;
 
@@ -24,13 +24,17 @@ class ThrottleTest extends TestCase
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stubthrottled',
             'action'     => 'index'
         ]);
 
         $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
+            $status = StatusCode::TOO_MANY_REQUESTS;
+        } else {
+            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        }
         for ($i = 1; $i <= 11; $i++) {
             // WHEN
             $this->dispatch('/');
@@ -51,7 +55,7 @@ class ThrottleTest extends TestCase
             }
         }
 
-        usleep(1000000);
+        sleep(1);
         $this->dispatch('/');
 
         $response = $this->app->response;
@@ -65,24 +69,26 @@ class ThrottleTest extends TestCase
 
     public function testThrottleFiltered()
     {
-        $this->markTestIncomplete('Test to redo');
-
         $this->app->useImplicitView(false);
 
         $this->app->router->addGet('/', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stubthrottled',
             'action'     => 'index'
         ]);
 
         $this->app->router->addGet('/throttled', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stubthrottled',
             'action'     => 'throttled'
         ]);
 
         $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
+            $status = StatusCode::TOO_MANY_REQUESTS;
+        } else {
+            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        }
         for ($i = 1; $i <= 10; $i++) {
             // WHEN
             $this->dispatch('/');
@@ -109,7 +115,11 @@ class ThrottleTest extends TestCase
 
         $response = $this->app->getDI()->getShared(Services::RESPONSE);
 
-        $this->assertEquals('200 OK', $response->getStatusCode());
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
+            $this->assertEquals(200, $response->getStatusCode());
+        } else {
+            $this->assertEquals('200 OK', $response->getStatusCode());
+        }
         $this->assertEquals('', $response->getContent());
         $this->assertEquals(false, $response->getHeaders()->get('X-RateLimit-Limit'));
         $this->assertEquals(false, $response->getHeaders()->get('X-RateLimit-Remaining'));
@@ -141,14 +151,18 @@ class ThrottleTest extends TestCase
         StubController::$middlewares = [];
 
         $this->app->router->addGet('/route-throttled', [
-            'namespace'  => 'Test\Stub',
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
             'controller' => 'Stub',
             'action'     => 'index',
             'middleware' => [ThrottleRequest::class => [10, 60]]
         ]);
 
         $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
+            $status = StatusCode::TOO_MANY_REQUESTS;
+        } else {
+            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
+        }
         for ($i = 1; $i <= 11; $i++) {
             // WHEN
             $this->dispatch('/route-throttled');

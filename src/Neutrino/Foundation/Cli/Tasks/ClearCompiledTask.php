@@ -3,7 +3,6 @@
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
-use Neutrino\Dotenv;
 
 /**
  * Class ClearCompiledTask
@@ -17,7 +16,7 @@ class ClearCompiledTask extends Task
      */
     public function mainAction()
     {
-        self::clearLoader(Dotenv::env('BASE_PATH') . DIRECTORY_SEPARATOR . 'bootstrap/compile/');
+        self::clearLoader(BASE_PATH . DIRECTORY_SEPARATOR . 'bootstrap/compile/');
 
         $this->info('The compiled loader has been removed.');
     }

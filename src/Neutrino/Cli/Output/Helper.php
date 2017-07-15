@@ -2,6 +2,7 @@
 
 namespace Neutrino\Cli\Output;
 
+use Neutrino\Support\Str;
 use Neutrino\Version;
 
 /**
@@ -54,7 +55,7 @@ final class Helper
     }
 
     /**
-     * Correct str_pad wrong output when str is decorate
+     * Correct Str::pad wrong output when str is decorate
      *
      * @param string $str
      * @param int    $size
@@ -90,7 +91,16 @@ final class Helper
         $paths = $route->getPaths();
 
         $compiled = $route->getCompiledPattern();
-        if ($compiled !== $route->getPattern()) {
+        $pattern = $route->getPattern();
+        if ($compiled !== $pattern) {
+            preg_match_all('/(:[\w_]+|\([^?][^\/\)]+\))/', $pattern, $matches);
+
+            foreach ($matches[1] as $idx => $match) {
+                if (Str::startsWith($match, ':') && in_array($match, [':controller', ':module', ':action', ':namespace'])) {
+                    $compiled = preg_replace('/\([^?][^\/\)]+\)/', Decorate::notice('{' . str_replace(':', '', $match) . '}'), $compiled, 1);
+                }
+            }
+
             foreach ($paths as $key => $value) {
                 if (in_array($key, ['controller', 'task', 'action', 'middleware'])) {
                     continue;
@@ -174,7 +184,7 @@ final class Helper
      */
     private static function getReflection($class)
     {
-        if (!arr_has(self::$reflections, $class)) {
+        if (!isset(self::$reflections[$class])) {
             self::$reflections[$class] = new \ReflectionClass($class);
         }
 

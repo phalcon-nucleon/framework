@@ -2,8 +2,9 @@
 
 namespace Test\Cli\Tasks;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Fake\Kernels\Cli\StubKernelCli;
 use Neutrino\Cli\Output\Helper;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
@@ -11,7 +12,6 @@ use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;
-use Test\Stub\StubKernelCli;
 use Test\TestCase\TestCase;
 
 class HelperTaskTest extends TestCase
@@ -40,8 +40,8 @@ class HelperTaskTest extends TestCase
     public function dataResolveRoute()
     {
         return [
-            [new Route('list', ['task' => ListTask::class, 'action' => null]), ListTask::class, 'main'],
-            [new Route('optimize', ['task' => OptimizeTask::class, 'action' => null]), OptimizeTask::class, 'main']
+            [new Route('list', ['task' => ListTask::class, 'action' => null]), ListTask::class, 'mainAction'],
+            [new Route('optimize', ['task' => OptimizeTask::class, 'action' => null]), OptimizeTask::class, 'mainAction']
         ];
     }
 
@@ -82,13 +82,14 @@ class HelperTaskTest extends TestCase
             ]],
             [OptimizeTask::class, 'main', [
                 'info'  => ['exactly' => 1],
-                'write' => ['exactly' => 6, 'consecutive' => [
+                'write' => ['exactly' => 7, 'consecutive' => [
                     [Helper::neutrinoVersion() . PHP_EOL, true],
                     ['Usage :', true],
                     ['Description :', true],
                     ["\t" . 'Optimize the autoloader.', true],
                     ['Options :', true],
                     ["\t" . '-m, --memory: Optimize memory.', true],
+                    ["\t" . '-f, --force: Force optimization.', true],
                 ]]
             ]],
         ];
@@ -111,7 +112,8 @@ class HelperTaskTest extends TestCase
                 'action' => $action,
             ]);
 
-        $mock = $this->createMock(ConsoleOutput::class);
+        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+
         foreach ($expected as $func => $params) {
             $method = $mock->expects($this->exactly($params['exactly']))
                 ->method($func);
@@ -122,8 +124,6 @@ class HelperTaskTest extends TestCase
         }
 
         $task = new HelperTask();
-
-        $this->setValueProperty($task, 'output', $mock);
 
         $task->mainAction();
     }

@@ -4,7 +4,6 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
 use Neutrino\Config\Loader;
-use Neutrino\Dotenv;
 
 /**
  * Class ConfigCacheTask
@@ -25,9 +24,14 @@ class ConfigCacheTask extends Task
     {
         $this->info('Generating configuration cache');
 
-        $config = Loader::raw(Dotenv::env('BASE_PATH'), ['compile']);
+        self::generateCache();
+    }
 
-        $handle = fopen(Dotenv::env('BASE_PATH') . '/bootstrap/compile/config.php', 'w');
+    public static function generateCache()
+    {
+        $config = Loader::raw(BASE_PATH, ['compile']);
+
+        $handle = fopen(BASE_PATH . '/bootstrap/compile/config.php', 'w');
 
         if ($handle === false) {
             throw new \Exception;

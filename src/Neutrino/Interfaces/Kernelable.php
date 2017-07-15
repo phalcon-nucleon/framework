@@ -64,4 +64,9 @@ interface Kernelable
      * @return void
      */
     public function boot();
+
+    /**
+     * @return void
+     */
+    public function terminate();
 }

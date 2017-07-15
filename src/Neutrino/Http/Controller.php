@@ -10,6 +10,7 @@ use Neutrino\Constants\Services;
  *  @package Neutrino\Foundation
  *
  * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
+ * @property-read \Neutrino\Auth\Manager                                                                $auth
  * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
  */
 abstract class Controller extends \Phalcon\Mvc\Controller

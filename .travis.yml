@@ -5,11 +5,12 @@ sudo: required
 php:
   - 5.6
   - 7.0
-#  - 7.1
+  - 7.1
 env:
   matrix:
-    - PHALCON_VERSION="3.0.x"
+    # - PHALCON_VERSION="3.0.x"
     - PHALCON_VERSION="3.1.x"
+    - PHALCON_VERSION="3.2.x"
 
 install:
   - composer self-update

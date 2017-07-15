@@ -2,7 +2,7 @@
 
 namespace Test\Providers;
 
-use Neutrino\Providers\BasicProvider;
+use Neutrino\Support\SimpleProvider;
 use Test\TestCase\TestCase;
 
 class BasicProviderTest extends TestCase
@@ -13,7 +13,7 @@ class BasicProviderTest extends TestCase
      */
     public function testNoName()
     {
-        new StubWrongNameBasicProvider;
+        new StubWrongNameSimpleProvider;
     }
 
     /**
@@ -21,30 +21,30 @@ class BasicProviderTest extends TestCase
      */
     public function testNoClass()
     {
-        new StubWrongClassBasicProvider;
+        new StubWrongClassSimpleProvider;
     }
 
     public function testRegister()
     {
-        $provider = new StubRegisterBasicProvider;
+        $provider = new StubRegisterSimpleProvider;
 
         $provider->registering();
 
         $this->assertTrue($this->getDI()->has('test'));
-        $this->assertInstanceOf(StubRegisterBasicProvider::class, $this->getDI()->get('test'));
+        $this->assertInstanceOf(StubRegisterSimpleProvider::class, $this->getDI()->get('test'));
     }
 }
 
-class StubWrongNameBasicProvider extends BasicProvider
+class StubWrongNameSimpleProvider extends SimpleProvider
 {
 };
 
-class StubWrongClassBasicProvider extends BasicProvider
+class StubWrongClassSimpleProvider extends SimpleProvider
 {
     protected $name = 'test';
 };
-class StubRegisterBasicProvider extends BasicProvider
+class StubRegisterSimpleProvider extends SimpleProvider
 {
     protected $name = 'test';
-    protected $class = StubRegisterBasicProvider::class;
+    protected $class = StubRegisterSimpleProvider::class;
 };

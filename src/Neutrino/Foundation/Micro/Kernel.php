@@ -2,7 +2,7 @@
 
 namespace Neutrino\Foundation\Micro;
 
-use Neutrino\Dotenv;
+use Neutrino\Error;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Neutrino\Micro\Middleware;
@@ -54,6 +54,13 @@ abstract class Kernel extends MicroKernel implements Kernelable
     protected $eventsManagerClass = null;
 
     /**
+     * Error Handler Outputs
+     *
+     * @var int
+     */
+    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Json::class];
+
+    /**
      * This methods registers the middlewares to be used by the application
      */
     public function registerMiddlewares()
@@ -65,6 +72,8 @@ abstract class Kernel extends MicroKernel implements Kernelable
 
     /**
      * @param \Neutrino\Micro\Middleware $middleware
+     *
+     * @throws \RuntimeException
      */
     protected function registerMiddleware(Middleware $middleware)
     {
@@ -98,14 +107,6 @@ abstract class Kernel extends MicroKernel implements Kernelable
      */
     public function registerRoutes()
     {
-        require Dotenv::env('BASE_PATH') .'/routes/micro.php';
-    }
-
-    /**
-     * @return void
-     */
-    public function boot()
-    {
-        // TODO: Implement boot() method.
+        require BASE_PATH . '/routes/micro.php';
     }
 }

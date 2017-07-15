@@ -2,9 +2,9 @@
 
 namespace Test\Cli\Output;
 
-use Neutrino\Cli\Output\ConsoleOutput;
+use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Group;
-use Test\Stub\StubConsoleOutput;
+use Neutrino\Cli\Output\Writer;
 use Test\TestCase\TestCase;
 
 /**
@@ -31,11 +31,11 @@ class GroupTest extends TestCase
     }
 
     /**
-     * @return mixed|ConsoleOutput
+     * @return mixed|Writer
      */
     private function consoleOutput()
     {
-        return new StubConsoleOutput();
+        return new StubOutput();
     }
 
     public function dataGenerateGroupData()

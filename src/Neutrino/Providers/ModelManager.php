@@ -4,6 +4,7 @@ namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 
+use Neutrino\Support\SimpleProvider;
 use Phalcon\Mvc\Model\Manager;
 
 /**
@@ -11,7 +12,7 @@ use Phalcon\Mvc\Model\Manager;
  *
  *  @package Neutrino\Providers
  */
-class ModelManager extends BasicProvider
+class ModelManager extends SimpleProvider
 {
     protected $class = Manager::class;
 

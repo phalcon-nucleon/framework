@@ -17,6 +17,13 @@ class Block
 
     protected $options;
 
+    /**
+     * Block constructor.
+     *
+     * @param \Neutrino\Cli\Output\Writer $output
+     * @param string                      $style Output function used to display block (notice, info, warn, ...)
+     * @param array                       $options
+     */
     public function __construct(Writer $output, $style, $options = [])
     {
         $this->output  = $output;

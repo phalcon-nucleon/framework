@@ -129,9 +129,9 @@ abstract class Task extends PhalconTask
     }
 
     /**
-     * @param array $lines
-     * @param int   $style
-     * @param int   $padding
+     * @param array  $lines
+     * @param string $style Output function used to display block (notice, info, warn, ...)
+     * @param int    $padding
      */
     public function block($lines, $style, $padding = 4)
     {

@@ -234,18 +234,14 @@ class Arr
     public static function read($array, $key, $default = null)
     {
         if (is_null($key)) {
-            return $default;
+            return Obj::value($default);
         }
 
-        if (isset($array[$key]) || array_key_exists($key, $array)) {
-            return $array[$key];
-        }
-
-        return $default;
+        return self::exists($array, $key) ? $array[$key] : Obj::value($default);
     }
 
     /**
-     * Get an item from an array.
+     * Get an item, no null, from an array.
      *
      * @param array  $array
      * @param string $key
@@ -256,10 +252,10 @@ class Arr
     public static function fetch($array, $key, $default = null)
     {
         if (is_null($key)) {
-            return $default;
+            return Obj::value($default);
         }
 
-        return isset($array[$key]) ? $array[$key] : $default;
+        return isset($array[$key]) ? $array[$key] : Obj::value($default);
     }
 
     /**

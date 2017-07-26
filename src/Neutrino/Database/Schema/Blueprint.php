@@ -97,7 +97,7 @@ class Blueprint
      */
     public function build(Db $connection, Config $dbConfig)
     {
-        $this->addFluentIndexes();
+        $this->addImpliedCommands();
 
         foreach ($this->commands as $command) {
             switch ($command->name) {
@@ -189,12 +189,16 @@ class Blueprint
      */
     protected function addImpliedColumnsCommands()
     {
-        if (count($this->getAddedColumns()) > 0 && !$this->creating()) {
-            array_unshift($this->commands, $this->createCommand('addColumn'));
+        if (count($addedColumns = $this->getAddedColumns()) > 0 && !$this->creating()) {
+            foreach ($addedColumns as $addedColumn) {
+                array_unshift($this->commands, $this->createCommand('addColumn', ['column' => $addedColumn]));
+            }
         }
 
-        if (count($this->getChangedColumns()) > 0 && !$this->creating()) {
-            array_unshift($this->commands, $this->createCommand('modifyColumn'));
+        if (count($changedColumns = $this->getChangedColumns()) > 0 && !$this->creating()) {
+            foreach ($changedColumns as $changedColumn) {
+                array_unshift($this->commands, $this->createCommand('modifyColumn', ['column' => $changedColumn]));
+            }
         }
     }
 

@@ -7,7 +7,7 @@ namespace Neutrino\Support;
  *
  * @package Neutrino\Support
  */
-final class Func
+class Func
 {
     /**
      * @param mixed    $value

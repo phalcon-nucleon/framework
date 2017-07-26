@@ -807,8 +807,8 @@ class Blueprint
     public function float($column, $total = 8, $places = 2)
     {
         return $this->addColumn(Column::TYPE_FLOAT, $column, [
-            'total'  => $total,
-            'places' => $places
+            /*'total'  => $total,
+            'places' => $places*/
         ]);
     }
 
@@ -823,7 +823,7 @@ class Blueprint
      */
     public function double($column, $total = null, $places = null)
     {
-        return $this->addColumn(Column::TYPE_DOUBLE, $column, ['total' => $total, 'places' => $places]);
+        return $this->addColumn(Column::TYPE_DOUBLE, $column, [/*'total' => $total, 'places' => $places*/]);
     }
 
     /**
@@ -837,7 +837,7 @@ class Blueprint
      */
     public function decimal($column, $total = 8, $places = 2)
     {
-        return $this->addColumn(Column::TYPE_DECIMAL, $column, ['total' => $total, 'places' => $places]);
+        return $this->addColumn(Column::TYPE_DECIMAL, $column, [/*'total' => $total, 'places' => $places*/]);
     }
 
     /**
@@ -849,7 +849,7 @@ class Blueprint
      */
     public function boolean($column)
     {
-        return $this->addColumn(Column::TYPE_BIGINTEGER, $column);
+        return $this->addColumn(Column::TYPE_BOOLEAN, $column);
     }
 
     /**
@@ -916,7 +916,7 @@ class Blueprint
      */
     public function dateTime($column, $precision = 0)
     {
-        return $this->addColumn(Column::TYPE_DATETIME, $column, ['precision' => $precision]);
+        return $this->addColumn(Column::TYPE_DATETIME, $column, [/*'precision' => $precision*/]);
     }
 
     /**
@@ -934,7 +934,7 @@ class Blueprint
     {
         throw new \Exception();
 
-        return $this->addColumn(Column::TYPE_DATETIME, $column, ['precision' => $precision]);
+        return $this->addColumn(Column::TYPE_DATETIME, $column, [/*'precision' => $precision*/]);
     }
 
     /**
@@ -981,7 +981,7 @@ class Blueprint
      */
     public function timestamp($column, $precision = 0)
     {
-        return $this->addColumn(Column::TYPE_TIMESTAMP, $column, ['precision' => $precision]);
+        return $this->addColumn(Column::TYPE_TIMESTAMP, $column, [/*'precision' => $precision*/]);
     }
 
     /**

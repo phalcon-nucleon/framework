@@ -11,7 +11,6 @@ use Phalcon\Db\Column as DbColumn;
  *
  * @package     Neutrino\Database\Schema
  *
- * @method $this primary()
  * @method $this index()
  * @method $this unique()
  */
@@ -40,8 +39,14 @@ class Column extends DbColumn implements Fluentable
     public function setAfter($column)
     {
         $this->_after = $column;
+        $this->attributes['after'] = $column;
 
         return $this;
+    }
+
+    public function after($column)
+    {
+        return $this->setAfter($column);
     }
 
     /**
@@ -68,8 +73,14 @@ class Column extends DbColumn implements Fluentable
     public function setFirst($first = true)
     {
         $this->_first = $first;
+        $this->attributes['first'] = $first;
 
         return $this;
+    }
+
+    public function first($first = true)
+    {
+        return $this->setFirst($first);
     }
 
     /**
@@ -82,8 +93,14 @@ class Column extends DbColumn implements Fluentable
     public function setNullable($nullable = true)
     {
         $this->_notNull = !$nullable;
+        $this->attributes['nullable'] = $nullable;
 
         return $this;
+    }
+
+    public function nullable($nullable = true)
+    {
+        return $this->setNullable($nullable);
     }
 
     /**
@@ -96,8 +113,14 @@ class Column extends DbColumn implements Fluentable
     public function setUnsigned($unsigned = true)
     {
         $this->_unsigned = $unsigned;
+        $this->attributes['unsigned'] = true;
 
         return $this;
+    }
+
+    public function unsigned($unsigned = true)
+    {
+        return $this->setUnsigned($unsigned);
     }
 
     /**
@@ -108,8 +131,14 @@ class Column extends DbColumn implements Fluentable
     public function setPrimary($primary = true)
     {
         $this->_primary = $primary;
+        $this->attributes['primary'] = true;
 
         return $this;
+    }
+
+    public function primary($primary = true)
+    {
+        return $this->setPrimary($primary);
     }
 
     /**

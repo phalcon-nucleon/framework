@@ -42,6 +42,13 @@ class Blueprint
     protected $references = [];
 
     /**
+     * The columns that should be added to the table.
+     *
+     * @var \Neutrino\Support\Fluent[]
+     */
+    protected $fluentReferences = [];
+
+    /**
      * The commands that should be run for the table.
      *
      * @var array
@@ -49,28 +56,11 @@ class Blueprint
     protected $commands = [];
 
     /**
-     * The storage engine that should be used for the table.
+     * The options that should be added to the table, when creating.
      *
-     * @var string
+     * @var array
      */
-    public $engine;
-
-    /**
-     * The default character set that should be used for the table.
-     */
-    public $charset;
-
-    /**
-     * The collation that should be used for the table.
-     */
-    public $collation;
-
-    /**
-     * Whether to make the table temporary.
-     *
-     * @var bool
-     */
-    public $temporary = false;
+    protected $options = [];
 
     /**
      * Create a new schema blueprint.
@@ -106,6 +96,7 @@ class Blueprint
                         'columns'    => $this->columns,
                         'indexes'    => $this->indexes,
                         'references' => $this->references,
+                        'options' => $this->options,
                     ]);
                     break 2;
                 case 'rename':
@@ -223,9 +214,15 @@ class Blueprint
      */
     protected function addImpliedReferencesCommands()
     {
-        if (count($references = $this->references) > 0 && !$this->creating()) {
-            foreach ($references as $reference) {
-
+        if (count($references = $this->fluentReferences) > 0) {
+            if ($this->creating()) {
+                foreach ($references as $reference) {
+                    $this->references[] = $this->makeReferenceFromFluent($reference);
+                }
+            } else {
+                foreach ($references as $reference) {
+                    $this->buildReferenceCommand($reference);
+                }
             }
         }
     }
@@ -339,7 +336,7 @@ class Blueprint
      */
     public function temporary()
     {
-        $this->temporary = true;
+        $this->option(__FUNCTION__, true);
     }
 
     /**
@@ -558,7 +555,7 @@ class Blueprint
      */
     public function foreign($columns, $name = null)
     {
-        return $this->addReferenceCommand('addForeign', $columns, $name);
+        return $this->addReference('foreign', $columns, $name);
     }
 
     /**
@@ -715,7 +712,7 @@ class Blueprint
         return $this->addColumn(Column::TYPE_INTEGER, $column, [
             'autoIncrement' => $autoIncrement,
             'unsigned'      => $unsigned,
-            'size'          => 1
+            'size'          => 1,
         ]);
     }
 
@@ -733,7 +730,7 @@ class Blueprint
         return $this->addColumn(Column::TYPE_INTEGER, $column, [
             'autoIncrement' => $autoIncrement,
             'unsigned'      => $unsigned,
-            'size'          => 2
+            'size'          => 2,
         ]);
     }
 
@@ -751,7 +748,7 @@ class Blueprint
         return $this->addColumn(Column::TYPE_INTEGER, $column, [
             'autoIncrement' => $autoIncrement,
             'unsigned'      => $unsigned,
-            'size'          => 3
+            'size'          => 3,
         ]);
     }
 
@@ -768,7 +765,7 @@ class Blueprint
     {
         return $this->addColumn(Column::TYPE_BIGINTEGER, $column, [
             'autoIncrement' => $autoIncrement,
-            'unsigned'      => $unsigned
+            'unsigned'      => $unsigned,
         ]);
     }
 
@@ -1207,6 +1204,31 @@ class Blueprint
     }
 
     /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * @param string $name
+     * @param string $value
+     *
+     * @return $this
+     */
+    public function option($name, $value)
+    {
+        if(empty($name) || !is_string($name)){
+            throw new \InvalidArgumentException(__METHOD__ . ' parameter "name" must be an not empty string');
+        }
+
+        $this->options[$name] = $value;
+
+        return $this;
+    }
+
+    /**
      * Add a new index to the blueprint.
      *
      * @param  string          $type
@@ -1296,6 +1318,13 @@ class Blueprint
         );
     }
 
+    /**
+     * @param $type
+     * @param $columns
+     * @param $name
+     *
+     * @return \Neutrino\Support\Fluent
+     */
     protected function addReference($type, $columns, $name)
     {
         $columns = (array)$columns;
@@ -1305,21 +1334,42 @@ class Blueprint
         // index type, such as primary or index, which makes the index unique.
         $name = $name ?: $this->createIndexName($type, $columns);
 
-        return $this->references[] = new Reference($name, ['columns' => $columns]);
+        return $this->fluentReferences[] = new Fluent([
+            'name'    => $name,
+            'columns' => $columns,
+        ]);
     }
 
-    protected function addReferenceCommand($type, $columns, $name)
+    /**
+     * Build a new command to the blueprint.
+     *
+     * @param \Neutrino\Support\Fluent $fluent
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    protected function buildReferenceCommand(Fluent $fluent)
     {
-        $columns = (array)$columns;
-
-        // If no name was specified for this index, we will create one using a basic
-        // convention of the table name, followed by the columns, followed by an
-        // index type, such as primary or index, which makes the index unique.
-        $name = $name ?: $this->createIndexName($type, $columns);
-
         return $this->addCommand(
-            $type, ['reference' => $reference, 'type' => $type, 'columns' => $columns]
+            'addForeign', ['reference' => $this->makeReferenceFromFluent($fluent)]
         );
+    }
+
+    /**
+     * @param \Neutrino\Support\Fluent $fluent
+     *
+     * @return \Neutrino\Database\Schema\Reference
+     */
+    protected function makeReferenceFromFluent(Fluent $fluent)
+    {
+        $name = $fluent->get('name');
+        $referencedTable = $fluent->get('on');
+        $referencedColumns = (array)$fluent->get('references');
+
+        return new Reference($name, [
+            'columns'           => $fluent->get('columns'),
+            'referencedTable'   => $referencedTable,
+            'referencedColumns' => $referencedColumns,
+        ]);
     }
 
     /**
@@ -1364,7 +1414,7 @@ class Blueprint
      */
     protected function createIndexName($type, array $columns)
     {
-        $index = strtolower($this->table . '_' . implode('_', $columns) . '_' . $type);
+        $index = strtolower(implode('_', array_filter([$this->table, implode('_', $columns), $type])));
 
         return str_replace(['-', '.'], '_', $index);
     }

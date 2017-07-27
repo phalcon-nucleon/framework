@@ -103,8 +103,8 @@ class Blueprint
             switch ($command->name) {
                 case 'create':
                     $connection->createTable($this->getTable(), $dbConfig->get('dbname'), [
-                        'columns' => $this->columns,
-                        'indexes' => $this->indexes,
+                        'columns'    => $this->columns,
+                        'indexes'    => $this->indexes,
                         'references' => $this->references,
                     ]);
                     break 2;
@@ -115,7 +115,7 @@ class Blueprint
                     $connection->dropTable($this->getTable(), $dbConfig->get('dbname'), false);
                     break;
                 case 'dropIfExists':
-                    if ($connection->tableExists($this->getTable())){
+                    if ($connection->tableExists($this->getTable())) {
                         $connection->dropTable($this->getTable(), $dbConfig->get('dbname'), true);
                     }
                     break;
@@ -207,11 +207,43 @@ class Blueprint
      *
      * @return void
      */
+    protected function addImpliedIndexesCommands()
+    {
+        if (count($indexes = $this->indexes) > 0 && !$this->creating()) {
+            foreach ($indexes as $index) {
+                $this->buildIndexCommand($index);
+            }
+        }
+    }
+
+    /**
+     * Add the commands that are implied by the blueprint's state.
+     *
+     * @return void
+     */
+    protected function addImpliedReferencesCommands()
+    {
+        if (count($references = $this->references) > 0 && !$this->creating()) {
+            foreach ($references as $reference) {
+
+            }
+        }
+    }
+
+    /**
+     * Add the commands that are implied by the blueprint's state.
+     *
+     * @return void
+     */
     protected function addImpliedCommands()
     {
+        $this->addFluentIndexes();
+
         $this->addImpliedColumnsCommands();
 
-        $this->addFluentIndexes();
+        $this->addImpliedIndexesCommands();
+
+        $this->addImpliedReferencesCommands();
     }
 
     /**
@@ -221,21 +253,19 @@ class Blueprint
      */
     protected function addFluentIndexes()
     {
+        $primaries = [];
         foreach ($this->columns as $column) {
-            if (isset($column->primary) && $column->primary === true) {
-                if($this->creating()){
-                    $column->setPrimary();
+            if ($column->isPrimary()) {
+                $attrPrimary = $column->get('primary');
+
+                if (is_array($attrPrimary)) {
+                    $primaries += $attrPrimary;
+                } elseif (is_string($attrPrimary)) {
+                    $primaries[] = $attrPrimary;
                 } else {
-                    $this->primary($column->getName());
+                    $primaries[] = $column->getName();
                 }
-                continue;
-            }
-            elseif (isset($column->primary)) {
-                if($this->creating()){
-                    $column->setPrimary();
-                } else {
-                    $this->primary($column->getName(),  ...$column->primary);
-                }
+
                 continue;
             }
 
@@ -257,6 +287,21 @@ class Blueprint
 
                     continue 2;
                 }
+            }
+        }
+
+        if (!empty($primaries)) {
+            if ($this->creating()) {
+                foreach ($primaries as $primary) {
+                    foreach ($this->columns as $column) {
+                        if ($primary == $column->getName()) {
+                            $column->setPrimary();
+                            break;
+                        }
+                    }
+                }
+            } else {
+                $this->primary($primaries);
             }
         }
     }
@@ -469,13 +514,12 @@ class Blueprint
      *
      * @param  string|array $columns
      * @param  string       $name
-     * @param  string|null  $algorithm
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Index
      */
-    public function primary($columns, $name = null, $algorithm = null)
+    public function primary($columns, $name = null)
     {
-        return $this->addIndexCommand('primary', $columns, $name, $algorithm);
+        return $this->addIndex('primary', $columns, $name);
     }
 
     /**
@@ -483,13 +527,12 @@ class Blueprint
      *
      * @param  string|array $columns
      * @param  string       $name
-     * @param  string|null  $algorithm
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Index
      */
-    public function unique($columns, $name = null, $algorithm = null)
+    public function unique($columns, $name = null)
     {
-        return $this->addIndexCommand('unique', $columns, $name, $algorithm);
+        return $this->addIndex('unique', $columns, $name);
     }
 
     /**
@@ -497,13 +540,12 @@ class Blueprint
      *
      * @param  string|array $columns
      * @param  string       $name
-     * @param  string|null  $algorithm
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Index
      */
-    public function index($columns, $name = null, $algorithm = null)
+    public function index($columns, $name = null)
     {
-        return $this->addIndexCommand('index', $columns, $name, $algorithm);
+        return $this->addIndex('index', $columns, $name);
     }
 
     /**
@@ -673,7 +715,7 @@ class Blueprint
         return $this->addColumn(Column::TYPE_INTEGER, $column, [
             'autoIncrement' => $autoIncrement,
             'unsigned'      => $unsigned,
-            'size'        => 1
+            'size'          => 1
         ]);
     }
 
@@ -691,7 +733,7 @@ class Blueprint
         return $this->addColumn(Column::TYPE_INTEGER, $column, [
             'autoIncrement' => $autoIncrement,
             'unsigned'      => $unsigned,
-            'size'        => 2
+            'size'          => 2
         ]);
     }
 
@@ -709,7 +751,7 @@ class Blueprint
         return $this->addColumn(Column::TYPE_INTEGER, $column, [
             'autoIncrement' => $autoIncrement,
             'unsigned'      => $unsigned,
-            'size'        => 3
+            'size'          => 3
         ]);
     }
 
@@ -1165,16 +1207,15 @@ class Blueprint
     }
 
     /**
-     * Add a new index command to the blueprint.
+     * Add a new index to the blueprint.
      *
      * @param  string          $type
      * @param  string|string[] $columns
      * @param  string          $index
-     * @param  string|null     $algorithm
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Index
      */
-    protected function addIndexCommand($type, $columns, $index, $algorithm = null)
+    protected function addIndex($type, $columns, $index = null)
     {
         $columns = (array)$columns;
 
@@ -1183,10 +1224,43 @@ class Blueprint
         // index type, such as primary or index, which makes the index unique.
         $index = $index ?: $this->createIndexName($type, $columns);
 
-        $this->indexes[] = $index = new Index($index, $columns, $type);
+        return $this->indexes[] = new Index($index, $columns, $type);
+    }
+
+    /**
+     * Build a new index command to the blueprint.
+     *
+     * @param  string          $type
+     * @param  string|string[] $columns
+     * @param  string          $index
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    protected function addIndexCommand($type, $columns, $index = null)
+    {
+        $columns = (array)$columns;
+
+        // If no name was specified for this index, we will create one using a basic
+        // convention of the table name, followed by the columns, followed by an
+        // index type, such as primary or index, which makes the index unique.
+        $index = $index ?: $this->createIndexName($type, $columns);
 
         return $this->addCommand(
-            'add' . Str::capitalize($type), ['index' => $index, 'type' => $type, 'columns' => $columns, 'algorithm' => $algorithm]
+            'add' . Str::capitalize($index), ['index' => new Index($index, $columns, $type)]
+        );
+    }
+
+    /**
+     * Build a new command to the blueprint.
+     *
+     * @param  \Neutrino\Database\Schema\Index $index
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    protected function buildIndexCommand(Index $index)
+    {
+        return $this->addCommand(
+            'add' . Str::capitalize($index->getType()), ['index' => $index]
         );
     }
 
@@ -1222,7 +1296,7 @@ class Blueprint
         );
     }
 
-    protected function addReferenceCommand($type, $columns, $name)
+    protected function addReference($type, $columns, $name)
     {
         $columns = (array)$columns;
 
@@ -1231,9 +1305,17 @@ class Blueprint
         // index type, such as primary or index, which makes the index unique.
         $name = $name ?: $this->createIndexName($type, $columns);
 
-        $this->references[] = $reference = new Reference($name, [
-            'columns' => $columns
-        ]);
+        return $this->references[] = new Reference($name, ['columns' => $columns]);
+    }
+
+    protected function addReferenceCommand($type, $columns, $name)
+    {
+        $columns = (array)$columns;
+
+        // If no name was specified for this index, we will create one using a basic
+        // convention of the table name, followed by the columns, followed by an
+        // index type, such as primary or index, which makes the index unique.
+        $name = $name ?: $this->createIndexName($type, $columns);
 
         return $this->addCommand(
             $type, ['reference' => $reference, 'type' => $type, 'columns' => $columns]
@@ -1405,5 +1487,15 @@ class Blueprint
         return array_filter($this->columns, function ($column) {
             return (bool)$column->change;
         });
+    }
+
+    /**
+     * Get the columns on the blueprint.
+     *
+     * @return array
+     */
+    public function getIndexes()
+    {
+        return $this->indexes;
     }
 }

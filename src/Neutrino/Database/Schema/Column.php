@@ -76,27 +76,47 @@ class Column extends DbColumn implements Fluentable
      * Allow NULL values to be inserted into the column
      *
      * @param bool $nullable
+     *
+     * @return $this
      */
     public function setNullable($nullable = true)
     {
         $this->_notNull = !$nullable;
+
+        return $this;
     }
 
     /**
      * Set integer columns to UNSIGNED
+     *
+     * @param bool $unsigned
+     *
+     * @return $this
      */
     public function setUnsigned($unsigned = true)
     {
         $this->_unsigned = $unsigned;
+
+        return $this;
     }
 
     /**
+     * @param bool $primary
+     *
      * @return $this
      */
-    public function setPrimary()
+    public function setPrimary($primary = true)
     {
-        $this->_primary = true;
+        $this->_primary = $primary;
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPrimary()
+    {
+        return (bool)(parent::isPrimary() || $this->get('primary'));
     }
 }

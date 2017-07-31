@@ -3,6 +3,7 @@
 namespace Test\Design;
 
 use Fake\Core\StubSingleton;
+use Neutrino\Support\Reflacker;
 use Test\TestCase\TestCase;
 
 class SingletonTest extends TestCase
@@ -47,6 +48,6 @@ class SingletonTest extends TestCase
 
         $instance = StubSingleton::instance();
 
-        $this->invokeMethod($instance, '__clone', []);
+        Reflacker::invoke($instance, '__clone');
     }
 }

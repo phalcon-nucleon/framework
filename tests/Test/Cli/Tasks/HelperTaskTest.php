@@ -9,6 +9,7 @@ use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
+use Neutrino\Support\Reflacker;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;
@@ -58,7 +59,7 @@ class HelperTaskTest extends TestCase
         $task = new HelperTask();
 
         /** @var Route $route */
-        $route = $this->invokeMethod($task, 'resolveRoute', [$class, $action]);
+        $route = Reflacker::invoke($task, 'resolveRoute', $class, $action);
 
         $this->assertEquals($expected->getPattern(), $route->getPattern());
         $this->assertEquals($expected->getPaths(), $route->getPaths());

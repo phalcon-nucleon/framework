@@ -52,7 +52,7 @@ class RepositoryTest extends TestCase
      */
     public function testAll($data)
     {
-        //$this->setValueProperty(Repository::class, 'queries', []);
+        //Hacker::set(Repository::class, 'queries', []);
         $this->mockDb(count($data), $data);
 
         $repository = new StubRepositoryModel;

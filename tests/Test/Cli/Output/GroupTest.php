@@ -5,6 +5,7 @@ namespace Test\Cli\Output;
 use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Group;
 use Neutrino\Cli\Output\Writer;
+use Neutrino\Support\Reflacker;
 use Test\TestCase\TestCase;
 
 /**
@@ -93,9 +94,9 @@ class GroupTest extends TestCase
 
         $table = new Group($output, $data);
 
-        $this->invokeMethod($table, 'generateGroupData', []);
+        Reflacker::invoke($table, 'generateGroupData');
 
-        $columns = $this->getValueProperty($table, 'groups');
+        $columns = Reflacker::get($table, 'groups');
 
         $this->assertEquals($expected, $columns);
     }
@@ -157,7 +158,7 @@ class GroupTest extends TestCase
 
         $table = new Group($output, $data);
 
-        $this->invokeMethod($table, 'display', []);
+        Reflacker::invoke($table, 'display');
 
         $this->assertEquals($expected, $output->out);
     }

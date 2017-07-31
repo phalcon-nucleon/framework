@@ -7,6 +7,7 @@ use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
+use Neutrino\Support\Reflacker;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router;
 use Phalcon\Events\Manager;
@@ -35,7 +36,7 @@ class RouteListTaskTest extends TestCase
         $task = new RouteListTask();
 
         /** @var Router\Route[] $routes */
-        $routes = $this->invokeMethod($task, 'getHttpRoutesInfos', []);
+        $routes = Reflacker::invoke($task, 'getHttpRoutesInfos');
 
         $this->assertInstanceOf(Router::class, $this->getDI()->getShared(Services::ROUTER));
 

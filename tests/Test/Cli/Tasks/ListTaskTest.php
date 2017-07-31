@@ -10,6 +10,7 @@ use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
+use Neutrino\Support\Reflacker;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;
@@ -74,9 +75,9 @@ class ListTaskTest extends TestCase
 
         $task = new ListTask();
 
-        $this->invokeMethod($task, 'describe', [$cmd, $class, $action]);
+        Reflacker::invoke($task, 'describe', $cmd, $class, $action);
 
-        $describes = $this->getValueProperty($task, 'describes');
+        $describes = Reflacker::get($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }
@@ -118,9 +119,9 @@ class ListTaskTest extends TestCase
 
         $task = new ListTask();
 
-        $this->invokeMethod($task, 'describeRoute', [$route]);
+        Reflacker::invoke($task, 'describeRoute', $route);
 
-        $describes = $this->getValueProperty($task, 'describes');
+        $describes = Reflacker::get($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }

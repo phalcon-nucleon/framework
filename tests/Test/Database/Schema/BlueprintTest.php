@@ -4,6 +4,9 @@ namespace Test\Database\Schema;
 
 use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema\Column;
+use Neutrino\Database\Schema\Reference;
+use Neutrino\Support\Fluent;
+use Neutrino\Support\Reflacker;
 
 class BlueprintTest extends \PHPUnit_Framework_TestCase
 {
@@ -15,6 +18,9 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('table', $blueprint->getTable());
     }
 
+    /**
+     * @return array
+     */
     public function dataIncrements()
     {
         return [
@@ -31,6 +37,9 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     public function dataStrings()
     {
         return [
@@ -44,6 +53,9 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     public function dataIntegers()
     {
         return [
@@ -76,6 +88,9 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     public function dataDecimal()
     {
         return [
@@ -85,6 +100,9 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     public function dataOthers()
     {
         return [
@@ -115,11 +133,17 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     public function dataColumns()
     {
         return array_merge($this->dataIntegers(), $this->dataDecimal(), $this->dataIncrements(), $this->dataStrings(), $this->dataOthers());
     }
 
+    /**
+     * @return array
+     */
     public function dataGroupColums()
     {
         return array_combine(['integers', 'decimal', 'increments', 'strings', 'others'], [
@@ -208,11 +232,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($index->$type);
         }
 
-        $reflection  = new \ReflectionClass(Blueprint::class);
-        $addCommands = $reflection->getMethod('addImpliedCommands');
-        $addCommands->setAccessible(true);
-
-        $addCommands->invoke($blueprint);
+        Reflacker::invoke($blueprint, 'addImpliedCommands');
 
         $this->assertCount(count($indexes), $blueprint->getIndexes());
         $this->assertCount(count($columns) + count($indexes), $blueprint->getCommands());
@@ -232,14 +252,83 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($index->$type);
         }
 
-        $reflection  = new \ReflectionClass(Blueprint::class);
-        $addCommands = $reflection->getMethod('addImpliedCommands');
-        $addCommands->setAccessible(true);
-
-        $addCommands->invoke($blueprint);
+        Reflacker::invoke($blueprint, 'addImpliedCommands');
 
         $this->assertCount(count($indexes) - 1, $blueprint->getIndexes());
         $this->assertCount(1, $blueprint->getCommands());
+    }
+
+    public function testForeignCreateBlueprint()
+    {
+        $columns = $this->dataIntegers();
+
+        $indexes   = [];
+        $blueprint = $this->buildBlueprint($columns, $indexes);
+
+        $blueprint->create();
+
+        foreach ($indexes as $type => $index) {
+            $this->assertTrue($index->$type);
+        }
+
+        reset($indexes);
+
+        $blueprint->foreign(current($indexes)->getName())->on('test_2')->references('fk_test_2');
+
+        $this->assertEquals([new Fluent([
+            'name' => 'table_column_foreign',
+            'columns' => ['column'],
+            'on' => 'test_2',
+            'references' => 'fk_test_2'
+        ])], Reflacker::get($blueprint, 'fluentReferences'));
+
+        Reflacker::invoke($blueprint, 'addImpliedCommands');
+
+        $this->assertEquals([new Reference('table_column_foreign', [
+            'columns'           => ['column'],
+            'referencedTable'   => 'test_2',
+            'referencedColumns' => ['fk_test_2'],
+        ])], Reflacker::get($blueprint, 'references'));
+    }
+
+    public function testForeign()
+    {
+        $columns = $this->dataIntegers();
+
+        $indexes   = [];
+        $blueprint = $this->buildBlueprint($columns, $indexes);
+
+        foreach ($indexes as $type => $index) {
+            $this->assertTrue($index->$type);
+        }
+
+        reset($indexes);
+
+        $blueprint->foreign(current($indexes)->getName())->on('test_2')->references('fk_test_2');
+
+        $this->assertEquals([new Fluent([
+            'name' => 'table_column_foreign',
+            'columns' => ['column'],
+            'on' => 'test_2',
+            'references' => 'fk_test_2'
+        ])], Reflacker::get($blueprint, 'fluentReferences'));
+
+        Reflacker::invoke($blueprint, 'addImpliedCommands');
+
+        $this->assertEquals([], Reflacker::get($blueprint, 'references'));
+
+        $commands = $blueprint->getCommands();
+
+        $this->assertCount(count($columns) + count($indexes) + 1 /* foreign */, $commands);
+
+        $this->assertEquals(new Fluent([
+            'name' => 'addForeign',
+            'reference' => new Reference('table_column_foreign', [
+                'columns'           => ['column'],
+                'referencedTable'   => 'test_2',
+                'referencedColumns' => ['fk_test_2'],
+            ]),
+        ]), $commands[count($commands) - 1]);
     }
 
     /*

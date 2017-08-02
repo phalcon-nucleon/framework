@@ -4,10 +4,11 @@ namespace Neutrino\Database\Schema;
 
 use Closure;
 use LogicException;
-use Neutrino\Database\Schema\Grammars\Phql;
+use Neutrino\Database\Schema\Dialect as SchemaDialect;
 use Neutrino\Support\Func;
 use Phalcon\Config;
 use Phalcon\Db\AdapterInterface as Db;
+use Phalcon\Db\Dialect as DbDialect;
 
 class Builder
 {
@@ -28,7 +29,7 @@ class Builder
     /**
      * The schema grammar instance.
      *
-     * @var \Neutrino\Database\Schema\Grammars\Phql
+     * @var \Neutrino\Database\Schema\DialectInterface
      */
     protected $grammar;
 
@@ -49,14 +50,24 @@ class Builder
     /**
      * Create a new database Schema manager.
      *
-     * @param  \Phalcon\Db\AdapterInterface $connection
+     * @param \Phalcon\Db\AdapterInterface $connection
      * @param \Phalcon\Config               $dbConfig
      */
     public function __construct(Db $connection, Config $dbConfig)
     {
-        $this->db       = $connection;
+        $this->db = $connection;
         $this->dbConfig = $dbConfig;
-        $this->grammar  = new Phql();
+        $dialect = $connection->getDialect();
+        if ($dialect instanceof DbDialect\Mysql) {
+            $this->grammar = new SchemaDialect\Mysql();
+        } elseif ($dialect instanceof DbDialect\Postgresql) {
+            $this->grammar = new SchemaDialect\Postgresql();
+        } elseif ($dialect instanceof DbDialect\Sqlite) {
+            $this->grammar = new SchemaDialect\Sqlite();
+        } else {
+            /* TODO Wrapper between DbDialect & SchemaDialect */
+            return;
+        }
     }
 
     /**

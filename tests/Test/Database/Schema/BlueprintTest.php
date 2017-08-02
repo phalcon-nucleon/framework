@@ -3,7 +3,7 @@
 namespace Test\Database\Schema;
 
 use Neutrino\Database\Schema\Blueprint;
-use Neutrino\Database\Schema\Grammars\Phql;
+use Neutrino\Database\Schema;
 use Neutrino\Support\Fluent;
 use Neutrino\Support\Reflacker;
 use Phalcon\Db\Column;
@@ -166,25 +166,25 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
              new Column('col_dateTime', ['type' => Column::TYPE_DATETIME, 'precision' => 0, 'notNull' => true])],
             ['dateTimeTz', 'col_dateTimeTz', [],
              new Fluent(['name' => 'col_dateTimeTz', 'type' => 'dateTimeTz', 'precision' => 0]),
-             new Column('col_dateTimeTz', ['type' => 'DATETIME WITH TIMEZONE', 'typeReference' => Column::TYPE_DATETIME, 'precision' => 0, 'notNull' => true])],
+             new Column('col_dateTimeTz', ['type' => 'DATETIME WITH TIME ZONE', 'typeReference' => Column::TYPE_DATETIME, 'precision' => 0, 'notNull' => true])],
             ['time', 'col_time', [],
              new Fluent(['name' => 'col_time', 'type' => 'time',]),
              new Column('col_time', ['type' => 'TIME', 'typeReference' => Column::TYPE_DATETIME, 'notNull' => true,])],
             ['timeTz', 'col_timeTz', [],
              new Fluent(['name' => 'col_timeTz', 'type' => 'timeTz',]),
-             new Column('col_timeTz', ['type' => 'TIME WITH TIMEZONE', 'typeReference' => Column::TYPE_DATETIME, 'notNull' => true,])],
+             new Column('col_timeTz', ['type' => 'TIME WITH TIME ZONE', 'typeReference' => Column::TYPE_DATETIME, 'notNull' => true,])],
             ['timestamp', 'col_timestamp', [],
              new Fluent(['name' => 'col_timestamp', 'type' => 'timestamp', 'precision' => 0]),
              new Column('col_timestamp', ['type' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => true])],
             ['timestampTz', 'col_timestampTz', [],
              new Fluent(['name' => 'col_timestampTz', 'type' => 'timestampTz', 'precision' => 0]),
-             new Column('col_timestampTz', ['type' => 'TIMESTAMP WITH TIMEZONE', 'typeReference' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => true])],
+             new Column('col_timestampTz', ['type' => 'TIMESTAMP WITH TIME ZONE', 'typeReference' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => true])],
             ['softDeletes', 'deleted_at', [],
              new Fluent(['name' => 'deleted_at', 'type' => 'timestamp', 'precision' => 0, 'nullable' => true]),
              new Column('deleted_at', ['type' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => false])],
             ['softDeletesTz', 'deleted_at', [],
              new Fluent(['name' => 'deleted_at', 'type' => 'timestampTz', 'precision' => 0, 'nullable' => true]),
-             new Column('deleted_at', ['type' => 'TIMESTAMP WITH TIMEZONE', 'typeReference' => Column::TYPE_TIMESTAMP,  'precision' => 0, 'notNull' => false])],
+             new Column('deleted_at', ['type' => 'TIMESTAMP WITH TIME ZONE', 'typeReference' => Column::TYPE_TIMESTAMP,  'precision' => 0, 'notNull' => false])],
             ['binary', 'col_binary', [],
              new Fluent(['name' => 'col_binary', 'type' => 'blob',]),
              new Column('col_binary', ['type' => Column::TYPE_BLOB, 'notNull' => true,])],
@@ -201,13 +201,13 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
              new Fluent(['name' => 'col_longBlob', 'type' => 'longBlob',]),
              new Column('col_longBlob', ['type' => Column::TYPE_LONGBLOB, 'notNull' => true,])],
             ['uuid', 'col_uuid', [],
-             new Fluent(['name' => 'col_uuid', 'type' => 'char', 'size' => 36]),
+             new Fluent(['name' => 'col_uuid', 'type' => 'uuid']),
              new Column('col_uuid', ['type' => Column::TYPE_CHAR, 'size' => 36, 'notNull' => true])],
             ['ipAddress', 'col_ipAddress', [],
-             new Fluent(['name' => 'col_ipAddress', 'type' => 'string', 'size' => 45]),
+             new Fluent(['name' => 'col_ipAddress', 'type' => 'ipAddress']),
              new Column('col_ipAddress', ['type' => Column::TYPE_VARCHAR, 'size' => 45, 'notNull' => true])],
             ['macAddress', 'col_macAddress', [],
-             new Fluent(['name' => 'col_macAddress', 'type' => 'string', 'size' => 17]),
+             new Fluent(['name' => 'col_macAddress', 'type' => 'macAddress']),
              new Column('col_macAddress', ['type' => Column::TYPE_VARCHAR, 'size' => 17, 'notNull' => true])],
             ['rememberToken', 'remember_token', [],
              new Fluent(['name' => 'remember_token', 'type' => 'string', 'size' => 100, 'nullable' => true]),
@@ -361,12 +361,12 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         $blueprint = new Blueprint('test');
 
-        $actual = Reflacker::invoke($blueprint, 'fluentToColumn', $fluent, new Phql);
+        $actual = Reflacker::invoke($blueprint, 'fluentToColumn', $fluent, $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($column, $actual);
     }
 
-    public function dataFluentToColumnIndexes()
+    public function dataFluentToColumnIndexed()
     {
         return [
             [
@@ -383,22 +383,22 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider dataFluentToColumnIndexes
+     * @dataProvider dataFluentToColumnIndexed
      */
-    public function testFluentToColumnIndexes($columns, $expectedColumns, $expectedIndexes)
+    public function testFluentToColumnIndexed($columns, $expectedColumns, $expectedIndexes)
     {
         $blueprint = new Blueprint('test');
 
         $actualColumns = [];
         foreach ($columns as $column) {
-            $actualColumns[] = Reflacker::invoke($blueprint, 'fluentToColumn', $column, new Phql);
+            $actualColumns[] = Reflacker::invoke($blueprint, 'fluentToColumn', $column, $this->getMockForAbstractClass(MockDialect::class));
         }
 
         $this->assertEquals($expectedColumns, $actualColumns);
         $this->assertEquals($expectedIndexes, $blueprint->getIndexes());
     }
 
-    public function testFluentToColumnReference()
+    public function testFluentToColumnReferenced()
     {
         $column = new Fluent([
             'name'       => 'column',
@@ -423,7 +423,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
         $blueprint = new Blueprint('test');
 
-        $actualColumn = Reflacker::invoke($blueprint, 'fluentToColumn', $column, new Phql);
+        $actualColumn = Reflacker::invoke($blueprint, 'fluentToColumn', $column, $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($expectedColumn, $actualColumn);
         $this->assertEquals([$expectedReference], $blueprint->getReferences());
@@ -461,7 +461,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         $blueprint = new Blueprint('test');
 
-        $actual = Reflacker::invoke($blueprint, 'fluentToIndex', $fluent, new Phql);
+        $actual = Reflacker::invoke($blueprint, 'fluentToIndex', $fluent, $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($index, $actual);
     }
@@ -506,7 +506,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         $blueprint = new Blueprint('test');
 
-        $actual = Reflacker::invoke($blueprint, 'fluentToReference', $fluent, new Phql);
+        $actual = Reflacker::invoke($blueprint, 'fluentToReference', $fluent, $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($reference, $actual);
     }
@@ -720,7 +720,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
      */
     public function testBuildTableDefinition(Blueprint $blueprint, $expected)
     {
-        $actual = Reflacker::invoke($blueprint, 'buildTableDefinition', new Phql);
+        $actual = Reflacker::invoke($blueprint, 'buildTableDefinition', $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($expected, $actual);
     }
@@ -906,4 +906,9 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($expectedCommands, $blueprint->getCommands());
     }
+}
+
+abstract class MockDialect implements Schema\DialectInterface
+{
+    use Schema\DialectTrait;
 }

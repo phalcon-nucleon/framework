@@ -2,7 +2,6 @@
 
 namespace Neutrino\Database\Schema;
 
-use Neutrino\Database\Schema\Grammars\Phql;
 use Neutrino\Support\Fluent;
 use Phalcon\Config;
 use Phalcon\Db\AdapterInterface as Db;
@@ -10,6 +9,11 @@ use Phalcon\Db\Column;
 use Phalcon\Db\Index;
 use Phalcon\Db\Reference;
 
+/**
+ * Class Blueprint
+ *
+ * @package Neutrino\Database\Schema
+ */
 class Blueprint
 {
     /** @var string */
@@ -33,6 +37,11 @@ class Blueprint
     /** @var int */
     protected $action;
 
+    /**
+     * Blueprint constructor.
+     *
+     * @param $table
+     */
     public function __construct($table)
     {
         $this->table = $table;
@@ -41,14 +50,14 @@ class Blueprint
     /**
      * Execute the blueprint against the database.
      *
-     * @param \Phalcon\Db\AdapterInterface            $db
-     * @param \Phalcon\Config                         $dbConfig
-     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
+     * @param \Phalcon\Db\AdapterInterface               $db
+     * @param \Phalcon\Config                            $dbConfig
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return bool
      * @throws \Exception
      */
-    public function build(Db $db, Config $dbConfig, Phql $grammar)
+    public function build(Db $db, Config $dbConfig, DialectInterface $grammar)
     {
         switch ($this->action) {
             case 'create':
@@ -65,18 +74,25 @@ class Blueprint
     }
 
     /**
-     * @param \Phalcon\Db\AdapterInterface            $db
-     * @param \Phalcon\Config                         $dbConfig
-     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
+     * @param \Phalcon\Db\AdapterInterface               $db
+     * @param \Phalcon\Config                            $dbConfig
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return bool
      */
-    protected function buildCreate(Db $db, Config $dbConfig, Phql $grammar)
+    protected function buildCreate(Db $db, Config $dbConfig, DialectInterface $grammar)
     {
         return $db->createTable($this->table, $dbConfig->dbname, $this->buildTableDefinition($grammar));
     }
 
-    protected function buildTableDefinition(Phql $grammar)
+    /**
+     * Build the table definition for table creation
+     *
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
+     *
+     * @return array
+     */
+    protected function buildTableDefinition(DialectInterface $grammar)
     {
         // Manage primary key / multiple primary keys
         $primaries = [];
@@ -131,14 +147,14 @@ class Blueprint
     }
 
     /**
-     * @param \Phalcon\Db\AdapterInterface            $db
-     * @param \Phalcon\Config                         $dbConfig
-     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
+     * @param \Phalcon\Db\AdapterInterface               $db
+     * @param \Phalcon\Config                            $dbConfig
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return bool
      * @throws \Exception
      */
-    protected function buildUpdate(Db $db, Config $dbConfig, Phql $grammar)
+    protected function buildUpdate(Db $db, Config $dbConfig, DialectInterface $grammar)
     {
         $this->buildCommands($db, $dbConfig);
 
@@ -216,6 +232,12 @@ class Blueprint
         return true;
     }
 
+    /**
+     * Build all columns, indexes, references, to commands
+     *
+     * @param \Phalcon\Db\AdapterInterface $db
+     * @param \Phalcon\Config              $dbConfig
+     */
     protected function buildCommands(Db $db, Config $dbConfig)
     {
         $columns = $db->describeColumns($this->table, $dbConfig->dbname);
@@ -240,25 +262,27 @@ class Blueprint
     }
 
     /**
-     * @param \Phalcon\Db\AdapterInterface            $connection
-     * @param \Phalcon\Config                         $dbConfig
-     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
-     * @param bool                                    $ifExist
+     * @param \Phalcon\Db\AdapterInterface               $connection
+     * @param \Phalcon\Config                            $dbConfig
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
+     * @param bool                                       $ifExist
      *
      * @return bool
      */
-    protected function buildDrop(Db $connection, Config $dbConfig, Phql $grammar, $ifExist = false)
+    protected function buildDrop(Db $connection, Config $dbConfig, DialectInterface $grammar, $ifExist = false)
     {
         return $connection->dropTable($this->table, $dbConfig->dbname, $ifExist);
     }
 
     /**
-     * @param \Neutrino\Support\Fluent                $column
-     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
+     * Transform a Fluent(Column) to a \Phalcon\Db\Column
+     *
+     * @param \Neutrino\Support\Fluent                           $column
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return \Phalcon\Db\Column
      */
-    protected function fluentToColumn(Fluent $column, Phql $grammar)
+    protected function fluentToColumn(Fluent $column, DialectInterface $grammar)
     {
         $attributes = $column->getAttributes();
 
@@ -296,14 +320,30 @@ class Blueprint
         return new Column($column->get('name'), array_merge($types, $attributes));
     }
 
-    protected function fluentToIndex(Fluent $index, Phql $grammar)
+    /**
+     * Transform a Fluent(Index) to a \Phalcon\Db\Index
+     *
+     * @param \Neutrino\Support\Fluent                   $index
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
+     *
+     * @return \Phalcon\Db\Index
+     */
+    protected function fluentToIndex(Fluent $index, DialectInterface $grammar)
     {
         $name = $index->get('name') ?: $this->createIndexName($index->get('type'), $index->get('columns'));
 
         return new Index($name, $index->get('columns'), $index->get('type'));
     }
 
-    protected function fluentToReference(Fluent $index, Phql $grammar)
+    /**
+     * Transform a Fluent(Reference) to a \Phalcon\Db\Reference
+     *
+     * @param \Neutrino\Support\Fluent                   $index
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
+     *
+     * @return \Phalcon\Db\Reference
+     */
+    protected function fluentToReference(Fluent $index, DialectInterface $grammar)
     {
         $columns    = (array)$index->get('columns');
         $references = (array)$index->get('references');
@@ -1160,7 +1200,7 @@ class Blueprint
     public function uuid($column)
     {
         /* @todo Uuid behavior */
-        return $this->char($column, 36);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -1173,7 +1213,7 @@ class Blueprint
     public function ipAddress($column)
     {
         /* @todo IpAddress behavior */
-        return $this->string($column, 45);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -1186,7 +1226,7 @@ class Blueprint
     public function macAddress($column)
     {
         /* @todo MacAddress behavior */
-        return $this->string($column, 17);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**

@@ -2,8 +2,6 @@
 
 namespace Neutrino\Database\Schema;
 
-use Neutrino\Database\Query\Expression;
-
 abstract class Grammar
 {
     /**

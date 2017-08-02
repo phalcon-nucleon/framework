@@ -8,7 +8,6 @@ use Neutrino\Database\Schema\Grammars\Phql;
 use Neutrino\Support\Func;
 use Phalcon\Config;
 use Phalcon\Db\AdapterInterface as Db;
-use Phalcon\Db\ColumnInterface;
 
 class Builder
 {
@@ -51,12 +50,13 @@ class Builder
      * Create a new database Schema manager.
      *
      * @param  \Phalcon\Db\AdapterInterface $connection
+     * @param \Phalcon\Config               $dbConfig
      */
     public function __construct(Db $connection, Config $dbConfig)
     {
-        $this->db = $connection;
+        $this->db       = $connection;
         $this->dbConfig = $dbConfig;
-        $this->grammar    = new Phql();
+        $this->grammar  = new Phql();
     }
 
     /**
@@ -161,7 +161,11 @@ class Builder
      */
     public function table($table, Closure $callback)
     {
-        $this->build($this->createBlueprint($table, $callback));
+        $this->build(Func::tap($this->createBlueprint($table), function (Blueprint $blueprint) use ($callback) {
+            $blueprint->update();
+
+            $callback($blueprint);
+        }));
     }
 
     /**
@@ -269,7 +273,7 @@ class Builder
      */
     protected function build(Blueprint $blueprint)
     {
-        $blueprint->build($this->db, $this->dbConfig);
+        $blueprint->build($this->db, $this->dbConfig, $this->grammar);
     }
 
     /**
@@ -298,13 +302,7 @@ class Builder
      */
     protected function describeColumn($table, $column, $schema = null)
     {
-        /** @var ColumnInterface[] $columns */
-        static $columns;
-        if (!isset($columns)) {
-            $columns = $this->db->describeColumns($table, $schema);
-        }
-
-        foreach ($columns as $col) {
+        foreach ($this->db->describeColumns($table, $schema) as $col) {
             if ($col->getName() == $column) {
                 return $col;
             }

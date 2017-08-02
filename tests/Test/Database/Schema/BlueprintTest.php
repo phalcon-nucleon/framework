@@ -3,10 +3,12 @@
 namespace Test\Database\Schema;
 
 use Neutrino\Database\Schema\Blueprint;
-use Neutrino\Database\Schema\Column;
-use Neutrino\Database\Schema\Reference;
+use Neutrino\Database\Schema\Grammars\Phql;
 use Neutrino\Support\Fluent;
 use Neutrino\Support\Reflacker;
+use Phalcon\Db\Column;
+use Phalcon\Db\Index;
+use Phalcon\Db\Reference;
 
 class BlueprintTest extends \PHPUnit_Framework_TestCase
 {
@@ -24,16 +26,21 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     public function dataIncrements()
     {
         return [
-            ['increments', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true])],
-            ['tinyIncrements', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 1, 'autoIncrement' => true, 'unsigned' => true])],
-            ['smallIncrements', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 2, 'autoIncrement' => true, 'unsigned' => true])],
-            ['mediumIncrements', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 3, 'autoIncrement' => true, 'unsigned' => true])],
-            ['bigIncrements', 'column', [],
-             new Column('column', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => true, 'unsigned' => true])],
+            ['increments', 'col_increments', [],
+             new Fluent(['name' => 'col_increments', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => true]),
+             new Column('col_increments', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true])],
+            ['tinyIncrements', 'col_tinyIncrements', [],
+             new Fluent(['name' => 'col_tinyIncrements', 'type' => 'tinyInteger', 'autoIncrement' => true, 'unsigned' => true]),
+             new Column('col_tinyIncrements', ['type' => 'TINYINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true])],
+            ['smallIncrements', 'col_smallIncrements', [],
+             new Fluent(['name' => 'col_smallIncrements', 'type' => 'smallInteger', 'autoIncrement' => true, 'unsigned' => true]),
+             new Column('col_smallIncrements', ['type' => 'SMALLINT', 'typeReference' => Column::TYPE_INTEGER,  'autoIncrement' => true, 'unsigned' => true, 'notNull' => true])],
+            ['mediumIncrements', 'col_mediumIncrements', [],
+             new Fluent(['name' => 'col_mediumIncrements', 'type' => 'mediumInteger', 'autoIncrement' => true, 'unsigned' => true]),
+             new Column('col_mediumIncrements', ['type' => 'MEDIUMINT',  'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true])],
+            ['bigIncrements', 'col_bigIncrements', [],
+             new Fluent(['name' => 'col_bigIncrements', 'type' => 'bigInteger', 'autoIncrement' => true, 'unsigned' => true]),
+             new Column('col_bigIncrements', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true])],
         ];
     }
 
@@ -43,13 +50,27 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     public function dataStrings()
     {
         return [
-            ['char', 'column', [], new Column('column', ['type' => Column::TYPE_CHAR, 'size' => 255])],
-            ['char', 'column', [4], new Column('column', ['type' => Column::TYPE_CHAR, 'size' => 4])],
-            ['string', 'column', [], new Column('column', ['type' => Column::TYPE_VARCHAR, 'size' => 255])],
-            ['string', 'column', [128], new Column('column', ['type' => Column::TYPE_VARCHAR, 'size' => 128])],
-            ['text', 'column', [], new Column('column', ['type' => Column::TYPE_TEXT,])],
-            //['mediumText', 'column', [], new Column('column', ['type' => Column::TYPE_MEDIUMBLOB,])],
-            //['longText', 'column', [], new Column('column', ['type' => Column::TYPE_LONGBLOB,])],
+            ['char', 'col_char', [],
+             new Fluent(['name' => 'col_char', 'type' => 'char', 'size' => 255]),
+             new Column('col_char', ['type' => Column::TYPE_CHAR, 'size' => 255, 'notNull' => true])],
+            ['char', 'col_char_4', [4],
+             new Fluent(['name' => 'col_char_4', 'type' => 'char', 'size' => 4]),
+             new Column('col_char_4', ['type' => Column::TYPE_CHAR, 'size' => 4, 'notNull' => true])],
+            ['string', 'col_string', [],
+             new Fluent(['name' => 'col_string', 'type' => 'string', 'size' => 255]),
+             new Column('col_string', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true])],
+            ['string', 'col_string', [128],
+             new Fluent(['name' => 'col_string', 'type' => 'string', 'size' => 128]),
+             new Column('col_string', ['type' => Column::TYPE_VARCHAR, 'size' => 128, 'notNull' => true])],
+            ['text', 'col_text', [],
+             new Fluent(['name' => 'col_text', 'type' => 'text',]),
+             new Column('col_text', ['type' => Column::TYPE_TEXT, 'notNull' => true])],
+            ['mediumText', 'col_mediumText', [],
+             new Fluent(['name' => 'col_mediumText', 'type' => 'mediumText',]),
+             new Column('col_mediumText', ['type' => 'MEDIUMTEXT', 'typeReference' => Column::TYPE_TEXT, 'notNull' => true])],
+            ['longText', 'col_longText', [],
+             new Fluent(['name' => 'col_longText', 'type' => 'longText',]),
+             new Column('col_longText', ['type' => 'LONGTEXT', 'typeReference' => Column::TYPE_TEXT, 'notNull' => true])],
         ];
     }
 
@@ -59,32 +80,45 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     public function dataIntegers()
     {
         return [
-            ['integer', 'column', [false, false],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false])],
-            ['integer', 'column', [true, false],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => false])],
-            ['integer', 'column', [true, true],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true])],
-            ['integer', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false])],
-            ['tinyInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 1, 'autoIncrement' => false, 'unsigned' => false])],
-            ['smallInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 2, 'autoIncrement' => false, 'unsigned' => false])],
-            ['mediumInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 3, 'autoIncrement' => false, 'unsigned' => false])],
-            ['bigInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => false, 'unsigned' => false,])],
-            ['unsignedInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true])],
-            ['unsignedTinyInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 1, 'autoIncrement' => false, 'unsigned' => true])],
-            ['unsignedSmallInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 2, 'autoIncrement' => false, 'unsigned' => true])],
-            ['unsignedMediumInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_INTEGER, 'size' => 3, 'autoIncrement' => false, 'unsigned' => true])],
-            ['unsignedBigInteger', 'column', [],
-             new Column('column', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => false, 'unsigned' => true])],
+            ['integer', 'col_integer', [false, false],
+             new Fluent(['name' => 'col_integer', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => false]),
+             new Column('col_integer', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
+            ['integer', 'col_integer_inc', [true, false],
+             new Fluent(['name' => 'col_integer_inc', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => false]),
+             new Column('col_integer_inc', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => false, 'notNull' => true])],
+            ['integer', 'col_integer_inc_uns', [true, true],
+             new Fluent(['name' => 'col_integer_inc_uns', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => true]),
+             new Column('col_integer_inc_uns', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true])],
+            ['integer', 'col_integer_2', [],
+             new Fluent(['name' => 'col_integer_2', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => false]),
+             new Column('col_integer_2', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
+            ['tinyInteger', 'col_tinyInteger', [],
+             new Fluent(['name' => 'col_tinyInteger', 'type' => 'tinyInteger', 'autoIncrement' => false, 'unsigned' => false]),
+             new Column('col_tinyInteger', ['type' => 'TINYINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
+            ['smallInteger', 'col_smallInteger', [],
+             new Fluent(['name' => 'col_smallInteger', 'type' => 'smallInteger', 'autoIncrement' => false, 'unsigned' => false]),
+             new Column('col_smallInteger', ['type' => 'SMALLINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
+            ['mediumInteger', 'col_mediumInteger', [],
+             new Fluent(['name' => 'col_mediumInteger', 'type' => 'mediumInteger', 'autoIncrement' => false, 'unsigned' => false]),
+             new Column('col_mediumInteger', ['type' => 'MEDIUMINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
+            ['bigInteger', 'col_bigInteger', [],
+             new Fluent(['name' => 'col_bigInteger', 'type' => 'bigInteger', 'autoIncrement' => false, 'unsigned' => false,]),
+             new Column('col_bigInteger', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
+            ['unsignedInteger', 'col_unsignedInteger', [],
+             new Fluent(['name' => 'col_unsignedInteger', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => true]),
+             new Column('col_unsignedInteger', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
+            ['unsignedTinyInteger', 'col_unsignedTinyInteger', [],
+             new Fluent(['name' => 'col_unsignedTinyInteger', 'type' => 'tinyInteger', 'autoIncrement' => false, 'unsigned' => true]),
+             new Column('col_unsignedTinyInteger', ['type' => 'TINYINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
+            ['unsignedSmallInteger', 'col_unsignedSmallInteger', [],
+             new Fluent(['name' => 'col_unsignedSmallInteger', 'type' => 'smallInteger', 'autoIncrement' => false, 'unsigned' => true]),
+             new Column('col_unsignedSmallInteger', ['type' => 'SMALLINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
+            ['unsignedMediumInteger', 'col_unsignedMediumInteger', [],
+             new Fluent(['name' => 'col_unsignedMediumInteger', 'type' => 'mediumInteger', 'autoIncrement' => false, 'unsigned' => true]),
+             new Column('col_unsignedMediumInteger', ['type' => 'MEDIUMINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
+            ['unsignedBigInteger', 'col_unsignedBigInteger', [],
+             new Fluent(['name' => 'col_unsignedBigInteger', 'type' => 'bigInteger', 'autoIncrement' => false, 'unsigned' => true]),
+             new Column('col_unsignedBigInteger', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
         ];
     }
 
@@ -94,9 +128,15 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     public function dataDecimal()
     {
         return [
-            ['float', 'column', [], new Column('column', ['type' => Column::TYPE_FLOAT,])],
-            ['double', 'column', [], new Column('column', ['type' => Column::TYPE_DOUBLE,])],
-            ['decimal', 'column', [], new Column('column', ['type' => Column::TYPE_DECIMAL,])],
+            ['float', 'col_float', [],
+             new Fluent(['name' => 'col_float', 'type' => 'float',]),
+             new Column('col_float', ['type' => Column::TYPE_FLOAT, 'notNull' => true])],
+            ['double', 'col_double', [],
+             new Fluent(['name' => 'col_double', 'type' => 'double',]),
+             new Column('col_double', ['type' => Column::TYPE_DOUBLE, 'notNull' => true])],
+            ['decimal', 'col_decimal', [],
+             new Fluent(['name' => 'col_decimal', 'type' => 'decimal',]),
+             new Column('col_decimal', ['type' => Column::TYPE_DECIMAL, 'notNull' => true])],
         ];
     }
 
@@ -106,30 +146,72 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     public function dataOthers()
     {
         return [
-            ['boolean', 'column', [], new Column('column', ['type' => Column::TYPE_BOOLEAN,])],
-            //['enum', 'column', [], new Column('column', ['type' => Column::TYPE_ENUM,])],
-            ['json', 'column', [], new Column('column', ['type' => Column::TYPE_JSON,])],
-            ['jsonb', 'column', [], new Column('column', ['type' => Column::TYPE_JSONB,])],
-            ['date', 'column', [], new Column('column', ['type' => Column::TYPE_DATE,])],
-            ['dateTime', 'column', [], new Column('column', ['type' => Column::TYPE_DATETIME,])],
-            /* ['dateTimeTz', 'column', [], new Column('column', ['type' => Column::TYPE_DATETIME,])],
-             ['time', 'column', [], new Column('column', ['type' => Column::TYPE_TIMESTAMP,])],
-             ['timeTz', 'column', [], new Column('column', ['type' => Column::TYPE_TIMESTAMP,])],*/
-            ['timestamp', 'column', [], new Column('column', ['type' => Column::TYPE_TIMESTAMP,])],
-            /*['timestampTz', 'column', [], new Column('column', ['type' => Column::TYPE_TIMESTAMP,])],*/
-            /* TODO Specific test
-            ['timestampsTz', 'column', [], new Column('column', ['type' => Column::TYPE_TIMESTAMPSTZ,])],
-            ['softDeletes', 'column', [], new Column('column', ['type' => Column::TYPE_SOFTDELETES,])],
-            ['softDeletesTz', 'column', [], new Column('column', ['type' => Column::TYPE_SOFTDELETESTZ,])],*/
-            ['binary', 'column', [], new Column('column', ['type' => Column::TYPE_BLOB,])],
-            ['uuid', 'column', [], new Column('column', ['type' => Column::TYPE_CHAR, 'size' => 36])],
-            ['ipAddress', 'column', [], new Column('column', ['type' => Column::TYPE_VARCHAR, 'size' => 45])],
-            ['macAddress', 'column', [], new Column('column', ['type' => Column::TYPE_VARCHAR, 'size' => 17])],
-            /* TODO Specific test
-            ['morphs', 'column', [], new Column('column', ['type' => Column::TYPE_MORPHS,])],
-            ['nullableMorphs', 'column', [], new Column('column', ['type' => Column::TYPE_NULLABLEMORPHS,])],*/
-            /* TODO Specific test
-            ['rememberToken', 'column', [], new Column('column', ['type' => Column::TYPE_REMEMBERTOKEN,])],*/
+            ['boolean', 'col_boolean', [],
+             new Fluent(['name' => 'col_boolean', 'type' => 'boolean',]),
+             new Column('col_boolean', ['type' => Column::TYPE_BOOLEAN, 'notNull' => true])],
+            ['enum', 'col_enum', [['a', 'b', 'c']],
+             new Fluent(['name' => 'col_enum', 'type' => 'enum', 'values' => ['a', 'b', 'c']]),
+             new Column('col_enum', ['type' => 'ENUM', 'typeReference' => -1, 'typeValues' => ['a', 'b', 'c'], 'notNull' => true])],
+            ['json', 'col_json', [],
+             new Fluent(['name' => 'col_json', 'type' => 'json',]),
+             new Column('col_json', ['type' => Column::TYPE_JSON, 'notNull' => true])],
+            ['jsonb', 'col_jsonb', [],
+             new Fluent(['name' => 'col_jsonb', 'type' => 'jsonb',]),
+             new Column('col_jsonb', ['type' => Column::TYPE_JSONB, 'notNull' => true])],
+            ['date', 'col_date', [],
+             new Fluent(['name' => 'col_date', 'type' => 'date',]),
+             new Column('col_date', ['type' => Column::TYPE_DATE, 'notNull' => true])],
+            ['dateTime', 'col_dateTime', [],
+             new Fluent(['name' => 'col_dateTime', 'type' => 'dateTime', 'precision' => 0]),
+             new Column('col_dateTime', ['type' => Column::TYPE_DATETIME, 'precision' => 0, 'notNull' => true])],
+            ['dateTimeTz', 'col_dateTimeTz', [],
+             new Fluent(['name' => 'col_dateTimeTz', 'type' => 'dateTimeTz', 'precision' => 0]),
+             new Column('col_dateTimeTz', ['type' => 'DATETIME WITH TIMEZONE', 'typeReference' => Column::TYPE_DATETIME, 'precision' => 0, 'notNull' => true])],
+            ['time', 'col_time', [],
+             new Fluent(['name' => 'col_time', 'type' => 'time',]),
+             new Column('col_time', ['type' => 'TIME', 'typeReference' => Column::TYPE_DATETIME, 'notNull' => true,])],
+            ['timeTz', 'col_timeTz', [],
+             new Fluent(['name' => 'col_timeTz', 'type' => 'timeTz',]),
+             new Column('col_timeTz', ['type' => 'TIME WITH TIMEZONE', 'typeReference' => Column::TYPE_DATETIME, 'notNull' => true,])],
+            ['timestamp', 'col_timestamp', [],
+             new Fluent(['name' => 'col_timestamp', 'type' => 'timestamp', 'precision' => 0]),
+             new Column('col_timestamp', ['type' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => true])],
+            ['timestampTz', 'col_timestampTz', [],
+             new Fluent(['name' => 'col_timestampTz', 'type' => 'timestampTz', 'precision' => 0]),
+             new Column('col_timestampTz', ['type' => 'TIMESTAMP WITH TIMEZONE', 'typeReference' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => true])],
+            ['softDeletes', 'deleted_at', [],
+             new Fluent(['name' => 'deleted_at', 'type' => 'timestamp', 'precision' => 0, 'nullable' => true]),
+             new Column('deleted_at', ['type' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => false])],
+            ['softDeletesTz', 'deleted_at', [],
+             new Fluent(['name' => 'deleted_at', 'type' => 'timestampTz', 'precision' => 0, 'nullable' => true]),
+             new Column('deleted_at', ['type' => 'TIMESTAMP WITH TIMEZONE', 'typeReference' => Column::TYPE_TIMESTAMP,  'precision' => 0, 'notNull' => false])],
+            ['binary', 'col_binary', [],
+             new Fluent(['name' => 'col_binary', 'type' => 'blob',]),
+             new Column('col_binary', ['type' => Column::TYPE_BLOB, 'notNull' => true,])],
+            ['blob', 'col_blob', [],
+             new Fluent(['name' => 'col_blob', 'type' => 'blob',]),
+             new Column('col_blob', ['type' => Column::TYPE_BLOB, 'notNull' => true,])],
+            ['tinyBlob', 'col_tinyBlob', [],
+             new Fluent(['name' => 'col_tinyBlob', 'type' => 'tinyBlob',]),
+             new Column('col_tinyBlob', ['type' => Column::TYPE_TINYBLOB, 'notNull' => true,])],
+            ['mediumBlob', 'col_mediumBlob', [],
+             new Fluent(['name' => 'col_mediumBlob', 'type' => 'mediumBlob',]),
+             new Column('col_mediumBlob', ['type' => Column::TYPE_MEDIUMBLOB, 'notNull' => true,])],
+            ['longBlob', 'col_longBlob', [],
+             new Fluent(['name' => 'col_longBlob', 'type' => 'longBlob',]),
+             new Column('col_longBlob', ['type' => Column::TYPE_LONGBLOB, 'notNull' => true,])],
+            ['uuid', 'col_uuid', [],
+             new Fluent(['name' => 'col_uuid', 'type' => 'char', 'size' => 36]),
+             new Column('col_uuid', ['type' => Column::TYPE_CHAR, 'size' => 36, 'notNull' => true])],
+            ['ipAddress', 'col_ipAddress', [],
+             new Fluent(['name' => 'col_ipAddress', 'type' => 'string', 'size' => 45]),
+             new Column('col_ipAddress', ['type' => Column::TYPE_VARCHAR, 'size' => 45, 'notNull' => true])],
+            ['macAddress', 'col_macAddress', [],
+             new Fluent(['name' => 'col_macAddress', 'type' => 'string', 'size' => 17]),
+             new Column('col_macAddress', ['type' => Column::TYPE_VARCHAR, 'size' => 17, 'notNull' => true])],
+            ['rememberToken', 'remember_token', [],
+             new Fluent(['name' => 'remember_token', 'type' => 'string', 'size' => 100, 'nullable' => true]),
+             new Column('remember_token', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => false])],
         ];
     }
 
@@ -169,7 +251,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($excepted, $blueprint->$type($name, ...$parameters));
 
-        $this->assertEquals([$excepted], $blueprint->getColumns());
+        $this->assertEquals([$name => $excepted], $blueprint->getColumns());
     }
 
     /**
@@ -185,153 +267,643 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             $type       = $column[0];
             $name       = $column[1];
             $parameters = $column[2];
-            $watch[]    = $excepted = $column[3];
+            $watch[$name]    = $excepted = $column[3];
             $this->assertEquals($excepted, $blueprint->$type($name, ...$parameters));
         }
 
         $this->assertEquals($watch, $blueprint->getColumns());
     }
 
-    public function buildBlueprint(&$columns, &$indexes = [])
+    public function dataTimestamps()
     {
-        $blueprint = new Blueprint('table');
-
-        foreach ($columns as &$column) {
-            $type             = $column[0];
-            $name             = $column[1];
-            $parameters       = $column[2];
-            $column['column'] = $blueprint->$type($name, ...$parameters);
-        }
-
-        $watches = count($columns);
-        foreach (['primary', 'index', 'unique'] as $index) {
-            $run = true;
-            while ($run) {
-                $col = $columns[mt_rand(0, $watches - 1)]['column'];
-                if (in_array($col, $indexes)) {
-                    continue;
-                }
-                $run = false;
-                $col->$index();
-                $indexes[$index] = $col;
-            }
-        }
-
-        return $blueprint;
+        return [
+            ['timestamps', [
+                'created_at' => new Fluent(['name' => 'created_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP']),
+                'updated_at' => new Fluent(['name' => 'updated_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP'])
+            ]],
+            ['timestampsTz', [
+                'created_at' => new Fluent(['name' => 'created_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP']),
+                'updated_at' => new Fluent(['name' => 'updated_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP'])
+            ]],
+            ['nullableTimestamps', [
+                'created_at' => new Fluent(['name' => 'created_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'nullable' => true]),
+                'updated_at' => new Fluent(['name' => 'updated_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP', 'nullable' => true])
+            ]],
+            ['nullableTimestampsTz', [
+                'created_at' => new Fluent(['name' => 'created_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'nullable' => true]),
+                'updated_at' => new Fluent(['name' => 'updated_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP', 'nullable' => true])
+            ]],
+        ];
     }
 
     /**
-     * @dataProvider dataGroupColums
+     * @dataProvider dataTimestamps
      */
-    public function testIndexes($columns)
+    public function testTimestamps($func, $columns)
     {
-        $indexes   = [];
-        $blueprint = $this->buildBlueprint($columns, $indexes);
+        $blueprint = new Blueprint('test');
 
-        foreach ($indexes as $type => $index) {
-            $this->assertTrue($index->$type);
-        }
+        $blueprint->$func();
 
-        Reflacker::invoke($blueprint, 'addImpliedCommands');
+        $this->assertEquals($columns, $blueprint->getColumns());
+    }
 
-        $this->assertCount(count($indexes), $blueprint->getIndexes());
-        $this->assertCount(count($columns) + count($indexes), $blueprint->getCommands());
+    public function testMorphs()
+    {
+        $morphsId   = new Fluent(['name' => 'morphs_id', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => true]);
+        $morphsType = new Fluent(['name' => 'morphs_type', 'type' => 'string', 'size' => 255]);
+        $morphsIndex = new Fluent(['name' => 'test_morphs_id_morphs_type_index', 'columns' => ['morphs_id', 'morphs_type'], 'type' => 'index']);
+
+        $nullMorphsId = new Fluent(['name' => 'null_morphs_id', 'type' => 'integer', 'autoIncrement' => false,'unsigned' => true, 'nullable' => true]);
+        $nullMorphsType = new Fluent(['name' => 'null_morphs_type', 'type' => 'string', 'size' => 255, 'nullable' => true]);
+        $nullMorphsIndex = new Fluent(['name' => 'test_null_morphs_id_null_morphs_type_index', 'columns' => ['null_morphs_id', 'null_morphs_type'], 'type' => 'index']);
+
+        $blueprint = new Blueprint('test');
+
+        $blueprint->morphs('morphs');
+
+        $this->assertEquals([
+            'morphs_id'   => $morphsId,
+            'morphs_type' => $morphsType
+        ], $blueprint->getColumns());
+
+        $this->assertEquals([$morphsIndex], $blueprint->getIndexes());
+
+        $blueprint->nullableMorphs('null_morphs');
+
+        $this->assertEquals([
+            'morphs_id'   => $morphsId,
+            'morphs_type' => $morphsType,
+            'null_morphs_id'   => $nullMorphsId,
+            'null_morphs_type' => $nullMorphsType
+        ], $blueprint->getColumns());
+
+        $this->assertEquals([$morphsIndex, $nullMorphsIndex], $blueprint->getIndexes());
+    }
+
+    public function testOption()
+    {
+        $blueprint = new Blueprint('test');
+
+        $blueprint->temporary();
+        $blueprint->option('engine', 'InnoDB');
+
+        $this->assertEquals([
+            'temporary' => true,
+            'engine'    => 'InnoDB'
+        ], $blueprint->getOptions());
     }
 
     /**
-     * @dataProvider dataGroupColums
+     * @dataProvider dataColumns
      */
-    public function testIndexesCreateBlueprint($columns)
+    public function testFluentToColumn($type, $name, $parameters, $fluent, $column)
     {
-        $indexes   = [];
-        $blueprint = $this->buildBlueprint($columns, $indexes);
+        $blueprint = new Blueprint('test');
+
+        $actual = Reflacker::invoke($blueprint, 'fluentToColumn', $fluent, new Phql);
+
+        $this->assertEquals($column, $actual);
+    }
+
+    public function dataFluentToColumnIndexes()
+    {
+        return [
+            [
+                [new Fluent(['name' => 'column', 'type' => 'integer', 'index' => true])],
+                [new Column('column', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
+                [new Fluent(['name' => 'test_column_index', 'type' => 'index', 'columns' => ['column']])]
+            ],
+            [
+                [new Fluent(['name' => 'column', 'type' => 'integer', 'unique' => true])],
+                [new Column('column', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
+                [new Fluent(['name' => 'test_column_unique', 'type' => 'unique', 'columns' => ['column']])]
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider dataFluentToColumnIndexes
+     */
+    public function testFluentToColumnIndexes($columns, $expectedColumns, $expectedIndexes)
+    {
+        $blueprint = new Blueprint('test');
+
+        $actualColumns = [];
+        foreach ($columns as $column) {
+            $actualColumns[] = Reflacker::invoke($blueprint, 'fluentToColumn', $column, new Phql);
+        }
+
+        $this->assertEquals($expectedColumns, $actualColumns);
+        $this->assertEquals($expectedIndexes, $blueprint->getIndexes());
+    }
+
+    public function testFluentToColumnReference()
+    {
+        $column = new Fluent([
+            'name'       => 'column',
+            'type'       => 'integer',
+            'foreign'    => true,
+            'on'         => 'test_2',
+            'references' => ['column']
+        ]);
+
+        $expectedColumn = new Column('column', [
+            'type'    => Column::TYPE_INTEGER,
+            'notNull' => true
+        ]);
+
+        $expectedReference = new Fluent([
+            'name'       => null,
+            'type'       => 'foreign',
+            'columns'    => ['column'],
+            'on'         => 'test_2',
+            'references' => ['column']
+        ]);
+
+        $blueprint = new Blueprint('test');
+
+        $actualColumn = Reflacker::invoke($blueprint, 'fluentToColumn', $column, new Phql);
+
+        $this->assertEquals($expectedColumn, $actualColumn);
+        $this->assertEquals([$expectedReference], $blueprint->getReferences());
+    }
+
+    public function dataFluentToIndex(){
+        return [
+            [
+                new Fluent(['name' => 'test_column_index', 'type' => 'index', 'columns' => ['column']]),
+                new Index('test_column_index', ['column'], 'index')
+            ], [
+                new Fluent(['name' => 'test_column_unique', 'type' => 'unique', 'columns' => ['column']]),
+                new Index('test_column_unique', ['column'], 'unique')
+            ], [
+                new Fluent(['name' => 'test_column_primary', 'type' => 'primary', 'columns' => ['column']]),
+                new Index('test_column_primary', ['column'], 'primary')
+            ],
+            [
+                new Fluent(['name' => 'test_column_column_2_index', 'type' => 'index', 'columns' => ['column', 'column_2']]),
+                new Index('test_column_column_2_index', ['column', 'column_2'], 'index')
+            ], [
+                new Fluent(['name' => 'test_column_column_2_unique', 'type' => 'unique', 'columns' => ['column', 'column_2']]),
+                new Index('test_column_column_2_unique', ['column', 'column_2'], 'unique')
+            ], [
+                new Fluent(['name' => 'test_column_column_2_primary', 'type' => 'primary', 'columns' => ['column', 'column_2']]),
+                new Index('test_column_column_2_primary', ['column', 'column_2'], 'primary')
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider dataFluentToIndex
+     */
+    public function testFluentToIndex($fluent, $index)
+    {
+        $blueprint = new Blueprint('test');
+
+        $actual = Reflacker::invoke($blueprint, 'fluentToIndex', $fluent, new Phql);
+
+        $this->assertEquals($index, $actual);
+    }
+
+    public function dataFluentToReference()
+    {
+        return [
+            [
+                new Fluent(['name'       => null, 'type' => 'foreign', 'columns' => ['column'], 'on' => 'test_2',
+                            'references' => ['column']]),
+                new Reference('test_column_foreign_test_2_column', [
+                    'columns'           => ['column'],
+                    'referencedTable'   => 'test_2',
+                    'referencedColumns' => ['column'],
+                ])
+            ], [
+                new Fluent(['name'       => 'test_column_foreign_test_2_column', 'type' => 'foreign', 'columns' => ['column'],
+                            'on'         => 'test_2',
+                            'references' => ['column']]),
+                new Reference('test_column_foreign_test_2_column', [
+                    'columns'           => ['column'],
+                    'referencedTable'   => 'test_2',
+                    'referencedColumns' => ['column'],
+                ])
+            ], [
+                new Fluent(['name'       => null, 'type' => 'foreign', 'columns' => ['col_1', 'col_2'],
+                            'on'         => 'test_2',
+                            'references' => ['col_a', 'col_b']]),
+                new Reference('test_col_1_col_2_foreign_test_2_col_a_col_b', [
+                    'columns'           => ['col_1', 'col_2'],
+                    'referencedTable'   => 'test_2',
+                    'referencedColumns' => ['col_a', 'col_b'],
+                ])
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider dataFluentToReference
+     */
+    public function testFluentToReference($fluent, $reference)
+    {
+        $blueprint = new Blueprint('test');
+
+        $actual = Reflacker::invoke($blueprint, 'fluentToReference', $fluent, new Phql);
+
+        $this->assertEquals($reference, $actual);
+    }
+
+    public function dataBuildTableDefinition()
+    {
+        $blueprint = new Blueprint('test');
+        $blueprint->increments('id')->primary();
+        $blueprint->string('name');
+        $blueprint->string('email')->unique();
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'primary' => true, 'notNull' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_email_unique', ['email'], 'unique')
+            ],
+        ]];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->string('firstname')->primary();
+        $blueprint->string('lastname')->primary();
+        $blueprint->string('email')->unique();
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('firstname', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('lastname', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'primary'),
+                new Index('test_email_unique', ['email'], 'unique'),
+            ],
+        ]];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->string('firstname');
+        $blueprint->string('lastname')->primary();
+        $blueprint->string('email')->unique();
+        $blueprint->primary('firstname');
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('firstname', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('lastname', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'primary'),
+                new Index('test_email_unique', ['email'], 'unique'),
+            ],
+        ]];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->string('firstname');
+        $blueprint->string('lastname');
+        $blueprint->string('email')->unique();
+        $blueprint->primary(['firstname', 'lastname']);
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('firstname', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('lastname', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'primary'),
+                new Index('test_email_unique', ['email'], 'unique'),
+            ],
+        ]];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->increments('id')->primary();
+        $blueprint->string('name');
+        $blueprint->string('email')->unique();
+        $blueprint->primary('id');
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'primary' => true, 'notNull' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_email_unique', ['email'], 'unique')
+            ],
+        ]];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->increments('id')->primary();
+        $blueprint->string('name');
+        $blueprint->string('email')->unique();
+        $blueprint->string('sector')->foreign()->on('sector')->references('id');
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'primary' => true, 'notNull' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('sector', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_email_unique', ['email'], 'unique')
+            ],
+            'references' => [
+                new Reference('test_sector_foreign_sector_id', [
+                    'columns'          => ['sector'],
+                    'referencedTable'   => 'sector',
+                    'referencedColumns' => ['id']
+                ])
+            ],
+        ]];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->increments('id')->primary();
+        $blueprint->string('name');
+        $blueprint->string('email')->unique();
+        $blueprint->string('sector');
+        $blueprint->foreign('sector')->on('sector')->references('id');
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'primary' => true, 'notNull' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('sector', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_email_unique', ['email'], 'unique')
+            ],
+            'references' => [
+                new Reference('test_sector_foreign_sector_id', [
+                    'columns'          => ['sector'],
+                    'referencedTable'   => 'sector',
+                    'referencedColumns' => ['id']
+                ])
+            ],
+        ]];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->increments('id')->primary();
+        $blueprint->string('name');
+        $blueprint->string('email')->unique();
+        $blueprint->integer('sector');
+        $blueprint->string('department');
+        $blueprint->foreign(['sector', 'department'])->on('sector')->references(['id', 'department']);
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'primary' => true, 'notNull' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('sector', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+                new Column('department', ['type' => Column::TYPE_VARCHAR, 'size' => 255,  'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_email_unique', ['email'], 'unique')
+            ],
+            'references' => [
+                new Reference('test_sector_department_foreign_sector_id_department', [
+                    'columns'          => ['sector', 'department'],
+                    'referencedTable'   => 'sector',
+                    'referencedColumns' => ['id', 'department']
+                ])
+            ],
+        ]];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->increments('id')->primary();
+        $blueprint->string('name');
+        $blueprint->string('email')->unique();
+        $blueprint->integer('sector');
+        $blueprint->string('department');
+        $blueprint->foreign(['sector', 'department'])->on('sector')->references(['id', 'department']);
+        $blueprint->temporary();
+        $blueprint->option('engine', 'InnoDB');
+
+        $data[] = [$blueprint, [
+            'columns' => [
+                new Column('id', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'primary' => true, 'notNull' => true]),
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
+                new Column('sector', ['type' => Column::TYPE_INTEGER, 'notNull' => true]),
+                new Column('department', ['type' => Column::TYPE_VARCHAR, 'size' => 255,  'notNull' => true]),
+            ],
+            'indexes' => [
+                new Index('test_email_unique', ['email'], 'unique')
+            ],
+            'references' => [
+                new Reference('test_sector_department_foreign_sector_id_department', [
+                    'columns'          => ['sector', 'department'],
+                    'referencedTable'   => 'sector',
+                    'referencedColumns' => ['id', 'department']
+                ])
+            ],
+            'options' => [
+                'TEMPORARY' => true,
+                'ENGINE' => 'InnoDB'
+            ]
+        ]];
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider dataBuildTableDefinition
+     */
+    public function testBuildTableDefinition(Blueprint $blueprint, $expected)
+    {
+        $actual = Reflacker::invoke($blueprint, 'buildTableDefinition', new Phql);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function dataFuncCommand()
+    {
+        return [
+            ['dropColumn', ['column'], [
+                new Fluent(['name' => 'dropColumn', 'column' => 'column'])]],
+            ['dropColumns', [['column', 'col']], [
+                new Fluent(['name' => 'dropColumn', 'column' => 'column']),
+                new Fluent(['name' => 'dropColumn', 'column' => 'col'])]],
+            ['dropIndex', ['index'], [
+                new Fluent(['name' => 'dropIndex', 'index' => 'index'])]],
+            ['dropUnique', ['unique'], [
+                new Fluent(['name' => 'dropIndex', 'index' => 'unique'])]],
+            ['dropPrimary', [], [
+                new Fluent(['name' => 'dropPrimary'])]],
+            ['dropForeign', ['fk'], [
+                new Fluent(['name' => 'dropForeign', 'reference' => 'fk'])]],
+            ['rename', ['test_2'], [
+                new Fluent(['name' => 'rename', 'to' => 'test_2'])]],
+            ['renameColumn', ['column', 'col'], [
+                new Fluent(['name' => 'renameColumn', 'from' => 'column', 'to' => 'col'])]],
+
+            ['dropTimestamps', [], [
+                new Fluent(['name' => 'dropColumn', 'column' => 'created_at']),
+                new Fluent(['name' => 'dropColumn', 'column' => 'updated_at'])]],
+            ['dropTimestampsTz', [], [
+                new Fluent(['name' => 'dropColumn', 'column' => 'created_at']),
+                new Fluent(['name' => 'dropColumn', 'column' => 'updated_at'])]],
+
+            ['dropSoftDeletes', ['column'], [
+                new Fluent(['name' => 'dropColumn', 'column' => 'deleted_at'])]],
+            ['dropSoftDeletesTz', ['column'], [
+                new Fluent(['name' => 'dropColumn', 'column' => 'deleted_at'])]],
+
+            ['dropRememberToken', ['column'], [
+                new Fluent(['name' => 'dropColumn', 'column' => 'remember_token'])]],
+        ];
+    }
+
+    /**
+     * @dataProvider dataFuncCommand
+     */
+    public function testFuncCommand($func, $params, $expecteds)
+    {
+        $blueprint = new Blueprint('test');
+
+        $blueprint->$func(...$params);
+
+        $this->assertEquals($expecteds, $blueprint->getCommands());
+    }
+
+    public function testAction()
+    {
+        $blueprint = new Blueprint('test');
+
+        $blueprint->update();
+
+        $this->assertEquals('update', Reflacker::get($blueprint, 'action'));
 
         $blueprint->create();
 
-        foreach ($indexes as $type => $index) {
-            $this->assertTrue($index->$type);
-        }
+        $this->assertEquals('create', Reflacker::get($blueprint, 'action'));
 
-        Reflacker::invoke($blueprint, 'addImpliedCommands');
+        $blueprint->drop();
 
-        $this->assertCount(count($indexes) - 1, $blueprint->getIndexes());
-        $this->assertCount(1, $blueprint->getCommands());
+        $this->assertEquals('drop', Reflacker::get($blueprint, 'action'));
+
+        $blueprint->dropIfExists();
+
+        $this->assertEquals('dropIfExists', Reflacker::get($blueprint, 'action'));
+
     }
 
-    public function testForeignCreateBlueprint()
+    public function dataBuildCommands()
     {
-        $columns = $this->dataIntegers();
+        $blueprint = new Blueprint('test');
+        $blueprint->update();
 
-        $indexes   = [];
-        $blueprint = $this->buildBlueprint($columns, $indexes);
+        $blueprint->string('name');
 
-        $blueprint->create();
+        $data[] = [$blueprint, [], [
+            new Fluent(['name' => 'addColumn', 'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255])])
+        ]];
 
-        foreach ($indexes as $type => $index) {
-            $this->assertTrue($index->$type);
-        }
+        $blueprint = new Blueprint('test');
+        $blueprint->update();
 
-        reset($indexes);
+        $blueprint->string('name');
 
-        $blueprint->foreign(current($indexes)->getName())->on('test_2')->references('fk_test_2');
+        $data[] = [
+            $blueprint,
+            [
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
+            ], [
+                new Fluent([
+                    'name'   => 'modifyColumn',
+                    'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255]),
+                    'from'   => new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
+                ])
+            ]
+        ];
 
-        $this->assertEquals([new Fluent([
-            'name' => 'table_column_foreign',
-            'columns' => ['column'],
-            'on' => 'test_2',
-            'references' => 'fk_test_2'
-        ])], Reflacker::get($blueprint, 'fluentReferences'));
+        $blueprint = new Blueprint('test');
+        $blueprint->update();
 
-        Reflacker::invoke($blueprint, 'addImpliedCommands');
+        $blueprint->string('name')->unique();
+        $blueprint->string('test')->index();
 
-        $this->assertEquals([new Reference('table_column_foreign', [
-            'columns'           => ['column'],
-            'referencedTable'   => 'test_2',
-            'referencedColumns' => ['fk_test_2'],
-        ])], Reflacker::get($blueprint, 'references'));
+        $data[] = [
+            $blueprint,
+            [
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
+            ], [
+                new Fluent([
+                    'name'   => 'modifyColumn',
+                    'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255, 'unique' => true]),
+                    'from'   => new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
+                ]),
+                new Fluent(['name' => 'addColumn', 'column' => new Fluent(['name' => 'test', 'type' => 'string', 'size' => 255, 'index' => true])])
+            ]
+        ];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->update();
+
+        $blueprint->string('name');
+        $blueprint->string('test');
+        $blueprint->unique('name');
+        $blueprint->index('test');
+
+        $data[] = [
+            $blueprint,
+            [
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
+            ], [
+                new Fluent([
+                    'name'   => 'modifyColumn',
+                    'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255]),
+                    'from'   => new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
+                ]),
+                new Fluent(['name' => 'addColumn', 'column' => new Fluent(['name' => 'test', 'type' => 'string', 'size' => 255])]),
+                new Fluent(['name' => 'addIndex', 'index' => new Fluent(['name' => 'test_name_unique', 'columns' => ['name'], 'type' => 'unique'])]),
+                new Fluent(['name' => 'addIndex', 'index' => new Fluent(['name' => 'test_test_index', 'columns' => ['test'], 'type' => 'index'])]),
+            ]
+        ];
+
+        $blueprint = new Blueprint('test');
+        $blueprint->update();
+
+        $blueprint->foreign('test')->on('test_2')->references('test');
+
+        $data[] = [
+            $blueprint,
+            [
+                new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
+            ], [
+                new Fluent(['name' => 'addForeign', 'reference' => new Fluent([
+                    'name'       => null,
+                    'columns'    => ['test'],
+                    'on'         => 'test_2',
+                    'references' => 'test',
+                    'type' => 'foreign'
+                ])]),
+            ]
+        ];
+
+        return $data;
     }
 
-    public function testForeign()
+    /**
+     * @dataProvider dataBuildCommands
+     */
+    public function testBuildCommands(Blueprint $blueprint, $describeColumnsMock, $expectedCommands)
     {
-        $columns = $this->dataIntegers();
+        $db = $this->createMock(\Phalcon\Db\Adapter::class);
 
-        $indexes   = [];
-        $blueprint = $this->buildBlueprint($columns, $indexes);
+        $db->expects($this->once())->method('describeColumns')->willReturn($describeColumnsMock);
 
-        foreach ($indexes as $type => $index) {
-            $this->assertTrue($index->$type);
-        }
+        Reflacker::invoke($blueprint, 'buildCommands', $db, new \Phalcon\Config(['dbname' => 'schema']));
 
-        reset($indexes);
-
-        $blueprint->foreign(current($indexes)->getName())->on('test_2')->references('fk_test_2');
-
-        $this->assertEquals([new Fluent([
-            'name' => 'table_column_foreign',
-            'columns' => ['column'],
-            'on' => 'test_2',
-            'references' => 'fk_test_2'
-        ])], Reflacker::get($blueprint, 'fluentReferences'));
-
-        Reflacker::invoke($blueprint, 'addImpliedCommands');
-
-        $this->assertEquals([], Reflacker::get($blueprint, 'references'));
-
-        $commands = $blueprint->getCommands();
-
-        $this->assertCount(count($columns) + count($indexes) + 1 /* foreign */, $commands);
-
-        $this->assertEquals(new Fluent([
-            'name' => 'addForeign',
-            'reference' => new Reference('table_column_foreign', [
-                'columns'           => ['column'],
-                'referencedTable'   => 'test_2',
-                'referencedColumns' => ['fk_test_2'],
-            ]),
-        ]), $commands[count($commands) - 1]);
+        $this->assertEquals($expectedCommands, $blueprint->getCommands());
     }
-
-    /*
-            ['timestamps', 'column', [], new Column('column', ['type' => Column::TYPE_TIMESTAMPS,])],
-            ['nullableTimestamps', 'column', [], new Column('column', ['type' => Column::TYPE_NULLABLETIMESTAMPS,])],*/
 }

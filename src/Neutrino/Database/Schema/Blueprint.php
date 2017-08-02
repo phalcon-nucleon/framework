@@ -2,361 +2,377 @@
 
 namespace Neutrino\Database\Schema;
 
-use Closure;
+use Neutrino\Database\Schema\Grammars\Phql;
 use Neutrino\Support\Fluent;
-use Neutrino\Support\Str;
-use Neutrino\Support\Traits\Macroable;
 use Phalcon\Config;
 use Phalcon\Db\AdapterInterface as Db;
+use Phalcon\Db\Column;
+use Phalcon\Db\Index;
+use Phalcon\Db\Reference;
 
 class Blueprint
 {
-    use Macroable;
-
-    /**
-     * The table the blueprint describes.
-     *
-     * @var string
-     */
+    /** @var string */
     protected $table;
 
-    /**
-     * The columns that should be added to the table.
-     *
-     * @var \Neutrino\Database\Schema\Column[]
-     */
+    /** @var Fluent[] */
     protected $columns = [];
 
-    /**
-     * The columns that should be added to the table.
-     *
-     * @var \Neutrino\Database\Schema\Index[]
-     */
+    /** @var Fluent[] */
     protected $indexes = [];
 
-    /**
-     * The columns that should be added to the table.
-     *
-     * @var \Neutrino\Database\Schema\Reference[]
-     */
+    /** @var Fluent[] */
     protected $references = [];
 
-    /**
-     * The columns that should be added to the table.
-     *
-     * @var \Neutrino\Support\Fluent[]
-     */
-    protected $fluentReferences = [];
-
-    /**
-     * The commands that should be run for the table.
-     *
-     * @var array
-     */
+    /** @var Fluent[] */
     protected $commands = [];
 
-    /**
-     * The options that should be added to the table, when creating.
-     *
-     * @var array
-     */
+    /** @var array */
     protected $options = [];
 
-    /**
-     * Create a new schema blueprint.
-     *
-     * @param  string        $table
-     * @param  \Closure|null $callback
-     */
-    public function __construct($table, Closure $callback = null)
+    /** @var int */
+    protected $action;
+
+    public function __construct($table)
     {
         $this->table = $table;
-
-        if (!is_null($callback)) {
-            $callback($this);
-        }
     }
 
     /**
      * Execute the blueprint against the database.
      *
-     * @param \Phalcon\Db\AdapterInterface $connection
-     * @param \Phalcon\Config              $dbConfig
+     * @param \Phalcon\Db\AdapterInterface            $db
+     * @param \Phalcon\Config                         $dbConfig
+     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
      *
-     * @return void
+     * @return bool
+     * @throws \Exception
      */
-    public function build(Db $connection, Config $dbConfig)
+    public function build(Db $db, Config $dbConfig, Phql $grammar)
     {
-        $this->addImpliedCommands();
-
-        foreach ($this->commands as $command) {
-            switch ($command->name) {
-                case 'create':
-                    $connection->createTable($this->getTable(), $dbConfig->get('dbname'), [
-                        'columns'    => $this->columns,
-                        'indexes'    => $this->indexes,
-                        'references' => $this->references,
-                        'options' => $this->options,
-                    ]);
-                    break 2;
-                case 'rename':
-                    /* TODO */
-                    break;
-                case 'drop':
-                    $connection->dropTable($this->getTable(), $dbConfig->get('dbname'), false);
-                    break;
-                case 'dropIfExists':
-                    if ($connection->tableExists($this->getTable())) {
-                        $connection->dropTable($this->getTable(), $dbConfig->get('dbname'), true);
-                    }
-                    break;
-                case 'dropColumn':
-                    $connection->dropColumn($this->getTable(), $dbConfig->get('dbname'), $command->column);
-                    break;
-                case 'addColumn':
-                    $connection->addColumn($this->getTable(), $dbConfig->get('dbname'), $command->column);
-                    break;
-                case 'renameColumn':
-                case 'modifyColumn':
-                    $connection->modifyColumn($this->getTable(), $dbConfig->get('dbname'), $command->column);
-                    break;
-                case 'addIndex':
-                case 'addUnique':
-                    $connection->addIndex($this->getTable(), $dbConfig->get('dbname'), $command->index);
-                    break;
-                case 'dropIndex':
-                case 'dropUnique':
-                    $connection->dropIndex($this->getTable(), $dbConfig->get('dbname'), $command->index);
-                    break;
-                case 'addPrimary':
-                    $connection->addPrimaryKey($this->getTable(), $dbConfig->get('dbname'), $command->index);
-                    break;
-                case 'dropPrimary':
-                    $connection->dropPrimaryKey($this->getTable(), $dbConfig->get('dbname'));
-                    break;
-                case 'addForeign':
-                    $connection->addForeignKey($this->getTable(), $dbConfig->get('dbname'), $command->reference);
-                    break;
-                case 'dropForeign':
-                    $connection->dropForeignKey($this->getTable(), $dbConfig->get('dbname'), $command->reference);
-                    break;
-            }
+        switch ($this->action) {
+            case 'create':
+                return $this->buildCreate($db, $dbConfig, $grammar);
+            case 'update':
+                return $this->buildUpdate($db, $dbConfig, $grammar);
+            case 'dropIfExists':
+                return $this->buildDrop($db, $dbConfig, $grammar, true);
+            case 'drop':
+                return $this->buildDrop($db, $dbConfig, $grammar, false);
+            default:
+                throw new \Exception();
         }
     }
 
     /**
-     * Get the raw SQL statements for the blueprint.
-     *
-     * @param  \Neutrino\Database\Schema\Grammars\Grammar $grammar
-     *
-     * @return array
-     */
-    public function toSql(Grammars\Grammar $grammar)
-    {
-        $this->addImpliedCommands();
-
-        $statements = [];
-
-        // Each type of command has a corresponding compiler function on the schema
-        // grammar which is used to build the necessary SQL statements to build
-        // the blueprint element, so we'll just call that compilers function.
-        foreach ($this->commands as $command) {
-            $method = 'compile' . ucfirst($command->name);
-
-            if (method_exists($grammar, $method)) {
-                if (!is_null($sql = $grammar->$method($this, $command))) {
-                    $statements = array_merge($statements, (array)$sql);
-                }
-            }
-        }
-
-        return $statements;
-    }
-
-    /**
-     * Add the commands that are implied by the blueprint's state.
-     *
-     * @return void
-     */
-    protected function addImpliedColumnsCommands()
-    {
-        if (count($addedColumns = $this->getAddedColumns()) > 0 && !$this->creating()) {
-            foreach ($addedColumns as $addedColumn) {
-                array_unshift($this->commands, $this->createCommand('addColumn', ['column' => $addedColumn]));
-            }
-        }
-
-        if (count($changedColumns = $this->getChangedColumns()) > 0 && !$this->creating()) {
-            foreach ($changedColumns as $changedColumn) {
-                array_unshift($this->commands, $this->createCommand('modifyColumn', ['column' => $changedColumn]));
-            }
-        }
-    }
-
-    /**
-     * Add the commands that are implied by the blueprint's state.
-     *
-     * @return void
-     */
-    protected function addImpliedIndexesCommands()
-    {
-        if (count($indexes = $this->indexes) > 0 && !$this->creating()) {
-            foreach ($indexes as $index) {
-                $this->buildIndexCommand($index);
-            }
-        }
-    }
-
-    /**
-     * Add the commands that are implied by the blueprint's state.
-     *
-     * @return void
-     */
-    protected function addImpliedReferencesCommands()
-    {
-        if (count($references = $this->fluentReferences) > 0) {
-            if ($this->creating()) {
-                foreach ($references as $reference) {
-                    $this->references[] = $this->makeReferenceFromFluent($reference);
-                }
-            } else {
-                foreach ($references as $reference) {
-                    $this->buildReferenceCommand($reference);
-                }
-            }
-        }
-    }
-
-    /**
-     * Add the commands that are implied by the blueprint's state.
-     *
-     * @return void
-     */
-    protected function addImpliedCommands()
-    {
-        $this->addFluentIndexes();
-
-        $this->addImpliedColumnsCommands();
-
-        $this->addImpliedIndexesCommands();
-
-        $this->addImpliedReferencesCommands();
-    }
-
-    /**
-     * Add the index commands fluently specified on columns.
-     *
-     * @return void
-     */
-    protected function addFluentIndexes()
-    {
-        $primaries = [];
-        foreach ($this->columns as $column) {
-            if ($column->isPrimary()) {
-                $attrPrimary = $column->get('primary');
-
-                if (is_array($attrPrimary)) {
-                    $primaries += $attrPrimary;
-                } elseif (is_string($attrPrimary)) {
-                    $primaries[] = $attrPrimary;
-                } else {
-                    $primaries[] = $column->getName();
-                }
-
-                continue;
-            }
-
-            foreach (['unique', 'index'] as $index) {
-                // If the index has been specified on the given column, but is simply equal
-                // to "true" (boolean), no name has been specified for this index so the
-                // index method can be called without a name and it will generate one.
-                if ($column->{$index} === true) {
-                    $this->{$index}($column->getName());
-
-                    continue 2;
-                }
-
-                // If the index has been specified on the given column, and it has a string
-                // value, we'll go ahead and call the index method and pass the name for
-                // the index since the developer specified the explicit name for this.
-                elseif (isset($column->{$index})) {
-                    $this->{$index}($column->getName(), ...$column->{$index});
-
-                    continue 2;
-                }
-            }
-        }
-
-        if (!empty($primaries)) {
-            if ($this->creating()) {
-                foreach ($primaries as $primary) {
-                    foreach ($this->columns as $column) {
-                        if ($primary == $column->getName()) {
-                            $column->setPrimary();
-                            break;
-                        }
-                    }
-                }
-            } else {
-                $this->primary($primaries);
-            }
-        }
-    }
-
-    /**
-     * Determine if the blueprint has a create command.
+     * @param \Phalcon\Db\AdapterInterface            $db
+     * @param \Phalcon\Config                         $dbConfig
+     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
      *
      * @return bool
      */
-    protected function creating()
+    protected function buildCreate(Db $db, Config $dbConfig, Phql $grammar)
     {
-        foreach ($this->commands as $command) {
-            if ($command->name == 'create') {
-                return true;
+        return $db->createTable($this->table, $dbConfig->dbname, $this->buildTableDefinition($grammar));
+    }
+
+    protected function buildTableDefinition(Phql $grammar)
+    {
+        // Manage primary key / multiple primary keys
+        $primaries = [];
+
+        // Extract defined primary index
+        foreach ($this->indexes as $key => $index) {
+            if ($index->get('type') == 'primary') {
+                foreach ($index->get('columns') as $column) {
+                    $this->columns[$column]->primary();
+                }
+
+                unset($this->indexes[$key]);
             }
         }
 
-        return false;
+        // Extract defined primary column
+        foreach ($this->columns as $column) {
+            if ($column->get('primary')) {
+                $primaries[] = $column->get('name');
+
+                unset($column['primary']);
+            }
+        }
+
+        // Re-Build primary index
+        if (($cprimaries = count($primaries)) === 1) {
+            $this->columns[array_shift($primaries)]->primary();
+        } elseif ($cprimaries > 0) {
+            $this->primary($primaries);
+        }
+
+        // Build table definition
+        $definition = [];
+
+        foreach ($this->columns as $column) {
+            $definition['columns'][] = $this->fluentToColumn($column, $grammar);
+        }
+
+        foreach ($this->indexes as $index) {
+            $definition['indexes'][] = $this->fluentToIndex($index, $grammar);
+        }
+
+        foreach ($this->references as $reference) {
+            $definition['references'][] = $this->fluentToReference($reference, $grammar);
+        }
+
+        foreach ($this->options as $name => $value) {
+            $definition['options'][strtoupper($name)] = $value;
+        }
+
+        return $definition;
     }
 
     /**
-     * Indicate that the table needs to be created.
+     * @param \Phalcon\Db\AdapterInterface            $db
+     * @param \Phalcon\Config                         $dbConfig
+     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
      *
-     * @return \Neutrino\Support\Fluent
+     * @return bool
+     * @throws \Exception
      */
-    public function create()
+    protected function buildUpdate(Db $db, Config $dbConfig, Phql $grammar)
     {
-        return $this->addCommand('create');
+        $this->buildCommands($db, $dbConfig);
+
+        $table  = $this->table;
+        $schema = $dbConfig->dbname;
+
+        foreach ($this->commands as $command) {
+            switch ($command->get('name')) {
+                case 'addColumn':
+                    $res = $db->addColumn($table, $schema, $this->fluentToColumn($command->get('column'), $grammar));
+                    break;
+                case 'renameColumn':
+                    $columns = $db->describeColumns($table, $schema);
+                    $from    = null;
+                    foreach ($columns as $column) {
+                        if ($column->getName() === $command->get('from')) {
+                            $from = $column;
+                            break;
+                        }
+                    }
+
+                    $to = new Column($command->get('column'), [
+                        'type'          => $from->getType(),
+                        'typeReference' => $from->getTypeReference(),
+                        'typeValues'    => $from->getTypeValues(),
+                        'size'          => $from->getSize(),
+                        'default'       => $from->getDefault(),
+                        'scale'         => $from->getScale(),
+                        'notNull'       => $from->isNotNull(),
+                        'unsigned'      => $from->isUnsigned(),
+                        'primary'       => $from->isPrimary(),
+                        'autoIncrement' => $from->isAutoIncrement(),
+                        'first'         => $from->isFirst(),
+                        'after'         => $from->getAfterPosition(),
+                        'numeric'       => $from->isNumeric(),
+                    ]);
+
+                    $res = $db->modifyColumn($table, $schema, $to, $from);
+                    break;
+                case 'modifyColumn':
+                    $res =
+                        $db->modifyColumn($table, $schema, $this->fluentToColumn($command->get('column'), $grammar), $command->get('from'));
+                    break;
+                case 'addIndex':
+                    $res = $db->addIndex($table, $schema, $this->fluentToIndex($command->get('index'), $grammar));
+                    break;
+                case 'addForeign':
+                    $res = $db->addForeignKey($table, $schema, $this->fluentToReference($command->get('reference'), $grammar));
+                    break;
+                case 'dropColumn':
+                    $res = $db->dropColumn($table, $schema, $command->get('column'));
+                    break;
+                case 'dropForeign':
+                    $res = $db->dropForeignKey($table, $schema, $command->get('reference'));
+                    break;
+                case 'dropIndex':
+                    $res = $db->dropIndex($table, $schema, $command->get('index'));
+                    break;
+                case 'dropPrimary':
+                    $res = $db->dropPrimaryKey($table, $schema);
+                    break;
+                case 'rename':
+                    /* TODO */
+                    $res = false;
+                    break;
+                default:
+                    throw new \Exception();
+            }
+
+            if ($res === false) {
+                throw new \Exception();
+            }
+        }
+
+        return true;
+    }
+
+    protected function buildCommands(Db $db, Config $dbConfig)
+    {
+        $columns = $db->describeColumns($this->table, $dbConfig->dbname);
+        foreach ($this->columns as $column) {
+            foreach ($columns as $c) {
+                if ($c->getName() === $column->get('name')) {
+                    $this->addCommand('modifyColumn', ['column' => $column, 'from' => $c]);
+                    continue 2;
+                }
+            }
+
+            $this->addCommand('addColumn', ['column' => $column]);
+        }
+
+        foreach ($this->indexes as $index) {
+            $this->addCommand('addIndex', ['index' => $index]);
+        }
+
+        foreach ($this->references as $reference) {
+            $this->addCommand('addForeign', ['reference' => $reference]);
+        }
+    }
+
+    /**
+     * @param \Phalcon\Db\AdapterInterface            $connection
+     * @param \Phalcon\Config                         $dbConfig
+     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
+     * @param bool                                    $ifExist
+     *
+     * @return bool
+     */
+    protected function buildDrop(Db $connection, Config $dbConfig, Phql $grammar, $ifExist = false)
+    {
+        return $connection->dropTable($this->table, $dbConfig->dbname, $ifExist);
+    }
+
+    /**
+     * @param \Neutrino\Support\Fluent                $column
+     * @param \Neutrino\Database\Schema\Grammars\Phql $grammar
+     *
+     * @return \Phalcon\Db\Column
+     */
+    protected function fluentToColumn(Fluent $column, Phql $grammar)
+    {
+        $attributes = $column->getAttributes();
+
+        if (isset($attributes['unique']) && $attributes['unique']) {
+            $this->unique($column->get('name'), is_bool($attributes['unique']) ? null : $attributes['unique']);
+            unset($attributes['unique']);
+        } elseif (isset($attributes['index']) && $attributes['index']) {
+            $this->index($column->get('name'), is_bool($attributes['index']) ? null : $attributes['index']);
+            unset($attributes['index']);
+        } elseif ($column->get('foreign')) {
+            $this->foreign($column->get('name'))->on($column->get('on'))->references($column->get('references'));
+            unset($attributes['foreign']);
+            unset($attributes['on']);
+            unset($attributes['references']);
+        }
+
+        $types = $grammar->getType($column);
+
+        if (isset($attributes['type'])) {
+            unset($attributes['type']);
+        }
+        if (isset($attributes['typeReference'])) {
+            unset($attributes['typeReference']);
+        }
+        if (isset($attributes['typeValues'])) {
+            unset($attributes['typeValues']);
+        }
+
+        if (isset($attributes['nullable'])) {
+            $attributes['notNull'] = !$attributes['nullable'];
+        } else {
+            $attributes['notNull'] = true;
+        }
+
+        return new Column($column->get('name'), array_merge($types, $attributes));
+    }
+
+    protected function fluentToIndex(Fluent $index, Phql $grammar)
+    {
+        $name = $index->get('name') ?: $this->createIndexName($index->get('type'), $index->get('columns'));
+
+        return new Index($name, $index->get('columns'), $index->get('type'));
+    }
+
+    protected function fluentToReference(Fluent $index, Phql $grammar)
+    {
+        $columns    = (array)$index->get('columns');
+        $references = (array)$index->get('references');
+
+        $name = $index->get('name') ?: $this->createReferenceName($columns, $index->get('on'), $references);
+
+        return new Reference($name, [
+            'columns'           => $columns,
+            'referencedTable'   => $index->get('on'),
+            'referencedColumns' => $references,
+        ]);
     }
 
     /**
      * Indicate that the table needs to be temporary.
      *
-     * @return void
+     * @return $this
      */
     public function temporary()
     {
-        $this->option(__FUNCTION__, true);
+        return $this->option(__FUNCTION__, true);
+    }
+
+    /**
+     * Indicate that the table needs to be created.
+     *
+     * @return $this
+     */
+    public function create()
+    {
+        $this->action = __FUNCTION__;
+
+        return $this;
+    }
+
+    /**
+     * Indicate that the table needs to be updated.
+     *
+     * @return $this
+     */
+    public function update()
+    {
+        $this->action = __FUNCTION__;
+
+        return $this;
     }
 
     /**
      * Indicate that the table should be dropped.
      *
-     * @return \Neutrino\Support\Fluent
+     * @return $this
      */
     public function drop()
     {
-        return $this->addCommand('drop');
+        $this->action = __FUNCTION__;
+
+        return $this;
     }
 
     /**
      * Indicate that the table should be dropped if it exists.
      *
-     * @return \Neutrino\Support\Fluent
+     * @return $this
      */
     public function dropIfExists()
     {
-        return $this->addCommand('dropIfExists');
+        $this->action = __FUNCTION__;
+
+        return $this;
     }
 
     /**
@@ -368,7 +384,7 @@ class Blueprint
      */
     public function dropColumn($column)
     {
-        return $this->addCommand('dropColumn', ['column' => $column]);
+        return $this->addCommand(__FUNCTION__, ['column' => $column]);
     }
 
     /**
@@ -393,19 +409,17 @@ class Blueprint
      */
     public function renameColumn($from, $to)
     {
-        return $this->addCommand('renameColumn', ['from' => $from, 'to' => $to]);
+        return $this->addCommand(__FUNCTION__, ['from' => $from, 'to' => $to]);
     }
 
     /**
      * Indicate that the given primary key should be dropped.
      *
-     * @param  string|array $index
-     *
      * @return \Neutrino\Support\Fluent
      */
-    public function dropPrimary($index = null)
+    public function dropPrimary()
     {
-        return $this->dropIndexCommand('dropPrimary', 'primary', $index);
+        return $this->addCommand(__FUNCTION__);
     }
 
     /**
@@ -417,7 +431,7 @@ class Blueprint
      */
     public function dropUnique($index)
     {
-        return $this->dropIndexCommand('dropUnique', 'unique', $index);
+        return $this->dropIndex($index);
     }
 
     /**
@@ -429,19 +443,19 @@ class Blueprint
      */
     public function dropIndex($index)
     {
-        return $this->dropIndexCommand('dropIndex', 'index', $index);
+        return $this->addCommand(__FUNCTION__, ['index' => $index]);
     }
 
     /**
      * Indicate that the given foreign key should be dropped.
      *
-     * @param  string|array $index
+     * @param  string|array $reference
      *
      * @return \Neutrino\Support\Fluent
      */
-    public function dropForeign($index)
+    public function dropForeign($reference)
     {
-        return $this->dropReferenceCommand('dropForeign', 'foreign', $index);
+        return $this->addCommand(__FUNCTION__, ['reference' => $reference]);
     }
 
     /**
@@ -503,7 +517,7 @@ class Blueprint
      */
     public function rename($to)
     {
-        return $this->addCommand('rename', ['to' => $to]);
+        return $this->addCommand(__FUNCTION__, ['to' => $to]);
     }
 
     /**
@@ -512,11 +526,11 @@ class Blueprint
      * @param  string|array $columns
      * @param  string       $name
      *
-     * @return \Neutrino\Database\Schema\Index
+     * @return \Neutrino\Support\Fluent
      */
     public function primary($columns, $name = null)
     {
-        return $this->addIndex('primary', $columns, $name);
+        return $this->addIndex(__FUNCTION__, $columns, $name);
     }
 
     /**
@@ -525,11 +539,11 @@ class Blueprint
      * @param  string|array $columns
      * @param  string       $name
      *
-     * @return \Neutrino\Database\Schema\Index
+     * @return \Neutrino\Support\Fluent
      */
     public function unique($columns, $name = null)
     {
-        return $this->addIndex('unique', $columns, $name);
+        return $this->addIndex(__FUNCTION__, $columns, $name);
     }
 
     /**
@@ -538,11 +552,11 @@ class Blueprint
      * @param  string|array $columns
      * @param  string       $name
      *
-     * @return \Neutrino\Database\Schema\Index
+     * @return \Neutrino\Support\Fluent
      */
     public function index($columns, $name = null)
     {
-        return $this->addIndex('index', $columns, $name);
+        return $this->addIndex(__FUNCTION__, $columns, $name);
     }
 
     /**
@@ -555,7 +569,7 @@ class Blueprint
      */
     public function foreign($columns, $name = null)
     {
-        return $this->addReference('foreign', $columns, $name);
+        return $this->addForeign($columns, $name);
     }
 
     /**
@@ -563,7 +577,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function increments($column)
     {
@@ -575,7 +589,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function tinyIncrements($column)
     {
@@ -587,7 +601,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function smallIncrements($column)
     {
@@ -599,7 +613,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function mediumIncrements($column)
     {
@@ -611,7 +625,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function bigIncrements($column)
     {
@@ -624,13 +638,11 @@ class Blueprint
      * @param  string $column
      * @param  int    $length
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function char($column, $length = null)
     {
-        $length = $length ?: Builder::$defaultStringLength;
-
-        return $this->addColumn(Column::TYPE_CHAR, $column, ['size' => $length]);
+        return $this->addColumn(__FUNCTION__, $column, ['size' => $length ?: Builder::$defaultStringLength]);
     }
 
     /**
@@ -639,13 +651,11 @@ class Blueprint
      * @param  string $column
      * @param  int    $length
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function string($column, $length = null)
     {
-        $length = $length ?: Builder::$defaultStringLength;
-
-        return $this->addColumn(Column::TYPE_VARCHAR, $column, ['size' => $length]);
+        return $this->addColumn(__FUNCTION__, $column, ['size' => $length ?: Builder::$defaultStringLength]);
     }
 
     /**
@@ -653,11 +663,11 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function text($column)
     {
-        return $this->addColumn(Column::TYPE_TEXT, $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -665,11 +675,11 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function mediumText($column)
     {
-        return $this->addColumn(Column::TYPE_MEDIUMBLOB, $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -677,11 +687,11 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function longText($column)
     {
-        return $this->addColumn(Column::TYPE_LONGBLOB, $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -691,11 +701,11 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function integer($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(Column::TYPE_INTEGER, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
+        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
     }
 
     /**
@@ -705,15 +715,11 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function tinyInteger($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(Column::TYPE_INTEGER, $column, [
-            'autoIncrement' => $autoIncrement,
-            'unsigned'      => $unsigned,
-            'size'          => 1,
-        ]);
+        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
     }
 
     /**
@@ -723,15 +729,11 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function smallInteger($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(Column::TYPE_INTEGER, $column, [
-            'autoIncrement' => $autoIncrement,
-            'unsigned'      => $unsigned,
-            'size'          => 2,
-        ]);
+        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
     }
 
     /**
@@ -741,15 +743,11 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function mediumInteger($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(Column::TYPE_INTEGER, $column, [
-            'autoIncrement' => $autoIncrement,
-            'unsigned'      => $unsigned,
-            'size'          => 3,
-        ]);
+        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
     }
 
     /**
@@ -759,14 +757,11 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function bigInteger($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(Column::TYPE_BIGINTEGER, $column, [
-            'autoIncrement' => $autoIncrement,
-            'unsigned'      => $unsigned,
-        ]);
+        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
     }
 
     /**
@@ -775,7 +770,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function unsignedInteger($column, $autoIncrement = false)
     {
@@ -788,7 +783,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function unsignedTinyInteger($column, $autoIncrement = false)
     {
@@ -801,7 +796,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function unsignedSmallInteger($column, $autoIncrement = false)
     {
@@ -814,7 +809,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function unsignedMediumInteger($column, $autoIncrement = false)
     {
@@ -827,7 +822,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function unsignedBigInteger($column, $autoIncrement = false)
     {
@@ -838,45 +833,39 @@ class Blueprint
      * Create a new float column on the table.
      *
      * @param  string $column
-     * @param  int    $total
-     * @param  int    $places
+     * @param  int    $scale
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
-    public function float($column, $total = 8, $places = 2)
+    public function float($column, $scale = null)
     {
-        return $this->addColumn(Column::TYPE_FLOAT, $column, [
-            /*'total'  => $total,
-            'places' => $places*/
-        ]);
+        return $this->addColumn(__FUNCTION__, $column, is_int($scale) ? ['scale' => $scale] : []);
     }
 
     /**
      * Create a new double column on the table.
      *
-     * @param  string   $column
-     * @param  int|null $total
-     * @param  int|null $places
+     * @param  string $column
+     * @param  int    $scale
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
-    public function double($column, $total = null, $places = null)
+    public function double($column, $scale = null)
     {
-        return $this->addColumn(Column::TYPE_DOUBLE, $column, [/*'total' => $total, 'places' => $places*/]);
+        return $this->addColumn(__FUNCTION__, $column, is_int($scale) ? ['scale' => $scale] : []);
     }
 
     /**
      * Create a new decimal column on the table.
      *
      * @param  string $column
-     * @param  int    $total
-     * @param  int    $places
+     * @param  int    $scale
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
-    public function decimal($column, $total = 8, $places = 2)
+    public function decimal($column, $scale = null)
     {
-        return $this->addColumn(Column::TYPE_DECIMAL, $column, [/*'total' => $total, 'places' => $places*/]);
+        return $this->addColumn(__FUNCTION__, $column, is_int($scale) ? ['scale' => $scale] : []);
     }
 
     /**
@@ -884,29 +873,24 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function boolean($column)
     {
-        return $this->addColumn(Column::TYPE_BOOLEAN, $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
-     * @deprecated
-     * @throws \Exception
-     *
      * Create a new enum column on the table.
      *
      * @param  string $column
      * @param  array  $allowed
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function enum($column, array $allowed)
     {
-        throw new \Exception();
-
-        return $this->addColumn('enum', $column, ['allowed' => $allowed]);
+        return $this->addColumn(__FUNCTION__, $column, ['values' => $allowed]);
     }
 
     /**
@@ -914,11 +898,11 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function json($column)
     {
-        return $this->addColumn(Column::TYPE_JSON, $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -926,11 +910,11 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function jsonb($column)
     {
-        return $this->addColumn(Column::TYPE_JSONB, $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -938,11 +922,11 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function date($column)
     {
-        return $this->addColumn(Column::TYPE_DATE, $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -951,63 +935,49 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function dateTime($column, $precision = 0)
     {
-        return $this->addColumn(Column::TYPE_DATETIME, $column, [/*'precision' => $precision*/]);
+        return $this->addColumn(__FUNCTION__, $column, ['precision' => $precision]);
     }
 
     /**
-     * @deprecated
-     * @throws \Exception
-     *
+     * /**
      * Create a new date-time column (with time zone) on the table.
      *
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function dateTimeTz($column, $precision = 0)
     {
-        throw new \Exception();
-
-        return $this->addColumn(Column::TYPE_DATETIME, $column, [/*'precision' => $precision*/]);
+        return $this->addColumn(__FUNCTION__, $column, ['precision' => $precision]);
     }
 
     /**
-     * @deprecated
-     * @throws \Exception
-     *
      * Create a new time column on the table.
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function time($column)
     {
-        throw new \Exception();
-
-        return $this->addColumn('time', $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
-     * @deprecated
-     * @throws \Exception
-     *
      * Create a new time column (with time zone) on the table.
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function timeTz($column)
     {
-        throw new \Exception();
-
-        return $this->addColumn('timeTz', $column);
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -1016,33 +986,28 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function timestamp($column, $precision = 0)
     {
-        return $this->addColumn(Column::TYPE_TIMESTAMP, $column, [/*'precision' => $precision*/]);
+        return $this->addColumn(__FUNCTION__, $column, ['precision' => $precision]);
     }
 
     /**
-     * @deprecated
-     * @throws \Exception
-     *
      * Create a new timestamp (with time zone) column on the table.
      *
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function timestampTz($column, $precision = 0)
     {
-        throw new \Exception();
-
-        return $this->addColumn('timestampTz', $column, ['precision' => $precision]);
+        return $this->addColumn(__FUNCTION__, $column, ['precision' => $precision]);
     }
 
     /**
-     * Add nullable creation and update timestamps to the table.
+     * Add creation and update timestamps to the table.
      *
      * @param  int $precision
      *
@@ -1050,15 +1015,13 @@ class Blueprint
      */
     public function timestamps($precision = 0)
     {
-        $this->timestamp('created_at', $precision)->setNullable();
+        $this->timestamp('created_at', $precision)->default('CURRENT_TIMESTAMP');
 
-        $this->timestamp('updated_at', $precision)->setNullable();
+        $this->timestamp('updated_at', $precision)->default('CURRENT_TIMESTAMP')->onUpdate('CURRENT_TIMESTAMP');
     }
 
     /**
      * Add nullable creation and update timestamps to the table.
-     *
-     * Alias for self::timestamps().
      *
      * @param  int $precision
      *
@@ -1067,6 +1030,9 @@ class Blueprint
     public function nullableTimestamps($precision = 0)
     {
         $this->timestamps($precision);
+
+        $this->columns['created_at']->nullable();
+        $this->columns['updated_at']->nullable();
     }
 
     /**
@@ -1078,9 +1044,24 @@ class Blueprint
      */
     public function timestampsTz($precision = 0)
     {
-        $this->timestampTz('created_at', $precision)->setNullable();
+        $this->timestampTz('created_at', $precision)->default('CURRENT_TIMESTAMP');
 
-        $this->timestampTz('updated_at', $precision)->setNullable();
+        $this->timestampTz('updated_at', $precision)->default('CURRENT_TIMESTAMP')->onUpdate('CURRENT_TIMESTAMP');
+    }
+
+    /**
+     * Add nullable creation and update timestampTz to the table.
+     *
+     * @param  int $precision
+     *
+     * @return void
+     */
+    public function nullableTimestampsTz($precision = 0)
+    {
+        $this->timestampsTz($precision);
+
+        $this->columns['created_at']->nullable();
+        $this->columns['updated_at']->nullable();
     }
 
     /**
@@ -1089,23 +1070,24 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function softDeletes($column = 'deleted_at', $precision = 0)
     {
-        return $this->timestamp($column, $precision)->setNullable();
+        return $this->timestamp($column, $precision)->nullable();
     }
 
     /**
      * Add a "deleted at" timestampTz for the table.
      *
-     * @param  int $precision
+     * @param  string $column
+     * @param  int    $precision
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
-    public function softDeletesTz($precision = 0)
+    public function softDeletesTz($column = 'deleted_at', $precision = 0)
     {
-        return $this->timestampTz('deleted_at', $precision)->setNullable();
+        return $this->timestampTz($column, $precision)->nullable();
     }
 
     /**
@@ -1113,11 +1095,59 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function binary($column)
     {
-        return $this->addColumn(Column::TYPE_BLOB, $column);
+        return $this->blob($column);
+    }
+
+    /**
+     * Create a new binary column on the table.
+     *
+     * @param  string $column
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    public function blob($column)
+    {
+        return $this->addColumn(__FUNCTION__, $column);
+    }
+
+    /**
+     * Create a new tiny binary column on the table.
+     *
+     * @param  string $column
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    public function tinyBlob($column)
+    {
+        return $this->addColumn(__FUNCTION__, $column);
+    }
+
+    /**
+     * Create a new medium binary column on the table.
+     *
+     * @param  string $column
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    public function mediumBlob($column)
+    {
+        return $this->addColumn(__FUNCTION__, $column);
+    }
+
+    /**
+     * Create a new long binary column on the table.
+     *
+     * @param  string $column
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    public function longBlob($column)
+    {
+        return $this->addColumn(__FUNCTION__, $column);
     }
 
     /**
@@ -1125,7 +1155,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function uuid($column)
     {
@@ -1138,7 +1168,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function ipAddress($column)
     {
@@ -1151,7 +1181,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function macAddress($column)
     {
@@ -1186,9 +1216,9 @@ class Blueprint
      */
     public function nullableMorphs($name, $indexName = null)
     {
-        $this->unsignedInteger("{$name}_id")->setNullable();
+        $this->unsignedInteger("{$name}_id")->nullable();
 
-        $this->string("{$name}_type")->setNullable();
+        $this->string("{$name}_type")->nullable();
 
         $this->index(["{$name}_id", "{$name}_type"], $indexName);
     }
@@ -1196,11 +1226,11 @@ class Blueprint
     /**
      * Adds the `remember_token` column to the table.
      *
-     * @return \Neutrino\Database\Schema\Column
+     * @return \Neutrino\Support\Fluent
      */
     public function rememberToken()
     {
-        return $this->string('remember_token', 100)->setNullable();
+        return $this->string('remember_token', 100)->nullable();
     }
 
     /**
@@ -1219,270 +1249,9 @@ class Blueprint
      */
     public function option($name, $value)
     {
-        if(empty($name) || !is_string($name)){
-            throw new \InvalidArgumentException(__METHOD__ . ' parameter "name" must be an not empty string');
-        }
-
         $this->options[$name] = $value;
 
         return $this;
-    }
-
-    /**
-     * Add a new index to the blueprint.
-     *
-     * @param  string          $type
-     * @param  string|string[] $columns
-     * @param  string          $index
-     *
-     * @return \Neutrino\Database\Schema\Index
-     */
-    protected function addIndex($type, $columns, $index = null)
-    {
-        $columns = (array)$columns;
-
-        // If no name was specified for this index, we will create one using a basic
-        // convention of the table name, followed by the columns, followed by an
-        // index type, such as primary or index, which makes the index unique.
-        $index = $index ?: $this->createIndexName($type, $columns);
-
-        return $this->indexes[] = new Index($index, $columns, $type);
-    }
-
-    /**
-     * Build a new index command to the blueprint.
-     *
-     * @param  string          $type
-     * @param  string|string[] $columns
-     * @param  string          $index
-     *
-     * @return \Neutrino\Support\Fluent
-     */
-    protected function addIndexCommand($type, $columns, $index = null)
-    {
-        $columns = (array)$columns;
-
-        // If no name was specified for this index, we will create one using a basic
-        // convention of the table name, followed by the columns, followed by an
-        // index type, such as primary or index, which makes the index unique.
-        $index = $index ?: $this->createIndexName($type, $columns);
-
-        return $this->addCommand(
-            'add' . Str::capitalize($index), ['index' => new Index($index, $columns, $type)]
-        );
-    }
-
-    /**
-     * Build a new command to the blueprint.
-     *
-     * @param  \Neutrino\Database\Schema\Index $index
-     *
-     * @return \Neutrino\Support\Fluent
-     */
-    protected function buildIndexCommand(Index $index)
-    {
-        return $this->addCommand(
-            'add' . Str::capitalize($index->getType()), ['index' => $index]
-        );
-    }
-
-    /**
-     * Create a new drop index command on the blueprint.
-     *
-     * @param  string       $command
-     * @param  string       $type
-     * @param  string|array $index
-     *
-     * @return \Neutrino\Support\Fluent
-     */
-    protected function dropIndexCommand($command, $type, $index)
-    {
-        $columns = [];
-
-        // If the given "index" is actually an array of columns, the developer means
-        // to drop an index merely by specifying the columns involved without the
-        // conventional name, so we will build the index name from the columns.
-        if (is_array($index)) {
-            $index = $this->createIndexName($type, $columns = $index);
-        }
-
-        foreach ($this->indexes as $key => $_index) {
-            if ($_index->getName() === $index) {
-                unset($this->indexes[$key]);
-                break;
-            }
-        }
-
-        return $this->addCommand(
-            $command, ['index' => $index, 'type' => $type, 'columns' => $columns]
-        );
-    }
-
-    /**
-     * @param $type
-     * @param $columns
-     * @param $name
-     *
-     * @return \Neutrino\Support\Fluent
-     */
-    protected function addReference($type, $columns, $name)
-    {
-        $columns = (array)$columns;
-
-        // If no name was specified for this index, we will create one using a basic
-        // convention of the table name, followed by the columns, followed by an
-        // index type, such as primary or index, which makes the index unique.
-        $name = $name ?: $this->createIndexName($type, $columns);
-
-        return $this->fluentReferences[] = new Fluent([
-            'name'    => $name,
-            'columns' => $columns,
-        ]);
-    }
-
-    /**
-     * Build a new command to the blueprint.
-     *
-     * @param \Neutrino\Support\Fluent $fluent
-     *
-     * @return \Neutrino\Support\Fluent
-     */
-    protected function buildReferenceCommand(Fluent $fluent)
-    {
-        return $this->addCommand(
-            'addForeign', ['reference' => $this->makeReferenceFromFluent($fluent)]
-        );
-    }
-
-    /**
-     * @param \Neutrino\Support\Fluent $fluent
-     *
-     * @return \Neutrino\Database\Schema\Reference
-     */
-    protected function makeReferenceFromFluent(Fluent $fluent)
-    {
-        $name = $fluent->get('name');
-        $referencedTable = $fluent->get('on');
-        $referencedColumns = (array)$fluent->get('references');
-
-        return new Reference($name, [
-            'columns'           => $fluent->get('columns'),
-            'referencedTable'   => $referencedTable,
-            'referencedColumns' => $referencedColumns,
-        ]);
-    }
-
-    /**
-     * Create a new drop reference command on the blueprint.
-     *
-     * @param string       $command
-     * @param string       $type
-     * @param string|array $reference
-     *
-     * @return \Neutrino\Support\Fluent
-     */
-    protected function dropReferenceCommand($command, $type, $reference)
-    {
-        $columns = [];
-
-        // If the given "index" is actually an array of columns, the developer means
-        // to drop an index merely by specifying the columns involved without the
-        // conventional name, so we will build the index name from the columns.
-        if (is_array($reference)) {
-            $reference = $this->createIndexName($type, $columns = $reference);
-        }
-
-        foreach ($this->references as $key => $_index) {
-            if ($_index->getName() === $reference) {
-                unset($this->references[$key]);
-                break;
-            }
-        }
-
-        return $this->addCommand(
-            $command, ['reference' => $reference, 'type' => $type, 'columns' => $columns]
-        );
-    }
-
-    /**
-     * Create a default index name for the table.
-     *
-     * @param  string $type
-     * @param  array  $columns
-     *
-     * @return string
-     */
-    protected function createIndexName($type, array $columns)
-    {
-        $index = strtolower(implode('_', array_filter([$this->table, implode('_', $columns), $type])));
-
-        return str_replace(['-', '.'], '_', $index);
-    }
-
-    /**
-     * Add a new column to the blueprint.
-     *
-     * @param  int    $type
-     * @param  string $name
-     * @param  array  $parameters
-     *
-     * @return \Neutrino\Database\Schema\Column
-     */
-    public function addColumn($type, $name, array $parameters = [])
-    {
-        return $this->columns[] = new Column(
-            $name,
-            array_merge([
-                "type" => $type,
-            ], $parameters)
-        );
-    }
-
-    /**
-     * Remove a column from the schema blueprint.
-     *
-     * @param  string $name
-     *
-     * @return $this
-     */
-    public function removeColumn($name)
-    {
-        foreach ($this->columns as $key => $column) {
-            if ($column->getName() === $name) {
-                unset($this->indexes[$key]);
-                break;
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Add a new command to the blueprint.
-     *
-     * @param  string $name
-     * @param  array  $parameters
-     *
-     * @return \Neutrino\Support\Fluent
-     */
-    protected function addCommand($name, array $parameters = [])
-    {
-        $this->commands[] = $command = $this->createCommand($name, $parameters);
-
-        return $command;
-    }
-
-    /**
-     * Create a new Fluent command.
-     *
-     * @param  string $name
-     * @param  array  $parameters
-     *
-     * @return \Neutrino\Support\Fluent
-     */
-    protected function createCommand($name, array $parameters = [])
-    {
-        return new Fluent(array_merge(['name' => $name], $parameters));
     }
 
     /**
@@ -1516,36 +1285,138 @@ class Blueprint
     }
 
     /**
-     * Get the columns on the blueprint that should be added.
-     *
-     * @return array
-     */
-    public function getAddedColumns()
-    {
-        return array_filter($this->columns, function ($column) {
-            return !$column->change;
-        });
-    }
-
-    /**
-     * Get the columns on the blueprint that should be changed.
-     *
-     * @return array
-     */
-    public function getChangedColumns()
-    {
-        return array_filter($this->columns, function ($column) {
-            return (bool)$column->change;
-        });
-    }
-
-    /**
-     * Get the columns on the blueprint.
+     * Get the indexes on the blueprint.
      *
      * @return array
      */
     public function getIndexes()
     {
         return $this->indexes;
+    }
+
+    /**
+     * Get the references on the blueprint.
+     *
+     * @return array
+     */
+    public function getReferences()
+    {
+        return $this->references;
+    }
+
+    /**
+     * Add a new column to the blueprint.
+     *
+     * @param  int    $type
+     * @param  string $name
+     * @param  array  $parameters
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    protected function addColumn($type, $name, array $parameters = [])
+    {
+        return $this->columns[$name] = new Fluent(array_merge([
+            'name' => $name,
+            "type" => $type,
+        ], $parameters));
+    }
+
+    /**
+     * Add a new command to the blueprint.
+     *
+     * @param  string $name
+     * @param  array  $parameters
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    protected function addCommand($name, array $parameters = [])
+    {
+        $this->commands[] = $command = $this->createCommand($name, $parameters);
+
+        return $command;
+    }
+
+    /**
+     * Create a new Fluent command.
+     *
+     * @param  string $name
+     * @param  array  $parameters
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    protected function createCommand($name, array $parameters = [])
+    {
+        return new Fluent(array_merge(['name' => $name], $parameters));
+    }
+
+    /**
+     * Add a new command to the blueprint.
+     *
+     * @param  string          $type
+     * @param  string|string[] $columns
+     * @param  string          $name
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    protected function addIndex($type, $columns, $name = null)
+    {
+        $columns = (array)$columns;
+
+        // If no name was specified for this index, we will create one using a basic
+        // convention of the table name, followed by the columns, followed by an
+        // index type, such as primary or index, which makes the index unique.
+        $name = $name ?: $this->createIndexName($type, $columns);
+
+        return $this->indexes[] = new Fluent(['name' => $name, 'columns' => $columns, 'type' => $type]);
+    }
+
+    /**
+     * Add a new command to the blueprint.
+     *
+     * @param  string|string[] $columns
+     * @param  string          $name
+     *
+     * @return \Neutrino\Support\Fluent
+     */
+    protected function addForeign($columns, $name = null)
+    {
+        $columns = (array)$columns;
+
+        // If no name was specified for this index, we will create one using a basic
+        // convention of the table name, followed by the columns, followed by an
+        // index type, such as primary or index, which makes the index unique.
+
+        return $this->references[] = new Fluent(['name' => $name, 'columns' => $columns, 'type' => 'foreign']);
+    }
+
+    /**
+     * Create a default index name for the table.
+     *
+     * @param  string $type
+     * @param  array  $columns
+     *
+     * @return string
+     */
+    protected function createIndexName($type, array $columns)
+    {
+        $index = strtolower(implode('_', array_filter([$this->table, implode('_', $columns), $type])));
+
+        return str_replace(['-', '.'], '_', $index);
+    }
+
+    /**
+     * Create a default index name for the table.
+     *
+     * @param  array  $columns
+     * @param  string $on
+     * @param  array  $references
+     *
+     * @return string
+     */
+    protected function createReferenceName(array $columns, $on, array $references)
+    {
+        $index = strtolower(implode('_', array_filter([$this->table, implode('_', $columns), 'foreign', $on, implode('_', $references)])));
+
+        return str_replace(['-', '.'], '_', $index);
     }
 }

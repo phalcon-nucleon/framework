@@ -362,10 +362,7 @@ trait DialectTrait
      */
     public function typeDateTimeTz(Fluent $column)
     {
-        return [
-            'type'          => 'DATETIME WITH TIME ZONE',
-            'typeReference' => Column::TYPE_DATETIME,
-        ];
+        return $this->typeDateTime($column);
     }
 
     /**
@@ -392,10 +389,7 @@ trait DialectTrait
      */
     public function typeTimeTz(Fluent $column)
     {
-        return [
-            'type'          => 'TIME WITH TIME ZONE',
-            'typeReference' => Column::TYPE_DATETIME,
-        ];
+        return $this->typeTime($column);
     }
 
     /**
@@ -421,10 +415,7 @@ trait DialectTrait
      */
     public function typeTimestampTz(Fluent $column)
     {
-        return [
-            'type'          => 'TIMESTAMP WITH TIME ZONE',
-            'typeReference' => Column::TYPE_TIMESTAMP,
-        ];
+        return $this->typeTimestamp($column);
     }
 
     /**

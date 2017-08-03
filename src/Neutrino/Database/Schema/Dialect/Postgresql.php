@@ -5,7 +5,7 @@ namespace Neutrino\Database\Schema\Dialect;
 use Neutrino\Database\Schema;
 use Neutrino\Support\Fluent;
 use Phalcon\Db\Column;
-use \Phalcon\Db\Dialect;
+use Phalcon\Db\Dialect;
 
 /**
  * Class Mysql
@@ -14,7 +14,11 @@ use \Phalcon\Db\Dialect;
  */
 class Postgresql extends Dialect\Postgresql implements Schema\DialectInterface
 {
-    use Schema\DialectTrait;
+    use Schema\DialectTrait {
+        typeTime as _typeTime;
+        typeDateTime as _typeDateTime;
+        typeTimestamp as _typeTimestamp;
+    }
 
     /**
      * Get SQL Enable foreign key constraints.
@@ -81,6 +85,131 @@ class Postgresql extends Dialect\Postgresql implements Schema\DialectInterface
         return [
             'type'          => "varchar($maxlen) check (\"{$column->get('name')}\" in (" . implode(', ', $values) . '))',
             'typeReference' => -1
+        ];
+    }
+
+    private function compileTimableColumn(Fluent $column, $type, $withTz = false)
+    {
+        $precision = !empty($column['precision']) ? '(' . $column['precision'] . ')' : '';
+
+        $type .= $precision;
+
+        if ($withTz) {
+            $type .= ' WITH TIME ZONE';
+        }
+
+        if (!empty($column['default'])) {
+            $type .= ' DEFAULT ' . $column['default'] . $precision;
+
+            if ($withTz) {
+                $type .= ' WITH TIME ZONE';
+            }
+
+            unset($column['default']);
+        }
+
+        return $type;
+    }
+
+    /**
+     * Create the column type definition for a timeTz type.
+     *
+     * @param \Neutrino\Support\Fluent $column
+     *
+     * @return array
+     */
+    public function typeTime(Fluent $column)
+    {
+        if (!empty($column['precision'])) {
+            return [
+                'type'          => $this->compileTimableColumn($column, 'TIME'),
+                'typeReference' => Column::TYPE_DATETIME,
+            ];
+        }
+
+        return $this->_typeTime($column);
+    }
+
+    /**
+     * Create the column type definition for a dateTimeTz type.
+     *
+     * @param \Neutrino\Support\Fluent $column
+     *
+     * @return array
+     */
+    public function typeDateTime(Fluent $column)
+    {
+        if (!empty($column['precision'])) {
+            return [
+                'type'          => $this->compileTimableColumn($column, 'TIMESTAMP'),
+                'typeReference' => Column::TYPE_DATETIME,
+            ];
+        }
+
+        return $this->_typeDateTime($column);
+    }
+
+    /**
+     * Create the column type definition for a timestampTz type.
+     *
+     * @param \Neutrino\Support\Fluent $column
+     *
+     * @return array
+     */
+    public function typeTimestamp(Fluent $column)
+    {
+        if (!empty($column['precision'])) {
+            return [
+                'type'          => $this->compileTimableColumn($column, 'TIMESTAMP'),
+                'typeReference' => Column::TYPE_TIMESTAMP,
+            ];
+        }
+
+        return $this->_typeTimestamp($column);
+    }
+
+    /**
+     * Create the column type definition for a timeTz type.
+     *
+     * @param \Neutrino\Support\Fluent $column
+     *
+     * @return array
+     */
+    public function typeTimeTz(Fluent $column)
+    {
+        return [
+            'type'          => $this->compileTimableColumn($column, 'TIME', true),
+            'typeReference' => Column::TYPE_DATETIME,
+        ];
+    }
+
+    /**
+     * Create the column type definition for a dateTimeTz type.
+     *
+     * @param \Neutrino\Support\Fluent $column
+     *
+     * @return array
+     */
+    public function typeDateTimeTz(Fluent $column)
+    {
+        return [
+            'type'          => $this->compileTimableColumn($column, 'TIMESTAMP', true),
+            'typeReference' => Column::TYPE_DATETIME,
+        ];
+    }
+
+    /**
+     * Create the column type definition for a timestampTz type.
+     *
+     * @param \Neutrino\Support\Fluent $column
+     *
+     * @return array
+     */
+    public function typeTimestampTz(Fluent $column)
+    {
+        return [
+            'type'          => $this->compileTimableColumn($column, 'TIMESTAMP', true),
+            'typeReference' => Column::TYPE_TIMESTAMP,
         ];
     }
 

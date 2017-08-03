@@ -4,7 +4,8 @@ namespace Neutrino\Database\Schema\Dialect;
 
 use Neutrino\Database\Schema;
 use Neutrino\Support\Fluent;
-use \Phalcon\Db\Dialect;
+use Phalcon\Db\Column;
+use Phalcon\Db\Dialect;
 
 /**
  * Class Mysql
@@ -13,7 +14,10 @@ use \Phalcon\Db\Dialect;
  */
 class Mysql extends Dialect\Mysql implements Schema\DialectInterface
 {
-    use Schema\DialectTrait;
+    use Schema\DialectTrait {
+        typeDateTime as _typeDateTime;
+        typeTimestamp as _typeTimestamp;
+    }
 
     /**
      * Get SQL Enable foreign key constraints.
@@ -36,27 +40,48 @@ class Mysql extends Dialect\Mysql implements Schema\DialectInterface
     }
 
     /**
+     * @param \Neutrino\Support\Fluent $column
+     *
+     * @return string
+     */
+    private function compileTimableColumn(Fluent $column, $type)
+    {
+        $precision = !empty($column['precision']) ? '(' . $column['precision'] . ')' : '';
+
+        $type .= $precision;
+
+        if (!empty($column['default'])) {
+            $type .= ' DEFAULT ' . $column['default'] . $precision;
+
+            unset($column['default']);
+        }
+
+        if (!empty($column['onUpdate'])) {
+            $type .= ' ON UPDATE ' . $column['onUpdate'] . $precision;
+
+            unset($column['onUpdate']);
+        }
+
+        return $type;
+    }
+
+    /**
      * Create the column type definition for a dateTimeTz type.
      *
      * @param \Neutrino\Support\Fluent $column
      *
      * @return array
      */
-    public function typeDateTimeTz(Fluent $column)
+    public function typeDateTime(Fluent $column)
     {
-        return $this->typeDateTime($column);
-    }
+        if (!empty($column['precision']) || !empty($column['onUpdate'])) {
+            return [
+                'type' => $this->compileTimableColumn($column, 'DATETIME'),
+                'typeReference' => Column::TYPE_DATETIME
+            ];
+        }
 
-    /**
-     * Create the column type definition for a timeTz type.
-     *
-     * @param \Neutrino\Support\Fluent $column
-     *
-     * @return array
-     */
-    public function typeTimeTz(Fluent $column)
-    {
-        return $this->typeTime($column);
+        return $this->_typeDateTime($column);
     }
 
     /**
@@ -66,8 +91,15 @@ class Mysql extends Dialect\Mysql implements Schema\DialectInterface
      *
      * @return array
      */
-    public function typeTimestampTz(Fluent $column)
+    public function typeTimestamp(Fluent $column)
     {
-        return $this->typeTimestamp($column);
+        if (!empty($column['precision']) || !empty($column['onUpdate'])) {
+            return [
+                'type' => $this->compileTimableColumn($column, 'TIMESTAMP'),
+                'typeReference' => Column::TYPE_TIMESTAMP
+            ];
+        }
+
+        return $this->_typeTimestamp($column);
     }
 }

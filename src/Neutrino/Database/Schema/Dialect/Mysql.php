@@ -15,6 +15,7 @@ use Phalcon\Db\Dialect;
 class Mysql extends Dialect\Mysql implements Schema\DialectInterface
 {
     use Schema\DialectTrait {
+        typeTime as _typeTime;
         typeDateTime as _typeDateTime;
         typeTimestamp as _typeTimestamp;
     }
@@ -63,6 +64,33 @@ class Mysql extends Dialect\Mysql implements Schema\DialectInterface
         }
 
         return $type;
+    }
+
+    /**
+     * Create the column type definition for a dateTimeTz type.
+     *
+     * @param \Neutrino\Support\Fluent $column
+     *
+     * @return array
+     */
+    public function typeTime(Fluent $column)
+    {
+        if (!empty($column['precision'])) {
+            if (isset($column['onUpdate'])) {
+                unset($column['onUpdate']);
+            }
+
+            if (isset($column['default']) && $column['default'] === 'CURRENT_TIMESTAMP') {
+                unset($column['default']);
+            }
+
+            return [
+                'type' => $this->compileTimableColumn($column, 'TIME'),
+                'typeReference' => Column::TYPE_DATETIME
+            ];
+        }
+
+        return $this->_typeTime($column);
     }
 
     /**

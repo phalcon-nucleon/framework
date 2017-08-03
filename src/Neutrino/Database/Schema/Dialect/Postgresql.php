@@ -223,7 +223,7 @@ class Postgresql extends Dialect\Postgresql implements Schema\DialectInterface
     public function typeUuid(Fluent $column)
     {
         return [
-            'type' => 'uuid',
+            'type'          => 'uuid',
             'typeReference' => Column::TYPE_CHAR
         ];
     }
@@ -238,7 +238,7 @@ class Postgresql extends Dialect\Postgresql implements Schema\DialectInterface
     public function typeIpAddress(Fluent $column)
     {
         return [
-            'type' => 'inet',
+            'type'          => 'inet',
             'typeReference' => Column::TYPE_VARCHAR
         ];
     }
@@ -253,7 +253,7 @@ class Postgresql extends Dialect\Postgresql implements Schema\DialectInterface
     public function typeMacAddress(Fluent $column)
     {
         return [
-            'type' => 'macaddr',
+            'type'          => 'macaddr',
             'typeReference' => Column::TYPE_VARCHAR
         ];
     }

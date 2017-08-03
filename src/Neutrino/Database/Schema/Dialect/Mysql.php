@@ -42,6 +42,7 @@ class Mysql extends Dialect\Mysql implements Schema\DialectInterface
 
     /**
      * @param \Neutrino\Support\Fluent $column
+     * @param string                   $type
      *
      * @return string
      */

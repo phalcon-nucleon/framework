@@ -71,7 +71,6 @@ class Sqlite extends Dialect\Sqlite implements Schema\DialectInterface
         return $this->typeInteger($column);
     }
 
-
     /**
      * Create the column type definition for a mediumText type.
      *

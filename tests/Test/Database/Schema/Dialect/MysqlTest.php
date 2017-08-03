@@ -64,4 +64,18 @@ class MysqlTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($expected, $dialect->getType($column));
     }
+
+    public function testEnableForeignKeyConstraints()
+    {
+        $dialect = new Mysql();
+
+        $this->assertEquals('SET FOREIGN_KEY_CHECKS=1;', $dialect->enableForeignKeyConstraints());
+    }
+
+    public function testDisableForeignKeyConstraints()
+    {
+        $dialect = new Mysql();
+
+        $this->assertEquals('SET FOREIGN_KEY_CHECKS=0;', $dialect->disableForeignKeyConstraints());
+    }
 }

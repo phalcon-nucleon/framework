@@ -64,4 +64,18 @@ class PostgresqlTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($expected, $dialect->getType($column));
     }
+
+    public function testEnableForeignKeyConstraints()
+    {
+        $dialect = new Postgresql();
+
+        $this->assertEquals('SET CONSTRAINTS ALL IMMEDIATE;', $dialect->enableForeignKeyConstraints());
+    }
+
+    public function testDisableForeignKeyConstraints()
+    {
+        $dialect = new Postgresql();
+
+        $this->assertEquals('SET CONSTRAINTS ALL DEFERRED;', $dialect->disableForeignKeyConstraints());
+    }
 }

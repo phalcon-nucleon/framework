@@ -17,6 +17,26 @@ class Postgresql extends Dialect\Postgresql implements Schema\DialectInterface
     use Schema\DialectTrait;
 
     /**
+     * Get SQL Enable foreign key constraints.
+     *
+     * @return string
+     */
+    public function enableForeignKeyConstraints()
+    {
+        return 'SET CONSTRAINTS ALL IMMEDIATE;';
+    }
+
+    /**
+     * Get SQL Disable foreign key constraints.
+     *
+     * @return string
+     */
+    public function disableForeignKeyConstraints()
+    {
+        return 'SET CONSTRAINTS ALL DEFERRED;';
+    }
+
+    /**
      * Create the column type definition for a mediumText type.
      *
      * @param \Neutrino\Support\Fluent $column

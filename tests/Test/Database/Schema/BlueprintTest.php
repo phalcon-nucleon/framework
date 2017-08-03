@@ -902,7 +902,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
         $db->expects($this->once())->method('describeColumns')->willReturn($describeColumnsMock);
 
-        Reflacker::invoke($blueprint, 'buildCommands', $db, new \Phalcon\Config(['dbname' => 'schema']));
+        Reflacker::invoke($blueprint, 'buildCommands', $db, ['dbname' => 'schema']);
 
         $this->assertEquals($expectedCommands, $blueprint->getCommands());
     }

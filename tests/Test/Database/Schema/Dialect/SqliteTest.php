@@ -64,4 +64,18 @@ class SqliteTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($expected, $dialect->getType($column));
     }
+
+    public function testEnableForeignKeyConstraints()
+    {
+        $dialect = new Sqlite();
+
+        $this->assertEquals('PRAGMA foreign_keys = ON;', $dialect->enableForeignKeyConstraints());
+    }
+
+    public function testDisableForeignKeyConstraints()
+    {
+        $dialect = new Sqlite();
+
+        $this->assertEquals('PRAGMA foreign_keys = OFF;', $dialect->disableForeignKeyConstraints());
+    }
 }

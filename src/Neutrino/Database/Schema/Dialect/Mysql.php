@@ -16,6 +16,26 @@ class Mysql extends Dialect\Mysql implements Schema\DialectInterface
     use Schema\DialectTrait;
 
     /**
+     * Get SQL Enable foreign key constraints.
+     *
+     * @return string
+     */
+    public function enableForeignKeyConstraints()
+    {
+        return 'SET FOREIGN_KEY_CHECKS=1;';
+    }
+
+    /**
+     * Get SQL Disable foreign key constraints.
+     *
+     * @return string
+     */
+    public function disableForeignKeyConstraints()
+    {
+        return 'SET FOREIGN_KEY_CHECKS=0;';
+    }
+
+    /**
      * Create the column type definition for a dateTimeTz type.
      *
      * @param \Neutrino\Support\Fluent $column

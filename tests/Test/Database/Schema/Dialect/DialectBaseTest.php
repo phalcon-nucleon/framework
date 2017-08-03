@@ -50,6 +50,7 @@ class DialectBaseTest extends \PHPUnit_Framework_TestCase
      */
     public function testType($type, $column, $expected)
     {
+        /** @var MockDialect $dialect */
         $dialect = $this->getMockForAbstractClass(MockDialect::class);
 
         $this->assertEquals($expected, $dialect->{'type' . ucfirst($type)}($column));
@@ -60,6 +61,7 @@ class DialectBaseTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetType($type, $column, $expected)
     {
+        /** @var MockDialect $dialect */
         $dialect = $this->getMockForAbstractClass(MockDialect::class);
 
         $this->assertEquals($expected, $dialect->getType($column));

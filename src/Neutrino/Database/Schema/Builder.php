@@ -6,25 +6,18 @@ use Closure;
 use LogicException;
 use Neutrino\Database\Schema\Dialect as SchemaDialect;
 use Neutrino\Support\Func;
-use Phalcon\Config;
 use Phalcon\Db\AdapterInterface as Db;
 use Phalcon\Db\Dialect as DbDialect;
+use Phalcon\Di\Injectable;
 
-class Builder
+class Builder extends Injectable
 {
     /**
      * The database configuration.
      *
-     * @var \Phalcon\Config
+     * @var array
      */
     protected $dbConfig;
-
-    /**
-     * The database connection instance.
-     *
-     * @var \Phalcon\Db\AdapterInterface
-     */
-    protected $db;
 
     /**
      * The schema grammar instance.
@@ -49,15 +42,12 @@ class Builder
 
     /**
      * Create a new database Schema manager.
-     *
-     * @param \Phalcon\Db\AdapterInterface $connection
-     * @param \Phalcon\Config               $dbConfig
      */
-    public function __construct(Db $connection, Config $dbConfig)
+    public function __construct()
     {
-        $this->db = $connection;
-        $this->dbConfig = $dbConfig;
-        $dialect = $connection->getDialect();
+        $this->dbConfig = $this->db->getDescriptor();
+
+        $dialect = $this->db->getDialect();
         if ($dialect instanceof DbDialect\Mysql) {
             $this->grammar = new SchemaDialect\Mysql();
         } elseif ($dialect instanceof DbDialect\Postgresql) {
@@ -159,7 +149,7 @@ class Builder
      */
     public function getColumnListing($table)
     {
-        return $this->db->describeColumns($table, $this->dbConfig->get('dbname'));
+        return $this->db->describeColumns($table, $this->dbConfig['dbname']);
     }
 
     /**
@@ -259,7 +249,7 @@ class Builder
     public function enableForeignKeyConstraints()
     {
         return $this->db->execute(
-            $this->grammar->compileEnableForeignKeyConstraints()
+            $this->grammar->enableForeignKeyConstraints()
         );
     }
 
@@ -271,7 +261,7 @@ class Builder
     public function disableForeignKeyConstraints()
     {
         return $this->db->execute(
-            $this->grammar->compileDisableForeignKeyConstraints()
+            $this->grammar->disableForeignKeyConstraints()
         );
     }
 

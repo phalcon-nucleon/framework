@@ -12,6 +12,20 @@ use Neutrino\Support\Fluent;
 interface DialectInterface extends \Phalcon\Db\DialectInterface
 {
     /**
+     * Get SQL Enable foreign key constraints.
+     *
+     * @return string
+     */
+    public function enableForeignKeyConstraints();
+
+    /**
+     * Get SQL Disable foreign key constraints.
+     *
+     * @return string
+     */
+    public function disableForeignKeyConstraints();
+
+    /**
      * Get the SQL for the column data type.
      *
      * @param  \Neutrino\Support\Fluent $column

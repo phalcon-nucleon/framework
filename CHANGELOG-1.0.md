@@ -1,5 +1,14 @@
 #Release Note
 
+## v1.0.1
+### Change
+ - Improve \Neutrino\Model ::timestampable & ::softDelete behavior implementation :
+    - Timestampable :
+        - Allow null column, and default value. With a default value (like "CURRENT_TIMESTAMP"), "insert" behavior will not be add.
+        - Timestampable are now plugged in "beforeValidationOnCreate" and "beforeValidationOnUpdate"
+    - SoftDelete allow default value.
+    
+
 ## v1.0.0
 
 ### Added

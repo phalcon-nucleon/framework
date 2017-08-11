@@ -8,6 +8,8 @@ use Test\TestCase\TestCase;
  * Class StrTest
  *
  * @package Support
+ *
+ * @coversDefaultClass \Neutrino\Support\Str
  */
 class StrFuncTest extends TestCase
 {

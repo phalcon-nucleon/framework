@@ -8,6 +8,8 @@ use Neutrino\Support\Arr;
  * Class ArrTest
  *
  * @package Support
+ *
+ * @coversDefaultClass \Neutrino\Support\Arr
  */
 class ArrFuncTest extends \PHPUnit_Framework_TestCase
 {

@@ -8,6 +8,8 @@ use Test\TestCase\TestCase;
  * Trait MacroableTest
  *
  * @package Support
+ *
+ * @coversDefaultClass \Neutrino\Support\Traits\Macroable
  */
 class MacroableTest extends TestCase
 {

@@ -52,24 +52,29 @@ class RepositoryTest extends TestCase
      */
     public function testAll($data)
     {
-        //$this->setValueProperty(Repository::class, 'queries', []);
-        $this->mockDb(count($data), $data);
+        try {
+            //$this->setValueProperty(Repository::class, 'queries', []);
+            $this->mockDb(count($data), $data);
 
-        $repository = new StubRepositoryModel;
+            $repository = new StubRepositoryModel;
 
-        $result = $repository->all();
+            $result = $repository->all();
 
-        $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
-        $this->assertEquals($data, $result->toArray());
+            $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
+            $this->assertEquals($data, $result->toArray());
 
-        foreach ($result as $item) {
-            $this->assertInstanceOf(StubModelTest::class, $item);
+            foreach ($result as $item) {
+                $this->assertInstanceOf(StubModelTest::class, $item);
+            }
+        } catch (\Exception $e) {
+            echo $e->getTraceAsString();
+            $this->assertTrue(false);
         }
     }
 
     public function testFirst()
     {
-        $data =  [['id' => 1, 'name' => 't1']];
+        $data = [['id' => 1, 'name' => 't1']];
         $this->mockDb(count($data), $data);
 
         $repository = new StubRepositoryModel;
@@ -83,7 +88,7 @@ class RepositoryTest extends TestCase
 
     public function testFirstOrNewFound()
     {
-        $data =  [['id' => 1, 'name' => 't1']];
+        $data = [['id' => 1, 'name' => 't1']];
         $this->mockDb(count($data), $data);
 
         $repository = new StubRepositoryModel;
@@ -113,18 +118,23 @@ class RepositoryTest extends TestCase
      */
     public function testFind($data)
     {
-        $this->mockDb(count($data), $data);
+        try {
+            $this->mockDb(count($data), $data);
 
-        $repository = new StubRepositoryModel;
+            $repository = new StubRepositoryModel;
 
-        $result = $repository->find();
+            $result = $repository->find();
 
-        $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
-        $this->assertEquals($data, $result->toArray());
+            $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
+            $this->assertEquals($data, $result->toArray());
 
-        foreach ($result as $key => $item) {
-            $this->assertInstanceOf(StubModelTest::class, $item);
-            $this->assertEquals($data[$key], $item->toArray());
+            foreach ($result as $key => $item) {
+                $this->assertInstanceOf(StubModelTest::class, $item);
+                $this->assertEquals($data[$key], $item->toArray());
+            }
+        } catch (\Exception $e) {
+            echo $e->getTraceAsString();
+            $this->assertTrue(false);
         }
     }
 

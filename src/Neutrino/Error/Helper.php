@@ -14,7 +14,7 @@ class Helper
     public static function format(Error $error)
     {
         $lines[] = self::getErrorType($error->type);
-        if($error->isException){
+        if ($error->isException) {
             $lines[] = '  Class : ' . get_class($error->exception);
             $lines[] = '  Code : ' . $error->code;
         }
@@ -29,7 +29,7 @@ class Helper
             foreach (self::formatExceptionTrace($error->exception) as $trace) {
                 $lines[] = '#' . $trace['id'] . ' ' . $trace['func'];
 
-                $row = str_repeat(' ', strlen($trace['id'])+2) . 'in : ';
+                $row = str_repeat(' ', strlen($trace['id']) + 2) . 'in : ';
                 if (isset($trace['file'])) {
                     $row .= str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
                     if (isset($trace['line'])) {
@@ -70,10 +70,8 @@ class Helper
             }
 
             $args = [];
-            if(isset($trace['args'])) {
-                foreach ($trace['args'] as $arg) {
-                    $args[] = self::verboseType($arg);
-                }
+            if (isset($trace['args'])) {
+                $args = self::verboseArgs((array) $trace['args']);
             }
             $_trace['func'] .= '(' . implode(', ', $args) . ')';
 
@@ -91,6 +89,17 @@ class Helper
         }
 
         return $traces;
+    }
+
+    public static function verboseArgs(array $args)
+    {
+        $arguments = [];
+
+        foreach ($args as $key => $arg) {
+            $arguments[$key] = self::verboseType($arg);
+        }
+
+        return $arguments;
     }
 
     public static function verboseType($value)

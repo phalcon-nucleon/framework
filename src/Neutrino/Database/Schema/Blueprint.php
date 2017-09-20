@@ -68,7 +68,12 @@ class Blueprint
             case 'drop':
                 return $this->buildDrop($db, $dbConfig, $grammar, false);
             default:
-                throw new \Exception();
+                if(empty($this->action)){
+                    $message = "Blueprint must has action";
+                } else {
+                    $message = "Action '{$this->action}' not supported.";
+                }
+                throw new \RuntimeException($message);
         }
     }
 
@@ -174,22 +179,31 @@ class Blueprint
                             break;
                         }
                     }
-
-                    $to = new Column($command->get('column'), [
+                    $definition = [
                         'type'          => $from->getType(),
-                        'typeReference' => $from->getTypeReference(),
-                        'typeValues'    => $from->getTypeValues(),
-                        'size'          => $from->getSize(),
-                        'default'       => $from->getDefault(),
-                        'scale'         => $from->getScale(),
                         'notNull'       => $from->isNotNull(),
-                        'unsigned'      => $from->isUnsigned(),
                         'primary'       => $from->isPrimary(),
                         'autoIncrement' => $from->isAutoIncrement(),
-                        'first'         => $from->isFirst(),
-                        'after'         => $from->getAfterPosition(),
                         'numeric'       => $from->isNumeric(),
-                    ]);
+                    ];
+
+                    if(($typeReference = $from->getTypeReference()) !== -1){
+                        $definition['typeReference'] = $typeReference;
+                    }
+                    if(($typeValues = $from->getTypeValues()) !== -1){
+                        $definition['typeValues'] = $typeValues;
+                    }
+                    if(!empty($size = $from->getSize())){
+                        $definition['size'] = $size;
+                    }
+                    if(!is_null($default = $from->getDefault())){
+                        $definition['default'] = $default;
+                    }
+                    if(!empty($scale = $from->getScale())){
+                        $definition['scale'] = $scale;
+                    }
+
+                    $to = new Column($command->get('to'), $definition);
 
                     $res = $db->modifyColumn($table, $schema, $to, $from);
                     break;
@@ -241,6 +255,8 @@ class Blueprint
     {
         $columns = $db->describeColumns($this->table, $dbConfig['dbname']);
         foreach ($this->columns as $column) {
+            $this->indexFromFluentColumn($column);
+
             foreach ($columns as $c) {
                 if ($c->getName() === $column->get('name')) {
                     $this->addCommand('modifyColumn', ['column' => $column, 'from' => $c]);
@@ -273,6 +289,26 @@ class Blueprint
         return $connection->dropTable($this->table, $dbConfig['dbname'], $ifExist);
     }
 
+    protected function indexFromFluentColumn(Fluent $column){
+        $attributes = $column->getAttributes();
+
+        if (isset($attributes['unique']) && $attributes['unique']) {
+            $this->unique($column->get('name'), is_bool($attributes['unique']) ? null : $attributes['unique']);
+
+            unset($column['unique']);
+        } elseif (isset($attributes['index']) && $attributes['index']) {
+            $this->index($column->get('name'), is_bool($attributes['index']) ? null : $attributes['index']);
+
+            unset($column['index']);
+        } elseif ($column->get('foreign')) {
+            $this->foreign($column->get('name'))->on($column->get('on'))->references($column->get('references'));
+
+            unset($column['foreign']);
+            unset($column['on']);
+            unset($column['references']);
+        }
+    }
+
     /**
      * Transform a Fluent(Column) to a \Phalcon\Db\Column
      *
@@ -285,18 +321,7 @@ class Blueprint
     {
         $attributes = $column->getAttributes();
 
-        if (isset($attributes['unique']) && $attributes['unique']) {
-            $this->unique($column->get('name'), is_bool($attributes['unique']) ? null : $attributes['unique']);
-            unset($attributes['unique']);
-        } elseif (isset($attributes['index']) && $attributes['index']) {
-            $this->index($column->get('name'), is_bool($attributes['index']) ? null : $attributes['index']);
-            unset($attributes['index']);
-        } elseif ($column->get('foreign')) {
-            $this->foreign($column->get('name'))->on($column->get('on'))->references($column->get('references'));
-            unset($attributes['foreign']);
-            unset($attributes['on']);
-            unset($attributes['references']);
-        }
+        $this->indexFromFluentColumn($column);
 
         $types = $grammar->getType($column);
 

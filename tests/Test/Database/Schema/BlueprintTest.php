@@ -839,10 +839,21 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             ], [
                 new Fluent([
                     'name'   => 'modifyColumn',
-                    'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255, 'unique' => true]),
+                    'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255]),
                     'from'   => new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
                 ]),
-                new Fluent(['name' => 'addColumn', 'column' => new Fluent(['name' => 'test', 'type' => 'string', 'size' => 255, 'index' => true])])
+                new Fluent([
+                    'name' => 'addColumn',
+                    'column' => new Fluent(['name' => 'test', 'type' => 'string', 'size' => 255])
+                ]),
+                new Fluent([
+                    'name' => 'addIndex',
+                    'index' => new Fluent(['name' => 'test_name_unique', 'type' => 'unique', 'columns' => ['name']])
+                ]),
+                new Fluent([
+                    'name' => 'addIndex',
+                    'index' => new Fluent(['name' => 'test_test_index', 'type' => 'index', 'columns' => ['test']])
+                ])
             ]
         ];
 

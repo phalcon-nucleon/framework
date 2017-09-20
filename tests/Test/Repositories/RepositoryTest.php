@@ -52,6 +52,9 @@ class RepositoryTest extends TestCase
      */
     public function testAll($data)
     {
+        $debug = new \Phalcon\Debug\Dump();
+
+        xdebug_start_function_monitor([\Phalcon\Mvc\Model\Resultset\Simple::class.'->toArray']);
         try {
             //$this->setValueProperty(Repository::class, 'queries', []);
             $this->mockDb(count($data), $data);
@@ -72,12 +75,18 @@ class RepositoryTest extends TestCase
             echo PHP_EOL;
             echo $e->getTraceAsString();
             echo PHP_EOL;
-            if(isset($result))
+            if(isset($result)){
+                $debug->one($result);
                 var_dump($result);
+                xdebug_debug_zval('result');
+                var_dump(xdebug_get_monitored_functions());
+            }
             else
                 echo 'no result';
 
             throw $e;
+        } finally{
+            xdebug_stop_function_monitor();
         }
     }
 
@@ -127,6 +136,9 @@ class RepositoryTest extends TestCase
      */
     public function testFind($data)
     {
+        $debug = new \Phalcon\Debug\Dump();
+
+        xdebug_start_function_monitor([\Phalcon\Mvc\Model\Resultset\Simple::class.'->toArray']);
         try {
             $this->mockDb(count($data), $data);
 
@@ -140,18 +152,25 @@ class RepositoryTest extends TestCase
                 $this->assertInstanceOf(StubModelTest::class, $item);
                 $this->assertEquals($data[$key], $item->toArray());
             }
+            throw new \Exception();
         } catch (\Exception $e) {
             echo PHP_EOL;
             echo $e->getMessage();
             echo PHP_EOL;
             echo $e->getTraceAsString();
             echo PHP_EOL;
-            if(isset($result))
+            if(isset($result)){
+                $debug->one($result);
                 var_dump($result);
+                xdebug_debug_zval('result');
+                var_dump(xdebug_get_monitored_functions());
+            }
             else
                 echo 'no result';
 
             throw $e;
+        } finally{
+            xdebug_stop_function_monitor();
         }
     }
 
@@ -338,7 +357,7 @@ class RepositoryTest extends TestCase
             ->will($this->returnValue($numRows));
 
         $results->expects($this->any())
-            ->method('fetchall')
+            ->method('fetchAll')
             ->will($this->returnValue($result));
 
         $dialect->expects($this->any())

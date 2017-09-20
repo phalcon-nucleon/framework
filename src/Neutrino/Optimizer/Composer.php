@@ -2,15 +2,14 @@
 
 namespace Neutrino\Optimizer;
 
-use Neutrino\Optimizer\Composer\Autoload;
-use Neutrino\Optimizer\Composer\Script;
+use Phalcon\Di\Injectable;
 
 /**
  * Class Composer
  *
  * @package Neutrino\Optimizer
  */
-class Composer
+class Composer extends Injectable
 {
     /**
      * @var string
@@ -18,12 +17,12 @@ class Composer
     private $loaderFilePath;
 
     /**
-     * @var Autoload
+     * @var \Neutrino\Optimizer\Composer\Autoload
      */
     private $autoload;
 
     /**
-     * @var Script
+     * @var \Neutrino\Optimizer\Composer\Script
      */
     private $composer;
 
@@ -37,8 +36,10 @@ class Composer
     public function __construct($loaderFilePath, $composerPath, $basePath = null)
     {
         $this->loaderFilePath = $loaderFilePath;
-        $this->autoload       = new Autoload($composerPath);
-        $this->composer       = new Script($basePath);
+
+        $di = $this->getDI();
+        $this->autoload = $di->get(Composer\Autoload::class, [$composerPath]);
+        $this->composer = $di->get(Composer\Script::class, [$basePath]);
     }
 
     /**

@@ -141,26 +141,20 @@ abstract class Model extends \Phalcon\Mvc\Model
         ) {
             throw new \RuntimeException('Model: A timestampable field can\'t have autoInsert or autoUpdate.');
         }
-        if (isset($options['nullable']) && $options['nullable']) {
-            throw new \RuntimeException('Model: A timestampable field can\'t be nullable.');
-        }
-        if (isset($options['default'])) {
-            throw new \RuntimeException('Model: A timestampable field can\'t have a default value.');
-        }
 
         self::column($name, isset($options['type']) ? $options['type'] : Column::TYPE_DATETIME, $options);
 
         $params = [];
 
-        if (isset($options['insert']) && $options['insert']) {
-            $params['beforeCreate'] = [
+        if (!isset($options['default']) && isset($options['insert']) && $options['insert']) {
+            $params['beforeValidationOnCreate'] = [
                 'field'  => $name,
                 'format' => isset($options['format']) ? $options['format'] : DATE_ATOM
             ];
         }
 
         if (isset($options['update']) && $options['update']) {
-            $params['beforeUpdate'] = [
+            $params['beforeValidationOnUpdate'] = [
                 'field'  => $name,
                 'format' => isset($options['format']) ? $options['format'] : DATE_ATOM
             ];
@@ -195,9 +189,6 @@ abstract class Model extends \Phalcon\Mvc\Model
             (isset($options['autoUpdate']) && $options['autoUpdate'])
         ) {
             throw new \RuntimeException('Model: A timestampable field can\'t have autoInsert or autoUpdate.');
-        }
-        if (isset($options['default'])) {
-            throw new \RuntimeException('Model: A timestampable field can\'t have a default value.');
         }
 
         self::column($name, isset($options['type']) ? $options['type'] : Column::TYPE_BOOLEAN, $options);

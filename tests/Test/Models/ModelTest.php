@@ -408,10 +408,10 @@ class ModelTest extends TestCase
     public function dataTimestampable()
     {
         return [
-            ['t_1', Column::TYPE_DATETIME, ['insert' => true], 'beforeCreate', DATE_ATOM],
-            ['t_1', Column::TYPE_DATETIME, ['update' => true], 'beforeUpdate', DATE_ATOM],
-            ['t_1', Column::TYPE_DATE, ['insert' => true, 'type' => Column::TYPE_DATE, 'format' => 'Y-m-d'], 'beforeCreate', 'Y-m-d'],
-            ['t_1', Column::TYPE_DATE, ['update' => true, 'type' => Column::TYPE_DATE, 'format' => 'Y-m-d'], 'beforeUpdate', 'Y-m-d'],
+            ['t_1', Column::TYPE_DATETIME, ['insert' => true], 'beforeValidationOnCreate', DATE_ATOM],
+            ['t_1', Column::TYPE_DATETIME, ['update' => true], 'beforeValidationOnUpdate', DATE_ATOM],
+            ['t_1', Column::TYPE_DATE, ['insert' => true, 'type' => Column::TYPE_DATE, 'format' => 'Y-m-d'], 'beforeValidationOnCreate', 'Y-m-d'],
+            ['t_1', Column::TYPE_DATE, ['update' => true, 'type' => Column::TYPE_DATE, 'format' => 'Y-m-d'], 'beforeValidationOnUpdate', 'Y-m-d'],
         ];
     }
 
@@ -443,8 +443,7 @@ class ModelTest extends TestCase
     {
         return [
             [[]],
-            [['nullable' => 'true']],
-            [['default' => 'true']],
+            [['default' => 'true', 'insert' => true]],
             [['autoInsert' => 'true']],
             [['autoUpdate' => 'true']],
         ];
@@ -497,7 +496,6 @@ class ModelTest extends TestCase
     public function dataFailedSoftDeletable()
     {
         return [
-            [['default' => 'true']],
             [['autoInsert' => 'true']],
             [['autoUpdate' => 'true']],
         ];
@@ -535,11 +533,11 @@ class ModelTest extends TestCase
         $this->assertEquals([
             'field'  => 'created_at',
             'format' => DATE_ATOM
-        ], $this->invokeMethod($behaviors[$class][0], 'getOptions', ['beforeCreate']));
+        ], $this->invokeMethod($behaviors[$class][0], 'getOptions', ['beforeValidationOnCreate']));
         $this->assertEquals([
             'field'  => 'updated_at',
             'format' => DATE_ATOM
-        ], $this->invokeMethod($behaviors[$class][1], 'getOptions', ['beforeUpdate']));
+        ], $this->invokeMethod($behaviors[$class][1], 'getOptions', ['beforeValidationOnUpdate']));
     }
 
     public function testSoftDelete()

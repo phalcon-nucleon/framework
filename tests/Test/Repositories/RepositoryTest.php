@@ -67,8 +67,17 @@ class RepositoryTest extends TestCase
                 $this->assertInstanceOf(StubModelTest::class, $item);
             }
         } catch (\Exception $e) {
+            echo PHP_EOL;
+            echo $e->getMessage();
+            echo PHP_EOL;
             echo $e->getTraceAsString();
-            $this->assertTrue(false);
+            echo PHP_EOL;
+            if(isset($result))
+                var_dump($result);
+            else
+                echo 'no result';
+
+            throw $e;
         }
     }
 
@@ -127,14 +136,22 @@ class RepositoryTest extends TestCase
 
             $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
             $this->assertEquals($data, $result->toArray());
-
             foreach ($result as $key => $item) {
                 $this->assertInstanceOf(StubModelTest::class, $item);
                 $this->assertEquals($data[$key], $item->toArray());
             }
         } catch (\Exception $e) {
+            echo PHP_EOL;
+            echo $e->getMessage();
+            echo PHP_EOL;
             echo $e->getTraceAsString();
-            $this->assertTrue(false);
+            echo PHP_EOL;
+            if(isset($result))
+                var_dump($result);
+            else
+                echo 'no result';
+
+            throw $e;
         }
     }
 

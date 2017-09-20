@@ -45,6 +45,83 @@ class BuilderTest extends TestCase
         return $db;
     }
 
+    public function testGetColumnListing()
+    {
+        $db = $this->mockDb();
+
+        $columns = [
+            new Column('id', [
+                'autoIncrement' => true,
+                'type'          => Column::TYPE_INTEGER,
+                'unsigned'      => true,
+                'notNull'       => true,
+                'primary'       => true
+            ])
+        ];
+        $db->expects($this->any())
+            ->method("describeColumns")
+            ->willReturn($columns);
+
+        $builder = new Builder;
+
+        $this->assertEquals($columns, $builder->getColumnListing('table'));
+    }
+
+    public function testHasColumn()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->any())
+            ->method("describeColumns")
+            ->willReturn(
+                [
+                    new Column('id', [
+                        'autoIncrement' => true,
+                        'type'          => Column::TYPE_INTEGER,
+                        'unsigned'      => true,
+                        'notNull'       => true,
+                        'primary'       => true
+                    ])
+                ]
+            );
+
+        $builder = new Builder;
+
+        $this->assertTrue($builder->hasColumn('table', 'id'));
+        $this->assertTrue($builder->hasColumn('table', 'ID'));
+        $this->assertFalse($builder->hasColumn('table', 'name'));
+    }
+
+    public function testHasColumns()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->any())
+            ->method("describeColumns")
+            ->willReturn(
+                [
+                    new Column('id', [
+                        'autoIncrement' => true,
+                        'type'          => Column::TYPE_INTEGER,
+                        'unsigned'      => true,
+                        'notNull'       => true,
+                        'primary'       => true
+                    ]),
+                    new Column('name', [
+                        'type'    => Column::TYPE_VARCHAR,
+                        'size'    => 256,
+                        'notNull' => true
+                    ])
+                ]
+            );
+
+        $builder = new Builder;
+
+        $this->assertTrue($builder->hasColumns('table', ['id']));
+        $this->assertTrue($builder->hasColumns('table', ['id', 'name']));
+        $this->assertFalse($builder->hasColumns('table', ['id', 'name', 'other']));
+    }
+
     public function testCreate()
     {
         $db = $this->mockDb();
@@ -59,7 +136,7 @@ class BuilderTest extends TestCase
                         'unsigned'      => true,
                         'notNull'       => true,
                         'primary'       => true
-                    ])
+                    ]),
                 ]
             ]);
 

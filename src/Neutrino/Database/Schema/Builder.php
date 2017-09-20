@@ -5,8 +5,8 @@ namespace Neutrino\Database\Schema;
 use Closure;
 use LogicException;
 use Neutrino\Database\Schema\Dialect as SchemaDialect;
+use Neutrino\Database\Schema\DialectInterface as SchemaDialectInterface;
 use Neutrino\Support\Func;
-use Phalcon\Db\AdapterInterface as Db;
 use Phalcon\Db\Dialect as DbDialect;
 use Phalcon\Di\Injectable;
 
@@ -48,15 +48,16 @@ class Builder extends Injectable
         $this->dbConfig = $this->db->getDescriptor();
 
         $dialect = $this->db->getDialect();
-        if ($dialect instanceof DbDialect\Mysql) {
+        if ($dialect instanceof SchemaDialectInterface) {
+            $this->grammar = $dialect;
+        } elseif ($dialect instanceof DbDialect\Mysql) {
             $this->grammar = new SchemaDialect\Mysql();
         } elseif ($dialect instanceof DbDialect\Postgresql) {
             $this->grammar = new SchemaDialect\Postgresql();
         } elseif ($dialect instanceof DbDialect\Sqlite) {
             $this->grammar = new SchemaDialect\Sqlite();
         } else {
-            /* TODO Wrapper between DbDialect & SchemaDialect */
-            return;
+            $this->grammar = new SchemaDialect\DbSchemaWrapper($dialect);
         }
     }
 
@@ -87,16 +88,16 @@ class Builder extends Injectable
     /**
      * Determine if the given table has a given column.
      *
-     * @param  string $table
-     * @param  string $column
+     * @param string $table
+     * @param string $column
      *
      * @return bool
      */
     public function hasColumn($table, $column)
     {
-        return in_array(
-            strtolower($column), array_map('strtolower', $this->getColumnListing($table))
-        );
+        $tableColumns = array_map('strtolower', $this->listColumnsName($table));
+
+        return in_array(strtolower($column), $tableColumns);
     }
 
     /**
@@ -109,7 +110,7 @@ class Builder extends Injectable
      */
     public function hasColumns($table, array $columns)
     {
-        $tableColumns = array_map('strtolower', $this->getColumnListing($table));
+        $tableColumns = array_map('strtolower', $this->listColumnsName($table));
 
         foreach ($columns as $column) {
             if (!in_array(strtolower($column), $tableColumns)) {
@@ -313,27 +314,24 @@ class Builder extends Injectable
     }
 
     /**
-     * Get the database connection instance.
+     * @param string                             $table
+     * @param \Phalcon\Db\ColumnInterface[]|null $tableColumns
      *
-     * @return \Phalcon\Db\AdapterInterface
+     * @return array
      */
-    public function getDb()
+    protected function listColumnsName($table, array $tableColumns = null)
     {
-        return $this->db;
-    }
+        if (is_null($tableColumns)) {
+            $tableColumns = $this->getColumnListing($table);
+        }
 
-    /**
-     * Set the database connection instance.
-     *
-     * @param  \Phalcon\Db\AdapterInterface $db
-     *
-     * @return $this
-     */
-    public function setDb(Db $db)
-    {
-        $this->db = $db;
+        $columnsName = [];
 
-        return $this;
+        foreach ($tableColumns as $tableColumn) {
+            $columnsName[] = $tableColumn->getName();
+        }
+
+        return $columnsName;
     }
 
     /**

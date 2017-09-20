@@ -52,43 +52,18 @@ class RepositoryTest extends TestCase
      */
     public function testAll($data)
     {
-        $debug = new \Phalcon\Debug\Dump();
+        $this->mockDb(count($data), $data);
 
-        xdebug_start_function_monitor([\Phalcon\Mvc\Model\Resultset\Simple::class.'->toArray']);
-        try {
-            //$this->setValueProperty(Repository::class, 'queries', []);
-            $this->mockDb(count($data), $data);
+        $repository = new StubRepositoryModel;
 
-            $repository = new StubRepositoryModel;
+        $result = $repository->all();
 
-            $result = $repository->all();
+        $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
 
-            $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
-
-            foreach ($result as $item) {
-                $this->assertInstanceOf(StubModelTest::class, $item);
-            }
-
-            //$this->assertEquals($data, $result->toArray());
-        } catch (\Exception $e) {
-            echo PHP_EOL;
-            echo $e->getMessage();
-            echo PHP_EOL;
-            echo $e->getTraceAsString();
-            echo PHP_EOL;
-            if(isset($result)){
-                $debug->one($result);
-                var_dump($result);
-                xdebug_debug_zval('result');
-                var_dump(xdebug_get_monitored_functions());
-            }
-            else
-                echo 'no result';
-
-            throw $e;
-        } finally{
-            xdebug_stop_function_monitor();
+        foreach ($result as $item) {
+            $this->assertInstanceOf(StubModelTest::class, $item);
         }
+        //$this->assertEquals($data, $result->toArray());
     }
 
     public function testFirst()
@@ -137,41 +112,18 @@ class RepositoryTest extends TestCase
      */
     public function testFind($data)
     {
-        $debug = new \Phalcon\Debug\Dump();
+        $this->mockDb(count($data), $data);
 
-        xdebug_start_function_monitor([\Phalcon\Mvc\Model\Resultset\Simple::class.'->toArray']);
-        try {
-            $this->mockDb(count($data), $data);
+        $repository = new StubRepositoryModel;
 
-            $repository = new StubRepositoryModel;
+        $result = $repository->find();
 
-            $result = $repository->find();
-
-            $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
-            foreach ($result as $key => $item) {
-                $this->assertInstanceOf(StubModelTest::class, $item);
-                $this->assertEquals($data[$key], $item->toArray());
-            }
-            //$this->assertEquals($data, $result->toArray());
-        } catch (\Exception $e) {
-            echo PHP_EOL;
-            echo $e->getMessage();
-            echo PHP_EOL;
-            echo $e->getTraceAsString();
-            echo PHP_EOL;
-            if(isset($result)){
-                $debug->one($result);
-                var_dump($result);
-                xdebug_debug_zval('result');
-                var_dump(xdebug_get_monitored_functions());
-            }
-            else
-                echo 'no result';
-
-            throw $e;
-        } finally{
-            xdebug_stop_function_monitor();
+        $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
+        foreach ($result as $key => $item) {
+            $this->assertInstanceOf(StubModelTest::class, $item);
+            $this->assertEquals($data[$key], $item->toArray());
         }
+        //$this->assertEquals($data, $result->toArray());
     }
 
     public function testSave()

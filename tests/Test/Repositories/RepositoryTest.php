@@ -64,11 +64,12 @@ class RepositoryTest extends TestCase
             $result = $repository->all();
 
             $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
-            $this->assertEquals($data, $result->toArray());
 
             foreach ($result as $item) {
                 $this->assertInstanceOf(StubModelTest::class, $item);
             }
+
+            $this->assertEquals($data, $result->toArray());
         } catch (\Exception $e) {
             echo PHP_EOL;
             echo $e->getMessage();
@@ -147,12 +148,11 @@ class RepositoryTest extends TestCase
             $result = $repository->find();
 
             $this->assertInstanceOf(\Phalcon\Mvc\Model\ResultsetInterface::class, $result);
-            $this->assertEquals($data, $result->toArray());
             foreach ($result as $key => $item) {
                 $this->assertInstanceOf(StubModelTest::class, $item);
                 $this->assertEquals($data[$key], $item->toArray());
             }
-            throw new \Exception();
+            $this->assertEquals($data, $result->toArray());
         } catch (\Exception $e) {
             echo PHP_EOL;
             echo $e->getMessage();

@@ -3,6 +3,7 @@
 namespace Test\Cli\Tasks;
 
 use Fake\Kernels\Cli\StubKernelCli;
+use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Test\TestCase\TestCase;
 
 class OptimizeTaskTest extends TestCase
@@ -43,6 +44,13 @@ class OptimizeTaskTest extends TestCase
         }
 
         parent::tearDown();
+    }
+
+    private function mockComposerScript()
+    {
+        $mock = $this->mockService(\Neutrino\Optimizer\Composer\Script::class, \Neutrino\Optimizer\Composer\Script::class, false);
+
+        $mock->expects($this->any())->method('dumpautoload')->willReturn(true);
     }
 
     private function mockAutoloadFiles($files)
@@ -98,6 +106,8 @@ class OptimizeTaskTest extends TestCase
             'namespace_4' => array('dir_5', 'dir_6'),
         ]);
 
+        $this->mockComposerScript();
+
         $this->dispatchCli('quark optimize --memory --force -q');
 
         $file = file_get_contents(BASE_PATH . '/bootstrap/compile/loader.php');
@@ -135,6 +145,8 @@ class OptimizeTaskTest extends TestCase
             'Class\Class_1' => 'file_1.php',
             'Class\Class_2' => 'file_2.php'
         ]);
+
+        $this->mockComposerScript();
 
         $this->dispatchCli('quark optimize --force -q');
 

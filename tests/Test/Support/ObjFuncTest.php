@@ -8,6 +8,8 @@ use Test\TestCase\TestCase;
  * Class ObjTest
  *
  * @package Support
+ *
+ * @coversDefaultClass \Neutrino\Support\Obj
  */
 class ObjFuncTest extends TestCase
 {

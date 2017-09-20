@@ -8,6 +8,8 @@ use Test\TestCase\TestCase;
  * Class StrTest
  *
  * @package Support
+ *
+ * @coversDefaultClass \Neutrino\Support\Str
  */
 class StrFuncTest extends TestCase
 {
@@ -60,16 +62,28 @@ class StrFuncTest extends TestCase
         $this->assertFalse(Str::endsWith('jason', ''));
         $this->assertFalse(Str::endsWith('7', ' 7'));
     }
-    public function testStrContains()
+
+    public function dataStrContains()
     {
-        $this->assertTrue(Str::contains('taylor', 'ylo'));
-        $this->assertTrue(Str::contains('taylor', 'taylor'));
-        $this->assertTrue(Str::contains('taylor', ['ylo']));
-        $this->assertTrue(Str::contains('taylor', ['xxx', 'ylo']));
-        $this->assertFalse(Str::contains('taylor', 'xxx'));
-        $this->assertFalse(Str::contains('taylor', ['xxx']));
-        $this->assertFalse(Str::contains('taylor', ''));
+        return [
+            [true, 'taylor', ['ylo']],
+            [true, 'taylor', 'ylo'],
+            [true, 'taylor', 'taylor'],
+            [true, 'taylor', ['xxx', 'ylo']],
+            [false, 'taylor', 'xxx'],
+            [false, 'taylor', ['xxx']],
+            [false, 'taylor', ''],
+        ];
     }
+
+    /**
+     * @dataProvider dataStrContains
+     */
+    public function testStrContains($expected, $str, $search)
+    {
+        $this->assertEquals($expected, Str::contains($str, $search));
+    }
+
     public function testParseCallback()
     {
         $this->assertEquals(['Class', 'method'], Str::parseCallback('Class@method', 'foo'));

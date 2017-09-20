@@ -43,11 +43,11 @@ class OptimizeTask extends Task
             return;
         }
 
-        $this->optimizer = new Composer(
+        $this->optimizer = $this->getDI()->get(Composer::class, [
             BASE_PATH . '/bootstrap/compile/loader.php',
             BASE_PATH . '/vendor/composer',
             BASE_PATH
-        );
+        ]);
 
         if ($this->hasOption('m', 'memory')) {
             $res = $this->optimizeMemory();

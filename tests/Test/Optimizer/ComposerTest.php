@@ -3,13 +3,14 @@
 namespace Test\Optimizer;
 
 use Neutrino\Optimizer\Composer;
+use Test\TestCase\TestCase;
 
 /**
  * Class ComposerTest
  *
  * @package Test
  */
-class ComposerTest extends \PHPUnit_Framework_TestCase
+class ComposerTest extends TestCase
 {
     public function setUp()
     {

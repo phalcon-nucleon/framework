@@ -1,0 +1,35 @@
+<?php
+
+use \Neutrino\Database\Migrations\Migration;
+use \Neutrino\Database\Schema\Builder;
+use \Neutrino\Database\Schema\Blueprint;
+
+class {class} extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @param \Neutrino\Database\Schema\Builder $schema
+     *
+     * @return void
+     */
+    public function up(Builder $schema)
+    {
+        $schema->create('{table}', function (Blueprint $table) {
+            $table->increments('id');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @param \Neutrino\Database\Schema\Builder $schema
+     *
+     * @return void
+     */
+    public function down(Builder $schema)
+    {
+        $schema->dropIfExists('{table}');
+    }
+}

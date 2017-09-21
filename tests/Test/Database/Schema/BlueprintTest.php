@@ -2,6 +2,7 @@
 
 namespace Test\Database\Schema;
 
+use Neutrino\Database\Schema\Exception\UnknownCommandException;
 use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema;
 use Neutrino\Support\Fluent;
@@ -916,6 +917,28 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         Reflacker::invoke($blueprint, 'buildCommands', $db, ['dbname' => 'schema']);
 
         $this->assertEquals($expectedCommands, $blueprint->getCommands());
+    }
+
+    public function testUnknownCommand()
+    {
+        try {
+            $blueprint = new Blueprint('test');
+            $blueprint->update();
+
+            Reflacker::set($blueprint, 'commands', [new Fluent(['name' => 'unexist'])]);
+
+            $db = $this->createMock(\Phalcon\Db\Adapter::class);
+            $dbConfig = ['dbname' => 'schema'];
+            $dialect = $this->createMock(MockDialect::class);
+
+            $blueprint->build($db, $dbConfig, $dialect);
+        } catch (\Exception $e) {
+            $this->assertInstanceOf(UnknownCommandException::class, $e);
+            $this->assertRegExp(
+                '/' . preg_quote(UnknownCommandException::class) . '\s*Command Properties :((?+1)*)(\s*-.*\s*)/',
+                (string)$e
+            );
+        }
     }
 }
 

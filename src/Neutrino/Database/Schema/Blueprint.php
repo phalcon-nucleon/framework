@@ -2,6 +2,8 @@
 
 namespace Neutrino\Database\Schema;
 
+use Neutrino\Database\Schema\Exception\CommandException;
+use Neutrino\Database\Schema\Exception\UnknownCommandException;
 use Neutrino\Support\Fluent;
 use Phalcon\Db\AdapterInterface as Db;
 use Phalcon\Db\Column;
@@ -68,7 +70,7 @@ class Blueprint
             case 'drop':
                 return $this->buildDrop($db, $dbConfig, $grammar, false);
             default:
-                if(empty($this->action)){
+                if (empty($this->action)) {
                     $message = "Blueprint must has action";
                 } else {
                     $message = "Action '{$this->action}' not supported.";
@@ -162,17 +164,21 @@ class Blueprint
     {
         $this->buildCommands($db, $dbConfig);
 
-        $table  = $this->table;
+        $table = $this->table;
         $schema = $dbConfig['dbname'];
 
         foreach ($this->commands as $command) {
             switch ($command->get('name')) {
                 case 'addColumn':
-                    $res = $db->addColumn($table, $schema, $this->fluentToColumn($command->get('column'), $grammar));
+                    $res = $db->addColumn(
+                        $table,
+                        $schema,
+                        $this->fluentToColumn($command->get('column'), $grammar)
+                    );
                     break;
                 case 'renameColumn':
                     $columns = $db->describeColumns($table, $schema);
-                    $from    = null;
+                    $from = null;
                     foreach ($columns as $column) {
                         if ($column->getName() === $command->get('from')) {
                             $from = $column;
@@ -187,19 +193,19 @@ class Blueprint
                         'numeric'       => $from->isNumeric(),
                     ];
 
-                    if(($typeReference = $from->getTypeReference()) !== -1){
+                    if (($typeReference = $from->getTypeReference()) !== -1) {
                         $definition['typeReference'] = $typeReference;
                     }
-                    if(($typeValues = $from->getTypeValues()) !== -1){
+                    if (($typeValues = $from->getTypeValues()) !== -1) {
                         $definition['typeValues'] = $typeValues;
                     }
-                    if(!empty($size = $from->getSize())){
+                    if (!empty($size = $from->getSize())) {
                         $definition['size'] = $size;
                     }
-                    if(!is_null($default = $from->getDefault())){
+                    if (!is_null($default = $from->getDefault())) {
                         $definition['default'] = $default;
                     }
-                    if(!empty($scale = $from->getScale())){
+                    if (!empty($scale = $from->getScale())) {
                         $definition['scale'] = $scale;
                     }
 
@@ -208,23 +214,51 @@ class Blueprint
                     $res = $db->modifyColumn($table, $schema, $to, $from);
                     break;
                 case 'modifyColumn':
-                    $res =
-                        $db->modifyColumn($table, $schema, $this->fluentToColumn($command->get('column'), $grammar), $command->get('from'));
+                    $res = $db->modifyColumn(
+                        $table,
+                        $schema,
+                        $this->fluentToColumn($command->get('column'), $grammar),
+                        $command->get('from')
+                    );
                     break;
                 case 'addIndex':
-                    $res = $db->addIndex($table, $schema, $this->fluentToIndex($command->get('index'), $grammar));
+                    $res = $db->addIndex(
+                        $table,
+                        $schema,
+                        $this->fluentToIndex($command->get('index'), $grammar)
+                    );
                     break;
                 case 'addForeign':
-                    $res = $db->addForeignKey($table, $schema, $this->fluentToReference($command->get('reference'), $grammar));
+                    $res = $db->addForeignKey(
+                        $table,
+                        $schema,
+                        $this->fluentToReference($command->get('reference'), $grammar)
+                    );
                     break;
                 case 'dropColumn':
-                    $res = $db->dropColumn($table, $schema, $command->get('column'));
+                    $res = $db->dropColumn(
+                        $table,
+                        $schema,
+                        $command->get('column')
+                    );
                     break;
                 case 'dropForeign':
-                    $res = $db->dropForeignKey($table, $schema, $command->get('reference'));
+                    $res = true;
+                    foreach ((array)$command->get('reference') as $reference) {
+                        $res = $res && $db->dropForeignKey($table, $schema, $reference);
+                        if (!$res) {
+                            break;
+                        }
+                    }
                     break;
                 case 'dropIndex':
-                    $res = $db->dropIndex($table, $schema, $command->get('index'));
+                    $res = true;
+                    foreach ((array)$command->get('index') as $index) {
+                        $res &= $db->dropIndex($table, $schema, $index);
+                        if (!$res) {
+                            break;
+                        }
+                    }
                     break;
                 case 'dropPrimary':
                     $res = $db->dropPrimaryKey($table, $schema);
@@ -234,11 +268,11 @@ class Blueprint
                     $res = false;
                     break;
                 default:
-                    throw new \Exception();
+                    throw new UnknownCommandException($command);
             }
 
             if ($res === false) {
-                throw new \Exception();
+                throw new CommandException($command);
             }
         }
 
@@ -255,7 +289,7 @@ class Blueprint
     {
         $columns = $db->describeColumns($this->table, $dbConfig['dbname']);
         foreach ($this->columns as $column) {
-            $this->indexFromFluentColumn($column);
+            $this->buildIndexAndForeignFromFluentColumn($column);
 
             foreach ($columns as $c) {
                 if ($c->getName() === $column->get('name')) {
@@ -289,7 +323,11 @@ class Blueprint
         return $connection->dropTable($this->table, $dbConfig['dbname'], $ifExist);
     }
 
-    protected function indexFromFluentColumn(Fluent $column){
+    /**
+     * @param \Neutrino\Support\Fluent $column
+     */
+    protected function buildIndexAndForeignFromFluentColumn(Fluent $column)
+    {
         $attributes = $column->getAttributes();
 
         if (isset($attributes['unique']) && $attributes['unique']) {
@@ -321,7 +359,7 @@ class Blueprint
     {
         $attributes = $column->getAttributes();
 
-        $this->indexFromFluentColumn($column);
+        $this->buildIndexAndForeignFromFluentColumn($column);
 
         $types = $grammar->getType($column);
 
@@ -369,7 +407,7 @@ class Blueprint
      */
     protected function fluentToReference(Fluent $index, DialectInterface $grammar)
     {
-        $columns    = (array)$index->get('columns');
+        $columns = (array)$index->get('columns');
         $references = (array)$index->get('references');
 
         $name = $index->get('name') ?: $this->createReferenceName($columns, $index->get('on'), $references);
@@ -1465,7 +1503,7 @@ class Blueprint
     {
         $index = strtolower(implode('_', array_filter([$this->table, implode('_', $columns), $type])));
 
-        return str_replace(['-', '.'], '_', $index);
+        return trim(str_replace(['-', '.'], '_', $index), '_');
     }
 
     /**
@@ -1479,8 +1517,19 @@ class Blueprint
      */
     protected function createReferenceName(array $columns, $on, array $references)
     {
-        $index = strtolower(implode('_', array_filter([$this->table, implode('_', $columns), 'foreign', $on, implode('_', $references)])));
+        $strColumns = implode('_', $columns);
+        $strReferences = implode('_', $references);
 
-        return str_replace(['-', '.'], '_', $index);
+        $rawReferenceName = [$this->table, $strColumns, 'foreign', $on, $strReferences];
+
+        $rawReferenceName = array_map(function ($value) {
+            return trim(str_replace(['-', '.'], '_', $value), '_');
+        }, $rawReferenceName);
+
+        $rawReferenceName = array_filter($rawReferenceName);
+
+        $index = strtolower(trim(implode('_', $rawReferenceName), '_'));
+
+        return $index;
     }
 }

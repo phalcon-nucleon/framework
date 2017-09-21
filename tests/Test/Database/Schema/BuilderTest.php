@@ -9,6 +9,7 @@ use Phalcon\Db\Adapter\Pdo\Mysql as DbAdapterMysql;
 use Phalcon\Db\Column;
 use Phalcon\Db\Dialect\Mysql as DbDialectMysql;
 use Phalcon\Db\Index;
+use Phalcon\Db\Reference;
 use Test\TestCase\TestCase;
 
 class BuilderTest extends TestCase
@@ -259,6 +260,44 @@ class BuilderTest extends TestCase
         });
     }
 
+    public function testUpdateWithForeign()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->once())
+            ->method("describeColumns")
+            ->willReturn(
+                [
+                    new Column('id', [
+                        'autoIncrement' => true,
+                        'type'          => Column::TYPE_INTEGER,
+                        'unsigned'      => true,
+                        'notNull'       => true,
+                        'primary'       => true
+                    ])
+                ]
+            );
+
+        $db->expects($this->once())
+            ->method("addColumn")
+            ->with('table', 'test', new Column('ref', [
+                'type'    => Column::TYPE_INTEGER,
+                'notNull' => true,
+                'unsigned' => true
+            ]));
+
+        $db->expects($this->once())
+            ->method("addForeignKey")
+            ->with('table', 'test', new Reference('table_ref_foreign_table_2_ref', [
+                'columns'           => ['ref'],
+                'referencedTable'   => 'table_2',
+                'referencedColumns' => ['ref']]));
+
+        (new Builder)->table('table', function (Blueprint $blueprint) {
+            $blueprint->unsignedInteger('ref')->foreign()->on('table_2')->references('ref');
+        });
+    }
+
     public function testRenameColumn()
     {
         $db = $this->mockDb();
@@ -326,10 +365,63 @@ class BuilderTest extends TestCase
             ->withConsecutive(
                 ['table', 'test', 'col_1'],
                 ['table', 'test', 'col_2']
-            );
+            )
+            ->willReturn(true);
 
         (new Builder)->table('table', function (Blueprint $blueprint) {
             $blueprint->dropColumns(['col_1', 'col_2']);
+        });
+    }
+
+    public function testDropIndex()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->exactly(3))
+            ->method("dropIndex")
+            ->withConsecutive(
+                ['table', 'test', 'index_1'],
+                ['table', 'test', 'index_2'],
+                ['table', 'test', 'index_3']
+            )
+            ->willReturn(true);
+
+        (new Builder)->table('table', function (Blueprint $blueprint) {
+            $blueprint->dropIndex('index_1');
+            $blueprint->dropIndex(['index_2', 'index_3']);
+        });
+    }
+
+    public function testDropForeign()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->exactly(3))
+            ->method("dropForeignKey")
+            ->withConsecutive(
+                ['table', 'test', 'foreign_1'],
+                ['table', 'test', 'foreign_2'],
+                ['table', 'test', 'foreign_3']
+            )
+            ->willReturn(true);
+
+        (new Builder)->table('table', function (Blueprint $blueprint) {
+            $blueprint->dropForeign('foreign_1');
+            $blueprint->dropForeign(['foreign_2', 'foreign_3']);
+        });
+    }
+
+    public function testDropPrimary()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->once())
+            ->method("dropPrimaryKey")
+            ->with('table', 'test')
+            ->willReturn(true);
+
+        (new Builder)->table('table', function (Blueprint $blueprint) {
+            $blueprint->dropPrimary();
         });
     }
 

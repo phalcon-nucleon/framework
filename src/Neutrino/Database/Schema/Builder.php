@@ -4,10 +4,7 @@ namespace Neutrino\Database\Schema;
 
 use Closure;
 use LogicException;
-use Neutrino\Database\Schema\Dialect as SchemaDialect;
-use Neutrino\Database\Schema\DialectInterface as SchemaDialectInterface;
 use Neutrino\Support\Func;
-use Phalcon\Db\Dialect as DbDialect;
 use Phalcon\Di\Injectable;
 
 class Builder extends Injectable
@@ -47,18 +44,7 @@ class Builder extends Injectable
     {
         $this->dbConfig = $this->db->getDescriptor();
 
-        $dialect = $this->db->getDialect();
-        if ($dialect instanceof SchemaDialectInterface) {
-            $this->grammar = $dialect;
-        } elseif ($dialect instanceof DbDialect\Mysql) {
-            $this->grammar = new SchemaDialect\Mysql();
-        } elseif ($dialect instanceof DbDialect\Postgresql) {
-            $this->grammar = new SchemaDialect\Postgresql();
-        } elseif ($dialect instanceof DbDialect\Sqlite) {
-            $this->grammar = new SchemaDialect\Sqlite();
-        } else {
-            $this->grammar = new SchemaDialect\DbSchemaWrapper($dialect);
-        }
+        $this->grammar = Dialect\Factory::create($this->db->getDialect());
     }
 
     /**

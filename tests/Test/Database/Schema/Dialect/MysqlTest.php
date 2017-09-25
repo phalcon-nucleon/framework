@@ -63,7 +63,7 @@ class MysqlTest extends \PHPUnit_Framework_TestCase
      */
     public function testType($type, $column, $expected)
     {
-        $dialect = new Mysql();
+        $dialect = new Mysql(new \Phalcon\Db\Dialect\Mysql());
 
         $this->assertEquals($expected, $dialect->{'type' . ucfirst($type)}($column));
     }
@@ -73,21 +73,21 @@ class MysqlTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetType($type, $column, $expected)
     {
-        $dialect = new Mysql();
+        $dialect = new Mysql(new \Phalcon\Db\Dialect\Mysql());
 
         $this->assertEquals($expected, $dialect->getType($column));
     }
 
     public function testEnableForeignKeyConstraints()
     {
-        $dialect = new Mysql();
+        $dialect = new Mysql(new \Phalcon\Db\Dialect\Mysql());
 
         $this->assertEquals('SET FOREIGN_KEY_CHECKS=1;', $dialect->enableForeignKeyConstraints());
     }
 
     public function testDisableForeignKeyConstraints()
     {
-        $dialect = new Mysql();
+        $dialect = new Mysql(new \Phalcon\Db\Dialect\Mysql());
 
         $this->assertEquals('SET FOREIGN_KEY_CHECKS=0;', $dialect->disableForeignKeyConstraints());
     }

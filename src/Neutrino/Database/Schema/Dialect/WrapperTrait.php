@@ -2,21 +2,23 @@
 
 namespace Neutrino\Database\Schema\Dialect;
 
-use Neutrino\Database\Schema;
 use Phalcon\Db;
 
 /**
- * Class Wrapper
+ * trait WrapperTrait
  *
  * @package Neutrino\Database\Schema\Dialect
  */
-class DbSchemaWrapper extends Db\Dialect implements Schema\DialectInterface
+trait WrapperTrait
 {
-    use Schema\DialectTrait;
-
     /** @var \Phalcon\Db\DialectInterface */
     protected $dialect;
 
+    /**
+     * WrapperTrait constructor.
+     *
+     * @param \Phalcon\Db\DialectInterface $dialect
+     */
     public function __construct(Db\DialectInterface $dialect)
     {
         $this->dialect = $dialect;
@@ -168,7 +170,8 @@ class DbSchemaWrapper extends Db\Dialect implements Schema\DialectInterface
         $schemaName,
         Db\ColumnInterface $column,
         Db\ColumnInterface $currentColumn = null
-    ) {
+    )
+    {
         return $this->dialect->modifyColumn(
             $tableName,
             $schemaName,
@@ -377,7 +380,7 @@ class DbSchemaWrapper extends Db\Dialect implements Schema\DialectInterface
      */
     public function listTables($schemaName = null)
     {
-        return $this->dialect->listTables($schemaName = null);
+        return $this->dialect->listTables($schemaName);
     }
 
     /**
@@ -420,24 +423,17 @@ class DbSchemaWrapper extends Db\Dialect implements Schema\DialectInterface
     }
 
     /**
-     * Get SQL Enable foreign key constraints.
+     * @param string $name
+     * @param array  $arguments
      *
-     * @return string
-     * @throws \RuntimeException
+     * @return mixed
      */
-    public function enableForeignKeyConstraints()
+    public function __call($name, $arguments)
     {
-        throw new \RuntimeException(self::class . ' doesn\'t support ' . __FUNCTION__);
-    }
+        if (method_exists($this->dialect, $name)) {
+            return $this->dialect->$name(...$arguments);
+        }
 
-    /**
-     * Get SQL Disable foreign key constraints.
-     *
-     * @return string
-     * @throws \RuntimeException
-     */
-    public function disableForeignKeyConstraints()
-    {
-        throw new \RuntimeException(self::class . ' doesn\'t support ' . __FUNCTION__);
+        throw new \BadMethodCallException('Method "' . $name . '" doesn\'t exist in "' . get_class($this->dialect) . '"');
     }
 }

@@ -65,7 +65,7 @@ class PostgresqlTest extends \PHPUnit_Framework_TestCase
      */
     public function testType($type, $column, $expected)
     {
-        $dialect = new Postgresql();
+        $dialect = new Postgresql(new \Phalcon\Db\Dialect\Postgresql());
 
         $this->assertEquals($expected, $dialect->{'type' . ucfirst($type)}($column));
     }
@@ -75,21 +75,21 @@ class PostgresqlTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetType($type, $column, $expected)
     {
-        $dialect = new Postgresql();
+        $dialect = new Postgresql(new \Phalcon\Db\Dialect\Postgresql());
 
         $this->assertEquals($expected, $dialect->getType($column));
     }
 
     public function testEnableForeignKeyConstraints()
     {
-        $dialect = new Postgresql();
+        $dialect = new Postgresql(new \Phalcon\Db\Dialect\Postgresql());
 
         $this->assertEquals('SET CONSTRAINTS ALL IMMEDIATE;', $dialect->enableForeignKeyConstraints());
     }
 
     public function testDisableForeignKeyConstraints()
     {
-        $dialect = new Postgresql();
+        $dialect = new Postgresql(new \Phalcon\Db\Dialect\Postgresql());
 
         $this->assertEquals('SET CONSTRAINTS ALL DEFERRED;', $dialect->disableForeignKeyConstraints());
     }

@@ -50,7 +50,7 @@ class SqliteTest extends \PHPUnit_Framework_TestCase
      */
     public function testType($type, $column, $expected)
     {
-        $dialect = new Sqlite();
+        $dialect = new Sqlite(new \Phalcon\Db\Dialect\Sqlite());
 
         $this->assertEquals($expected, $dialect->{'type' . ucfirst($type)}($column));
     }
@@ -60,21 +60,21 @@ class SqliteTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetType($type, $column, $expected)
     {
-        $dialect = new Sqlite();
+        $dialect = new Sqlite(new \Phalcon\Db\Dialect\Sqlite());
 
         $this->assertEquals($expected, $dialect->getType($column));
     }
 
     public function testEnableForeignKeyConstraints()
     {
-        $dialect = new Sqlite();
+        $dialect = new Sqlite(new \Phalcon\Db\Dialect\Sqlite());
 
         $this->assertEquals('PRAGMA foreign_keys = ON;', $dialect->enableForeignKeyConstraints());
     }
 
     public function testDisableForeignKeyConstraints()
     {
-        $dialect = new Sqlite();
+        $dialect = new Sqlite(new \Phalcon\Db\Dialect\Sqlite());
 
         $this->assertEquals('PRAGMA foreign_keys = OFF;', $dialect->disableForeignKeyConstraints());
     }

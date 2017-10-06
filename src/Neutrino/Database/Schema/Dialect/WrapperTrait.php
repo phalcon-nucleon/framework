@@ -172,12 +172,7 @@ trait WrapperTrait
         Db\ColumnInterface $currentColumn = null
     )
     {
-        return $this->dialect->modifyColumn(
-            $tableName,
-            $schemaName,
-            $column,
-            $currentColumn
-        );
+        return $this->dialect->modifyColumn($tableName, $schemaName, $column, $currentColumn);
     }
 
     /**
@@ -434,6 +429,8 @@ trait WrapperTrait
             return $this->dialect->$name(...$arguments);
         }
 
-        throw new \BadMethodCallException('Method "' . $name . '" doesn\'t exist in "' . get_class($this->dialect) . '"');
+        throw new \BadMethodCallException(
+            'Method "' . $name . '" doesn\'t exist in "' . get_class($this->dialect) . '"'
+        );
     }
 }

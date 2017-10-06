@@ -62,13 +62,13 @@ class Builder extends Injectable
     /**
      * Determine if the given table exists.
      *
-     * @param  string $table
+     * @param string $table
      *
      * @return bool
      */
     public function hasTable($table)
     {
-        return $this->db->tableExists($table);
+        return $this->db->tableExists($table, $this->dbConfig['dbname']);
     }
 
     /**
@@ -112,13 +112,12 @@ class Builder extends Injectable
      *
      * @param string $table
      * @param string $column
-     * @param string $schema
      *
      * @return string
      */
-    public function getColumnType($table, $column, $schema = null)
+    public function getColumnType($table, $column)
     {
-        $col = $this->describeColumn($table, $column, $schema);
+        $col = $this->describeColumn($table, $column);
 
         if (!is_null($col)) {
             return $col->getType();
@@ -284,13 +283,12 @@ class Builder extends Injectable
     /**
      * @param string $table
      * @param string $column
-     * @param null   $schema
      *
      * @return null|\Phalcon\Db\ColumnInterface
      */
-    protected function describeColumn($table, $column, $schema = null)
+    protected function describeColumn($table, $column)
     {
-        foreach ($this->db->describeColumns($table, $schema) as $col) {
+        foreach ($this->db->describeColumns($table, $this->dbConfig['dbname']) as $col) {
             if ($col->getName() == $column) {
                 return $col;
             }

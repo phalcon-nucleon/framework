@@ -38,12 +38,36 @@ class BuilderTest extends TestCase
         if ($withDialect) {
             $dialect = $this->createMock(DbDialectMysql::class);
 
-            $db->expects($this->once())
+            $db->expects($this->any())
                 ->method("getDialect")
                 ->willReturn($dialect);
         }
 
         return $db;
+    }
+
+    public function testDefaultStringLength()
+    {
+        Builder::defaultStringLength(300);
+
+        $this->assertEquals(300, Builder::$defaultStringLength);
+    }
+
+    public function testHasTable()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->any())
+            ->method("tableExists")
+            ->withConsecutive(['exist', 'test'], ['not_exist', 'test'])
+            ->willReturnOnConsecutiveCalls(
+                true, false
+            );
+
+        $builder = new Builder;
+
+        $this->assertTrue($builder->hasTable('exist'));
+        $this->assertFalse($builder->hasTable('not_exist'));
     }
 
     public function testGetColumnListing()
@@ -68,12 +92,38 @@ class BuilderTest extends TestCase
         $this->assertEquals($columns, $builder->getColumnListing('table'));
     }
 
+    public function testGetColumnType()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->any())
+            ->method("describeColumns")
+            ->with('table', 'test')
+            ->willReturn(
+                [
+                    new Column('id', [
+                        'autoIncrement' => true,
+                        'type'          => Column::TYPE_INTEGER,
+                        'unsigned'      => true,
+                        'notNull'       => true,
+                        'primary'       => true
+                    ])
+                ]
+            );
+
+        $builder = new Builder;
+
+        $this->assertEquals(Column::TYPE_INTEGER, $builder->getColumnType('table', 'id'));
+        $this->assertNull($builder->getColumnType('table', '_id_'));
+    }
+
     public function testHasColumn()
     {
         $db = $this->mockDb();
 
         $db->expects($this->any())
             ->method("describeColumns")
+            ->with('table', 'test')
             ->willReturn(
                 [
                     new Column('id', [
@@ -99,6 +149,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->any())
             ->method("describeColumns")
+            ->with('table', 'test')
             ->willReturn(
                 [
                     new Column('id', [
@@ -281,8 +332,8 @@ class BuilderTest extends TestCase
         $db->expects($this->once())
             ->method("addColumn")
             ->with('table', 'test', new Column('ref', [
-                'type'    => Column::TYPE_INTEGER,
-                'notNull' => true,
+                'type'     => Column::TYPE_INTEGER,
+                'notNull'  => true,
                 'unsigned' => true
             ]));
 
@@ -341,6 +392,28 @@ class BuilderTest extends TestCase
         (new Builder)->table('table', function (Blueprint $blueprint) {
             $blueprint->renameColumn('name', 'new_name');
         });
+    }
+
+    public function testEnableForeignKeyConstraints()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->once())
+            ->method('execute')
+            ->with('SET FOREIGN_KEY_CHECKS=1;');
+
+        (new Builder)->enableForeignKeyConstraints();
+    }
+
+    public function testDisableForeignKeyConstraints()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->once())
+            ->method('execute')
+            ->with('SET FOREIGN_KEY_CHECKS=0;');
+
+        (new Builder)->disableForeignKeyConstraints();
     }
 
     public function testDropColumn()

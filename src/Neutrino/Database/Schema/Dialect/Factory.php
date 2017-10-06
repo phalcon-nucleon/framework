@@ -29,8 +29,8 @@ final class Factory
             return new SchemaDialect\Postgresql($dialect);
         } elseif ($dialect instanceof DbDialect\Sqlite) {
             return new SchemaDialect\Sqlite($dialect);
-        } else {
-            return new SchemaDialect\Wrapper($dialect);
         }
+
+        return new SchemaDialect\Wrapper($dialect);
     }
 }

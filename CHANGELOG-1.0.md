@@ -1,5 +1,9 @@
 #Release Note
 
+## v1.0.2
+### Change
+- Support Phalcon =>3.0.4
+
 ## v1.0.1
 ### Added
  - Error\Helper::verboseArgs function.

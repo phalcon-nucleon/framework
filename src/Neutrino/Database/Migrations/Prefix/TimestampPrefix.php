@@ -14,6 +14,6 @@ class TimestampPrefix implements PrefixInterface
      */
     public function getPrefix()
     {
-        return time();
+        return (string)time();
     }
 }

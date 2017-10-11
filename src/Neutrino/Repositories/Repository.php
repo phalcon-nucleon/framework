@@ -77,6 +77,39 @@ abstract class Repository extends Injectable implements RepositoryInterface
         return $class::findFirst($this->paramsToCriteria($params, $order));
     }
 
+    public function average($column, array $params = [], array $order = null, $limit = null, $offset = null)
+    {
+        $class = $this->modelClass;
+
+        $parameters = $this->paramsToCriteria($params, $order, $limit, $offset);
+
+        $parameters['column'] = $column;
+
+        return $class::average($parameters);
+    }
+
+    public function minimum($column, array $params = [], array $order = null, $limit = null, $offset = null)
+    {
+        $class = $this->modelClass;
+
+        $parameters = $this->paramsToCriteria($params, $order, $limit, $offset);
+
+        $parameters['column'] = $column;
+
+        return $class::minimum($parameters);
+    }
+
+    public function maximum($column, array $params = [], array $order = null, $limit = null, $offset = null)
+    {
+        $class = $this->modelClass;
+
+        $parameters = $this->paramsToCriteria($params, $order, $limit, $offset);
+
+        $parameters['column'] = $column;
+
+        return $class::maximum($parameters);
+    }
+
     /**
      * @param array $params
      * @param bool  $create
@@ -136,15 +169,15 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
         $class = $this->modelClass;
 
-        $nb = ceil(($end - $start) / $pad);
-        $idx = 0;
+        $nb   = ceil(($end - $start) / $pad);
+        $idx  = 0;
         $page = 0;
         do {
             $finish = true;
 
             $models = $class::find($this->paramsToCriteria($params, $order, $pad, ($start + ($pad * $page))));
 
-            foreach ($models as $model){
+            foreach ($models as $model) {
                 $finish = false;
 
                 yield $idx => $model;
@@ -154,7 +187,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
 
             $page++;
 
-            if($page >= $nb){
+            if ($page >= $nb) {
                 $finish = true;
             }
         } while (!$finish);
@@ -240,12 +273,17 @@ abstract class Repository extends Injectable implements RepositoryInterface
     {
         $criteria = [];
 
-        if(!empty($params)){
+        if (!empty($params)) {
             $clauses = [];
 
             foreach ($params as $key => $value) {
                 if (is_array($value)) {
-                    $clauses[] = "$key IN ({{$key}:array})";
+                    if(isset($value['operator']) && array_key_exists('value', $value)){
+                        $clauses[] = "$key {$value['operator']} :$key:";
+                        $params[$key] = $value['value'];
+                    } else {
+                        $clauses[] = "$key IN ({{$key}:array})";
+                    }
                 } elseif (is_string($value)) {
                     $clauses[] = "$key LIKE :$key:";
                 } else {
@@ -263,7 +301,7 @@ abstract class Repository extends Injectable implements RepositoryInterface
             $_orders = [];
             foreach ($orders as $key => $order) {
                 if (is_int($key)) {
-                    $key = $order;
+                    $key   = $order;
                     $order = 'ASC';
                 }
                 $_orders[] = "$key $order";
@@ -301,7 +339,8 @@ abstract class Repository extends Injectable implements RepositoryInterface
             }
 
             if (!empty($this->messages)) {
-                throw new TransactionException(get_class(Arr::fetch($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
+                throw new TransactionException(get_class(Arr::fetch($values,
+                        0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
             }
         } catch (\Exception $e) {
             $this->messages[] = $e->getMessage();
@@ -340,7 +379,8 @@ abstract class Repository extends Injectable implements RepositoryInterface
             }
 
             if (!empty($this->messages)) {
-                throw new TransactionException(get_class(Arr::fetch($values, 0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
+                throw new TransactionException(get_class(Arr::fetch($values,
+                        0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
             }
 
             if ($tx->commit() === false) {

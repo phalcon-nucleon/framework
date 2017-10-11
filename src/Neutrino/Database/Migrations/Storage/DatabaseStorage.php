@@ -4,6 +4,7 @@ namespace Neutrino\Database\Migrations\Storage;
 
 use Neutrino\Constants\Services;
 use Neutrino\Database\Migrations\Storage\Database\MigrationModel;
+use Neutrino\Database\Migrations\Storage\Database\MigrationRepository;
 use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema\Builder;
 use Phalcon\Di;
@@ -18,14 +19,25 @@ class DatabaseStorage implements StorageInterface
     protected $table = 'migrations';
 
     /**
+     * @var \Neutrino\Repositories\Repository
+     */
+    protected $repository;
+
+    public function __construct()
+    {
+        $this->repository = Di::getDefault()->get(MigrationRepository::class);
+    }
+
+    /**
      * Get the ran migrations.
      *
      * @return array
      */
     public function getRan()
     {
-        return MigrationModel::find([
-            'order' => 'batch ASC, migration ASC',
+        return $this->repository->find([], [
+            'batch'     => 'ASC',
+            'migration' => 'ASC'
         ])->toArray();
     }
 
@@ -38,11 +50,19 @@ class DatabaseStorage implements StorageInterface
      */
     public function getMigrations($steps)
     {
-        return MigrationModel::find([
-            'batch >= 1',
-            'order' => 'batch DESC, migration DESC',
-            'limit' => $steps
-        ])->toArray();
+        return $this->repository->find(
+            [
+                'batch' => [
+                    'operator' => '>=',
+                    'value'    => 1
+                ]
+            ],
+            [
+                'batch'     => 'DESC',
+                'migration' => 'DESC'
+            ],
+            $steps
+        )->toArray();
     }
 
     /**
@@ -52,10 +72,7 @@ class DatabaseStorage implements StorageInterface
      */
     public function getLast()
     {
-        return MigrationModel::find([
-            'order' => 'migration DESC',
-            'limit' => 1
-        ])->toArray();
+        return $this->repository->first([], ['migration' => 'DESC'])->toArray();
     }
 
     /**
@@ -74,10 +91,10 @@ class DatabaseStorage implements StorageInterface
             'batch'     => $batch
         ]);
 
-        if (!$migration->save()) {
+        if (!$this->repository->create($migration)) {
             $messages = array_map(function ($message) {
                 return (string)$message;
-            }, $migration->getMessages());
+            }, $this->repository->getMessages());
 
             throw new \Exception(implode(PHP_EOL, $messages));
         }
@@ -85,17 +102,12 @@ class DatabaseStorage implements StorageInterface
 
     public function delete($migration)
     {
-        $migration = MigrationModel::find([
-            'migration = :migration:',
-            'bind' => [
-                'migration' => $migration
-            ]
-        ])->getFirst();
+        $migration = $this->repository->first(['migration' => $migration]);
 
-        if (!$migration->delete()) {
+        if (!$this->repository->delete($migration)) {
             $messages = array_map(function ($message) {
                 return (string)$message;
-            }, $migration->getMessages());
+            }, $this->repository->getMessages());
 
             throw new \Exception(implode(PHP_EOL, $messages));
         }
@@ -106,9 +118,7 @@ class DatabaseStorage implements StorageInterface
      */
     public function getLastBatchNumber()
     {
-        return (int)MigrationModel::maximum([
-            'column' => 'batch'
-        ]);
+        return (int)$this->repository->maximum('batch');
     }
 
     /**
@@ -127,7 +137,7 @@ class DatabaseStorage implements StorageInterface
         (new Builder())->create($this->table, function (Blueprint $blueprint) {
             $blueprint->increments('id')->primary();
             $blueprint->string('migration', 256);
-            $blueprint->integer('batch');
+            $blueprint->integer('batch')->unsigned();
         });
 
         return true;

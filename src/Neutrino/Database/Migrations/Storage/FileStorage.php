@@ -12,13 +12,45 @@ class FileStorage implements StorageInterface
     private $data;
 
     /**
-     * Get list of migrations.
+     * Get the ran migrations.
      *
      * @return array
      */
-    public function getMigrations()
+    public function getRan()
     {
-        return $this->data();
+        $data = $this->getData();
+
+        array_multisort(
+            array_column($data, 'batch'), SORT_ASC,
+            array_column($data, 'migration'), SORT_ASC,
+            $data
+        );
+
+        return $data;
+    }
+
+    /**
+     * Get list of migrations.
+     *
+     * @param  int $steps
+     *
+     * @return array
+     */
+    public function getMigrations($steps)
+    {
+        $data = $this->getData();
+
+        $data = array_filter($data, function ($datum) {
+            return (int)$datum['batch'] >= 1;
+        });
+
+        array_multisort(
+            array_column($data, 'batch'), SORT_DESC,
+            array_column($data, 'migration'), SORT_DESC,
+            $data
+        );
+
+        return array_slice($data, 0, $steps);
     }
 
     /**
@@ -28,7 +60,7 @@ class FileStorage implements StorageInterface
      */
     public function getLast()
     {
-        $data = $this->data();
+        $data = $this->getData();
 
         $migrate_at = array_column($data, 'migration');
 
@@ -50,11 +82,11 @@ class FileStorage implements StorageInterface
      */
     public function log($migration, $batch)
     {
-        $data = $this->data();
+        $data = $this->getData();
 
         $data[] = ['migration' => $migration, 'batch' => $batch];
 
-        $this->data = $data;
+        $this->setData($data);
     }
 
     /**
@@ -67,15 +99,15 @@ class FileStorage implements StorageInterface
      */
     public function delete($migration)
     {
-        $data = $this->data();
+        $data = $this->getData();
 
         foreach ($data as $key => $datum) {
-            if($datum['migration'] == $migration){
+            if ($datum['migration'] == $migration) {
                 unset($data[$key]);
             }
         }
 
-        $this->data = $data;
+        $this->setData($data);
     }
 
     /**
@@ -83,7 +115,7 @@ class FileStorage implements StorageInterface
      */
     public function getLastBatchNumber()
     {
-        $data = $this->data();
+        $data = $this->getData();
 
         $batch = array_column($data, 'batch');
 
@@ -111,7 +143,7 @@ class FileStorage implements StorageInterface
             return true;
         }
 
-        return file_put_contents($this->getFilePath(), '[]');
+        return file_put_contents($this->getFilePath(), '[]') === 2;
     }
 
     /**
@@ -127,12 +159,23 @@ class FileStorage implements StorageInterface
         return BASE_PATH . '/migrations/.migrations.dat';
     }
 
-    private function data()
+    private function getData()
     {
         if (!isset($this->data)) {
-            $this->data = (array)json_decode(file_get_contents($this->getFilePath()), true);
+            if ($this->storageExist()) {
+                $this->data = (array)json_decode(file_get_contents($this->getFilePath()), true);
+            } else {
+                $this->data = [];
+            }
         }
 
         return $this->data;
+    }
+
+    private function setData($data)
+    {
+        $this->data = $data;
+
+        file_put_contents($this->getFilePath(), json_encode($data));
     }
 }

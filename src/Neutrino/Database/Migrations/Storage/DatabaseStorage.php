@@ -2,28 +2,47 @@
 
 namespace Neutrino\Database\Migrations\Storage;
 
+use Neutrino\Constants\Services;
 use Neutrino\Database\Migrations\Storage\Database\MigrationModel;
 use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema\Builder;
-use Neutrino\Repositories\Repository;
+use Phalcon\Di;
 
 /**
  * Class DatabaseRepository
  *
  * @package Neutrino\Database\Migrations
  */
-class DatabaseStorage extends Repository implements StorageInterface
+class DatabaseStorage implements StorageInterface
 {
     protected $table = 'migrations';
 
     /**
-     * Get list of migrations.
+     * Get the ran migrations.
      *
      * @return array
      */
-    public function getMigrations()
+    public function getRan()
     {
-        return $this->all();
+        return MigrationModel::find([
+            'order' => 'batch ASC, migration ASC',
+        ])->toArray();
+    }
+
+    /**
+     * Get list of migrations.
+     *
+     * @param int $steps
+     *
+     * @return array
+     */
+    public function getMigrations($steps)
+    {
+        return MigrationModel::find([
+            'batch >= 1',
+            'order' => 'batch DESC, migration DESC',
+            'limit' => $steps
+        ])->toArray();
     }
 
     /**
@@ -33,8 +52,9 @@ class DatabaseStorage extends Repository implements StorageInterface
      */
     public function getLast()
     {
-        return $this->first([], [
-            'migration' => 'asc'
+        return MigrationModel::find([
+            'order' => 'migration DESC',
+            'limit' => 1
         ])->toArray();
     }
 
@@ -51,35 +71,31 @@ class DatabaseStorage extends Repository implements StorageInterface
     {
         $migration = new MigrationModel([
             'migration' => $migration,
-            'batch'     => $batch,
-            'migrate_at' => time()
+            'batch'     => $batch
         ]);
 
-        if (!$this->create($migration)) {
+        if (!$migration->save()) {
             $messages = array_map(function ($message) {
                 return (string)$message;
-            }, $this->getMessages());
+            }, $migration->getMessages());
 
             throw new \Exception(implode(PHP_EOL, $messages));
         }
     }
 
-    /**
-     * Remove a migration from the log.
-     *
-     * @param string $migration Migration Name
-     *
-     * @throws \Exception
-     * @return void
-     */
-    public function remove($migration)
+    public function delete($migration)
     {
-        $migration = $this->first(['migration' => $migration]);
+        $migration = MigrationModel::find([
+            'migration = :migration:',
+            'bind' => [
+                'migration' => $migration
+            ]
+        ])->getFirst();
 
-        if (!$this->delete($migration)) {
+        if (!$migration->delete()) {
             $messages = array_map(function ($message) {
                 return (string)$message;
-            }, $this->getMessages());
+            }, $migration->getMessages());
 
             throw new \Exception(implode(PHP_EOL, $messages));
         }
@@ -90,12 +106,9 @@ class DatabaseStorage extends Repository implements StorageInterface
      */
     public function getLastBatchNumber()
     {
-        $result = $this
-            ->db
-            ->query('SELECT MAX(bacth) FROM ' . MigrationModel::class)
-            ->fetch();
-
-        return (int)$result;
+        return (int)MigrationModel::maximum([
+            'column' => 'batch'
+        ]);
     }
 
     /**
@@ -125,6 +138,6 @@ class DatabaseStorage extends Repository implements StorageInterface
      */
     public function storageExist()
     {
-        return $this->db->tableExists($this->table);
+        return Di::getDefault()->get(Services::DB)->tableExists($this->table);
     }
 }

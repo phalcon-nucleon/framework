@@ -10,11 +10,19 @@ namespace Neutrino\Database\Migrations\Storage;
 interface StorageInterface
 {
     /**
-     * Get list of migrations.
+     * Get the ran migrations.
      *
      * @return array
      */
-    public function getMigrations();
+    public function getRan();
+
+    /**
+     * Get list of migrations.
+     *
+     * @param  int  $steps
+     * @return array
+     */
+    public function getMigrations($steps);
 
     /**
      * Get the last migration batch.

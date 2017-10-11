@@ -45,8 +45,9 @@ class MigrationCreator
 
         $stub = $this->getStubContent($table, $create);
 
-        $path = $this->getPath($name, $path);
         $populatedStub = $this->populateStub($name, $stub, $table);
+
+        $path = $this->getPath($name, $path);
 
         file_put_contents($path, $populatedStub);
 

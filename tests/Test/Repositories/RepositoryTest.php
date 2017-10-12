@@ -5,8 +5,7 @@ namespace Test\Repositories;
 use Neutrino\Constants\Services;
 use Neutrino\Model;
 use Neutrino\Repositories\Repository;
-use Neutrino\Repositories\RepositoryModel;
-use Neutrino\Repositories\RepositoryPhql;
+use Neutrino\Support\Reflacker;
 use Neutrino\Support\Str;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\Message;
@@ -27,6 +26,97 @@ class RepositoryTest extends TestCase
     public function testContructor()
     {
         $this->assertInstanceOf(StubRepositoryModel::class, new StubRepositoryModel);
+    }
+
+    public function dataParamsToCriteria()
+    {
+        return [
+            [[]],
+            [[
+                 'test = :test:',
+                 'bind' => [
+                     'test' => 123
+                 ]
+             ], ['test' => 123]],
+            [[
+                 'test LIKE :test:',
+                 'bind' => [
+                     'test' => 'abc'
+                 ]
+             ], ['test' => 'abc']],
+            [[
+                 'test IN ({test:array})',
+                 'bind' => [
+                     'test' => ['abc']
+                 ]
+             ], ['test' => ['abc']]],
+            [[
+                 'test >= :test:',
+                 'bind' => [
+                     'test' => 123
+                 ]
+             ], ['test' => ['operator' => '>=', 'value' => 123]]],
+
+            [[
+                 't1 = :t1: AND t2 LIKE :t2: AND t3 IN ({t3:array}) AND t4 >= :t4:',
+                 'bind' => [
+                     't1' => 123,
+                     't2' => 'abc',
+                     't3' => ['abc'],
+                     't4' => 123,
+                 ]
+             ], ['t1' => 123, 't2' => 'abc', 't3' => ['abc'], 't4' => ['operator' => '>=', 'value' => 123]]],
+
+            [[
+                 'order' => 'test ASC'
+             ], [], ['test' => 'ASC']],
+            [[
+                 'order' => 'test DESC, some ASC'
+             ], [], ['test' => 'DESC', 'some' => 'ASC']],
+
+            [[
+                 'limit' => 1
+             ], [], [], 1],
+
+            [[
+                 'offset' => 10
+             ], [], [], null, 10],
+
+
+            [[
+                 't1 = :t1: AND t2 LIKE :t2: AND t3 IN ({t3:array}) AND t4 >= :t4:',
+                 'bind' => [
+                     't1' => 123,
+                     't2' => 'abc',
+                     't3' => ['abc'],
+                     't4' => 123,
+                 ],
+                 'order' => 't1 DESC, t4 ASC',
+                 'limit' => 10,
+                 'offset' => 10
+             ],
+             ['t1' => 123, 't2' => 'abc', 't3' => ['abc'], 't4' => ['operator' => '>=', 'value' => 123]],
+             ['t1' => 'DESC', 't4' => 'ASC'],
+             10,
+             10
+            ],
+
+        ];
+    }
+
+    /**
+     * @dataProvider dataParamsToCriteria
+     *
+     * @param       $criteria
+     * @param array ...$params
+     */
+    public function testParamsToCriteria($criteria, ...$params)
+    {
+        $repository = new StubRepositoryModel;
+
+        $actual = Reflacker::invoke($repository, 'paramsToCriteria', ...$params);
+
+        $this->assertEquals($criteria, $actual);
     }
 
     public function testCount()
@@ -306,8 +396,8 @@ class RepositoryTest extends TestCase
         return [
             [[], [], null],
             [['where' => [
-                'type' => 'binary-op',
-                'op'   => 'LIKE',
+                'type'  => 'binary-op',
+                'op'    => 'LIKE',
                 'left'  => [
                     'type'   => 'qualified',
                     'domain' => 'test',

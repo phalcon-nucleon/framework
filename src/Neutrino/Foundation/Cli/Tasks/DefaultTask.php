@@ -19,19 +19,23 @@ class DefaultTask extends Task
 
         if (empty($arguments)) {
             $this->application->handle(['task' => ListTask::class]);
+
             return;
         }
 
         $lines[] = 'Command "' . implode(Route::getDelimiter(), $arguments) . '" not found.';
 
         foreach ($this->router->getRoutes() as $route) {
-            $routes[] = explode(Route::getDelimiter(), $route->getPattern())[0];
+            $command = explode(Route::getDelimiter(), $route->getPattern())[0];
+            $paths = $route->getPaths();
+            $real = isset($paths['_command']) ? $paths['_command'] : $command;
+            $routes[$command] = $real;
         }
 
-        if (!empty($routes) && !empty($alternatives = $this->findAlternatives($arguments[0], $routes))) {
-            $lines[] = 'Did you mean ' . (count($alternatives) > 1 ? 'one of theses' : 'this') . '?';
-            $lines   = array_merge($lines, array_map(function ($value) {
-                return '  ' . $value;
+        if (!empty($routes) && !empty($alternatives = $this->findAlternatives($arguments[0], array_keys($routes)))) {
+            $lines[] = 'Did you mean ' . (count($alternatives) > 1 ? 'one of theses' : 'this') . ' ?';
+            $lines = array_merge($lines, array_map(function ($value) use ($routes) {
+                return '  ' . $routes[$value];
             }, $alternatives));
         }
 

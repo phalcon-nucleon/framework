@@ -41,8 +41,8 @@ class HelperTaskTest extends TestCase
     public function dataResolveRoute()
     {
         return [
-            [new Route('list', ['task' => ListTask::class, 'action' => null, '_command' => 'list']), ListTask::class, 'mainAction'],
-            [new Route('optimize', ['task' => OptimizeTask::class, 'action' => null, '_command' => 'optimize']), OptimizeTask::class, 'mainAction']
+            [new Route('list', ['task' => ListTask::class, 'action' => null]), ListTask::class, 'mainAction'],
+            [new Route('optimize', ['task' => OptimizeTask::class, 'action' => null]), OptimizeTask::class, 'mainAction']
         ];
     }
 

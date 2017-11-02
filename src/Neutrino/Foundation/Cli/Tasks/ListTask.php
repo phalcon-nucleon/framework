@@ -72,7 +72,7 @@ class ListTask extends Task
 
         $this->scanned[$class . '::' . $action] = true;
 
-        $compiled = Helper::describeRoutePattern($route);
+        $compiled = Helper::describeRoutePattern($route, true);
 
         $this->describe($compiled, $class, $action);
     }

@@ -19,15 +19,15 @@ class RouterTest extends TestCase
         return [
             ['task', ListTask::class, null, [],
              'task',
-             ['task' => ListTask::class, 'action' => null, '_command' => 'task']
+             ['task' => ListTask::class, 'action' => null]
             ],
             ['task', ListTask::class, 'action', [],
              'task',
-             ['task' => ListTask::class, 'action' => 'action', '_command' => 'task']]
+             ['task' => ListTask::class, 'action' => 'action']]
             ,
             ['task {param}', ListTask::class, 'action', [],
              'task ([[:alnum:]]+)',
-             ['task' => ListTask::class, 'action' => 'action', 'param' => 1, '_command' => 'task {param}']
+             ['task' => ListTask::class, 'action' => 'action', 'param' => 1]
             ],
         ];
     }

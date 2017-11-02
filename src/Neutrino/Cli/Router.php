@@ -27,8 +27,6 @@ class Router extends \Phalcon\Cli\Router
 
         $params['action'] = $action;
 
-        $params['_command'] = $command;
-
         preg_match_all('/\{([\w_]+)\}/', $command, $matches);
 
         foreach ($matches[0] as $k => $match) {

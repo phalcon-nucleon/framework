@@ -13,9 +13,9 @@ class Group
 {
     const NONE = 0;
 
-    const KEY_SORTED = 2;
+    const SORT_ASC = 2;
 
-    const KEY_REVERSE_SORTED = 4;
+    const SORT_DESC = 4;
 
     protected $output;
 
@@ -58,12 +58,12 @@ class Group
             }
         }
 
-        if ($this->options & self::KEY_REVERSE_SORTED) {
+        if ($this->options & self::SORT_DESC) {
             krsort($this->groups);
             foreach ($this->groups as &$group) {
                 krsort($group);
             }
-        } elseif ($this->options & self::KEY_SORTED) {
+        } elseif ($this->options & self::SORT_ASC) {
             ksort($this->groups);
             foreach ($this->groups as &$group) {
                 ksort($group);

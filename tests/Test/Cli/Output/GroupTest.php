@@ -43,7 +43,7 @@ class GroupTest extends TestCase
     {
         return [
             [[
-                 'default' => ['list' => 'all commands'],
+                 '_default' => ['list' => 'all commands'],
                  'route'   => ['route:list' => 'all routes'],
              ],
              [
@@ -51,7 +51,7 @@ class GroupTest extends TestCase
                  'route:list' => 'all routes',
              ]],
             [[
-                 'default' => ['list' => 'all commands'],
+                 '_default' => ['list' => 'all commands'],
                  'route'   => [
                      'route:list'  => 'all routes',
                      'route:cache' => 'cache routes',
@@ -67,7 +67,7 @@ class GroupTest extends TestCase
                  'view:clear'  => 'clear views',
              ]],
             [[
-                 'default' => ['list' => 'all commands'],
+                 '_default' => ['list' => 'all commands'],
                  'route'   => [
                      'route:list'                  => 'all routes',
                      "\033[32mroute:cache\033[39m" => 'cache routes',

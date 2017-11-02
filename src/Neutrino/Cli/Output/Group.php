@@ -11,9 +11,17 @@ use Neutrino\Support\Str;
  */
 class Group
 {
+    const NONE = 0;
+
+    const KEY_SORTED = 2;
+
+    const KEY_REVERSE_SORTED = 4;
+
     protected $output;
 
     protected $datas;
+
+    protected $options;
 
     protected $groups = [];
 
@@ -22,11 +30,17 @@ class Group
      *
      * @param Writer $output
      * @param array  $datas
+     * @param int    $options
      */
-    public function __construct(Writer $output, array $datas = [])
+    public function __construct(
+        Writer $output,
+        array $datas = [],
+        $options = self::NONE
+    )
     {
         $this->output = $output;
         $this->datas = $datas;
+        $this->options = $options;
     }
 
     protected function generateGroupData()
@@ -40,7 +54,19 @@ class Group
 
                 $this->groups[$group][$key] = $data;
             } else {
-                $this->groups['default'][$key] = $data;
+                $this->groups['_default'][$key] = $data;
+            }
+        }
+
+        if ($this->options & self::KEY_REVERSE_SORTED) {
+            krsort($this->groups);
+            foreach ($this->groups as &$group) {
+                krsort($group);
+            }
+        } elseif ($this->options & self::KEY_SORTED) {
+            ksort($this->groups);
+            foreach ($this->groups as &$group) {
+                ksort($group);
             }
         }
     }
@@ -50,16 +76,9 @@ class Group
         $this->generateGroupData();
 
         $tableOutput = new Table($this->output, [], [], Table::NO_STYLE | Table::NO_HEADER);
-        $table = [];
-        foreach ($this->groups['default'] as $key => $value) {
-            $table[] = [$key, $value];
-        }
-        $tableOutput->setDatas($table)->generateColumns();
 
+        // Browser all data for generate correct columns length
         foreach ($this->groups as $group => $datas) {
-            if ($group == 'default') {
-                continue;
-            }
             $table = [];
             foreach ($datas as $key => $value) {
                 $table[] = [$key, $value];
@@ -67,8 +86,9 @@ class Group
             $tableOutput->setDatas($table)->generateColumns();
         }
 
+        // Display elements
         foreach ($this->groups as $group => $datas) {
-            if ($group != 'default') {
+            if ($group != '_default') {
                 $this->output->notice($group);
             }
             $table = [];

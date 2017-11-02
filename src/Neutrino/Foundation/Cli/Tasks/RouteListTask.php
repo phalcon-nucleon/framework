@@ -35,7 +35,7 @@ class RouteListTask extends Task
             $paths = $route->getPaths();
 
             if (!$this->hasOption('no-substitution')) {
-                $compiled = Helper::describeRoutePattern($route);
+                $compiled = Helper::describeRoutePattern($route, true);
             } else {
                 $compiled = $route->getPattern();
             }

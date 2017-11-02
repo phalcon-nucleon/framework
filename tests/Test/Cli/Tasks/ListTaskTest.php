@@ -132,10 +132,10 @@ class ListTaskTest extends TestCase
             'write'  => ['exactly' => 9, 'consecutive' => [
                 //['Available Commands :'],
                 [Helper::neutrinoVersion() . PHP_EOL, true],
+                [' ' . Decorate::info('clear-compiled') . '  Clear compilation.             ', true],
                 [' ' . Decorate::info('help ( .*)*') . '                                    ', true],
                 [' ' . Decorate::info('list') . '            List all commands available.   ', true],
                 [' ' . Decorate::info('optimize') . '        Optimize the autoloader.       ', true],
-                [' ' . Decorate::info('clear-compiled') . '  Clear compilation.             ', true],
                 //['config', true],
                 [' ' . Decorate::info('config:cache') . '    Cache the configuration.       ', true],
                 [' ' . Decorate::info('config:clear') . '    Clear the configuration cache. ', true],

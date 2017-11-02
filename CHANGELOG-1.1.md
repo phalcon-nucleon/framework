@@ -13,7 +13,15 @@
     - Raised on any kernel termination, only one time.
  - Neutrino\Support\Reflacker
     - Allows access to any methods or properties of a class and is super class. Should only be used for debugging, or UnitTesting.
+ - \Neutrino\Cli\Output\Group :
+    - Add sort option (asc & desc)
 ### Change
  - \Neutrino\Support\Arr::read & \Neutrino\Support\Arr::fetch :
     - Harmonize read & fetch function.
     - Use Obj::value for get default value. Allow lazy recovering the value.
+ - \Neutrino\Foundation\Cli\Tasks\ListTask :
+    - Sort command
+ - \Neutrino\Cli\Output\Helper::describeRoutePattern :
+    - Add possibility to describe with or without decoration
+ - \Neutrino\Foundation\Cli\Tasks\DefaultTask :
+    - Improve command not found output

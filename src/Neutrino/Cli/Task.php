@@ -159,7 +159,7 @@ abstract class Task extends PhalconTask
      * @param string     $name
      * @param mixed|null $default
      *
-     * @return array
+     * @return string|null
      */
     protected function getArg($name, $default = null)
     {

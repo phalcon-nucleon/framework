@@ -54,7 +54,7 @@ class ListTask extends Task
 
         $this->notice('Available Commands :');
 
-        (new Group($this->output, $datas))->display();
+        (new Group($this->output, $datas, Group::KEY_SORTED))->display();
     }
 
     /**

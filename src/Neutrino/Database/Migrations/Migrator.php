@@ -317,7 +317,7 @@ class Migrator
         // Once we have successfully run the migration "down" we will remove it from
         // the migration repository so it will be considered to have not been run
         // by the application then will be able to fire by any later operation.
-        $this->storage->delete($migration);
+        $this->storage->delete($migration->migration);
 
         $this->note(Decorate::info('Rolled back:') . " {$name}");
     }

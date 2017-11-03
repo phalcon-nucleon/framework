@@ -89,7 +89,7 @@ class DatabaseStorageTest extends TestCase
 
         $data = $databaseStorage->getRan();
 
-        $this->assertEquals([['migration' => 'test', 'batch' => 1]], $data);
+        $this->assertEquals(['test'], $data);
     }
 
     public function testGetMigration()

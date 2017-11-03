@@ -2,6 +2,8 @@
 
 namespace Neutrino\Database\Migrations\Storage;
 
+use Neutrino\Support\Arr;
+
 /**
  * Class FileStorage
  *
@@ -26,7 +28,7 @@ class FileStorage implements StorageInterface
             $data
         );
 
-        return $data;
+        return Arr::pluck($data, 'migration');
     }
 
     /**

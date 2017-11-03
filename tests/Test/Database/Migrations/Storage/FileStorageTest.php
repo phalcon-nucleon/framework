@@ -224,12 +224,12 @@ class FileStorageTest extends TestCase
         $data = $fileStorage->getRan();
 
         $this->assertEquals([
-            ['migration' => '123_' . __FILE__, 'batch' => 1],
-            ['migration' => '456_' . __FILE__, 'batch' => 2],
-            ['migration' => '789_' . __FILE__, 'batch' => 3],
-            ['migration' => '456_' . __FILE__, 'batch' => 4],
-            ['migration' => '789_' . __FILE__, 'batch' => 5],
-            ['migration' => '123_' . __FILE__, 'batch' => 6],
+            '123_' . __FILE__,
+            '456_' . __FILE__,
+            '789_' . __FILE__,
+            '456_' . __FILE__,
+            '789_' . __FILE__,
+            '123_' . __FILE__,
         ], $data);
     }
 }

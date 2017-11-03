@@ -7,6 +7,7 @@ use Neutrino\Database\Migrations\Storage\Database\MigrationModel;
 use Neutrino\Database\Migrations\Storage\Database\MigrationRepository;
 use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema\Builder;
+use Neutrino\Support\Arr;
 use Phalcon\Di;
 
 /**
@@ -35,10 +36,12 @@ class DatabaseStorage implements StorageInterface
      */
     public function getRan()
     {
-        return $this->repository->find([], [
+        $data = $this->repository->find([], [
             'batch'     => 'ASC',
             'migration' => 'ASC'
         ])->toArray();
+
+        return Arr::pluck($data, 'migration');
     }
 
     /**

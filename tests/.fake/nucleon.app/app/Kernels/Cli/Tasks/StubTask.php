@@ -6,13 +6,9 @@ use Neutrino\Cli\Task;
 
 class StubTask extends Task
 {
-    public static $enableConstructor = true;
-
     public function onConstruct()
     {
-        if (self::$enableConstructor) {
-            parent::onConstruct();
-        }
+        parent::onConstruct();
     }
 
     /**

@@ -2,25 +2,13 @@
 
 namespace Neutrino\Database\Cli\Tasks;
 
-use Neutrino\Cli\Task;
-use Neutrino\Database\Migrations\MigrationCreator;
-
 /**
  * Class MigrationMakeTask
  *
  * @package Neutrino\Database\Cli\Tasks
  */
-class MakerTask extends Task
+class MakerTask extends BaseTask
 {
-    use MigrationTrait;
-
-    /**
-     * The migration creator instance.
-     *
-     * @var \Neutrino\Database\Migrations\MigrationCreator
-     */
-    protected $creator;
-
     /**
      * @description Create a new migration file.
      *
@@ -32,8 +20,6 @@ class MakerTask extends Task
      */
     public function mainAction()
     {
-        $this->creator = $this->getDI()->get(MigrationCreator::class);
-
         // It's possible for the developer to specify the tables to modify in this
         // schema operation. The developer may also specify if this table needs
         // to be freshly created so we can create the appropriate migrations.

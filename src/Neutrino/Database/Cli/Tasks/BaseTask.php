@@ -2,15 +2,48 @@
 
 namespace Neutrino\Database\Cli\Tasks;
 
+use Neutrino\Cli\Task;
 use Neutrino\Constants\Env;
+use Neutrino\Database\Migrations\MigrationCreator;
+use Neutrino\Database\Migrations\Migrator;
+use Neutrino\Database\Migrations\Storage\StorageInterface;
 
 /**
- * Trait MigrationTrait
+ * Class BaseTask
  *
  * @package Neutrino\Database\Cli\Tasks
  */
-trait MigrationTrait
+abstract class BaseTask extends Task
 {
+    /**
+     * The migrator instance.
+     *
+     * @var \Neutrino\Database\Migrations\Migrator
+     */
+    protected $migrator;
+
+    /**
+     * The Storage instance
+     *
+     * @var \Neutrino\Database\Migrations\Storage\StorageInterface
+     */
+    protected $storage;
+
+    /**
+     * The migration creator instance.
+     *
+     * @var \Neutrino\Database\Migrations\MigrationCreator
+     */
+    protected $creator;
+
+    protected function onConstruct()
+    {
+        $this->migrator = $this->getDI()->get(Migrator::class);
+        $this->storage = $this->getDI()->get(StorageInterface::class);
+        $this->creator = $this->getDI()->get(MigrationCreator::class);
+
+    }
+
     /**
      * @return bool
      */

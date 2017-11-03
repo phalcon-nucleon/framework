@@ -45,7 +45,7 @@ class MigrationsServicesProvider implements Providable
             $config = $this->get(Services::CONFIG);
 
             return new $config->migrations->prefix;
-        });
+        }, true);
     }
 
     /**
@@ -59,7 +59,7 @@ class MigrationsServicesProvider implements Providable
             $config = $this->get(Services::CONFIG);
 
             return new $config->migrations->storage;
-        });
+        }, true);
     }
 
     /**
@@ -77,7 +77,7 @@ class MigrationsServicesProvider implements Providable
                     'name' => StorageInterface::class,
                 ]
             ]
-        ], true);
+        ]);
     }
 
     /**
@@ -95,6 +95,6 @@ class MigrationsServicesProvider implements Providable
                     'name' => PrefixInterface::class,
                 ]
             ]
-        ], true);
+        ]);
     }
 }

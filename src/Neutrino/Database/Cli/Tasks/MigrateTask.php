@@ -2,29 +2,17 @@
 
 namespace Neutrino\Database\Cli\Tasks;
 
-use Neutrino\Cli\Task;
-use Neutrino\Database\Migrations\Migrator;
-
 /**
  * Class MigrateTask
  *
  * @package Neutrino\Database\Cli\Tasks
  */
-class MigrateTask extends Task
+class MigrateTask extends BaseTask
 {
-    use MigrationTrait;
-
-    /**
-     * The migrator instance.
-     *
-     * @var \Neutrino\Database\Migrations\Migrator
-     */
-    protected $migrator;
-
     /**
      * @description Run the database migrations.
      *
-     * @option      --database= : The database connection to use.
+     * option      --database= : The database connection to use.
      * @option      --force : Force the operation to run when in production.
      * @option      --path= : The path of migrations files to be executed.
      * @option      --step : Force the migrations to be run so they can be rolled back individually.
@@ -34,8 +22,6 @@ class MigrateTask extends Task
         if (!$this->confirmToProceed()) {
             return;
         }
-
-        $this->migrator = $this->getDI()->get(Migrator::class);
 
         if (!$this->assertStorageExist()) {
             return;

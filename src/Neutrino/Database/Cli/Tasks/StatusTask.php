@@ -3,28 +3,19 @@
 namespace Neutrino\Database\Cli\Tasks;
 
 use Neutrino\Cli\Output\Decorate;
-use Neutrino\Cli\Task;
-use Neutrino\Database\Migrations\Migrator;
 
 /**
  * Class StatusTask
  *
  * @package Neutrino\Database\Cli\Tasks
  */
-class StatusTask extends Task
+class StatusTask extends BaseTask
 {
-    use MigrationTrait;
-
-    /** @var \Neutrino\Database\Migrations\Migrator */
-    private $migrator;
-
     /**
      * @description Show the status of each migration.
      */
     public function mainAction()
     {
-        $this->migrator = $this->getDI()->get(Migrator::class);
-
         if (!$this->migrator->storageExist()) {
             $this->error('No migrations found.');
 
@@ -53,7 +44,9 @@ class StatusTask extends Task
             $migrationName = $this->migrator->getMigrationName($migration);
 
             return [
-                'Ran?'      => in_array($migrationName, $ran) ? Decorate::info('Y') : Decorate::apply('N', 'red'),
+                'Ran?'      => in_array($migrationName, $ran)
+                    ? Decorate::info('Y')
+                    : Decorate::apply('N', 'red'),
                 'Migration' => $migrationName
             ];
         }, $this->getAllMigrationFiles());

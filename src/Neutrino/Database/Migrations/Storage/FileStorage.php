@@ -64,13 +64,19 @@ class FileStorage implements StorageInterface
     {
         $data = $this->getData();
 
+        $lastBatch = $this->getLastBatchNumber();
+
+        $data = array_filter($data, function ($datum) use ($lastBatch) {
+            return (int)$datum['batch'] = $lastBatch;
+        });
+
         $migrate_at = array_column($data, 'migration');
 
         arsort($migrate_at);
 
         reset($migrate_at);
 
-        return $data[key($migrate_at)];
+        return [$data[key($migrate_at)]];
     }
 
     /**

@@ -134,7 +134,7 @@ class FileStorageTest extends TestCase
             ['migration' => '789_' . __FILE__, 'batch' => 3],
         ]));
 
-        $this->assertEquals(['migration' => '789_' . __FILE__, 'batch' => 3], $fileStorage->getLast());
+        $this->assertEquals([['migration' => '789_' . __FILE__, 'batch' => 3]], $fileStorage->getLast());
     }
 
     public function testLog()

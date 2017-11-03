@@ -224,7 +224,7 @@ class DatabaseStorageTest extends TestCase
         $mock
             ->expects($this->once())
             ->method('first')
-            ->with([], ['migration' => 'DESC'])
+            ->with(['batch' => 0], ['migration' => 'DESC'])
             ->willReturn(
                 new MigrationModel([
                     'id'        => 1,
@@ -235,11 +235,11 @@ class DatabaseStorageTest extends TestCase
 
         $databaseStorage = new DatabaseStorage();
 
-        $this->assertEquals([
+        $this->assertEquals([[
             'id'        => 1,
             'migration' => 'test',
             'batch'     => 1,
-        ], $databaseStorage->getLast());
+        ]], $databaseStorage->getLast());
     }
 
     public function testLogSuccess()

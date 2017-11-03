@@ -75,7 +75,9 @@ class DatabaseStorage implements StorageInterface
      */
     public function getLast()
     {
-        return $this->repository->first([], ['migration' => 'DESC'])->toArray();
+        $result = $this->repository->first(['batch' => $this->getLastBatchNumber()], ['migration' => 'DESC']);
+
+        return [$result->toArray()];
     }
 
     /**

@@ -27,9 +27,7 @@ class FreshTask extends BaseTask
 
         $this->info('Dropped all tables successfully.');
 
-        $this->dispatcher->forward([
-            'controller' => MigrateTask::class,
-        ]);
+        $this->callTask(MigrateTask::class, 'main', $this->arguments, $this->options);
     }
 
     /**

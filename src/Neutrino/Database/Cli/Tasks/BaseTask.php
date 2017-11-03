@@ -38,10 +38,11 @@ abstract class BaseTask extends Task
 
     protected function onConstruct()
     {
+        parent::onConstruct();
+
         $this->migrator = $this->getDI()->get(Migrator::class);
         $this->storage = $this->getDI()->get(StorageInterface::class);
         $this->creator = $this->getDI()->get(MigrationCreator::class);
-
     }
 
     /**

@@ -22,47 +22,44 @@ class RefreshTask extends BaseTask
             return;
         }
 
-        $path = $this->getOption('path');
-        $force = $this->getOption('force');
         $step = $this->getOption('step') ?: 0;
 
         if ($step > 0) {
-            $this->runRollback($path, $step, $force);
+            $this->runRollback();
         } else {
-            $this->runReset($path, $force);
+            $this->runReset();
         }
 
+        $this->runMigrate();
     }
 
     /**
      * Run the rollback command.
      *
-     * @param  string $path
-     * @param  bool   $step
-     * @param  bool   $force
-     *
      * @return void
      */
-    protected function runRollback($path, $step, $force)
+    protected function runRollback()
     {
-        $this->dispatcher->forward([
-            'controller' => ''
-        ]);
+        $this->callTask(RollbackTask::class, 'main', $this->arguments, $this->options);
     }
 
     /**
      * Run the reset command.
      *
-     * @param  string $path
-     * @param  bool   $force
+     * @return void
+     */
+    protected function runReset()
+    {
+        $this->callTask(ResetTask::class, 'main', $this->arguments, $this->options);
+    }
+
+    /**
+     * Run the migrate command.
      *
      * @return void
      */
-    protected function runReset($path, $force)
+    protected function runMigrate()
     {
-        $this->dispatcher->forward([
-            'controller' => ''
-        ]);
+        $this->callTask(MigrateTask::class, 'main', $this->arguments, $this->options);
     }
-
 }

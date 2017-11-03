@@ -23,9 +23,7 @@ class MigrateTask extends BaseTask
             return;
         }
 
-        if (!$this->assertStorageExist()) {
-            return;
-        }
+        $this->prepareDatabase();
 
         // Next, we will check to see if a path option has been defined. If it has
         // we will use the path relative to the root of this installation folder
@@ -43,16 +41,14 @@ class MigrateTask extends BaseTask
     }
 
     /**
-     * @return bool
+     * Prepare the migration database for running.
+     *
+     * @return void
      */
-    protected function assertStorageExist()
+    protected function prepareDatabase()
     {
         if (!$this->migrator->storageExist()) {
-            $this->warn('Migration Storage wasn\'t set. You must call migrate:install');
-
-            return false;
+            $this->callTask(InstallTask::class, 'main', $this->arguments, $this->options);
         }
-
-        return true;
     }
 }

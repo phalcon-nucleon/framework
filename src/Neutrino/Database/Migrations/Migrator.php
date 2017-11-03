@@ -2,6 +2,7 @@
 
 namespace Neutrino\Database\Migrations;
 
+use Neutrino\Cli\Output\Decorate;
 use Neutrino\Database\Migrations\Storage\StorageInterface;
 use Neutrino\Database\Schema\Builder;
 use Neutrino\Support\Arr;
@@ -116,7 +117,7 @@ class Migrator
         // aren't, we will just make a note of it to the developer so they're aware
         // that all of the migrations have been run against this database system.
         if (count($migrations) == 0) {
-            $this->note('<info>Nothing to migrate.</info>');
+            $this->note(Decorate::info('Nothing to migrate.'));
 
             return;
         }
@@ -157,7 +158,7 @@ class Migrator
             $name = $this->getMigrationName($file)
         );
 
-        $this->note("<comment>Migrating:</comment> {$name}");
+        $this->note(Decorate::notice('Migrating:') . " {$name}");
 
         $this->runMigration($migration, 'up');
 
@@ -166,7 +167,7 @@ class Migrator
         // in the application. A migration repository keeps the migrate order.
         $this->storage->log($name, $batch);
 
-        $this->note("<info>Migrated:</info>  {$name}");
+        $this->note(Decorate::info('Migrated:') . " {$name}");
     }
 
     /**
@@ -187,7 +188,7 @@ class Migrator
         $migrations = $this->getMigrationsForRollback($options);
 
         if (count($migrations) === 0) {
-            $this->note('<info>Nothing to rollback.</info>');
+            $this->note(Decorate::info('Nothing to rollback.'));
 
             return [];
         } else {
@@ -262,7 +263,7 @@ class Migrator
         $migrations = array_reverse($this->storage->getRan());
 
         if (count($migrations) === 0) {
-            $this->note('<info>Nothing to rollback.</info>');
+            $this->note(Decorate::info('Nothing to rollback.'));
 
             return [];
         } else {
@@ -309,7 +310,7 @@ class Migrator
             $name = $this->getMigrationName($file)
         );
 
-        $this->note("<comment>Rolling back:</comment> {$name}");
+        $this->note(Decorate::notice('Rolling back:') . " {$name}");
 
         $this->runMigration($instance, 'down');
 
@@ -318,7 +319,7 @@ class Migrator
         // by the application then will be able to fire by any later operation.
         $this->storage->delete($migration);
 
-        $this->note("<info>Rolled back:</info>  {$name}");
+        $this->note(Decorate::info('Rolled back:') . " {$name}");
     }
 
     /**

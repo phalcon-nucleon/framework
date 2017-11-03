@@ -3,7 +3,6 @@
 namespace Neutrino\Database\Schema;
 
 use Closure;
-use LogicException;
 use Neutrino\Support\Func;
 use Phalcon\Di\Injectable;
 
@@ -209,7 +208,13 @@ class Builder extends Injectable
      */
     public function dropAllTables()
     {
-        throw new LogicException('This database driver does not support dropping all tables.');
+        @$this->disableForeignKeyConstraints();
+
+        foreach ($this->db->listTables() as $table) {
+            $this->drop($table);
+        };
+
+        @$this->enableForeignKeyConstraints();
     }
 
     /**

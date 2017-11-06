@@ -5,11 +5,9 @@ namespace Test\Repositories;
 use Neutrino\Constants\Services;
 use Neutrino\Model;
 use Neutrino\Repositories\Repository;
-use Neutrino\Repositories\RepositoryModel;
-use Neutrino\Repositories\RepositoryPhql;
+use Neutrino\Support\Reflacker;
 use Neutrino\Support\Str;
 use Phalcon\Db\Column;
-use Phalcon\Mvc\Model\Manager as ModelManager;
 use Phalcon\Mvc\Model\Message;
 use Phalcon\Mvc\Model\Query as ModelQuery;
 use Test\TestCase\TestCase;
@@ -28,6 +26,97 @@ class RepositoryTest extends TestCase
     public function testContructor()
     {
         $this->assertInstanceOf(StubRepositoryModel::class, new StubRepositoryModel);
+    }
+
+    public function dataParamsToCriteria()
+    {
+        return [
+            [[]],
+            [[
+                 'test = :test:',
+                 'bind' => [
+                     'test' => 123
+                 ]
+             ], ['test' => 123]],
+            [[
+                 'test LIKE :test:',
+                 'bind' => [
+                     'test' => 'abc'
+                 ]
+             ], ['test' => 'abc']],
+            [[
+                 'test IN ({test:array})',
+                 'bind' => [
+                     'test' => ['abc']
+                 ]
+             ], ['test' => ['abc']]],
+            [[
+                 'test >= :test:',
+                 'bind' => [
+                     'test' => 123
+                 ]
+             ], ['test' => ['operator' => '>=', 'value' => 123]]],
+
+            [[
+                 't1 = :t1: AND t2 LIKE :t2: AND t3 IN ({t3:array}) AND t4 >= :t4:',
+                 'bind' => [
+                     't1' => 123,
+                     't2' => 'abc',
+                     't3' => ['abc'],
+                     't4' => 123,
+                 ]
+             ], ['t1' => 123, 't2' => 'abc', 't3' => ['abc'], 't4' => ['operator' => '>=', 'value' => 123]]],
+
+            [[
+                 'order' => 'test ASC'
+             ], [], ['test' => 'ASC']],
+            [[
+                 'order' => 'test DESC, some ASC'
+             ], [], ['test' => 'DESC', 'some' => 'ASC']],
+
+            [[
+                 'limit' => 1
+             ], [], [], 1],
+
+            [[
+                 'offset' => 10
+             ], [], [], null, 10],
+
+
+            [[
+                 't1 = :t1: AND t2 LIKE :t2: AND t3 IN ({t3:array}) AND t4 >= :t4:',
+                 'bind' => [
+                     't1' => 123,
+                     't2' => 'abc',
+                     't3' => ['abc'],
+                     't4' => 123,
+                 ],
+                 'order' => 't1 DESC, t4 ASC',
+                 'limit' => 10,
+                 'offset' => 10
+             ],
+             ['t1' => 123, 't2' => 'abc', 't3' => ['abc'], 't4' => ['operator' => '>=', 'value' => 123]],
+             ['t1' => 'DESC', 't4' => 'ASC'],
+             10,
+             10
+            ],
+
+        ];
+    }
+
+    /**
+     * @dataProvider dataParamsToCriteria
+     *
+     * @param       $criteria
+     * @param array ...$params
+     */
+    public function testParamsToCriteria($criteria, ...$params)
+    {
+        $repository = new StubRepositoryModel;
+
+        $actual = Reflacker::invoke($repository, 'paramsToCriteria', ...$params);
+
+        $this->assertEquals($criteria, $actual);
     }
 
     public function testCount()
@@ -132,7 +221,7 @@ class RepositoryTest extends TestCase
         $this->mockDb(0, null);
         $repository = new StubRepositoryModel;
 
-        $model = new StubModelTest;
+        $model       = new StubModelTest;
         $model->name = 'test';
 
         $this->assertTrue($repository->save($model));
@@ -153,7 +242,8 @@ class RepositoryTest extends TestCase
             '_field'   => "name",
             '_model'   => null,
             '_code'    => 0
-        ]), 'Test\Repositories\StubModelTest:save: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:save: failed. Show ' . StubRepositoryModel::class . '::getMessages().'],
+            $repository->getMessages());
     }
 
     public function testSaveFailedWithoutTransaction()
@@ -170,7 +260,8 @@ class RepositoryTest extends TestCase
             '_field'   => "name",
             '_model'   => null,
             '_code'    => 0
-        ]), 'Test\Repositories\StubModelTest:save: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:save: failed. Show ' . StubRepositoryModel::class . '::getMessages().'],
+            $repository->getMessages());
     }
 
     public function testUpdate()
@@ -179,7 +270,7 @@ class RepositoryTest extends TestCase
         $this->mockDb(0, null);
         $repository = new StubRepositoryModel;
 
-        $model = new StubModelTest;
+        $model       = new StubModelTest;
         $model->name = 'test';
 
         $this->assertTrue($repository->update($model));
@@ -191,7 +282,7 @@ class RepositoryTest extends TestCase
         $this->mockDb(0, null);
         $repository = new StubRepositoryModel;
 
-        $model = new StubModelTest;
+        $model       = new StubModelTest;
         $model->name = 'test';
 
         $this->assertFalse($repository->update($model));
@@ -201,7 +292,8 @@ class RepositoryTest extends TestCase
             '_field'   => null,
             '_model'   => null,
             '_code'    => 0,
-        ]), 'Test\Repositories\StubModelTest:update: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:update: failed. Show ' . StubRepositoryModel::class . '::getMessages().'],
+            $repository->getMessages());
     }
 
     public function testUpdateFailedWithoutTransaction()
@@ -209,7 +301,7 @@ class RepositoryTest extends TestCase
         $this->mockDb(0, null);
         $repository = new StubRepositoryModel;
 
-        $model = new StubModelTest;
+        $model       = new StubModelTest;
         $model->name = 'test';
 
         $this->assertFalse($repository->update($model, false));
@@ -219,7 +311,8 @@ class RepositoryTest extends TestCase
             '_field'   => null,
             '_model'   => null,
             '_code'    => 0,
-        ]), 'Test\Repositories\StubModelTest:update: failed. Show ' . StubRepositoryModel::class . '::getMessages().'], $repository->getMessages());
+        ]), 'Test\Repositories\StubModelTest:update: failed. Show ' . StubRepositoryModel::class . '::getMessages().'],
+            $repository->getMessages());
     }
 
     public function testDelete()
@@ -252,7 +345,7 @@ class RepositoryTest extends TestCase
      */
     public function testEach($start, $end, $pad, $e_count, $e_call)
     {
-        $d = [];
+        $d  = [];
         $nb = floor(($end - $start) / $pad);
 
         $rest = ($end - $start) % $pad;
@@ -275,7 +368,7 @@ class RepositoryTest extends TestCase
         $repository = new StubRepositoryModel;
 
         $count = 0;
-        $page = 0;
+        $page  = 0;
         if (isset($datas[0])) {
             $this->mockDb(count($datas[0]), $datas[0]);
         }
@@ -298,9 +391,146 @@ class RepositoryTest extends TestCase
         $this->mockDb(1, [['rowcount' => $number]]);
     }
 
-    private function mockDb($numRows, $result)
+    public function dataSpecFunctions()
     {
-        $con = $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
+        return [
+            [[], [], null],
+            [['where' => [
+                'type'  => 'binary-op',
+                'op'    => 'LIKE',
+                'left'  => [
+                    'type'   => 'qualified',
+                    'domain' => 'test',
+                    'name'   => 'name',
+                    'balias' => 'name',
+                ],
+                'right' => [
+                    'type'  => 'placeholder',
+                    'value' => ':name',
+                ],
+            ]], ['name' => 'test'], null],
+            [['order' => [
+                [
+                    [
+                        'type'   => 'qualified',
+                        'domain' => 'test',
+                        'name'   => 'name',
+                        'balias' => 'name',
+                    ],
+                    'DESC'
+                ]
+            ]], [], ['name' => 'DESC']],
+        ];
+    }
+
+    /**
+     * @dataProvider dataSpecFunctions
+     */
+    public function testMaximum($extendsSelect, $where, $order)
+    {
+        $basicSelect = [
+            'models'  => [StubModelTest::class],
+            'tables'  => ['test'],
+            'columns' => [
+                [
+                    [
+                        'type'      => 'functionCall',
+                        'name'      => 'MAX',
+                        'arguments' => [
+                            [
+                                'type'   => 'qualified',
+                                'domain' => 'test',
+                                'name'   => 'id',
+                                'balias' => 'id'
+                            ]
+                        ]
+                    ],
+                    null,
+                    'maximum'
+                ]
+            ],
+        ];
+
+        $this->mockDb(1, [['maximum' => 1]], array_merge($basicSelect, $extendsSelect));
+
+        $repository = new StubRepositoryModel;
+
+        $this->assertEquals(1, $repository->maximum('id', $where, $order));
+    }
+
+    /**
+     * @dataProvider dataSpecFunctions
+     */
+    public function testMinimum($extendsSelect, $where, $order)
+    {
+        $basicSelect = [
+            'models'  => [StubModelTest::class],
+            'tables'  => ['test'],
+            'columns' => [
+                [
+                    [
+                        'type'      => 'functionCall',
+                        'name'      => 'MIN',
+                        'arguments' => [
+                            [
+                                'type'   => 'qualified',
+                                'domain' => 'test',
+                                'name'   => 'id',
+                                'balias' => 'id'
+                            ]
+                        ]
+                    ],
+                    null,
+                    'minimum'
+                ]
+            ],
+        ];
+
+        $this->mockDb(1, [['minimum' => 1]], array_merge($basicSelect, $extendsSelect));
+
+        $repository = new StubRepositoryModel;
+
+        $this->assertEquals(1, $repository->minimum('id', $where, $order));
+    }
+
+    /**
+     * @dataProvider dataSpecFunctions
+     */
+    public function testAverage($extendsSelect, $where, $order)
+    {
+        $basicSelect = [
+            'models'  => [StubModelTest::class],
+            'tables'  => ['test'],
+            'columns' => [
+                [
+                    [
+                        'type'      => 'functionCall',
+                        'name'      => 'AVG',
+                        'arguments' => [
+                            [
+                                'type'   => 'qualified',
+                                'domain' => 'test',
+                                'name'   => 'id',
+                                'balias' => 'id'
+                            ]
+                        ]
+                    ],
+                    null,
+                    'average'
+                ]
+            ],
+        ];
+
+        $this->mockDb(1, [['average' => 1]], array_merge($basicSelect, $extendsSelect));
+
+        $repository = new StubRepositoryModel;
+
+        $this->assertEquals(1, $repository->average('id', $where, $order));
+    }
+
+    private function mockDb($numRows, $result, $select = null)
+    {
+        $con     = $this->mockService(Services::DB, \Phalcon\Db\Adapter\Pdo\Mysql::class, true);
         $dialect = $this->createMock(\Phalcon\Db\Dialect\Mysql::class);
         $results = $this->createMock(\Phalcon\Db\Result\Pdo::class);
 
@@ -311,6 +541,17 @@ class RepositoryTest extends TestCase
         $results->expects($this->any())
             ->method('fetchAll')
             ->will($this->returnValue($result));
+
+        if (!is_null($select)) {
+            $dialect->expects($this->any())
+                ->method('select')
+                ->with($select)
+                ->will($this->returnValue(null));
+        } else {
+            $dialect->expects($this->any())
+                ->method('select')
+                ->will($this->returnValue(null));
+        }
 
         $dialect->expects($this->any())
             ->method('select')

@@ -8,7 +8,7 @@
 namespace Neutrino\Support\Fluent;
 
 
-interface Fluentable extends \ArrayAccess, \JsonSerializable
+interface Fluentable extends \ArrayAccess, \Iterator, \JsonSerializable
 {
     /**
      * Create a new fluent container instance.

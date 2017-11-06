@@ -15,6 +15,8 @@
     - Allows access to any methods or properties of a class and is super class. Should only be used for debugging, or UnitTesting.
  - \Neutrino\Cli\Output\Group :
     - Add sort option (asc & desc)
+ - Migrations 
+    - Migrations feature, inspired from laravel migrations
 ### Change
  - \Neutrino\Support\Arr::read & \Neutrino\Support\Arr::fetch :
     - Harmonize read & fetch function.

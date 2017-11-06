@@ -25,6 +25,57 @@ use Phalcon\Cli\Task as PhalconTask;
  */
 abstract class Task extends PhalconTask
 {
+    protected $options;
+
+    protected $arguments;
+
+    protected function onConstruct()
+    {
+        $this->applyArguments();
+        $this->applyOptions();
+    }
+
+    protected function applyOptions()
+    {
+        $this->options = $this->dispatcher->getOptions();
+    }
+
+    protected function applyArguments()
+    {
+        $args = $this->dispatcher->getParams();
+
+        $this->arguments = is_string($args) ? explode(Route::getDelimiter(), $args) : $args;
+    }
+
+    /**
+     * @param string $task
+     * @param string $action
+     * @param array  $args
+     * @param array  $opts
+     */
+    public function callTask($task, $action, $args = [], $opts = [])
+    {
+        $handler = [
+            'task'   => $task,
+            'action' => $action,
+        ];
+
+        $options = [];
+        foreach ($opts as $name => $opt) {
+            if ($opt === true) {
+                $options[] = "-$name";
+            } else {
+                $options[] = "--$name=\"$opt\"";
+            }
+        }
+
+        $this->application->handle(array_merge(
+            $handler,
+            $args,
+            $options
+        ));
+    }
+
     /**
      * @param string $str
      */
@@ -145,12 +196,7 @@ abstract class Task extends PhalconTask
      */
     protected function getArgs()
     {
-        $args = $this->dispatcher->getParams();
-        if (is_string($args)) {
-            return explode(Route::getDelimiter(), $args);
-        }
-
-        return $args;
+        return $this->arguments;
     }
 
     /**
@@ -163,7 +209,7 @@ abstract class Task extends PhalconTask
      */
     protected function getArg($name, $default = null)
     {
-        return Arr::fetch($this->getArgs(), $name, $default);
+        return Arr::fetch($this->arguments, $name, $default);
     }
 
     /**
@@ -175,7 +221,7 @@ abstract class Task extends PhalconTask
      */
     protected function hasArg($name)
     {
-        return Arr::has($this->getArgs(), $name);
+        return Arr::has($this->arguments, $name);
     }
 
     /**
@@ -185,7 +231,7 @@ abstract class Task extends PhalconTask
      */
     protected function getOptions()
     {
-        return $this->dispatcher->getOptions();
+        return $this->options;
     }
 
     /**
@@ -194,11 +240,11 @@ abstract class Task extends PhalconTask
      * @param string     $name
      * @param mixed|null $default
      *
-     * @return array
+     * @return string|null
      */
     protected function getOption($name, $default = null)
     {
-        return Arr::fetch($this->getOptions(), $name, $default);
+        return Arr::fetch($this->options, $name, $default);
     }
 
     /**
@@ -211,7 +257,7 @@ abstract class Task extends PhalconTask
     protected function hasOption(...$options)
     {
         foreach ($options as $option) {
-            if (Arr::has($this->getOptions(), $option)) {
+            if (Arr::has($this->options, $option)) {
                 return true;
             }
         }

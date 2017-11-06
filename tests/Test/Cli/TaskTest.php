@@ -7,11 +7,7 @@ use Fake\Kernels\Cli\Tasks\StubTask;
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
-use Neutrino\Error\Error;
-use Neutrino\Error\Handler;
-use Neutrino\Error\Helper;
-use Neutrino\Error\Writer\Cli;
-use Neutrino\Error\Writer\View;
+use Neutrino\Foundation\Cli\Kernel;
 use Neutrino\Support\Reflacker;
 use Phalcon\Cli\Dispatcher;
 use Test\TestCase\TestCase;
@@ -28,8 +24,6 @@ class TaskTest extends TestCase
      */
     private function stubTask()
     {
-        StubTask::$enableConstructor = false;
-
         return new StubTask();
     }
 
@@ -121,5 +115,24 @@ class TaskTest extends TestCase
         $task = $this->stubTask();
 
         $task->line('test');
+    }
+
+    public function testCallTask()
+    {
+        $mock = $this->createMock(Kernel::class);
+        $mock->expects($this->once())
+            ->method('handle')
+            ->with([
+                'task'   => 'test',
+                'action' => 'act',
+                'arg',
+                '-tOpt',
+                '--strOpt="val"'
+            ]);
+
+        $task = $this->stubTask();
+        $task->application = $mock;
+
+        $task->callTask('test', 'act', ['arg'], ['tOpt' => true, 'strOpt' => 'val']);
     }
 }

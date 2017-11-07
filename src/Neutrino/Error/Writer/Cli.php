@@ -16,6 +16,9 @@ use Phalcon\Logger as PhalconLogger;
  */
 class Cli implements Writable
 {
+    /**
+     * @inheritdoc
+     */
     public function handle(Error $error)
     {
         $di = Di::getDefault();

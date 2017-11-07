@@ -17,6 +17,9 @@ use Phalcon\Http\Response;
 class View implements Writable
 {
 
+    /**
+     * @inheritdoc
+     */
     public function handle(Error $error)
     {
         if (!$error->isFateful()) {

@@ -18,6 +18,9 @@ use Phalcon\Logger\Formatter\Line as FormatterLine;
 class Logger implements Writable
 {
 
+    /**
+     * @inheritdoc
+     */
     public function handle(Error $error)
     {
         $di = Di::getDefault();

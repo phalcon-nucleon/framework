@@ -13,6 +13,9 @@ use Neutrino\Error\Helper;
 class Phplog implements Writable
 {
 
+    /**
+     * @inheritdoc
+     */
     public function handle(Error $error)
     {
         error_log(Helper::format($error), 0);

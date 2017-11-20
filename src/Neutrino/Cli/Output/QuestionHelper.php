@@ -62,7 +62,10 @@ final class QuestionHelper
 
         switch (true) {
             case  $question instanceof ChoiceQuestion:
-                $output->info('[' . implode(', ', $question->getChoices()) . ']' . (empty($question->getDefault() ? '' : ' (' . $question->getDefault() . ')')));
+                $output->info(
+                    '[' . implode(', ', $question->getChoices()) . ']'
+                    . (empty($question->getDefault()) ? '' : ' (' . $question->getDefault() . ')')
+                );
                 break;
             case $question instanceof ConfirmationQuestion:
                 $output->info('[yes, no] (' . ($question->getDefault() ? 'y' : 'n') . ')');

@@ -3,6 +3,7 @@
 namespace Neutrino\Database\Migrations;
 
 use Neutrino\Cli\Output\Decorate;
+use Neutrino\Database\Migrations\Prefix\PrefixInterface;
 use Neutrino\Database\Migrations\Storage\StorageInterface;
 use Neutrino\Database\Schema\Builder;
 use Neutrino\Support\Arr;
@@ -23,11 +24,11 @@ class Migrator
     protected $storage;
 
     /**
-     * The name of the default connection.
+     * The migration repository implementation.
      *
-     * @var string
+     * @var \Neutrino\Database\Migrations\Prefix\PrefixInterface
      */
-    protected $connection;
+    protected $prefix;
 
     /**
      * The notes for the current operation.
@@ -47,10 +48,12 @@ class Migrator
      * Migrator constructor.
      *
      * @param \Neutrino\Database\Migrations\Storage\StorageInterface $repository
+     * @param \Neutrino\Database\Migrations\Prefix\PrefixInterface   $prefix
      */
-    public function __construct(StorageInterface $repository)
+    public function __construct(StorageInterface $repository, PrefixInterface $prefix)
     {
         $this->storage = $repository;
+        $this->prefix = $prefix;
     }
 
     /**
@@ -346,7 +349,7 @@ class Migrator
      */
     public function resolve($file)
     {
-        $class = Str::studly(implode('_', array_slice(explode('_', $file), 4)));
+        $class = Str::studly($this->prefix->deletePrefix($file));
 
         return new $class;
     }
@@ -362,7 +365,7 @@ class Migrator
     {
         $paths = array_map(function ($path) {
             return glob($path . '/*_*.php');
-        }, $paths);
+        }, (array)$paths);
 
         $paths = array_filter(Arr::collapse($paths));
 

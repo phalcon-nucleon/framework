@@ -75,6 +75,10 @@ class MigrationsServicesProvider implements Providable
                 [
                     'type' => 'service',
                     'name' => StorageInterface::class,
+                ],
+                [
+                    'type' => 'service',
+                    'name' => PrefixInterface::class,
                 ]
             ]
         ]);

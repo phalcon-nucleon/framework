@@ -94,7 +94,7 @@ class MigrationCreatorTest extends TestCase
     {
         $migrationCreator = new MigrationCreator(new DatePrefix());
 
-        Reflacker::invoke($migrationCreator, 'ensureMigrationDoesntAlreadyExist', 'my_class_name');
+        Reflacker::invoke($migrationCreator, 'ensureMigrationDoesntAlreadyExist', 'my_class_name', self::$tmpPath);
     }
 
     /**
@@ -102,9 +102,18 @@ class MigrationCreatorTest extends TestCase
      */
     public function testEnsureMigrationDoesntAlreadyExistFail()
     {
-        $migrationCreator = new MigrationCreator(new DatePrefix());
+        $prefix = $this->createMock(PrefixInterface::class);
 
-        Reflacker::invoke($migrationCreator, 'ensureMigrationDoesntAlreadyExist', 'reflection_class');
+        $prefix
+            ->expects($this->once())
+            ->method('getPrefix')
+            ->willReturn('prefix');
+
+        $migrationCreator = new MigrationCreator($prefix);
+
+        $migrationCreator->create('my_class_name', self::$tmpPath);
+
+        Reflacker::invoke($migrationCreator, 'ensureMigrationDoesntAlreadyExist', 'my_class_name', self::$tmpPath);
     }
 
     public function dataCreate()
@@ -130,15 +139,15 @@ class MigrationCreatorTest extends TestCase
 
         $migrationCreator = new MigrationCreator($prefix);
 
-        $migrationCreator->create('my_class_name', __DIR__ . '/tmp', $table, $create);
+        $migrationCreator->create('my_class_name', self::$tmpPath . '', $table, $create);
 
         $stub = Reflacker::invoke($migrationCreator, 'getStubContent', $table, $create);
         $stub = Reflacker::invoke($migrationCreator, 'populateStub', 'my_class_name', $stub, $table);
 
-        $this->assertFileExists(__DIR__ . '/tmp/prefix_my_class_name.php');
+        $this->assertFileExists(self::$tmpPath . '/prefix_my_class_name.php');
         $this->assertEquals(
             $stub,
-            file_get_contents(__DIR__ . '/tmp/prefix_my_class_name.php')
+            file_get_contents(self::$tmpPath . '/prefix_my_class_name.php')
         );
     }
 
@@ -146,17 +155,19 @@ class MigrationCreatorTest extends TestCase
     {
         parent::setUp();
 
-        @mkdir(__DIR__ . '/tmp');
+        @mkdir(self::$tmpPath);
     }
 
     public function tearDown()
     {
         parent::tearDown();
 
-        foreach (glob(__DIR__ . '/tmp/*') as $item) {
+        foreach (glob(self::$tmpPath . '/*') as $item) {
             @unlink($item);
         }
 
-        @rmdir(__DIR__ . '/tmp');
+        @rmdir(self::$tmpPath);
     }
+
+    protected static $tmpPath = __DIR__ . '/tmp';
 }

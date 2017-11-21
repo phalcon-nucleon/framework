@@ -2,9 +2,9 @@
 
 namespace Neutrino\Database\Migrations;
 
+use InvalidArgumentException;
 use Neutrino\Database\Migrations\Prefix\PrefixInterface;
 use Neutrino\Support\Str;
-use InvalidArgumentException;
 
 /**
  * Class MigrationCreator
@@ -41,7 +41,7 @@ class MigrationCreator
      */
     public function create($name, $path, $table = null, $create = false)
     {
-        $this->ensureMigrationDoesntAlreadyExist($name);
+        $this->ensureMigrationDoesntAlreadyExist($name, $path);
 
         $stub = $this->getStubContent($table, $create);
 
@@ -58,14 +58,17 @@ class MigrationCreator
      * Ensure that a migration with the given name doesn't already exist.
      *
      * @param  string $name
+     * @param  string $path
      *
      * @return void
      *
      * @throws \InvalidArgumentException
      */
-    protected function ensureMigrationDoesntAlreadyExist($name)
+    protected function ensureMigrationDoesntAlreadyExist($name, $path)
     {
-        if (class_exists($className = $this->getClassName($name))) {
+        // TODO Review check for version 2.0
+        if (class_exists($className = $this->getClassName($name))
+            || !empty(glob($path . '/*_' . $name . '.php'))) {
             throw new InvalidArgumentException("A {$className} class already exists.");
         }
     }

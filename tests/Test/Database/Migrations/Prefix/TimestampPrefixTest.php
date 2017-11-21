@@ -16,4 +16,9 @@ class TimestampPrefixTest extends TestCase
     {
         $this->assertRegExp('/^\d{10}$/', (new TimestampPrefix())->getPrefix());
     }
+
+    public function testDeletePrefix()
+    {
+        $this->assertEquals('my_class_name', (new TimestampPrefix())->deletePrefix('2017211122_my_class_name'));
+    }
 }

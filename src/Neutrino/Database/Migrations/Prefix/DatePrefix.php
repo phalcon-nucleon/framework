@@ -16,4 +16,17 @@ class DatePrefix implements PrefixInterface
     {
         return date('Y_m_d_His');
     }
+
+    /**
+     * Remove a prefix from a given str
+     *
+     * @param string $str
+     * @param string $delimiter
+     *
+     * @return mixed
+     */
+    public function deletePrefix($str, $delimiter = '_')
+    {
+        return implode($delimiter, array_slice(explode($delimiter, $str), 4));
+    }
 }

@@ -30,7 +30,7 @@ class Router extends \Phalcon\Cli\Router
         preg_match_all('/\{([\w_]+)\}/', $command, $matches);
 
         foreach ($matches[0] as $k => $match) {
-            $command = str_replace($match, '([[:alnum:]]+)', $command);
+            $command = str_replace($match, '([[:word:]]+)', $command);
 
             $params[substr($match, 1, -1)] = $k + 1;
         }

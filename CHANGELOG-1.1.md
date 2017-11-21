@@ -27,3 +27,7 @@
     - Add possibility to describe with or without decoration
  - \Neutrino\Foundation\Cli\Tasks\DefaultTask :
     - Improve command not found output
+ - \Neutrino\Cli\Output\QuestionHelper
+    - Fix ask ChoiceQuestion output
+ - \Neutrino\Cli\Router
+    - Fix addTask. Now create a route with "[:word:]" against "[:alnum:]"

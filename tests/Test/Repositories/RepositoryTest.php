@@ -9,7 +9,6 @@ use Neutrino\Support\Reflacker;
 use Neutrino\Support\Str;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\Message;
-use Phalcon\Mvc\Model\Query as ModelQuery;
 use Test\TestCase\TestCase;
 
 class RepositoryTest extends TestCase
@@ -45,11 +44,17 @@ class RepositoryTest extends TestCase
                  ]
              ], ['test' => 'abc']],
             [[
-                 'test IN ({test:array})',
-                 'bind' => [
-                     'test' => ['abc']
-                 ]
-             ], ['test' => ['abc']]],
+                'test IN ({test:array})',
+                'bind' => [
+                    'test' => ['abc']
+                ]
+            ], ['test' => ['abc']]],
+            [[
+                'test NOT IN ({test:array})',
+                'bind' => [
+                    'test' => ['abc']
+                ]
+            ], ['test' => ['operator' => 'NOT IN', 'value' => ['abc']]]],
             [[
                  'test >= :test:',
                  'bind' => [
@@ -196,6 +201,19 @@ class RepositoryTest extends TestCase
         $this->assertEquals(['id' => null, 'name' => 'name'], $result->toArray());
     }
 
+    public function testFirstOrCreate()
+    {
+        $this->mockDb(0, []);
+
+        $repository = new StubRepositoryModel;
+
+        $result = $repository->firstOrCreate(['name' => 'name']);
+
+        $this->assertInstanceOf(StubModelTest::class, $result);
+
+        $this->assertEquals(['id' => null, 'name' => 'name'], $result->toArray());
+    }
+
     /**
      * @dataProvider dataAll
      */
@@ -217,7 +235,6 @@ class RepositoryTest extends TestCase
 
     public function testSave()
     {
-        $this->markTestIncomplete('Test to redo');
         $this->mockDb(0, null);
         $repository = new StubRepositoryModel;
 
@@ -226,6 +243,7 @@ class RepositoryTest extends TestCase
 
         $this->assertTrue($repository->save($model));
         $this->assertTrue($repository->save([$model, $model]));
+        $this->assertTrue($repository->save($model), false);
     }
 
     public function testSaveFailed()
@@ -266,15 +284,23 @@ class RepositoryTest extends TestCase
 
     public function testUpdate()
     {
-        $this->markTestIncomplete('Test to redo');
-        $this->mockDb(0, null);
+        $mock = StubModelTest::make('t', true);
+        $mock['id'] = 1;
+
+        $this->mockDb(1, [$mock]);
+        $this->getDI()->get(Services::DB)->expects($this->any())
+            ->method('fetchOne')
+            ->will($this->returnValue(['rowcount' => 1]));
+
         $repository = new StubRepositoryModel;
 
         $model       = new StubModelTest;
+        $model->id = 1;
         $model->name = 'test';
 
         $this->assertTrue($repository->update($model));
         $this->assertTrue($repository->update([$model, $model]));
+        $this->assertTrue($repository->update($model), false);
     }
 
     public function testUpdateFailed()
@@ -324,6 +350,19 @@ class RepositoryTest extends TestCase
 
         $this->assertTrue($repository->delete($model));
         $this->assertTrue($repository->delete([$model, $model]));
+        $this->assertTrue($repository->delete($model, false));
+    }
+
+    public function testCreate()
+    {
+        $this->mockDb(0, null);
+        $repository = new StubRepositoryModel;
+
+        $model = StubModelTest::make('test');
+
+        $this->assertTrue($repository->create($model));
+        $this->assertTrue($repository->create([$model, $model]));
+        $this->assertTrue($repository->create($model, false));
     }
 
     public function dataEach()

@@ -279,7 +279,11 @@ abstract class Repository extends Injectable implements RepositoryInterface
             foreach ($params as $key => $value) {
                 if (is_array($value)) {
                     if(isset($value['operator']) && array_key_exists('value', $value)){
-                        $clauses[] = "$key {$value['operator']} :$key:";
+                        if(is_array($value['value'])){
+                            $clauses[] = "$key {$value['operator']} ({{$key}:array})";
+                        } else {
+                            $clauses[] = "$key {$value['operator']} :$key:";
+                        }
                         $params[$key] = $value['value'];
                     } else {
                         $clauses[] = "$key IN ({{$key}:array})";
@@ -339,8 +343,10 @@ abstract class Repository extends Injectable implements RepositoryInterface
             }
 
             if (!empty($this->messages)) {
-                throw new TransactionException(get_class(Arr::fetch($values,
-                        0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
+                throw new TransactionException(
+                    get_class(Arr::fetch($values, 0)) . ':' . $method .
+                    ': failed. Show ' . static::class . '::getMessages().'
+                );
             }
         } catch (\Exception $e) {
             $this->messages[] = $e->getMessage();
@@ -379,8 +385,10 @@ abstract class Repository extends Injectable implements RepositoryInterface
             }
 
             if (!empty($this->messages)) {
-                throw new TransactionException(get_class(Arr::fetch($values,
-                        0)) . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
+                throw new TransactionException(
+                    get_class(Arr::fetch($values, 0)) . ':' . $method .
+                    ': failed. Show ' . static::class . '::getMessages().'
+                );
             }
 
             if ($tx->commit() === false) {

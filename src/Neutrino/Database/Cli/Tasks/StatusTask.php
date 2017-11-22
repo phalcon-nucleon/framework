@@ -27,7 +27,7 @@ class StatusTask extends BaseTask
         if (count($migrations = $this->getStatusFor($ran)) > 0) {
             $this->table($migrations);
         } else {
-            $this->error('No migrations found');
+            $this->error('No migrations found.');
         }
     }
 

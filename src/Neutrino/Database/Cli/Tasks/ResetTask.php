@@ -37,7 +37,7 @@ class ResetTask extends BaseTask
         // the console screen, since the migrator itself functions without having
         // any instances of the OutputInterface contract passed into the class.
         foreach ($this->migrator->getNotes() as $note) {
-            $this->output->line($note);
+            $this->line($note);
         }
     }
 

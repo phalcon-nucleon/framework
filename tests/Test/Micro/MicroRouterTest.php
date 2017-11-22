@@ -4,6 +4,7 @@ namespace Test\Micro;
 
 use Neutrino\Constants\Services;
 use Neutrino\Micro\Router;
+use Phalcon\Mvc\Micro\Collection;
 use Test\TestCase\TestCase;
 
 class MicroRouterTest extends TestCase
@@ -90,18 +91,20 @@ class MicroRouterTest extends TestCase
     }
 
     /**
-     * @dataProvider dataTryRegisteringUnsupportedHttpMethod
+     * @dataProvider                    dataTryRegisteringUnsupportedHttpMethod
      * @expectedException \RuntimeException
      * @expectedExceptionMessageRegExp  /Neutrino\\Micro\\Router::add\w+: Micro Application doesn't support HTTP \w+ method\./
      *
      * @param $httpMethod
      */
-    public function testTryRegisteringUnsupportedHttpMethod($httpMethod) {
+    public function testTryRegisteringUnsupportedHttpMethod($httpMethod)
+    {
 
         /** @var Router $router */
         $router = $this->app->{Services::MICRO_ROUTER};
 
-        $router->{'add' . ucfirst($httpMethod)}('', function(){});
+        $router->{'add' . ucfirst($httpMethod)}('', function () {
+        });
     }
 
     public function dataUnsupportedMethods()
@@ -125,6 +128,57 @@ class MicroRouterTest extends TestCase
         /** @var Router $router */
         $router = $this->app->{Services::MICRO_ROUTER};
 
-        $router->$method(...[[], [], []]);
+        $router->$method([], [], []);
+    }
+
+    public function testMethodToRouter()
+    {
+        $methods = [
+            'handle'            => ['uri'],
+            'getNamespaceName'  => [],
+            'getControllerName' => [],
+            'getActionName'     => [],
+            'getParams'         => [],
+            'getMatchedRoute'   => [],
+            'getMatches'        => [],
+            'wasMatched'        => [],
+            'getRoutes'         => [],
+            'getRouteById'      => [1],
+            'getRouteByName'    => ['name'],
+        ];
+
+        $router = $this->mockService(Services::ROUTER, \Phalcon\Mvc\Router::class, true);
+
+        $mrouter = new Router();
+
+        foreach ($methods as $method => $params) {
+            $router
+                ->expects($this->once())
+                ->method($method)
+                ->with(...$params);
+
+            $mrouter->$method(...$params);
+        }
+    }
+
+    public function testMethodsToApplication()
+    {
+        $methods = [
+            'mount'    => [new Collection()],
+            'notFound' => ['handler']
+        ];
+
+        $application = $this->mockService(Services::APP, \Phalcon\Mvc\Micro::class, true);
+
+        $mrouter = new Router();
+
+        foreach ($methods as $method => $params) {
+            $application
+                ->expects($this->once())
+                ->method($method)
+                ->with(...$params);
+
+            $mrouter->$method(...$params);
+        }
     }
 }

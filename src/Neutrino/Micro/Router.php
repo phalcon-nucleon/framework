@@ -390,7 +390,7 @@ class Router extends Injectable implements RouterInterface
         }
 
         if(is_array($path)){
-            return function () use ($path) {
+            return function (...$args) use ($path) {
                 /** @var Micro $this */
 
                 $controller = isset($path['controller']) ? $path['controller'] : null;
@@ -402,7 +402,7 @@ class Router extends Injectable implements RouterInterface
                     throw new \RuntimeException('Method : "' . $action . '" doesn\'t exist on "' . $controller . '"');
                 }
 
-                return $handler->$action(...func_get_args());
+                return $handler->$action(...$args);
             };
         }
 

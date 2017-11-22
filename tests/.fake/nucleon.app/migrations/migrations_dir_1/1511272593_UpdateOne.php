@@ -12,7 +12,12 @@ class UpdateOne extends \Neutrino\Database\Migrations\Migration
      */
     public function up(\Neutrino\Database\Schema\Builder $schema)
     {
-        // TODO: Implement up() method.
+        global $listeners;
+
+        if (!isset($listeners[__METHOD__])) {
+            $listeners[__METHOD__] = 0;
+        }
+        $listeners[__METHOD__]++;
     }
 
     /**
@@ -24,6 +29,11 @@ class UpdateOne extends \Neutrino\Database\Migrations\Migration
      */
     public function down(\Neutrino\Database\Schema\Builder $schema)
     {
-        // TODO: Implement down() method.
+        global $listeners;
+
+        if (!isset($listeners[__METHOD__])) {
+            $listeners[__METHOD__] = 0;
+        }
+        $listeners[__METHOD__]++;
     }
 }

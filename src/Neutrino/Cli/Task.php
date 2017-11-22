@@ -65,7 +65,7 @@ abstract class Task extends PhalconTask
             if ($opt === true) {
                 $options[] = "-$name";
             } else {
-                $options[] = "--$name=\"$opt\"";
+                $options[] = "--$name=$opt";
             }
         }
 

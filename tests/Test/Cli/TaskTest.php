@@ -127,7 +127,7 @@ class TaskTest extends TestCase
                 'action' => 'act',
                 'arg',
                 '-tOpt',
-                '--strOpt="val"'
+                '--strOpt=val'
             ]);
 
         $task = $this->stubTask();

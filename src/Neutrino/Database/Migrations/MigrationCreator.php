@@ -66,10 +66,21 @@ class MigrationCreator
      */
     protected function ensureMigrationDoesntAlreadyExist($name, $path)
     {
-        // TODO Review check for version 2.0
-        if (class_exists($className = $this->getClassName($name))
-            || !empty(glob($path . '/*_' . $name . '.php'))) {
+        if (class_exists($className = $this->getClassName($name))) {
             throw new InvalidArgumentException("A {$className} class already exists.");
+        }
+
+        // TODO Review check for version 2.0
+        if(!empty($files = glob($path . '/*_*.php'))){
+            foreach ($files as $file) {
+                $file = str_replace('.php', '', basename($file));
+
+                $migration = $this->prefix->deletePrefix($file);
+
+                if($className === $this->getClassName($migration)){
+                    throw new InvalidArgumentException("A {$className} class already exists.");
+                }
+            }
         }
     }
 

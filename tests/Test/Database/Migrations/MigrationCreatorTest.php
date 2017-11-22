@@ -109,6 +109,12 @@ class MigrationCreatorTest extends TestCase
             ->method('getPrefix')
             ->willReturn('prefix');
 
+        $prefix
+            ->method('deletePrefix')
+            ->willReturnCallback(function($str){
+                return str_replace("prefix_", '', $str);
+            });
+
         $migrationCreator = new MigrationCreator($prefix);
 
         $migrationCreator->create('my_class_name', self::$tmpPath);

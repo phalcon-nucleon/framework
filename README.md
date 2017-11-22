@@ -20,11 +20,13 @@ Nucleon : Phalcon extended framework. (Kernel)
   - Manager
   - Throttle login
 - Cache Strategy 
-  - Allow to manage multiple backend cache storage)
+  - Allow to manage multiple backend cache storage
 - Providers
   - Lazy instantiation of all phalcon & neutrino services. Loaded once (for shared), when needed.
 - Facades
   - Allows you to use the facade pattern
+- Migrations
+  - Migrations are like version control for your database. (inspired from [laravel migrations](https://laravel.com/docs/5.5/migrations))
 - Console (neutrino\cli)
 - Dotconst (neutrino\const)
 

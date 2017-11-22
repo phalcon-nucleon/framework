@@ -2,6 +2,8 @@
 
 namespace Test\Database\Cli;
 
+use Neutrino\Cli\Output\Decorate;
+
 /**
  * Class StatusTaskTest
  *
@@ -96,9 +98,9 @@ class StatusTaskTest extends DatabaseCliTestCase
                 ['+------+---------------------------+', true],
                 ['| RAN? | MIGRATION                 |', true],
                 ['+------+---------------------------+', true],
-                ['| Y    | 123_create_users_table    |', true],
-                ['| N    | 456_create_profiles_table |', true],
-                ['| N    | 789_create_roles_table    |', true],
+                ['| ' . Decorate::info('Y') . '    | 123_create_users_table    |', true],
+                ['| ' . Decorate::apply('N', 'red') . '    | 456_create_profiles_table |', true],
+                ['| ' . Decorate::apply('N', 'red') . '    | 789_create_roles_table    |', true],
                 ['+------+---------------------------+', true]
             );
 

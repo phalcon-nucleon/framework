@@ -50,6 +50,6 @@ class Question
      */
     public function normalize($response)
     {
-        return trim($response);
+        return $response;
     }
 }

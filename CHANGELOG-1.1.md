@@ -33,3 +33,6 @@
     - Fix addTask. Now create a route with "[:word:]" against "[:alnum:]"
  - \Neutrino\Micro\Router 
     - Improve performance
+ - Cli Questions
+    - Improved question output
+    - Improved ChoiceQuestion 

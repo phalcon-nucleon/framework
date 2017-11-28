@@ -53,34 +53,6 @@ class QuestionHelperTest extends TestCase
         file_put_contents(self::$file, $mock);
     }
 
-    public function dataPrompt()
-    {
-        return [
-            [null, 'Ask this', new Question('Ask this', null)],
-            ['[a, b, c]', 'Ask this', new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 0)],
-            ['[a, b, c] (a)', 'Ask this', new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 0, 'a')],
-            ['[yes, no] (n)', 'Ask this', new ConfirmationQuestion('Ask this', false)],
-            ['[yes, no] (y)', 'Ask this', new ConfirmationQuestion('Ask this', true)],
-        ];
-    }
-
-    /**
-     * @dataProvider dataPrompt
-     */
-    public function testPrompt($infos, $questionStr, $question)
-    {
-        $output = $this->createMock(Writer::class);
-
-        $output->expects($this->once())->method('question')->with($questionStr);
-        if ($infos === null) {
-            $output->expects($this->never())->method('info');
-        } else {
-            $output->expects($this->once())->method('info')->with($infos);
-        }
-
-        Reflacker::invoke(QuestionHelper::class, 'prompt', $output, $question);
-    }
-
     public function testDoAsk()
     {
         $output = $this->createMock(Writer::class);
@@ -106,8 +78,9 @@ class QuestionHelperTest extends TestCase
             [true, "\n", new ConfirmationQuestion('Ask this', true)],
             [true, "y", new ConfirmationQuestion('Ask this', false)],
             [false, "n", new ConfirmationQuestion('Ask this', true)],
-            ['a', "\n", new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 0, 'a')],
-            ['b', "b", new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 0, 'a')],
+            ['a', "\n", new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 'a')],
+            ['b', "b", new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 'a')],
+            ['b', "1", new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 'a')],
         ];
     }
 
@@ -130,7 +103,7 @@ class QuestionHelperTest extends TestCase
         $output = $this->createMock(Writer::class);
 
         $this->mockStdIn("\n\nb");
-        $question = new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 3, 'a');
+        $question = new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 'a', 3);
 
         $result = Reflacker::invoke(QuestionHelper::class, 'ask', $output, $this->getStdIn(), $question);
 

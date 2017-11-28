@@ -154,9 +154,9 @@ abstract class Task extends PhalconTask
      *
      * @return null|string
      */
-    public function choices($str, array $choices, $default = null, $maxAttempts = 0)
+    public function choices($str, array $choices, $default = null, $maxAttempts = null)
     {
-        return $this->ask(new ChoiceQuestion($str, $choices, $maxAttempts, $default));
+        return $this->ask(new ChoiceQuestion($str, $choices, $default, $maxAttempts));
     }
 
     /**

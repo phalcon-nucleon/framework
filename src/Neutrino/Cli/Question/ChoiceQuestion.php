@@ -20,15 +20,16 @@ class ChoiceQuestion extends Question
      *
      * @param string      $question
      * @param array       $choices
-     * @param int         $maxAttempts
      * @param null|string $default
+     * @param null|int    $maxAttempts
      */
-    public function __construct($question, array $choices, $maxAttempts, $default = null)
+    public function __construct($question, array $choices, $default = null, $maxAttempts = null)
     {
         parent::__construct($question, $default);
 
-        $this->choices     = $choices;
-        $this->maxAttempts = $maxAttempts;
+        $this
+            ->setChoices($choices)
+            ->setMaxAttempts($maxAttempts);
     }
 
     /**
@@ -45,5 +46,33 @@ class ChoiceQuestion extends Question
     public function getMaxAttempts()
     {
         return $this->maxAttempts;
+    }
+
+    /**
+     * @param array $choices
+     *
+     * @return $this
+     */
+    public function setChoices($choices)
+    {
+        $this->choices = $choices;
+
+        return $this;
+    }
+
+    /**
+     * @param int $maxAttempts
+     *
+     * @return $this
+     */
+    public function setMaxAttempts($maxAttempts)
+    {
+        if (null !== $maxAttempts && $maxAttempts < 1) {
+            throw new \InvalidArgumentException('Maximum number of attempts must be a positive value.');
+        }
+
+        $this->maxAttempts = $maxAttempts;
+
+        return $this;
     }
 }

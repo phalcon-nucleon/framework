@@ -7,11 +7,8 @@ use Fake\Kernels\Cli\Tasks\StubTask;
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
-use Neutrino\Error\Error;
-use Neutrino\Error\Handler;
-use Neutrino\Error\Helper;
-use Neutrino\Error\Writer\Cli;
-use Neutrino\Error\Writer\View;
+use Neutrino\Foundation\Cli\Kernel;
+use Neutrino\Support\Reflacker;
 use Phalcon\Cli\Dispatcher;
 use Test\TestCase\TestCase;
 
@@ -27,8 +24,6 @@ class TaskTest extends TestCase
      */
     private function stubTask()
     {
-        StubTask::$enableConstructor = false;
-
         return new StubTask();
     }
 
@@ -54,12 +49,12 @@ class TaskTest extends TestCase
 
         $task = $this->stubTask();
 
-        $this->assertTrue($this->invokeMethod($task, 'hasOption', [$shouldHave]));
-        $this->assertFalse($this->invokeMethod($task, 'hasOption', [$shouldNotHave]));
+        $this->assertTrue(Reflacker::invoke($task, 'hasOption', $shouldHave));
+        $this->assertFalse(Reflacker::invoke($task, 'hasOption', $shouldNotHave));
 
-        $this->assertEquals($value, $this->invokeMethod($task, 'getOption', [$shouldHave]));
+        $this->assertEquals($value, Reflacker::invoke($task, 'getOption', $shouldHave));
 
-        $this->assertEquals($options, $this->invokeMethod($task, 'getOptions', []));
+        $this->assertEquals($options, Reflacker::invoke($task, 'getOptions'));
     }
 
     /**
@@ -74,12 +69,12 @@ class TaskTest extends TestCase
 
         $task = $this->stubTask();
 
-        $this->assertTrue($this->invokeMethod($task, 'hasArg', [$shouldHave]));
-        $this->assertFalse($this->invokeMethod($task, 'hasArg', [$shouldNotHave]));
+        $this->assertTrue(Reflacker::invoke($task, 'hasArg', $shouldHave));
+        $this->assertFalse(Reflacker::invoke($task, 'hasArg', $shouldNotHave));
 
-        $this->assertEquals($value, $this->invokeMethod($task, 'getArg', [$shouldHave]));
+        $this->assertEquals($value, Reflacker::invoke($task, 'getArg', $shouldHave));
 
-        $this->assertEquals($options, $this->invokeMethod($task, 'getArgs', []));
+        $this->assertEquals($options, Reflacker::invoke($task, 'getArgs'));
     }
 
     public function dataOutput()
@@ -120,5 +115,24 @@ class TaskTest extends TestCase
         $task = $this->stubTask();
 
         $task->line('test');
+    }
+
+    public function testCallTask()
+    {
+        $mock = $this->createMock(Kernel::class);
+        $mock->expects($this->once())
+            ->method('handle')
+            ->with([
+                'task'   => 'test',
+                'action' => 'act',
+                'arg',
+                '-tOpt',
+                '--strOpt=val'
+            ]);
+
+        $task = $this->stubTask();
+        $task->application = $mock;
+
+        $task->callTask('test', 'act', ['arg'], ['tOpt' => true, 'strOpt' => 'val']);
     }
 }

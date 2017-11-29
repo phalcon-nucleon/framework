@@ -15,25 +15,25 @@ class CliTest extends TestCase
     public function dataHandle()
     {
         $error = Error::fromException(new \Exception());
-        $data[] = [Helper::format($error), 'error', $error];
+        $data['error'] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'error', $error];
+        $data['E_ERROR'] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
-        $data[] = [null, 'warning', $error];
+        $data['E_WARNING'] = [Helper::format($error), 'warn', $error];
 
-        $error = Error::fromError(E_NOTICE, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [null, 'notice', $error];
+        $error = Error::fromError(E_NOTICE, 'E_NOTICE', __FILE__, __LINE__);
+        $data['E_NOTICE'] = [Helper::format($error), 'notice', $error];
 
         $error = Error::fromError(E_STRICT, 'E_STRICT', __FILE__, __LINE__);
-        $data[] = [null, 'notice', $error];
+        $data['E_STRICT'] = [Helper::format($error), 'info', $error];
 
         $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'error', $error];
+        $data['E_PARSE'] = [Helper::format($error), 'error', $error];
 
         $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'error', $error];
+        $data['E_USER_ERROR'] = [Helper::format($error), 'error', $error];
 
         return $data;
     }
@@ -67,7 +67,7 @@ class CliTest extends TestCase
         }
 
         $mock->expects($this->exactly(count($with)))
-            ->method('warn')
+            ->method($expectedMethod)
             ->withConsecutive(...$with);
 
         $writer = new Cli();

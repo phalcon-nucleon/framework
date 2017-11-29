@@ -13,6 +13,7 @@ use Neutrino\Support\Facades\Router;
 use Neutrino\Support\Facades\Session;
 use Neutrino\Support\Facades\Url;
 use Neutrino\Support\Facades\View;
+use Neutrino\Support\Reflacker;
 use Test\TestCase\TestCase;
 
 /**
@@ -49,7 +50,7 @@ class AllFacadeTest extends TestCase
     {
         $this->assertEquals(
             $serviceName,
-            $this->invokeStaticMethod($facadeClass, 'getFacadeAccessor')
+            Reflacker::invoke($facadeClass, 'getFacadeAccessor')
         );
     }
 }

@@ -16,7 +16,7 @@ use Phalcon\Logger as Phogger;
 class Flash implements Writable
 {
     /**
-     * @param \Neutrino\Error\Error $error
+     * @inheritdoc
      */
     public function handle(Error $error)
     {

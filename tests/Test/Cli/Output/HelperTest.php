@@ -115,20 +115,38 @@ class HelperTest extends \PHPUnit_Framework_TestCase
             ['test', new Phalcon\Mvc\Router\Route('test', [])],
             ['test (\w+)', new Phalcon\Cli\Router\Route('test (\w+)', [])],
             ['test/(\w+)', new Phalcon\Mvc\Router\Route('test/(\w+)', [])],
-            ['test ' . Decorate::notice('{param_1}'), new Phalcon\Cli\Router\Route('test (\w+)', ['param_1' => 1])],
-            ['test/' . Decorate::notice('{param_1}'), new Phalcon\Mvc\Router\Route('test/(\w+)', ['param_1' => 1])],
+            ['test {param_1}', new Phalcon\Cli\Router\Route('test (\w+)', ['param_1' => 1])],
+            ['test ' . Decorate::notice('{param_1}'), new Phalcon\Cli\Router\Route('test (\w+)', ['param_1' => 1]), true],
+            ['test/{param_1}', new Phalcon\Mvc\Router\Route('test/(\w+)', ['param_1' => 1])],
+            ['test/' . Decorate::notice('{param_1}'), new Phalcon\Mvc\Router\Route('test/(\w+)', ['param_1' => 1]), true],
             [
-                'test ' . Decorate::notice('{p1}') . ' ' . Decorate::notice('{p2}'),
+                'test {p1} {p2}',
                 new Phalcon\Cli\Router\Route('test (\w+) (\w+)', ['p1' => 1, 'p2' => 2])
             ], [
-                'test/' . Decorate::notice('{p1}') . '/' . Decorate::notice('{p2}'),
+                'test/{p1}/{p2}',
                 new Phalcon\Mvc\Router\Route('test/(\w+)/(\w+)', ['p1' => 1, 'p2' => 2])
+            ],[
+                'test ' . Decorate::notice('{p1}') . ' ' . Decorate::notice('{p2}'),
+                new Phalcon\Cli\Router\Route('test (\w+) (\w+)', ['p1' => 1, 'p2' => 2]),
+                true
             ], [
-                'test ' . Decorate::notice('{p1}') . '(?: ' . Decorate::notice('{p2}').')',
+                'test/' . Decorate::notice('{p1}') . '/' . Decorate::notice('{p2}'),
+                new Phalcon\Mvc\Router\Route('test/(\w+)/(\w+)', ['p1' => 1, 'p2' => 2]),
+                true
+            ], [
+                'test {p1}(?: {p2})',
                 new Phalcon\Cli\Router\Route('test (\w+)(?: (\w+))', ['p1' => 1, 'p2' => 2])
             ], [
-                'test/' . Decorate::notice('{p1}') . '/' . Decorate::notice('{p2}') . '(?:/'.Decorate::notice('{p3}').')',
+                'test/{p1}/{p2}(?:/{p3})',
                 new Phalcon\Mvc\Router\Route('test/(\w+)/(\w+)(?:/(\d+))', ['p1' => 1, 'p2' => 2, 'p3' => 3])
+            ], [
+                'test ' . Decorate::notice('{p1}') . '(?: ' . Decorate::notice('{p2}').')',
+                new Phalcon\Cli\Router\Route('test (\w+)(?: (\w+))', ['p1' => 1, 'p2' => 2]),
+                true
+            ], [
+                'test/' . Decorate::notice('{p1}') . '/' . Decorate::notice('{p2}') . '(?:/'.Decorate::notice('{p3}').')',
+                new Phalcon\Mvc\Router\Route('test/(\w+)/(\w+)(?:/(\d+))', ['p1' => 1, 'p2' => 2, 'p3' => 3]),
+                true
             ],
         ];
     }
@@ -136,8 +154,8 @@ class HelperTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider dataDescribeRoutePattern
      */
-    public function testDescribeRoutePattern($expected, $route)
+    public function testDescribeRoutePattern($expected, $route, $decorate = false)
     {
-        $this->assertEquals($expected, Helper::describeRoutePattern($route));
+        $this->assertEquals($expected, Helper::describeRoutePattern($route, $decorate));
     }
 }

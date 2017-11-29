@@ -2,6 +2,7 @@
 
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
 use Phalcon\Cli\Router\Route;
 
@@ -19,19 +20,20 @@ class DefaultTask extends Task
 
         if (empty($arguments)) {
             $this->application->handle(['task' => ListTask::class]);
+
             return;
         }
 
         $lines[] = 'Command "' . implode(Route::getDelimiter(), $arguments) . '" not found.';
 
         foreach ($this->router->getRoutes() as $route) {
-            $routes[] = explode(Route::getDelimiter(), $route->getPattern())[0];
+            $routes[explode(Route::getDelimiter(), $route->getPattern())[0]] = $route;
         }
 
-        if (!empty($routes) && !empty($alternatives = $this->findAlternatives($arguments[0], $routes))) {
-            $lines[] = 'Did you mean ' . (count($alternatives) > 1 ? 'one of theses' : 'this') . '?';
-            $lines   = array_merge($lines, array_map(function ($value) {
-                return '  ' . $value;
+        if (!empty($routes) && !empty($alternatives = $this->findAlternatives($arguments[0], array_keys($routes)))) {
+            $lines[] = 'Did you mean ' . (count($alternatives) > 1 ? 'one of theses' : 'this') . ' ?';
+            $lines = array_merge($lines, array_map(function ($value) use ($routes) {
+                return '  ' . Helper::describeRoutePattern($routes[$value]);
             }, $alternatives));
         }
 

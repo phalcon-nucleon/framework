@@ -10,6 +10,7 @@ use Neutrino\Constants\Services;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
+use Neutrino\Support\Reflacker;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;
@@ -74,9 +75,9 @@ class ListTaskTest extends TestCase
 
         $task = new ListTask();
 
-        $this->invokeMethod($task, 'describe', [$cmd, $class, $action]);
+        Reflacker::invoke($task, 'describe', $cmd, $class, $action);
 
-        $describes = $this->getValueProperty($task, 'describes');
+        $describes = Reflacker::get($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }
@@ -118,9 +119,9 @@ class ListTaskTest extends TestCase
 
         $task = new ListTask();
 
-        $this->invokeMethod($task, 'describeRoute', [$route]);
+        Reflacker::invoke($task, 'describeRoute', $route);
 
-        $describes = $this->getValueProperty($task, 'describes');
+        $describes = Reflacker::get($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }
@@ -128,24 +129,36 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write'  => ['exactly' => 9, 'consecutive' => [
+            'write'  => ['exactly' => 17, 'consecutive' => [
                 //['Available Commands :'],
                 [Helper::neutrinoVersion() . PHP_EOL, true],
-                [' ' . Decorate::info('help ( .*)*') . '                                    ', true],
-                [' ' . Decorate::info('list') . '            List all commands available.   ', true],
-                [' ' . Decorate::info('optimize') . '        Optimize the autoloader.       ', true],
-                [' ' . Decorate::info('clear-compiled') . '  Clear compilation.             ', true],
+                [' ' . Decorate::info('clear-compiled') . '         Clear compilation.                         ', true],
+                [' ' . Decorate::info('help ( .*)*') . '                                                       ', true],
+                [' ' . Decorate::info('list') . '                   List all commands available.               ', true],
+                [' ' . Decorate::info('migrate') . '                Run the database migrations.               ', true],
+                [' ' . Decorate::info('optimize') . '               Optimize the autoloader.                   ', true],
                 //['config', true],
-                [' ' . Decorate::info('config:cache') . '    Cache the configuration.       ', true],
-                [' ' . Decorate::info('config:clear') . '    Clear the configuration cache. ', true],
+                [' ' . Decorate::info('config:cache') . '           Cache the configuration.                   ', true],
+                [' ' . Decorate::info('config:clear') . '           Clear the configuration cache.             ', true],
+                //['make', true],
+                [' ' . Decorate::info('make:migration ' . Decorate::notice('{name}')) . '  Create a new migration file.               ', true],
+                //['migrate', true],
+                [' ' . Decorate::info('migrate:fresh') . '          Drop all tables and re-run all migrations. ', true],
+                [' ' . Decorate::info('migrate:install') . '        Create the migration storage.              ', true],
+                [' ' . Decorate::info('migrate:refresh') . '        Reset and re-run all migrations.           ', true],
+                [' ' . Decorate::info('migrate:reset') . '          Rollback all database migrations.          ', true],
+                [' ' . Decorate::info('migrate:rollback') . '       Rollback the last database migration.      ', true],
+                [' ' . Decorate::info('migrate:status') . '         Show the status of each migration.         ', true],
                 //['route', true],
-                [' ' . Decorate::info('route:list') . '      List all routes.               ', true],
+                [' ' . Decorate::info('route:list') . '             List all routes.                           ', true],
                 //['view', true],
-                [' ' . Decorate::info('view:clear') . '      Clear all compiled view files. ', true],
+                [' ' . Decorate::info('view:clear') . '             Clear all compiled view files.             ', true],
             ]],
-            'notice' => ['exactly' => 4, 'consecutive' => [
+            'notice' => ['exactly' => 6, 'consecutive' => [
                 ['Available Commands :'],
                 ['config'],
+                ['make'],
+                ['migrate'],
                 ['route'],
                 ['view'],
             ]]

@@ -4,6 +4,7 @@ namespace Test\Models;
 
 use Neutrino\Model;
 use Neutrino\Support\Arr;
+use Neutrino\Support\Reflacker;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\MetaData;
 use Test\TestCase\TestCase;
@@ -19,8 +20,8 @@ class ModelTest extends TestCase
     {
         parent::setUp();
 
-        $this->setStaticValueProperty(Model::class, 'columnsMapClass', []);
-        $this->setStaticValueProperty(Model::class, 'metaDatasClass', []);
+        Reflacker::set(Model::class, 'columnsMapClass', []);
+        Reflacker::set(Model::class, 'metaDatasClass', []);
         $this->mockModel = null;
     }
 
@@ -38,7 +39,7 @@ class ModelTest extends TestCase
 
     public function assertColumnBind($name, $expectedBind, $numeric, $class = Model::class)
     {
-        $meta = $this->getStaticValueProperty(Model::class, 'metaDatasClass')[$class];
+        $meta = Reflacker::get(Model::class, 'metaDatasClass')[$class];
 
         $bind = $meta[MetaData::MODELS_DATA_TYPES_BIND][$name];
 
@@ -54,7 +55,7 @@ class ModelTest extends TestCase
 
     public function assertColumnAdded($name, $type, $expectedBind, $numeric, $class = Model::class)
     {
-        $metaDatasClass = $this->getStaticValueProperty(Model::class, 'metaDatasClass');
+        $metaDatasClass = Reflacker::get(Model::class, 'metaDatasClass');
 
         $meta = $metaDatasClass[$class];
 
@@ -67,7 +68,7 @@ class ModelTest extends TestCase
         $this->assertArrayHasKey($name, $meta[MetaData::MODELS_DATA_TYPES]);
         $this->assertEquals($type, $meta[MetaData::MODELS_DATA_TYPES][$name]);
 
-        $columns = $this->getStaticValueProperty(Model::class, 'columnsMapClass')[$class];
+        $columns = Reflacker::get(Model::class, 'columnsMapClass')[$class];
 
         $this->assertArrayHasKey($name, $columns);
         $this->assertEquals($name, $columns[$name]);
@@ -104,7 +105,7 @@ class ModelTest extends TestCase
      */
     public function testDescribeColumnType($type, $expectedBind, $numeric = false)
     {
-        $this->invokeStaticMethod(Model::class, 'describeColumnType', ['test', $type]);
+        Reflacker::invoke(Model::class, 'describeColumnType', 'test', $type);
 
         $this->assertColumnBind('test', $expectedBind, $numeric);
     }
@@ -140,7 +141,7 @@ class ModelTest extends TestCase
      */
     public function testAddColumn($name, $type, $map, $expectedBind, $numeric = false)
     {
-        $this->invokeStaticMethod(Model::class, 'addColumn', [$name, $type, $map]);
+        Reflacker::invoke(Model::class, 'addColumn', $name, $type, $map);
 
         $this->assertColumnAdded($name, $type, $expectedBind, $numeric);
     }
@@ -258,11 +259,11 @@ class ModelTest extends TestCase
     {
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'column', [$name, $type, $options]);
+        Reflacker::invoke($model, 'column', $name, $type, $options);
 
-        $meta = $this->getStaticValueProperty(Model::class, 'metaDatasClass')[get_class($model)];
+        $meta = Reflacker::get(Model::class, 'metaDatasClass')[get_class($model)];
 
-        $this->assertEquals($meta, $this->invokeMethod($model, 'metaData', []));
+        $this->assertEquals($meta, Reflacker::invoke($model, 'metaData'));
 
         $this->assertColumnAdded($name, $type, $expectedBind, $numeric, get_class($model));
 
@@ -291,10 +292,10 @@ class ModelTest extends TestCase
             $this->assertEquals([$name => true], $meta[MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE]);
         }
 
-        $columns = $this->getStaticValueProperty(Model::class, 'columnsMapClass')[get_class($model)];
+        $columns = Reflacker::get(Model::class, 'columnsMapClass')[get_class($model)];
 
         $this->assertEquals([$name => $name], $columns);
-        $this->assertEquals($columns, $this->invokeMethod($model, 'columnMap', []));
+        $this->assertEquals($columns, Reflacker::invoke($model, 'columnMap'));
     }
 
     public function testFullColumns()
@@ -310,7 +311,7 @@ class ModelTest extends TestCase
         $options = [];
         $binds = [];
         foreach ($columns as $column) {
-            $this->invokeMethod($model, 'column', $column);
+            Reflacker::invoke($model, 'column', ...$column);
 
             $name = array_shift($column);
             $attrs[] = $name;
@@ -320,10 +321,10 @@ class ModelTest extends TestCase
             $binds[$name] = array_shift($column);
         }
 
-        $columns = $this->getStaticValueProperty(Model::class, 'columnsMapClass')[get_class($model)];
+        $columns = Reflacker::get(Model::class, 'columnsMapClass')[get_class($model)];
         $this->assertEquals($names, $columns);
 
-        $meta = $this->getStaticValueProperty(Model::class, 'metaDatasClass')[get_class($model)];
+        $meta = Reflacker::get(Model::class, 'metaDatasClass')[get_class($model)];
         $this->assertEquals($attrs, $meta[MetaData::MODELS_ATTRIBUTES]);
         $this->assertEquals($binds, $meta[MetaData::MODELS_DATA_TYPES_BIND]);
     }
@@ -345,18 +346,13 @@ class ModelTest extends TestCase
     {
         /** @var Model $model */
         $model = $this->getMockModel();
-        // TODO Understand why php7.1 reacts differently
-        if(PHP_VERSION_ID >= 70100){
-            $modelClass = get_class($model);
-        } else {
-            $modelClass = Model::class;
-        }
+        $modelClass = get_class($model);
 
-        $this->invokeMethod($model, 'primary', [$name, $type, $options], Model::class);
+        Reflacker::invoke($model, 'primary', $name, $type, $options);
 
         $this->assertColumnAdded($name, $type, Column::BIND_PARAM_INT, true, $modelClass);
 
-        $meta = $this->getStaticValueProperty(Model::class, 'metaDatasClass')[$modelClass];
+        $meta = Reflacker::get(Model::class, 'metaDatasClass')[$modelClass];
 
         $this->assertEquals([$name], $meta[MetaData::MODELS_PRIMARY_KEY]);
         $this->assertEquals([$name], $meta[MetaData::MODELS_NOT_NULL]);
@@ -364,22 +360,12 @@ class ModelTest extends TestCase
         if ($options['identity']) {
             $this->assertEquals($name, $meta[MetaData::MODELS_IDENTITY_COLUMN]);
         } else {
-            // TODO Understand why php7.1 reacts differently
-            if(PHP_VERSION_ID >= 70100){
-                $this->assertFalse($meta[MetaData::MODELS_IDENTITY_COLUMN]);
-            } else {
-                $this->assertArrayNotHasKey(MetaData::MODELS_IDENTITY_COLUMN, $meta);
-            }
+            $this->assertFalse($meta[MetaData::MODELS_IDENTITY_COLUMN]);
         }
         if ($options['autoIncrement']) {
             $this->assertEquals([$name => true], $meta[MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT]);
         } else {
-            // TODO Understand why php7.1 reacts differently
-            if(PHP_VERSION_ID >= 70100){
-                $this->assertEmpty($meta[MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT]);
-            } else {
-                $this->assertArrayNotHasKey(MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT, $meta);
-            }
+            $this->assertEmpty($meta[MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT]);
         }
     }
 
@@ -387,19 +373,15 @@ class ModelTest extends TestCase
     {
         /** @var Model $model */
         $model = $this->getMockModel();
-        if(PHP_VERSION_ID >= 70100){
-            $modelClass = get_class($model);
-        } else {
-            $modelClass = Model::class;
-        }
+        $modelClass = get_class($model);
 
-        $this->invokeMethod($model, 'primary', ['p_1', Column::TYPE_BIGINTEGER, ['multiple' => true]], Model::class);
-        $this->invokeMethod($model, 'primary', ['p_2', Column::TYPE_VARCHAR, ['multiple' => true]], Model::class);
+        Reflacker::invoke($model, 'primary', 'p_1', Column::TYPE_BIGINTEGER, ['multiple' => true]);
+        Reflacker::invoke($model, 'primary', 'p_2', Column::TYPE_VARCHAR, ['multiple' => true]);
 
         $this->assertColumnAdded('p_1', Column::TYPE_BIGINTEGER, Column::BIND_PARAM_INT, true, $modelClass);
         $this->assertColumnAdded('p_2', Column::TYPE_VARCHAR, Column::BIND_PARAM_STR, false, $modelClass);
 
-        $meta = $this->getStaticValueProperty(Model::class, 'metaDatasClass')[$modelClass];
+        $meta = Reflacker::get(Model::class, 'metaDatasClass')[$modelClass];
 
         $this->assertEquals(['p_1', 'p_2'], $meta[MetaData::MODELS_PRIMARY_KEY]);
         $this->assertEquals(['p_1', 'p_2'], $meta[MetaData::MODELS_NOT_NULL]);
@@ -423,12 +405,12 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'timestampable', [$field, $options]);
+        Reflacker::invoke($model, 'timestampable', $field, $options);
 
         $this->assertColumnAdded($field, $type, Column::BIND_PARAM_STR, false, get_class($model));
 
         $modelManager = $model->getModelsManager();
-        $behaviors = $this->getValueProperty($modelManager, '_behaviors');
+        $behaviors = Reflacker::get($modelManager, '_behaviors');
 
         $class = strtolower(get_class($model));
 
@@ -436,7 +418,7 @@ class ModelTest extends TestCase
         $this->assertEquals([
             'field'  => $field,
             'format' => $format
-        ], $this->invokeMethod($behaviors[$class][0], 'getOptions', [$event]));
+        ], Reflacker::invoke($behaviors[$class][0], 'getOptions', $event));
     }
 
     public function dataFailedTimestampable()
@@ -458,7 +440,7 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'timestampable', ['test', $options]);
+        Reflacker::invoke($model, 'timestampable', 'test', $options);
     }
 
     public function dataSoftDeletable()
@@ -477,12 +459,12 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'softDeletable', [$field, $options]);
+        Reflacker::invoke($model, 'softDeletable', $field, $options);
 
         $this->assertColumnAdded('t_1', $type, $bind, false, get_class($model));
 
         $modelManager = $model->getModelsManager();
-        $behaviors = $this->getValueProperty($modelManager, '_behaviors');
+        $behaviors = Reflacker::get($modelManager, '_behaviors');
 
         $class = strtolower(get_class($model));
 
@@ -490,7 +472,7 @@ class ModelTest extends TestCase
         $this->assertEquals([
             'field' => $field,
             'value' => $value
-        ], $this->invokeMethod($behaviors[$class][0], 'getOptions', []));
+        ], Reflacker::invoke($behaviors[$class][0], 'getOptions'));
     }
 
     public function dataFailedSoftDeletable()
@@ -510,7 +492,7 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'softDeletable', ['test', $options]);
+        Reflacker::invoke($model, 'softDeletable', 'test', $options);
     }
 
     public function testTimestamps()
@@ -518,14 +500,14 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'timestamps', ['test']);
+        Reflacker::invoke($model, 'timestamps', 'test');
 
         $this->assertColumnAdded('created_at', Column::TYPE_DATETIME, Column::BIND_PARAM_STR, false, get_class($model));
         $this->assertColumnAdded('updated_at', Column::TYPE_DATETIME, Column::BIND_PARAM_STR, false, get_class($model));
 
 
         $modelManager = $model->getModelsManager();
-        $behaviors = $this->getValueProperty($modelManager, '_behaviors');
+        $behaviors = Reflacker::get($modelManager, '_behaviors');
 
         $class = strtolower(get_class($model));
 
@@ -533,11 +515,11 @@ class ModelTest extends TestCase
         $this->assertEquals([
             'field'  => 'created_at',
             'format' => DATE_ATOM
-        ], $this->invokeMethod($behaviors[$class][0], 'getOptions', ['beforeValidationOnCreate']));
+        ], Reflacker::invoke($behaviors[$class][0], 'getOptions', 'beforeValidationOnCreate'));
         $this->assertEquals([
             'field'  => 'updated_at',
             'format' => DATE_ATOM
-        ], $this->invokeMethod($behaviors[$class][1], 'getOptions', ['beforeValidationOnUpdate']));
+        ], Reflacker::invoke($behaviors[$class][1], 'getOptions', 'beforeValidationOnUpdate'));
     }
 
     public function testSoftDelete()
@@ -545,12 +527,12 @@ class ModelTest extends TestCase
         /** @var Model $model */
         $model = $this->getMockModel();
 
-        $this->invokeMethod($model, 'softDelete', []);
+        Reflacker::invoke($model, 'softDelete');
 
         $this->assertColumnAdded('deleted', Column::TYPE_BOOLEAN, Column::BIND_PARAM_BOOL, false, get_class($model));
 
         $modelManager = $model->getModelsManager();
-        $behaviors = $this->getValueProperty($modelManager, '_behaviors');
+        $behaviors = Reflacker::get($modelManager, '_behaviors');
 
         $class = strtolower(get_class($model));
 
@@ -558,6 +540,6 @@ class ModelTest extends TestCase
         $this->assertEquals([
             'field' => 'deleted',
             'value' => true
-        ], $this->invokeMethod($behaviors[$class][0], 'getOptions', []));
+        ], Reflacker::invoke($behaviors[$class][0], 'getOptions'));
     }
 }

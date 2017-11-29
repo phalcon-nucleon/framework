@@ -3,6 +3,7 @@
 namespace Test\Error;
 
 use Neutrino\Error\Error;
+use Neutrino\Support\Reflacker;
 use Test\TestCase\TestCase;
 
 /**
@@ -27,7 +28,7 @@ class ErrorTest extends TestCase
     {
         $error = new Error($options);
 
-        $attributes = $this->getValueProperty($error, 'attributes');
+        $attributes = Reflacker::get($error, 'attributes');
 
         $keys = [
             'type',

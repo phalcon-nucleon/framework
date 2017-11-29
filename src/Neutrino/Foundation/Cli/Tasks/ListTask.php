@@ -54,7 +54,7 @@ class ListTask extends Task
 
         $this->notice('Available Commands :');
 
-        (new Group($this->output, $datas))->display();
+        (new Group($this->output, $datas, Group::SORT_ASC))->display();
     }
 
     /**
@@ -72,7 +72,7 @@ class ListTask extends Task
 
         $this->scanned[$class . '::' . $action] = true;
 
-        $compiled = Helper::describeRoutePattern($route);
+        $compiled = Helper::describeRoutePattern($route, true);
 
         $this->describe($compiled, $class, $action);
     }

@@ -5,6 +5,7 @@ namespace Test\Cli\Output;
 use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Group;
 use Neutrino\Cli\Output\Writer;
+use Neutrino\Support\Reflacker;
 use Test\TestCase\TestCase;
 
 /**
@@ -42,7 +43,7 @@ class GroupTest extends TestCase
     {
         return [
             [[
-                 'default' => ['list' => 'all commands'],
+                 '_default' => ['list' => 'all commands'],
                  'route'   => ['route:list' => 'all routes'],
              ],
              [
@@ -50,7 +51,7 @@ class GroupTest extends TestCase
                  'route:list' => 'all routes',
              ]],
             [[
-                 'default' => ['list' => 'all commands'],
+                 '_default' => ['list' => 'all commands'],
                  'route'   => [
                      'route:list'  => 'all routes',
                      'route:cache' => 'cache routes',
@@ -66,7 +67,7 @@ class GroupTest extends TestCase
                  'view:clear'  => 'clear views',
              ]],
             [[
-                 'default' => ['list' => 'all commands'],
+                 '_default' => ['list' => 'all commands'],
                  'route'   => [
                      'route:list'                  => 'all routes',
                      "\033[32mroute:cache\033[39m" => 'cache routes',
@@ -93,9 +94,9 @@ class GroupTest extends TestCase
 
         $table = new Group($output, $data);
 
-        $this->invokeMethod($table, 'generateGroupData', []);
+        Reflacker::invoke($table, 'generateGroupData');
 
-        $columns = $this->getValueProperty($table, 'groups');
+        $columns = Reflacker::get($table, 'groups');
 
         $this->assertEquals($expected, $columns);
     }
@@ -157,7 +158,7 @@ class GroupTest extends TestCase
 
         $table = new Group($output, $data);
 
-        $this->invokeMethod($table, 'display', []);
+        Reflacker::invoke($table, 'display');
 
         $this->assertEquals($expected, $output->out);
     }

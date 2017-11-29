@@ -15,6 +15,9 @@ use Phalcon\Http\Response;
 class Json implements Writable
 {
 
+    /**
+     * @inheritdoc
+     */
     public function handle(Error $error)
     {
         if (!$error->isFateful()) {

@@ -83,10 +83,11 @@ final class Helper
 
     /**
      * @param \Phalcon\Cli\Router\Route|\Phalcon\Mvc\Router\Route $route
+     * @param bool                                                $decorate
      *
      * @return string
      */
-    public static function describeRoutePattern($route)
+    public static function describeRoutePattern($route, $decorate = false)
     {
         $paths = $route->getPaths();
 
@@ -97,7 +98,11 @@ final class Helper
 
             foreach ($matches[1] as $idx => $match) {
                 if (Str::startsWith($match, ':') && in_array($match, [':controller', ':module', ':action', ':namespace'])) {
-                    $compiled = preg_replace('/\([^?][^\/\)]+\)/', Decorate::notice('{' . str_replace(':', '', $match) . '}'), $compiled, 1);
+                    $match = '{' . str_replace(':', '', $match) . '}';
+                    if($decorate){
+                        $match = Decorate::notice($match);
+                    }
+                    $compiled = preg_replace('/\([^?][^\/\)]+\)/', $match, $compiled, 1);
                 }
             }
 
@@ -106,7 +111,11 @@ final class Helper
                     continue;
                 }
                 if (is_int($value)) {
-                    $compiled = preg_replace('/\([^?][^\/\)]+\)/', Decorate::notice('{' . $key . '}'), $compiled, 1);
+                    $key = '{' . $key . '}';
+                    if($decorate){
+                        $key = Decorate::notice($key);
+                    }
+                    $compiled = preg_replace('/\([^?][^\/\)]+\)/', $key, $compiled, 1);
                 }
             }
             preg_match('/\^(.+)\$/', $compiled, $matchs);

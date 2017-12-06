@@ -124,6 +124,15 @@ class FileStorageTest extends TestCase
         $this->assertEquals(4, $fileStorage->getNextBatchNumber());
     }
 
+    public function testGetLastNoData()
+    {
+        $fileStorage = new FileStorage();
+
+        file_put_contents(self::$storageFilePath, json_encode([]));
+
+        $this->assertEquals([], $fileStorage->getLast());
+    }
+
     public function testGetLast()
     {
         $fileStorage = new FileStorage();

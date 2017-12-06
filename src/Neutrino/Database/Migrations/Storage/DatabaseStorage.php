@@ -9,6 +9,7 @@ use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema\Builder;
 use Neutrino\Support\Arr;
 use Phalcon\Di;
+use Phalcon\Mvc\Model;
 
 /**
  * Class DatabaseRepository
@@ -77,7 +78,11 @@ class DatabaseStorage implements StorageInterface
     {
         $result = $this->repository->first(['batch' => $this->getLastBatchNumber()], ['migration' => 'DESC']);
 
-        return [$result->toArray()];
+        if ($result instanceof Model) {
+            return [$result->toArray()];
+        }
+
+        return [];
     }
 
     /**

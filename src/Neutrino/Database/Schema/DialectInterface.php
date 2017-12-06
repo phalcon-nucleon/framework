@@ -35,6 +35,15 @@ interface DialectInterface extends \Phalcon\Db\DialectInterface
     public function getType(Fluent $column);
 
     /**
+     * Get the SQL Index type for the index data type.
+     *
+     * @param  \Neutrino\Support\Fluent $index
+     *
+     * @return array
+     */
+    public function getIndexType(Fluent $index);
+
+    /**
      * Create the column type definition for a boolean type.
      * 
      * @param \Neutrino\Support\Fluent $column

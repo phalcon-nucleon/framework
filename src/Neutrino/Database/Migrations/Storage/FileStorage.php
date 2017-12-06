@@ -64,6 +64,10 @@ class FileStorage implements StorageInterface
     {
         $data = $this->getData();
 
+        if(empty($data)){
+            return [];
+        }
+
         $lastBatch = $this->getLastBatchNumber();
 
         $data = array_filter($data, function ($datum) use ($lastBatch) {
@@ -124,6 +128,10 @@ class FileStorage implements StorageInterface
     public function getLastBatchNumber()
     {
         $data = $this->getData();
+
+        if(empty($data)){
+            return 0;
+        }
 
         $batch = array_column($data, 'batch');
 

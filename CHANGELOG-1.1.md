@@ -3,6 +3,7 @@
 ## v1.1.1
 ### Fixes
  - Migration\Storages: Fix when migration is empty
+ - Schema\Blueprint: Increment columns must be always primary key
 
 ## v1.1.0
 

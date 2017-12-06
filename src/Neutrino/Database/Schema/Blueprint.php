@@ -796,6 +796,17 @@ class Blueprint
         return $this->addColumn(__FUNCTION__, $column);
     }
 
+    protected function addInteger($type, $column, $autoIncrement = false, $unsigned = false)
+    {
+        $column = $this->addColumn($type, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
+
+        if ($autoIncrement) {
+            $column->primary();
+        }
+
+        return $column;
+    }
+
     /**
      * Create a new integer (4-byte) column on the table.
      *
@@ -807,7 +818,7 @@ class Blueprint
      */
     public function integer($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
+        return $this->addInteger(__FUNCTION__, $column, $autoIncrement, $unsigned);
     }
 
     /**
@@ -821,7 +832,7 @@ class Blueprint
      */
     public function tinyInteger($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
+        return $this->addInteger(__FUNCTION__, $column, $autoIncrement, $unsigned);
     }
 
     /**
@@ -835,7 +846,7 @@ class Blueprint
      */
     public function smallInteger($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
+        return $this->addInteger(__FUNCTION__, $column, $autoIncrement, $unsigned);
     }
 
     /**
@@ -849,7 +860,7 @@ class Blueprint
      */
     public function mediumInteger($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
+        return $this->addInteger(__FUNCTION__, $column, $autoIncrement, $unsigned);
     }
 
     /**
@@ -863,7 +874,7 @@ class Blueprint
      */
     public function bigInteger($column, $autoIncrement = false, $unsigned = false)
     {
-        return $this->addColumn(__FUNCTION__, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
+        return $this->addInteger(__FUNCTION__, $column, $autoIncrement, $unsigned);
     }
 
     /**

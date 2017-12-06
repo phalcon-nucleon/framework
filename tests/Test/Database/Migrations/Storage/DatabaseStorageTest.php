@@ -217,6 +217,23 @@ class DatabaseStorageTest extends TestCase
         $this->assertEquals(2, $databaseStorage->getNextBatchNumber());
     }
 
+    public function testGetLastNoData()
+    {
+        $mock = $this->mockService(MigrationRepository::class, MigrationRepository::class, true);
+
+        $mock
+            ->expects($this->once())
+            ->method('first')
+            ->with(['batch' => 0], ['migration' => 'DESC'])
+            ->willReturn(
+                false
+            );
+
+        $databaseStorage = new DatabaseStorage();
+
+        $this->assertEquals([], $databaseStorage->getLast());
+    }
+
     public function testGetLast()
     {
         $mock = $this->mockService(MigrationRepository::class, MigrationRepository::class, true);

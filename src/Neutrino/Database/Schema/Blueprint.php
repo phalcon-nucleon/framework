@@ -394,7 +394,7 @@ class Blueprint
     {
         $name = $index->get('name') ?: $this->createIndexName($index->get('type'), $index->get('columns'));
 
-        return new Index($name, $index->get('columns'), $index->get('type'));
+        return new Index($name, $index->get('columns'), $grammar->getIndexType($index));
     }
 
     /**

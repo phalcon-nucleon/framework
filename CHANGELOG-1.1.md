@@ -3,7 +3,9 @@
 ## v1.1.1
 ### Fixes
  - Migration\Storages: Fix when migration is empty
- - Schema\Blueprint: Increment columns must be always primary key
+ - Schema\Blueprint: 
+    - Increment columns must be always primary key
+    - Fix index generation when index type is "index"
 
 ## v1.1.0
 

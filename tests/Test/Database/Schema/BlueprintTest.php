@@ -434,7 +434,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         return [
             [
                 new Fluent(['name' => 'test_column_index', 'type' => 'index', 'columns' => ['column']]),
-                new Index('test_column_index', ['column'], 'index')
+                new Index('test_column_index', ['column'], '')
             ], [
                 new Fluent(['name' => 'test_column_unique', 'type' => 'unique', 'columns' => ['column']]),
                 new Index('test_column_unique', ['column'], 'unique')
@@ -444,7 +444,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 new Fluent(['name' => 'test_column_column_2_index', 'type' => 'index', 'columns' => ['column', 'column_2']]),
-                new Index('test_column_column_2_index', ['column', 'column_2'], 'index')
+                new Index('test_column_column_2_index', ['column', 'column_2'], '')
             ], [
                 new Fluent(['name' => 'test_column_column_2_unique', 'type' => 'unique', 'columns' => ['column', 'column_2']]),
                 new Index('test_column_column_2_unique', ['column', 'column_2'], 'unique')

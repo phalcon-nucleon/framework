@@ -25,6 +25,24 @@ trait DialectTrait
     }
 
     /**
+     * Get the SQL Index type for the index data type.
+     *
+     * @param  \Neutrino\Support\Fluent $index
+     *
+     * @return string
+     */
+    public function getIndexType(Fluent $index)
+    {
+        $type = $index->get('type');
+
+        if (strtolower($type) === 'index') {
+            return '';
+        }
+
+        return $type;
+    }
+
+    /**
      * Create the column type definition for a boolean type.
      * 
      * @param \Neutrino\Support\Fluent $column

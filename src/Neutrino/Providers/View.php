@@ -58,8 +58,6 @@ class View extends Injectable implements Providable
                         [
                             'compiledPath' => $config->compiled_path,
                             'compiledSeparator' => '_',
-                        ],
-                        [
                             'compileAlways' => APP_ENV === Env::DEVELOPMENT,
                         ],
                         isset($config->options) ? (array)$config->options : []

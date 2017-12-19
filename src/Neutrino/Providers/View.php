@@ -2,6 +2,7 @@
 
 namespace Neutrino\Providers;
 
+use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
 use Neutrino\Interfaces\Providable;
 use Neutrino\View\Engine\Extensions\PhpFunction as PhpFunctionExtension;
@@ -51,10 +52,19 @@ class View extends Injectable implements Providable
                     /* @var \Phalcon\Di $di */
                     $volt = new VoltEngine($view, $di);
 
-                    $volt->setOptions([
-                        'compiledPath'      => $di->getShared(Services::CONFIG)->view->compiled_path,
-                        'compiledSeparator' => '_'
-                    ]);
+                    $config = $di->getShared(Services::CONFIG)->view;
+
+                    $options = array_merge(
+                        [
+                            'compiledPath' => $config->compiled_path,
+                            'compiledSeparator' => '_',
+                            'compileAlways' => APP_ENV === Env::DEVELOPMENT,
+                        ],
+                        isset($config->options) ? (array)$config->options : []
+                    );
+
+                    $volt->setOptions($options);
+
                     $volt->getCompiler()->addExtension(new PhpFunctionExtension());
 
                     return $volt;

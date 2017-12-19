@@ -1,5 +1,10 @@
 #Release Note
 
+## v1.1.2
+### Added
+ - Provider\View: View engine options configurable
+ - Provider\View: always compile when env is development
+
 ## v1.1.1
 ### Fixes
  - Migration\Storages: Fix when migration is empty

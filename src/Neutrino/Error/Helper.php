@@ -127,6 +127,7 @@ class Helper
             case 'unknown type':
                 return '?';
             case 'resource':
+            case 'resource (closed)':
                 return $type;
             case 'string':
                 if (strlen($value) > 8) {

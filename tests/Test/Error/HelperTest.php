@@ -49,7 +49,11 @@ class HelperTest extends TestCase
     {
         $f = fopen('php://memory', 'r');
         fclose($f);
-        $this->assertEquals('?', Helper::verboseType($f));
+        if(PHP_VERSION_ID >= 70200){
+            $this->assertEquals('resource (closed)', Helper::verboseType($f));
+        } else {
+            $this->assertEquals('?', Helper::verboseType($f));
+        }
     }
 
     public function dataGetErrorType()

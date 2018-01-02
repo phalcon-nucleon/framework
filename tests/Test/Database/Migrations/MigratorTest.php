@@ -191,7 +191,11 @@ class MigratorTest extends TestCase
 
     public function testRollbackNoFile()
     {
-        $migrator = new Migrator($this->createMock(StorageInterface::class), new TimestampPrefix());
+        $storage = $this->createMock(StorageInterface::class);
+
+        $storage->expects($this->once())->method('getLast')->willReturn([]);
+
+        $migrator = new Migrator($storage, new TimestampPrefix());
 
         $migrator->rollback([
             BASE_PATH . '/migrations'

@@ -1,5 +1,10 @@
 #Release Note
 
+## v1.1.3
+### Fixed
+ - Support php 7.2.0
+ - Support phalcon 3.3.0
+
 ## v1.1.2
 ### Added
  - Provider\View: View engine options configurable

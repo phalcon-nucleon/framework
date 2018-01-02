@@ -305,12 +305,13 @@ trait WrapperTrait
      *
      * @param string $tableName
      * @param string $schemaName
+     * @param bool   $ifExists
      *
      * @return string
      */
-    public function dropTable($tableName, $schemaName)
+    public function dropTable($tableName, $schemaName = null, $ifExists = null)
     {
-        return $this->dialect->dropTable($tableName, $schemaName);
+        return $this->dialect->dropTable($tableName, $schemaName, $ifExists);
     }
 
     /**

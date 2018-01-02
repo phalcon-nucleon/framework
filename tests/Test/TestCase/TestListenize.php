@@ -40,6 +40,6 @@ trait TestListenize
      */
     public function getView($seek)
     {
-        return $this->hasView($seek) ? $this->views[$seek] : null;
+        return $this->hasView($seek) ? $this->views[$seek] : [];
     }
 }

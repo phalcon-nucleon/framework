@@ -2,7 +2,8 @@
 
 namespace Test\View;
 
-use Neutrino\View\Engine\Extensions\PhpFunction;
+use Neutrino\View\Engine\Compiler\Extensions\PhpFunctionExtension;
+use Phalcon\Mvc\View\Engine\Volt\Compiler;
 use Test\TestCase\TestCase;
 
 /**
@@ -30,6 +31,6 @@ class PhpFunctionTest extends TestCase
      */
     public function testCompileFunction($function, $args, $expected)
     {
-        $this->assertEquals($expected, (new PhpFunction())->compileFunction($function, $args));
+        $this->assertEquals($expected, (new PhpFunctionExtension($this->createMock(Compiler::class)))->compileFunction($function, $args, null));
     }
 }

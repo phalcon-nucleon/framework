@@ -5,7 +5,6 @@ namespace Neutrino\Providers;
 use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
 use Neutrino\Interfaces\Providable;
-use Neutrino\View\Engine\Extensions\PhpFunction as PhpFunctionExtension;
 use Phalcon\Assets\Manager as AssetsManager;
 use Phalcon\Di\Injectable;
 use Phalcon\DiInterface;
@@ -65,7 +64,30 @@ class View extends Injectable implements Providable
 
                     $volt->setOptions($options);
 
-                    $volt->getCompiler()->addExtension(new PhpFunctionExtension());
+                    $compiler = $volt->getCompiler();
+
+                    $extensions = isset($config->extensions) ? $config->extensions : [];
+                    foreach ($extensions as $extension) {
+                        $compiler->addExtension(new $extension($compiler));
+                    }
+
+                    $filters = isset($config->filters) ? $config->filters : [];
+                    foreach ($filters as $name => $filter) {
+                        $filter = new $filter($compiler);
+                        $compiler->addFilter($name, function ($resolvedArgs, $exprArgs) use ($filter) {
+                            /* @var \Neutrino\View\Engine\Compiler\FilterExtend $filter */
+                            return $filter->compileFilter($resolvedArgs, $exprArgs);
+                        });
+                    }
+
+                    $functions = isset($config->functions) ? $config->functions : [];
+                    foreach ($functions as $name => $function) {
+                        $function = new $function($compiler);
+                        $compiler->addFunction($name, function ($resolvedArgs, $exprArgs) use ($function) {
+                            /* @var \Neutrino\View\Engine\Compiler\FunctionExtend $function */
+                            return $function->compileFunction($resolvedArgs, $exprArgs);
+                        });
+                    }
 
                     return $volt;
                 },

@@ -2,7 +2,7 @@
 
 namespace Test\View;
 
-use Neutrino\View\Engine\Compiler\Extensions\PhpFunctionExtension;
+use Neutrino\View\Engines\Volt\Compiler\Extensions\PhpFunctionExtension;
 use Phalcon\Mvc\View\Engine\Volt\Compiler;
 use Test\TestCase\TestCase;
 

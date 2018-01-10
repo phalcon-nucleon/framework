@@ -1,8 +1,8 @@
 <?php
 
-namespace Neutrino\View\Engine\Compiler\Extensions;
+namespace Neutrino\View\Engines\Volt\Compiler\Extensions;
 
-use Neutrino\View\Engine\Compiler\ExtensionExtend;
+use Neutrino\View\Engines\Volt\Compiler\ExtensionExtend;
 
 /**
  * Class PhpFunctions

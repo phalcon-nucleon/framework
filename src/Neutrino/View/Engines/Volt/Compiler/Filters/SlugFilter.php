@@ -1,9 +1,9 @@
 <?php
 
-namespace Neutrino\View\Engine\Compiler\Filters;
+namespace Neutrino\View\Engines\Volt\Compiler\Filters;
 
 use Neutrino\Support\Str;
-use Neutrino\View\Engine\Compiler\FilterExtend;
+use Neutrino\View\Engines\Volt\Compiler\FilterExtend;
 
 /**
  * Class SlugFilter

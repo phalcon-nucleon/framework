@@ -20,6 +20,7 @@ use Neutrino\Support\Provider;
 use Neutrino\Providers\Security;
 use Neutrino\Providers\Url;
 use Neutrino\Providers\View;
+use Neutrino\View\Engines\Volt\VoltEngineRegister;
 use Phalcon\Annotations\Adapter\Memory as AnnotationsAdapterMemory;
 use Phalcon\Flash\Direct as FlashDirect;
 use Phalcon\Flash\Session as FlashSession;
@@ -224,7 +225,10 @@ class AllProvidersTest extends TestCase
             ],
             'view'  => [
                 'views_dir'     => '',
-                'compiled_path' => ''
+                'compiled_path' => '',
+                'engines' => [
+                    '.volt' => VoltEngineRegister::class
+                ]
             ]
         ]);
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Neutrino\View\Engine\Compiler;
+namespace Neutrino\View\Engines\Volt\Compiler;
 
 /**
  * Class ExtensionInterface

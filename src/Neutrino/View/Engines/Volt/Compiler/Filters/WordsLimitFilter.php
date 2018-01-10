@@ -1,18 +1,18 @@
 <?php
 
-namespace Neutrino\View\Engine\Compiler\Filters;
+namespace Neutrino\View\Engines\Volt\Compiler\Filters;
 
 use Neutrino\Support\Str;
-use Neutrino\View\Engine\Compiler\FilterExtend;
+use Neutrino\View\Engines\Volt\Compiler\FilterExtend;
 
 /**
- * Class SlugFilter
+ * Class WordsLimitFilter
  *
  * @package Neutrino\View\Engine\Compiler\Filters
  *
- * @see \Neutrino\Support\Str::limit()
+ * @see \Neutrino\Support\Str::words()
  */
-class LimitFilter extends FilterExtend
+class WordsLimitFilter extends FilterExtend
 {
 
     /**
@@ -23,6 +23,6 @@ class LimitFilter extends FilterExtend
      */
     public function compileFilter($resolvedArgs, $exprArgs)
     {
-        return Str::class . '::limit(' . $resolvedArgs . ')';
+        return Str::class . '::words(' . $resolvedArgs . ')';
     }
 }

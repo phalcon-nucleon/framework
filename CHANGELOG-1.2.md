@@ -16,6 +16,7 @@
         - Allow to add a filter who generate `Neutrino\Support\Str::words`
  - View engines : 
     - Allow to configuring multiple engines.
+ - Blueprint : Support foreign key with onDelete or/and onUpdate
 ### Change
  - Namespace `Neutrino\View\Engine` moved to `Neutrino\View\Engines`
  - Class `Neutrino\View\Engine\PhpFunction` moved to `Neutrino\View\Engines\Volt\Compiler\Extensions\PhpFunctionExtension`

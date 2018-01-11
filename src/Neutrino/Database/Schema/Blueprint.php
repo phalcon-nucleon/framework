@@ -412,11 +412,20 @@ class Blueprint
 
         $name = $index->get('name') ?: $this->createReferenceName($columns, $index->get('on'), $references);
 
-        return new Reference($name, [
-            'columns'           => $columns,
-            'referencedTable'   => $index->get('on'),
-            'referencedColumns' => $references,
-        ]);
+        $definition = [
+          'columns'           => $columns,
+          'referencedTable'   => $index->get('on'),
+          'referencedColumns' => $references,
+        ];
+
+        if ($index->get('onDelete')) {
+            $definition['onDelete'] = $index->get('onDelete');
+        }
+        if ($index->get('onUpdate')) {
+            $definition['onUpdate'] = $index->get('onUpdate');
+        }
+
+        return new Reference($name, $definition);
     }
 
     /**

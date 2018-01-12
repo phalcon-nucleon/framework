@@ -339,11 +339,17 @@ class Blueprint
 
             unset($column['index']);
         } elseif ($column->get('foreign')) {
-            $this->foreign($column->get('name'))->on($column->get('on'))->references($column->get('references'));
+            $this->foreign($column->get('name'))
+                ->on($column->get('on'))
+                ->references($column->get('references'))
+                ->onUpdate($column->get('onUpdate'))
+                ->onDelete($column->get('onDelete'));
 
             unset($column['foreign']);
             unset($column['on']);
             unset($column['references']);
+            unset($column['onUpdate']);
+            unset($column['onDelete']);
         }
     }
 

@@ -17,6 +17,7 @@
  - View engines : 
     - Allow to configuring multiple engines.
  - Blueprint : Support foreign key with onDelete or/and onUpdate
+ - Blueprint : Allow to create index with custom type
 ### Change
  - Namespace `Neutrino\View\Engine` moved to `Neutrino\View\Engines`
  - Class `Neutrino\View\Engine\PhpFunction` moved to `Neutrino\View\Engines\Volt\Compiler\Extensions\PhpFunctionExtension`

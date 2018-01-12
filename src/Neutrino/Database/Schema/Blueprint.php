@@ -641,7 +641,7 @@ class Blueprint
      * Specify the primary key(s) for the table.
      *
      * @param  string|array $columns
-     * @param  string       $name
+     * @param  string|null  $name
      *
      * @return \Neutrino\Support\Fluent
      */
@@ -654,7 +654,7 @@ class Blueprint
      * Specify a unique index for the table.
      *
      * @param  string|array $columns
-     * @param  string       $name
+     * @param  string|null  $name
      *
      * @return \Neutrino\Support\Fluent
      */
@@ -667,20 +667,21 @@ class Blueprint
      * Specify an index for the table.
      *
      * @param  string|array $columns
-     * @param  string       $name
+     * @param  string|null  $name
+     * @param  string       $type Type of index
      *
      * @return \Neutrino\Support\Fluent
      */
-    public function index($columns, $name = null)
+    public function index($columns, $name = null, $type = __FUNCTION__)
     {
-        return $this->addIndex(__FUNCTION__, $columns, $name);
+        return $this->addIndex($type, $columns, $name);
     }
 
     /**
      * Specify a foreign key for the table.
      *
      * @param  string|array $columns
-     * @param  string       $name
+     * @param  string|null  $name
      *
      * @return \Neutrino\Support\Fluent
      */
@@ -765,8 +766,8 @@ class Blueprint
     /**
      * Create a new string column on the table.
      *
-     * @param  string $column
-     * @param  int    $length
+     * @param  string   $column
+     * @param  int|null $length
      *
      * @return \Neutrino\Support\Fluent
      */
@@ -1482,7 +1483,7 @@ class Blueprint
      *
      * @param  string          $type
      * @param  string|string[] $columns
-     * @param  string          $name
+     * @param  string|null     $name
      *
      * @return \Neutrino\Support\Fluent
      */
@@ -1502,7 +1503,7 @@ class Blueprint
      * Add a new command to the blueprint.
      *
      * @param  string|string[] $columns
-     * @param  string          $name
+     * @param  string|null     $name
      *
      * @return \Neutrino\Support\Fluent
      */

@@ -1,5 +1,9 @@
 #Release Note
 
+## v1.1.4
+### Fixed
+ - Cache providers
+
 ## v1.1.3
 ### Fixed
  - Support php 7.2.0

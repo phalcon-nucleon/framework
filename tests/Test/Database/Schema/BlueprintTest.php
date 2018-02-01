@@ -419,7 +419,9 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             'type'       => 'foreign',
             'columns'    => ['column'],
             'on'         => 'test_2',
-            'references' => ['column']
+            'references' => ['column'],
+            'onUpdate' => null,
+            'onDelete' => null
         ]);
 
         $blueprint = new Blueprint('test');

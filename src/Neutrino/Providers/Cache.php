@@ -89,7 +89,7 @@ class Cache extends Injectable implements Providable
                             }
                     }
 
-                    $options = isset($cache->options) ? (array)$cache->options : [];
+                    $options = isset($cache->options) ? $cache->options->toArray() : [];
 
                     $adapterInstance = new $adapterClass($options);
 

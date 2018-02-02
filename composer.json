@@ -22,7 +22,7 @@
     "satooshi/php-coveralls": "~1.0"
   },
   "replace" : {
-    "neutrino/dotconst": "self.version",
+    "neutrino/dotconst": "~1.0",
     "neutrino/optimizer": "self.version"
   },
   "autoload": {

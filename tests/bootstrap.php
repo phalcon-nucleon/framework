@@ -17,6 +17,6 @@ $config = [];
 */
 require __DIR__ . '/../vendor/autoload.php';
 
-\Neutrino\Dotconst\Loader::load(__DIR__ . '/.fake/nucleon.app');
+\Neutrino\Dotconst::load(__DIR__ . '/.fake/nucleon.app');
 
 echo $version = Neutrino\Version::get() . PHP_EOL;

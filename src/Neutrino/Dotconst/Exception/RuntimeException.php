@@ -2,7 +2,7 @@
 
 namespace Neutrino\Dotconst\Exception;
 
-class Exception extends \Exception
+class RuntimeException extends \RuntimeException
 {
 
 }

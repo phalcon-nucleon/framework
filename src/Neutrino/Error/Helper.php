@@ -13,6 +13,13 @@ class Helper
 {
     public static function format(Error $error)
     {
+        return implode("\n", self::formatLines($error));
+    }
+
+    private static function formatLines(Error $error, $pass = 0)
+    {
+        $pass++;
+
         $lines[] = self::getErrorType($error->type);
         if ($error->isException) {
             $lines[] = '  Class : ' . get_class($error->exception);
@@ -42,9 +49,18 @@ class Helper
                 $lines[] = $row;
             }
 
+            $previous = $error->exception->getPrevious();
+
+            if (!is_null($previous)) {
+                $lines[] = '';
+                $lines[] = '# Previous exception : ' . $pass;
+                $lines[] = '';
+
+                $lines = array_merge($lines, self::formatLines(Error::fromException($previous), $pass));
+            }
         }
 
-        return implode("\n", $lines);
+        return $lines;
     }
 
     /**

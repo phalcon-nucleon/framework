@@ -3,6 +3,7 @@
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
+use Neutrino\Support\Str;
 
 /**
  * Class ViewClearTask
@@ -20,10 +21,21 @@ class ViewClearTask extends Task
     {
         $compileDir = $this->config->view->compiled_path;
 
-        foreach (glob($compileDir . '*') as $file) {
-            @unlink($file);
-        }
+        $this->rm($compileDir);
 
         $this->info('Compiled views cleared!');
+    }
+
+    private function rm($path)
+    {
+        $path = Str::normalizePath($path);
+
+        if (is_dir($path)) {
+            foreach (glob($path . '/*') as $sub) {
+                $this->rm($sub);
+            }
+        }
+
+        @unlink($path);
     }
 }

@@ -98,7 +98,7 @@ class HandlerTest extends TestCase
     public function dataErrorType()
     {
         return [
-            '1234'                => [1234, '1234'],
+            '(unknown error bit 1234)'                => [1234, '(unknown error bit 1234)'],
             'Uncaught exception'  => [-1, 'Uncaught exception'],
             'E_ERROR'             => [E_ERROR, 'E_ERROR'],
             'E_WARNING'           => [E_WARNING, 'E_WARNING'],

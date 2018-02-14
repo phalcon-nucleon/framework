@@ -68,7 +68,7 @@ class Error implements \ArrayAccess, \JsonSerializable
             $this->attributes[$option] = $value;
         }
 
-        $this->attributes['typeStr'] = Helper::getErrorType($this->attributes['type']);
+        $this->attributes['typeStr'] = Helper::verboseErrorType($this->attributes['type']);
     }
 
     /**

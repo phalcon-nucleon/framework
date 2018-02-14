@@ -54,6 +54,13 @@ class Handler
         set_exception_handler(function ($e) {
             self::handleException($e);
         });
+        register_shutdown_function(function () {
+            // Handle Fatal error
+            $error = error_get_last();
+            if (isset($error['type']) && $error['type'] === E_ERROR) {
+                self::handleError($error['type'], $error['message'], $error['file'], $error['line']);
+            }
+        });
     }
 
     /**

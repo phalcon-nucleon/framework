@@ -47,7 +47,7 @@ class HelperTask extends Task
 
         if (!empty($route)) {
             $this->line('Usage :');
-            $this->info("\t" . $route->getPattern());
+            $this->info("\t" . Helper::describeRoutePattern($route, true));
         }
 
         $this->line('Description :');

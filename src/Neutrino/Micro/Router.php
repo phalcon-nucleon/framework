@@ -2,8 +2,11 @@
 
 namespace Neutrino\Micro;
 
-use Neutrino\Support\Arr;
+use Neutrino\Constants\Events;
+use Neutrino\Interfaces\Middleware\AfterInterface;
+use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Phalcon\Di\Injectable;
+use Phalcon\Events\Event;
 use Phalcon\Mvc\Micro;
 use Phalcon\Mvc\Micro\Collection;
 
@@ -402,7 +405,45 @@ class Router extends Injectable implements RouterInterface
                     throw new \RuntimeException('Method : "' . $action . '" doesn\'t exist on "' . $controller . '"');
                 }
 
-                return $handler->$action(...$args);
+                if (isset($path['middlewares'])) {
+                    foreach ($path['middlewares'] as $middleware => $params) {
+                        if (is_string($params)) {
+                            $middleware = $params;
+                            $params = [];
+                        }
+
+                        /** @var \Neutrino\Foundation\Middleware\Controller $middleware */
+                        $middlewares[] = $middleware = new $middleware($controller, ...$params);
+
+                        if ($middleware instanceof BeforeInterface) {
+                            if(!isset($event)){
+                                $event = new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this);
+                            }
+
+                            $result = $middleware->before($event, $this, null);
+
+                            if($result === false){
+                                return $this->response;
+                            }
+                        }
+                    }
+                }
+
+                $value = $handler->$action(...$args);
+
+                if (isset($middlewares)) {
+                    foreach ($middlewares as $middleware) {
+                        if ($middleware instanceof AfterInterface) {
+                            if(!isset($event)){
+                                $event = new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $this);
+                            }
+
+                            $middleware->after($event, $this, null);
+                        }
+                    }
+                }
+
+                return $value;
             };
         }
 

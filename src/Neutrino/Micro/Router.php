@@ -388,11 +388,11 @@ class Router extends Injectable implements RouterInterface
      * @return \Closure
      */
     protected function pathToHandler($path){
-        if($path instanceof \Closure){
+        if ($path instanceof \Closure) {
             return $path;
         }
 
-        if(is_array($path)){
+        if (is_array($path)) {
             return function (...$args) use ($path) {
                 /** @var Micro $this */
 
@@ -401,7 +401,7 @@ class Router extends Injectable implements RouterInterface
 
                 $handler = $this->getDI()->get($controller);
 
-                if(!method_exists($handler, $action)){
+                if (!method_exists($handler, $action)) {
                     throw new \RuntimeException('Method : "' . $action . '" doesn\'t exist on "' . $controller . '"');
                 }
 
@@ -416,13 +416,13 @@ class Router extends Injectable implements RouterInterface
                         $middlewares[] = $middleware = new $middleware($controller, ...$params);
 
                         if ($middleware instanceof BeforeInterface) {
-                            if(!isset($event)){
+                            if (!isset($event)) {
                                 $event = new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this);
                             }
 
                             $result = $middleware->before($event, $this, null);
 
-                            if($result === false){
+                            if ($result === false) {
                                 return $this->response;
                             }
                         }
@@ -432,9 +432,10 @@ class Router extends Injectable implements RouterInterface
                 $value = $handler->$action(...$args);
 
                 if (isset($middlewares)) {
+                    $event = null;
                     foreach ($middlewares as $middleware) {
                         if ($middleware instanceof AfterInterface) {
-                            if(!isset($event)){
+                            if (!isset($event)) {
                                 $event = new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $this);
                             }
 

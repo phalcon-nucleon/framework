@@ -33,11 +33,11 @@ class Json implements Writable
         ) {
             /** @var \Phalcon\Http\Response $response */
             $response
-                ->setStatusCode(500)
-                ->setJsonContent($error)
+                ->setStatusCode(500, 'Internal Server Error')
+                ->setJsonContent(APP_DEBUG ? $error : '')
                 ->send();
         } else {
-            echo json_encode($error);
+            echo json_encode(APP_DEBUG ? $error : '');
         }
     }
 }

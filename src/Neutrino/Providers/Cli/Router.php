@@ -12,6 +12,8 @@ use Neutrino\Database\Cli\Tasks\RefreshTask;
 use Neutrino\Database\Cli\Tasks\ResetTask;
 use Neutrino\Database\Cli\Tasks\RollbackTask;
 use Neutrino\Database\Cli\Tasks\StatusTask;
+use Neutrino\Foundation\Cli\Tasks\AssetsJsTask;
+use Neutrino\Foundation\Cli\Tasks\AssetsSassTask;
 use Neutrino\Foundation\Cli\Tasks\ClearCompiledTask;
 use Neutrino\Foundation\Cli\Tasks\ConfigCacheTask;
 use Neutrino\Foundation\Cli\Tasks\ConfigClearTask;
@@ -48,6 +50,9 @@ class Router extends Provider
 
         $router->addTask('optimize', OptimizeTask::class);
         $router->addTask('clear-compiled', ClearCompiledTask::class);
+
+        $router->addTask('assets:js', AssetsJsTask::class);
+        $router->addTask('assets:sass', AssetsSassTask::class);
 
         $router->addTask('config:cache', ConfigCacheTask::class);
         $router->addTask('config:clear', ConfigClearTask::class);

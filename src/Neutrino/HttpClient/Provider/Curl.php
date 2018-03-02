@@ -197,9 +197,13 @@ class Curl extends Request
                     ->setHeader('Content-Type', 'application/json');
             }
 
-            return $this
-                ->setOption(CURLOPT_POSTFIELDS, http_build_query($this->params))
-                ->setHeader('Content-Type', 'application/x-www-form-urlencoded');
+            if (!empty($this->params)) {
+                return $this
+                    ->setOption(CURLOPT_POSTFIELDS, http_build_query($this->params))
+                    ->setHeader('Content-Type', 'application/x-www-form-urlencoded');
+            }
+
+            return $this;
         }
 
         return $this->buildUrl();

@@ -37,6 +37,16 @@ class StrExtension extends ExtensionExtend
 
     public function compileFilter($name, $arguments, $funcArguments)
     {
+        switch ($name) {
+            case 'slug':
+                return Str::class . '::slug(' . $arguments . ')';
+            case 'limit':
+                return Str::class . '::limit(' . $arguments . ')';
+            case 'words':
+                return Str::class . '::words(' . $arguments . ')';
+        }
+
+        return null;
     }
 
     public function resolveExpression($expr)

@@ -32,8 +32,8 @@ class AssetsSassTask extends Task
 
         try {
             (new SassCompiler())->compile([
-              'sass_file' => 'resources/assets/scss/app.scss',
-              'output_file' => 'public/css/app.css',
+              'sass_file' => $this->config->assets->sass->app_file,
+              'output_file' =>  $this->config->assets->sass->output_file,
               'cmd_options' => array_filter([
                 ($style = $this->getSassStyle()) ? "--style=$style" : '',
                 ($sourcemap = $this->getOption('sourcemap')) ? '--sourcemap="' . $sourcemap . '"' : '',

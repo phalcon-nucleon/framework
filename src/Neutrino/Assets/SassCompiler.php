@@ -29,7 +29,7 @@ class SassCompiler implements AssetsCompilator
 
         $cmd = ['sass', '"' . $options['sass_file'] . '"', '"' . $options['output_file'] . '"'];
 
-        $cmd = array_merge($cmd, $options['cmd_options'] ?? []);
+        $cmd = array_merge($cmd, isset($options['cmd_options']) ? $options['cmd_options'] : []);
 
         $desc = [
           ["pipe", "r+"],
@@ -37,13 +37,13 @@ class SassCompiler implements AssetsCompilator
           ["pipe", "w+"]
         ];
 
-        $proc = proc_open(implode(' ', $cmd), $desc, $pipes, $options['base_path'] ?? BASE_PATH);
+        $proc = proc_open(implode(' ', $cmd), $desc, $pipes, isset($options['base_path']) ? $options['base_path'] : BASE_PATH);
 
         if(!is_resource($proc)) {
             throw new CompilatorException('Can\'t open process.');
         }
 
-        while (proc_get_status($proc)['running'] ?? false) {
+        while (($status = proc_get_status($proc)) && !empty($status['running'])){
             sleep(1);
         }
 

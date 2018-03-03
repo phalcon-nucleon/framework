@@ -25,7 +25,7 @@ class ClosureCompiler implements AssetsCompilator
     public function compile(array $options)
     {
         $jsCode = $this->extractJsCode($options['compile']['directories']);
-        $jsCode = $this->applyPrecompilation($jsCode, $options['precompilations'] ?? []);
+        $jsCode = $this->applyPrecompilation($jsCode, isset($options['precompilations']) ? $options['precompilations'] : []);
 
         $data = [
           'js_code' => $jsCode,

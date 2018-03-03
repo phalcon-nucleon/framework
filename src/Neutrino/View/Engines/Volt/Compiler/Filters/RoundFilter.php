@@ -28,11 +28,11 @@ class RoundFilter extends FilterExtend
      */
     public function compileFilter($resolvedArgs, $exprArgs)
     {
-        $value = $exprArgs[0]['expr']['value'] ?? $resolvedArgs;
+        $value = isset($exprArgs[0]['expr']['value']) ? $exprArgs[0]['expr']['value'] : $resolvedArgs;
 
-        switch ($exprArgs[1]['expr']['type'] ?? null) {
+        switch (isset($exprArgs[1]['expr']['type']) ? $exprArgs[1]['expr']['type'] : null) {
             case 260:
-                switch ($exprArgs[1]['expr']['value'] ?? null) {
+                switch (isset($exprArgs[1]['expr']['value']) ? $exprArgs[1]['expr']['value'] : null) {
                     case 'floor':
                         return "floor($value)";
                     case 'ceil':
@@ -41,14 +41,14 @@ class RoundFilter extends FilterExtend
                 break;
         }
 
-        switch ($exprArgs[2]['expr']['value'] ?? null) {
+        switch (isset($exprArgs[2]['expr']['value']) ? $exprArgs[2]['expr']['value'] :  null) {
             case 'floor':
                 return "floor($value)";
             case 'ceil':
                 return "ceil($value)";
         }
 
-        $precision = $exprArgs[1]['expr']['value'] ?? 0;
+        $precision = isset($exprArgs[1]['expr']['value']) ? $exprArgs[1]['expr']['value'] : 0;
 
         return "round($value, $precision)";
     }

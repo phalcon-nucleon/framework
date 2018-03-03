@@ -4,7 +4,7 @@ namespace Neutrino\Assets;
 
 use Neutrino\Assets\Exception\CompilatorException;
 use Neutrino\Http\Standards\Method;
-use Neutrino\HttpClient\Parser\Json;
+use Neutrino\HttpClient\Parser\JsonArray;
 use Neutrino\HttpClient\Provider\Curl;
 
 /**
@@ -60,7 +60,7 @@ class ClosureCompiler implements AssetsCompilator
             throw new CompilatorException('Can\t call closure compile api');
         }
 
-        $content = $response->parse(Json::class);
+        $content = $response->parse(JsonArray::class)->data;
 
         file_put_contents(BASE_PATH . '/' . $options['output_file'], $content['compiledCode']);
 

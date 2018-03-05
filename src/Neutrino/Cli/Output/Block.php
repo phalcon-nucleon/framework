@@ -36,6 +36,13 @@ class Block
         $maxlen = 0;
         $rows = [];
 
+        $_lines = [];
+        foreach ($lines as $line) {
+            $_lines = array_merge($_lines, explode(PHP_EOL, $line));
+        }
+
+        $lines = $_lines;
+
         foreach ($lines as $line) {
             $len = strlen($line);
 

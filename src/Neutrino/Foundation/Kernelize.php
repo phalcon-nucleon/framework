@@ -98,7 +98,7 @@ trait Kernelize
      *
      * @return void
      */
-    public final function bootstrap(Config $config)
+    public function bootstrap(Config $config)
     {
         /** @var \Phalcon\Application $this */
         Handler::setWriters($this->errorHandlerLvl);

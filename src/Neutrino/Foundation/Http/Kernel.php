@@ -2,9 +2,11 @@
 
 namespace Neutrino\Foundation\Http;
 
+use Neutrino\Debug\Debugger;
 use Neutrino\Error;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
+use Phalcon\Config;
 use Phalcon\Di\FactoryDefault as Di;
 use Phalcon\Events\Manager as EventManager;
 use Phalcon\Mvc\Application;
@@ -17,6 +19,7 @@ use Phalcon\Mvc\Application;
 abstract class Kernel extends Application implements Kernelable
 {
     use Kernelize {
+        bootstrap as _bootstrap;
         boot as _boot;
     }
 
@@ -76,6 +79,15 @@ abstract class Kernel extends Application implements Kernelable
     public function registerRoutes()
     {
         require BASE_PATH . '/routes/http.php';
+    }
+
+    public function bootstrap(Config $config)
+    {
+        $this->_bootstrap($config);
+
+        if (APP_DEBUG) {
+            Debugger::register();
+        }
     }
 
     public function boot()

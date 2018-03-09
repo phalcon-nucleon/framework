@@ -22,6 +22,7 @@ use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
+use Neutrino\Foundation\Cli\Tasks\ServerTask;
 use Neutrino\Foundation\Cli\Tasks\ViewClearTask;
 use Neutrino\Support\Provider;
 
@@ -69,6 +70,8 @@ class Router extends Provider
         $router->addTask('migrate:reset', ResetTask::class);
         $router->addTask('migrate:rollback', RollbackTask::class);
         $router->addTask('make:migration {name}', MakerTask::class);
+
+        $router->addTask('server:run', ServerTask::class);
 
         return $router;
     }

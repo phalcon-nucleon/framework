@@ -233,10 +233,11 @@ class Helper
                 return 'Warning [' . self::getErrorType($code) . ']';
             case E_NOTICE:
             case E_USER_NOTICE:
+                return 'Notice [' . self::getErrorType($code) . ']';
             case E_STRICT:
             case E_DEPRECATED:
             case E_USER_DEPRECATED:
-                return 'Notice [' . self::getErrorType($code) . ']';
+                return 'Deprecated [' . self::getErrorType($code) . ']';
         }
 
         return "(unknown error bit $code)";

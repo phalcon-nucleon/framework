@@ -2,7 +2,7 @@
 
 namespace Neutrino\Debug {
     if (!function_exists(__NAMESPACE__ . '\\human_mtime')) {
-        function human_mtime($time)
+        function human_mtime($time, $precision = null)
         {
             $units = [1 => 'ms', 2 => 'µs', 3 => 'ns'];
 
@@ -16,7 +16,7 @@ namespace Neutrino\Debug {
                     $p = (int)($time * $pow / $pow) * $pow;
                     $i = (int)($v + $p);
 
-                    $s = round($v + $p, 4 - strlen($i)) . ' ' . $unit;
+                    $s = round($v + $p, is_null($precision) ? 4 - strlen($i) : $precision) . ' ' . $unit;
                     break;
                 }
             }

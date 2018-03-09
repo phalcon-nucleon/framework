@@ -11,6 +11,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style rel="stylesheet">
 pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important;margin:0}pre.sql .string{color:#a5d6a7 !important}pre.sql .table{color:#90caf9 !important}pre.sql .column{color:#ce93d8 !important}pre.sql .func{color:#fdd835 !important}pre.sql .keyw{color:#fb8c00 !important}
+.php-error{padding:10px 15px;margin-bottom:10px}.php-error.debug{background-color:#4db6ac !important;color:#212121 !important}.php-error.info{background-color:#fff176 !important;color:#212121 !important}.php-error.notice{background-color:#ffd54f !important;color:#212121 !important}.php-error.warning{background-color:#ff8a65 !important;color:#212121 !important}.php-error.error{background-color:#b71c1c !important;color:#f5f5f5 !important}.php-error .type,.php-error .msg{font-family:monospace, monospace}.php-error .msg{margin:3px 0;word-break:break-all;white-space:pre-line}.php-error .file{font-size:80%}
   </style>
 </head>
 <body class="grey darken-3 grey-text text-lighten-3">
@@ -28,14 +29,14 @@ pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important
           {% endif %}
         </a>
       </li>
-      {% if profilers is not empty %}
-        <li class="tab col s3 {{ profilers | length is empty ? 'disabled' : '' }}">
-          <a href="#profilers">Profilers <span class="chip">{{ profilers | length }}</span></a>
-        </li>
-      {% endif %}
       {% if php_errors is defined %}
         <li class="tab col s3 {{ php_errors | length is empty ? 'disabled' : '' }}">
           <a href="#php-errors">Errors <span class="chip">{{ php_errors | length }}</span></a>
+        </li>
+      {% endif %}
+      {% if profilers is not empty %}
+        <li class="tab col s3 {{ profilers | length is empty ? 'disabled' : '' }}">
+          <a href="#profilers">Profilers <span class="chip">{{ profilers | length }}</span></a>
         </li>
       {% endif %}
       {% if events is defined %}
@@ -97,8 +98,7 @@ pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important
       <span class="card-title red-text text-accent-4">
       {{ error['typeStr'] }}
         <br/>
-      <small
-        class="grey-text text-darken-4"><b>in : </b> {{ (error['file']) | file_highlight }}
+      <small class="grey-text text-darken-4"><b>in : </b> {{ (error['file']) | file_highlight }}
         (line: {{ error['line'] }})</small>
         <pre style="
         word-break: break-all;
@@ -112,27 +112,57 @@ pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important
       </div>
     {% endif %}
   </div>
-  {% if profilers is not empty %}
-  <div id="profiles" class="col s12">
-    <div class="card grey darken-4">
-      <div class="col s12">
-      <ul class="tabs grey darken-4">
-      {% for name in profilers | keys %}
-        <li class="tab col s3">
-          <a href="#profilers-{{ name }}">{{ name }}</a>
-        </li>
-      {% endfor %}
-      </ul>
+  {% if php_errors is defined %}
+    <div id="php-errors" class="col s12">
+      <div class="card grey darken-4">
+        <div class="card-content">
+          <div style="margin: 0;padding: 0;">
+            {% for error in php_errors %}
+            {% if error['logLvl'] === constant('Phalcon\Logger::DEBUG') %}
+              {% set color = 'debug' %}
+            {% elseif error['logLvl'] === constant('Phalcon\Logger::INFO') %}
+              {% set color = 'info' %}
+            {% elseif error['logLvl'] === constant('Phalcon\Logger::NOTICE') %}
+              {% set color = 'notice' %}
+            {% elseif error['logLvl'] === constant('Phalcon\Logger::WARNING') %}
+              {% set color = 'warning' %}
+            {% else %}
+              {% set color = 'error' %}
+            {% endif %}
+              <div class="php-error {{ color }}">
+                <span class="type">{{ error['typeStr'] }}</span> :
+                <pre class="msg">{{ error['message'] | default('no message') }}</pre>
+                <span class="file"><b>in : </b>{{ (error['file']) | file_highlight }} (line: {{ error['line'] }})</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
       </div>
-      {% for name, elements in profilers %}
-        {% set profiler = elements['profiler'] %}
-        {% set profiles = profiler.getProfiles() | default([]) %}
+    </div>
+  {% endif %}
+  {% if profilers is not empty %}
+    <div id="profilers" class="col s12">
+      <div class="card grey darken-4">
+        <div class="col s12">
+          <ul class="tabs grey darken-4">
+            {% for name, elements in profilers %}
+              {% set profiler = elements['profiler'] %}
+              {% set profiles = profiler.getProfiles() | default([]) %}
+              <li class="tab col s3">
+                <a href="#profilers-{{ name }}">{{ name }} <span class="chip">{{ profiles | length }}</span> </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% for name, elements in profilers %}
+          {% set profiler = elements['profiler'] %}
+          {% set profiles = profiler.getProfiles() | default([]) %}
           <div id="profilers-{{ name }}">
             <table style="margin: 0;padding: 0;" class="bordered">
               <thead>
               <tr class="grey darken-4">
                 <th style="padding: 5px 10px;border-radius: 0">-</th>
-                <th style="padding: 5px 10px;border-radius: 0">sql</th>
+                <th style="padding: 5px 10px;border-radius: 0">request</th>
                 <th style="padding: 5px 10px;border-radius: 0">vars</th>
               </tr>
               </thead>
@@ -146,47 +176,21 @@ pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important
                     <pre class="sql">{{ profile.getSqlStatement() | sql_highlight }}</pre>
                   </td>
                   <td style="padding: 5px 10px;border-radius: 0">
-                      {% set vars = profile.getSqlVariables() %}
-                      {% if vars is not null %}
-                          {% for var, value in vars %}
-                            <pre>:{{ var }} = {{ value }}</pre>
-                          {% endfor %}
-                      {% else %}
-                        --
-                      {% endif %}
+                    {% set vars = profile.getSqlVariables() %}
+                    {% if vars is not null %}
+                      {% for var, value in vars %}
+                        <pre>:{{ var }} = {{ value }}</pre>
+                      {% endfor %}
+                    {% else %}
+                      --
+                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}
               </tbody>
             </table>
           </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-  {% if php_errors is defined %}
-    <div id="php-errors" class="col s12">
-      <div class="card grey darken-4">
-        <div class="card-content">
-          <table style="margin: 0;padding: 0;">
-            <thead>
-            <tr class="grey darken-4">
-              <th style="padding: 5px 10px;border-radius: 0">-</th>
-              <th style="padding: 5px 10px;border-radius: 0">type</th>
-              <th style="padding: 5px 10px;border-radius: 0">src</th>
-              <th style="padding: 5px 10px;border-radius: 0">data</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for error in php_errors %}
-              <tr>
-                <td>{{ error['typeStr'] }}</td>
-                <td>{{ error['message'] }}</td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        </div>
+        {% endfor %}
       </div>
     </div>
   {% endif %}
@@ -222,7 +226,7 @@ pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important
             {% for event in events | default([]) %}
               <tr class="grey darken-4" style="padding: 5px 10px">
                 <td style="padding: 5px 10px;border-radius: 0">
-                  <small  style="white-space: nowrap;">{{ (event['mt'] - mt_start) | human_mtime }}</small>
+                  <small style="white-space: nowrap;">{{ (event['mt'] - mt_start) | human_mtime }}</small>
                 </td>
                 <td style="padding: 5px 10px;border-radius: 0">
                   <small style="white-space: nowrap;">

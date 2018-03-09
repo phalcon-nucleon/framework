@@ -308,6 +308,9 @@ class Debugger extends Injectable
                 $compiler->addFilter('func_highlight', function ($resolvedArgs) {
                     return __NAMESPACE__ . '\\func_highlight(' . $resolvedArgs . ')';
                 });
+                $compiler->addFilter('merge', function ($resolvedArgs) {
+                    return 'array_merge(' . $resolvedArgs . ')';
+                });
                 return $volt;
             },
           ]

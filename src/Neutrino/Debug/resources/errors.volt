@@ -28,9 +28,9 @@ pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important
           {% endif %}
         </a>
       </li>
-      {% if dbProfiles is not empty %}
-        <li class="tab col s3 {{ dbProfiles | length is empty ? 'disabled' : '' }}">
-          <a href="#db-profile">Db <span class="chip">{{ dbProfiles | length }}</span></a>
+      {% if profilers is not empty %}
+        <li class="tab col s3 {{ profilers | length is empty ? 'disabled' : '' }}">
+          <a href="#profilers">Profilers <span class="chip">{{ profilers | length }}</span></a>
         </li>
       {% endif %}
       {% if php_errors is defined %}
@@ -112,44 +112,57 @@ pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important
       </div>
     {% endif %}
   </div>
-  {% if dbProfiles is not empty %}
-    <div id="db-profile" class="col s12">
-      <div class="card grey darken-4">
-        <div class="card-content">
-          <table style="margin: 0;padding: 0;" class="bordered">
-            <thead>
-            <tr class="grey darken-4">
-              <th style="padding: 5px 10px;border-radius: 0">-</th>
-              <th style="padding: 5px 10px;border-radius: 0">sql</th>
-              <th style="padding: 5px 10px;border-radius: 0">vars</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for profile in dbProfiles | default([]) %}
-              <tr class="grey darken-4">
-                <td style="padding: 5px 10px;border-radius: 0">
-                  <small style="white-space: nowrap;">{{ profile.getTotalElapsedSeconds() | human_mtime }}</small>
-                </td>
-                <td style="padding: 5px 10px;border-radius: 0">
-                  <pre class="sql">{{ profile.getSqlStatement() | sql_highlight }}</pre>
-                </td>
-                <td style="padding: 5px 10px;border-radius: 0">
-                  {% set vars = profile.getSqlVariables() %}
-                  {% if vars is not null %}
-                    {% for var, value in vars %}
-                      <pre>:{{ var }} = {{ value }}</pre>
-                    {% endfor %}
-                  {% else %}
-                    --
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        </div>
+  {% if profilers is not empty %}
+  <div id="profiles" class="col s12">
+    <div class="card grey darken-4">
+      <div class="col s12">
+      <ul class="tabs grey darken-4">
+      {% for name in profilers | keys %}
+        <li class="tab col s3">
+          <a href="#profilers-{{ name }}">{{ name }}</a>
+        </li>
+      {% endfor %}
+      </ul>
       </div>
+      {% for name, elements in profilers %}
+        {% set profiler = elements['profiler'] %}
+        {% set profiles = profiler.getProfiles() | default([]) %}
+          <div id="profilers-{{ name }}">
+            <table style="margin: 0;padding: 0;" class="bordered">
+              <thead>
+              <tr class="grey darken-4">
+                <th style="padding: 5px 10px;border-radius: 0">-</th>
+                <th style="padding: 5px 10px;border-radius: 0">sql</th>
+                <th style="padding: 5px 10px;border-radius: 0">vars</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for profile in profiles %}
+                <tr class="grey darken-4">
+                  <td style="padding: 5px 10px;border-radius: 0">
+                    <small style="white-space: nowrap;">{{ profile.getTotalElapsedSeconds() | human_mtime }}</small>
+                  </td>
+                  <td style="padding: 5px 10px;border-radius: 0">
+                    <pre class="sql">{{ profile.getSqlStatement() | sql_highlight }}</pre>
+                  </td>
+                  <td style="padding: 5px 10px;border-radius: 0">
+                      {% set vars = profile.getSqlVariables() %}
+                      {% if vars is not null %}
+                          {% for var, value in vars %}
+                            <pre>:{{ var }} = {{ value }}</pre>
+                          {% endfor %}
+                      {% else %}
+                        --
+                      {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+      {% endfor %}
     </div>
+  </div>
   {% endif %}
   {% if php_errors is defined %}
     <div id="php-errors" class="col s12">

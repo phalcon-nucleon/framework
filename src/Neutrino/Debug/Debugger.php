@@ -3,10 +3,10 @@
 namespace Neutrino\Debug;
 
 use Neutrino\Constants\Events;
-use Neutrino\Constants\Events\Kernel;
 use Neutrino\Constants\Services;
 use Neutrino\Dotconst;
 use Neutrino\Error\Handler;
+use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
 use Phalcon\Di;
@@ -23,11 +23,7 @@ use Phalcon\Mvc\View;
  */
 class Debugger extends Injectable
 {
-
-    /** @var Profiler */
-    private static $dbProfiler;
-
-    /** @var  array */
+    /** @var array */
     private static $viewProfiles;
 
     /** @var Profiler[] */
@@ -36,40 +32,34 @@ class Debugger extends Injectable
     /** @var self */
     private static $instance;
 
+    /** @var \Neutrino\Debug\DebugEventsManagerWrapper */
+    private $em;
+
     private function __construct()
     {
+        self::$instance = $this;
+
+        $di = Di::getDefault();
+
+        if($di->get(Services::APP) instanceof Console){
+            return;
+        }
+
         Handler::addWriter(DebugErrorLogger::class);
 
-        $manager = $this->getGlobalEventManager();
+        $this->registerGlobalEventManager();
 
-        $this->listenLoader($manager);
+        $this->listenLoader();
 
-        $this->listenServices($manager);
+        $this->listenServices();
 
-        $manager->attach(Kernel::TERMINATE, function () {
-            $mem_peak = memory_get_peak_usage();
-            $render_time = (microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']);
-
-            $view = $this->getIsolateView();
-
-            $view->setVar('mem_peak', $mem_peak);
-            $view->setVar('render_time', $render_time);
-            $view->setVar('events', DebugEventsManagerWrapper::getEvents());
-            $view->setVars($this->getHttpInfo());
-            $view->setVar('build', self::getBuildInfo());
-            $view->setVar('php_errors', DebugErrorLogger::errors());
-            $view->setVar('dbProfiles', self::getDbProfiles());
-            $view->setVar('viewProfiles', self::getViewProfiles());
-            $view->setVar('profilers', self::$profilers);
-
-            echo $view->render('bar');
-        });
+        DebugToolbar::register();
     }
 
     /**
      * @return \Phalcon\Events\Manager
      */
-    private function getGlobalEventManager()
+    private function registerGlobalEventManager()
     {
         /** @var Di $di */
         $di = $this->getDI();
@@ -91,33 +81,24 @@ class Debugger extends Injectable
             $app->setEventsManager($em = new DebugEventsManagerWrapper($em));
         }
 
-        return $em;
+        return $this->em = $em;
     }
 
-    /**
-     * @param \Phalcon\Events\Manager $manager
-     */
-    private function listenLoader($manager)
+    private function listenLoader()
     {
         global $loader;
 
         /** @var \Phalcon\Loader $loader */
         if (isset($loader)) {
-            $this->attachEventManager($loader, $manager);
+            $this->attachEventManager($loader);
         }
     }
 
-    /**
-     * @param \Phalcon\Events\Manager $manager
-     */
-    private function listenServices($manager)
+    private function listenServices()
     {
-        /** @var Di $di */
-        $di = $this->getDI();
+        $em = $this->em;
 
-        $em = $di->getInternalEventsManager();
-
-        $em->attach('di:afterServiceResolve', function($ev, $src, $data) use ($manager) {
+        $em->attach('di:afterServiceResolve', function($ev, $src, $data) {
             static $resolved;
 
             if(isset($resolved[$data['name']])){
@@ -126,33 +107,32 @@ class Debugger extends Injectable
 
             $resolved[$data['name']] = true;
 
-            $this->tryAttachEventManager($data['instance'], $manager);
+            $this->tryAttachEventManager($data['instance']);
 
             if($data['instance'] instanceof Adapter\Pdo){
-                $this->dbProfilerRegister($data['instance'], $manager);
+                $this->dbProfilerRegister();
             }
             if($data['instance'] instanceof View) {
                 foreach ($data['instance']->getRegisteredEngines() as $engine) {
-                    $this->tryAttachEventManager($engine, $manager);
+                    $this->tryAttachEventManager($engine);
                 }
-                $this->viewProfilerRegister($data['instance'], $manager);
+                $this->viewProfilerRegister();
             }
         });
     }
 
-    private function tryAttachEventManager($service, $manager) {
+    private function tryAttachEventManager($service) {
 
         if ($service instanceof EventsAwareInterface
           || (method_exists($service, 'getEventsManager') && method_exists($service, 'setEventsManager'))) {
-            $this->attachEventManager($service, $manager);
+            $this->attachEventManager($service);
         }
     }
 
     /**
      * @param EventsAwareInterface $service
-     * @param Manager $manager
      */
-    private function attachEventManager($service, $manager)
+    private function attachEventManager($service)
     {
         $em = $service->getEventsManager();
         if ($em) {
@@ -160,27 +140,24 @@ class Debugger extends Injectable
                 $service->setEventsManager(new DebugEventsManagerWrapper($em));
             }
         } else {
-            $service->setEventsManager($manager);
+            $service->setEventsManager($this->em);
         }
     }
 
     /**
      * Register db profiler
-     *
-     * @param \Phalcon\Db\Adapter $db
-     * @param \Phalcon\Events\Manager $manager
      */
-    private function dbProfilerRegister($db, Manager $manager)
+    private function dbProfilerRegister()
     {
-        $profiler = new Profiler();
+        $profiler = self::registerProfiler('db', '<i class="nuc db"></i>');
 
-        $manager->attach(
+        $this->em->attach(
           Events::DB,
-          function (Event $event, Adapter\Pdo $connection) {
+          function (Event $event, Adapter\Pdo $connection) use ($profiler) {
               $eventType = $event->getType();
               if ($eventType === 'beforeQuery') {
                   // Start a profile with the active connection
-                  self::$dbProfiler->startProfile(
+                  $profiler->startProfile(
                     $connection->getSQLStatement(),
                     $connection->getSqlVariables(),
                     $connection->getSQLBindTypes()
@@ -188,25 +165,18 @@ class Debugger extends Injectable
               }
               if ($eventType === 'afterQuery') {
                   // Stop the active profile
-                  self::$dbProfiler->stopProfile();
+                  $profiler->stopProfile();
               }
           }
         );
-
-        $db->setEventsManager($manager);
-
-        self::$dbProfiler = $profiler;
     }
 
     /**
      * Register view profiler
-     *
-     * @param \Phalcon\Mvc\View $view
-     * @param \Phalcon\Events\Manager $manager
      */
-    private function viewProfilerRegister($view, Manager $manager)
+    private function viewProfilerRegister()
     {
-        $manager->attach(
+        $this->em->attach(
           Events::VIEW,
           function (Event $event, $src, $data) {
 
@@ -236,35 +206,6 @@ class Debugger extends Injectable
               }
           }
         );
-
-        $view->setEventsManager($manager);
-    }
-
-    private function getHttpInfo()
-    {
-        $module = $this->dispatcher->getModuleName();
-        $controllerClass = $this->dispatcher->getHandlerClass();
-        $controller = $this->dispatcher->getControllerName();
-        $method = $this->dispatcher->getActionName();
-        $route = $this->router->getMatchedRoute();
-        $httpCode = $this->response->getStatusCode() ?: 200;
-        $httpMethodRequest = $this->request->getMethod();
-
-        return [
-          'requestHttpMethod' => $httpMethodRequest,
-          'responseHttpCode' => $httpCode,
-          'dispatch' => [
-            'module' => $module,
-            'controllerClass' => $controllerClass,
-            'controller' => $controller,
-            'method' => $method,
-          ],
-          'route' => [
-            'pattern' => $route ? $route->getPattern() : null,
-            'name' => $route ? $route->getName() : null,
-            'id' => $route ? $route->getRouteId() : null,
-          ],
-        ];
     }
 
     public static function register()
@@ -273,13 +214,22 @@ class Debugger extends Injectable
             return;
         }
 
-        self::$instance = new self;
+        new self;
+    }
+
+    public static function getGlobalEventsManager()
+    {
+        if (!isset(self::$instance)) {
+            throw new \Exception("Debugger wasn't registered");
+        }
+
+        return self::$instance->em;
     }
 
     public static function getBuildInfo()
     {
         $build = [
-          'php' => [
+            'php' => [
             'version' => PHP_VERSION,
           ],
           'zend' => [
@@ -306,15 +256,6 @@ class Debugger extends Injectable
         return $build;
     }
 
-
-    /**
-     * @return \Phalcon\Db\Profiler\Item[]
-     */
-    public static function getDbProfiles()
-    {
-        return isset(self::$dbProfiler) ? self::$dbProfiler->getProfiles() : [];
-    }
-
     /**
      * @return array
      */
@@ -323,19 +264,24 @@ class Debugger extends Injectable
         return self::$viewProfiles;
     }
 
+    public static function getRegisteredProfilers()
+    {
+        return self::$profilers;
+    }
+
     /**
      * @return \Phalcon\Mvc\View\Simple
      */
     public static function getIsolateView()
     {
-        include __DIR__ . '/views/functions.php';
+        include __DIR__ . '/helpers/functions.php';
 
         $view = new View\Simple();
         $view->setDI(new Di());
-        $view->setViewsDir(__DIR__ . '/views/');
+        $view->setViewsDir(__DIR__ . '/resources/');
         $view->registerEngines(
-          [
-            ".volt" => function ($view, $di) {
+            [
+                ".volt" => function ($view, $di) {
                 $volt = new View\Engine\Volt($view, $di);
                 $volt->setOptions([
                   "compiledPath" => Di::getDefault()->get('config')->view->compiled_path,
@@ -372,15 +318,21 @@ class Debugger extends Injectable
 
     /**
      * @param string $name
+     * @param string|null   $icon
      *
      * @return \Phalcon\Db\Profiler
      */
-    public static function registerProfiler($name)
+    public static function registerProfiler($name, $icon = null)
     {
         if(isset(self::$profilers[$name])){
-            return self::$profilers[$name];
+            return self::$profilers[$name]['profiler'];
         }
 
-        return self::$profilers[$name] = new Profiler();
+        self::$profilers[$name] = [
+            'icon'     => $icon,
+            'profiler' => $profiler = new Profiler()
+        ];
+
+        return $profiler;
     }
 }

@@ -29,7 +29,7 @@ class View implements Writable
             return;
         }
 
-        if (APP_DEBUG) {
+        if (Debugger::isEnable()) {
             $this->debugErrorView($error);
             return;
         }
@@ -71,6 +71,7 @@ class View implements Writable
                 $view->finish();
 
                 $this->send($view->getContent());
+                return;
             }
         }
 

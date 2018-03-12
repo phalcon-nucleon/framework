@@ -210,11 +210,16 @@ class Debugger extends Injectable
 
     public static function register()
     {
-        if(isset(self::$instance)){
+        if(self::isEnable()){
             return;
         }
 
         new self;
+    }
+
+    public static function isEnable()
+    {
+        return isset(self::$instance);
     }
 
     public static function getGlobalEventsManager()

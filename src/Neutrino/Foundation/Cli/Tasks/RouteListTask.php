@@ -4,6 +4,7 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
+use Neutrino\Cli\Output\Table;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
 use Neutrino\Support\Arr;
@@ -91,7 +92,7 @@ class RouteListTask extends Task
         foreach ($datas as $key => $data) {
             $parts = explode('::', $key, 2);
 
-            $this->block(['MODULE    : '.$parts[0], 'NAMESPACE : ' . $parts[1]], 'notice');
+            $this->table([['MODULE    : '.$parts[0]],['NAMESPACE : ' . $parts[1]]], [], Table::NO_HEADER);
 
             $this->table($data);
 

@@ -4,7 +4,6 @@ namespace Test\Error\Writer;
 
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
-use Neutrino\Error\Helper;
 use Neutrino\Error\Writer\View;
 use Phalcon\Mvc\Dispatcher;
 use Test\TestCase\TestCase;
@@ -21,9 +20,6 @@ class ViewTest extends TestCase
         $data[] = [$error];
 
         $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [$error];
-
-        $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
         $data[] = [$error];
 
         $withs = [
@@ -46,17 +42,19 @@ class ViewTest extends TestCase
 
         $handles = [];
         foreach ($withs as $with) {
-            foreach ($data as $datum) {
+            foreach ($data as $key => $datum) {
                 if ($with[0] != null) {
                     foreach (['true', 'false'] as $response) {
-                        $handles[] = array_merge($datum, $with, [$response]);
+                        $handles[$key . '.' . $with[0] . '.' . $response] = array_merge($datum, $with, [$response]);
                     }
                 } else {
-                    $handles[] = array_merge($datum, $with, ['false']);
+                    $handles[$key . '.no-with'] = array_merge($datum, $with, ['false']);
                 }
             }
         }
 
+        $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
+        $handles[] = [$error, 'nothing', [], 'nothing'];
         $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
         $handles[] = [$error, 'nothing', [], 'nothing'];
         $error = Error::fromError(E_NOTICE, 'E_USER_ERROR', __FILE__, __LINE__);
@@ -98,7 +96,7 @@ class ViewTest extends TestCase
                 $view->expects($this->never())->method('getContent');
                 $view->expects($this->never())->method('render');
 
-                $this->expectOutputString(Helper::format($error));
+                $this->expectOutputString('Whoops. Something went wrong.');
                 break;
             case 'view.noConfig':
                 $dispatcher->expects($this->never())->method('setNamespaceName');
@@ -110,8 +108,8 @@ class ViewTest extends TestCase
                 $view->expects($this->never())->method('render');
                 $view->expects($this->once())->method('start');
                 $view->expects($this->once())->method('finish');
-                $view->expects($this->once())->method('setContent')->with(Helper::format($error));
-                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error));
+                $view->expects($this->once())->method('setContent')->with('Whoops. Something went wrong.');
+                $view->expects($this->once())->method('getContent')->willReturn('Whoops. Something went wrong.');
 
                 break;
             case 'view.config':
@@ -129,7 +127,7 @@ class ViewTest extends TestCase
                 $view->expects($this->once())->method('start');
                 $view->expects($this->once())->method('finish');
                 $view->expects($this->never())->method('setContent');
-                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error));
+                $view->expects($this->once())->method('getContent')->willReturn('Whoops. Something went wrong.');
 
                 break;
             case 'dispatcher':
@@ -142,7 +140,7 @@ class ViewTest extends TestCase
                 $view->expects($this->once())->method('start');
                 $view->expects($this->once())->method('finish');
                 $view->expects($this->never())->method('setContent');
-                $view->expects($this->once())->method('getContent')->willReturn(Helper::format($error));
+                $view->expects($this->once())->method('getContent')->willReturn('Whoops. Something went wrong.');
                 break;
         }
 
@@ -156,7 +154,7 @@ class ViewTest extends TestCase
 
                 $mock->expects($this->once())
                     ->method('setContent')
-                    ->with(Helper::format($error))
+                    ->with('Whoops. Something went wrong.')
                     ->will($this->returnSelf());
                 $mock->expects($this->once())
                     ->method('setStatusCode')
@@ -179,7 +177,7 @@ class ViewTest extends TestCase
                 $mock->expects($this->never())
                     ->method('send');
 
-                $this->expectOutputString(Helper::format($error));
+                $this->expectOutputString('Whoops. Something went wrong.');
                 break;
             case 'nothing':
                 $dispatcher->expects($this->never())->method('setNamespaceName');

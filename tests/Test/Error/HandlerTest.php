@@ -138,7 +138,6 @@ class HandlerTest extends TestCase
             'E_CORE_ERROR'        => [E_CORE_ERROR, Logger::EMERGENCY],
             'E_ERROR'             => [E_ERROR, Logger::EMERGENCY],
             'E_RECOVERABLE_ERROR' => [E_RECOVERABLE_ERROR, Logger::ERROR],
-            'E_USER_ERROR'        => [E_USER_ERROR, Logger::ERROR],
         ];
 
         return $datas;
@@ -172,7 +171,7 @@ class HandlerTest extends TestCase
 
         $this->mockLogger($expectedLogger, $expectedMessage);
 
-        $this->expectOutputString($expectedMessage);
+        $this->expectOutputString("Whoops. Something went wrong.");
 
         Handler::handle($error);
     }
@@ -202,9 +201,9 @@ class HandlerTest extends TestCase
         $view->expects($this->any())->method('start');
         $view->expects($this->any())->method('render');
         $view->expects($this->any())->method('finish');
-        $view->expects($this->any())->method('getContent')->willReturn($expectedMessage);
+        $view->expects($this->any())->method('getContent')->willReturn('Whoops. Something went wrong.');
 
-        $this->expectOutputString($expectedMessage);
+        $this->expectOutputString('Whoops. Something went wrong.');
 
         Handler::handle($error);
     }
@@ -268,58 +267,9 @@ class HandlerTest extends TestCase
 
         $this->mockLogger(Logger::ERROR, $msg);
 
-        $this->expectOutputString($msg);
+        $this->expectOutputString('Whoops. Something went wrong.');
 
         Handler::handleException($e);
-    }
-
-    public function testHandleError()
-    {
-        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
-
-        $msg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : user error\n in : " . __FILE__ . '(' . (__LINE__ + 6).')');
-
-        $this->mockLogger(Logger::ERROR, $msg);
-
-        $this->expectOutputString($msg);
-
-        Handler::handleError(E_USER_ERROR, 'user error', __FILE__, __LINE__);
-    }
-
-    public function testTriggerError()
-    {
-        Handler::setWriters([ErrorWriter\Phplog::class, ErrorWriter\Logger::class, ErrorWriter\View::class]);
-
-        $cur_error_log = ini_get('error_log');
-        ini_set('error_log', __DIR__ . '/error.log');
-
-        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : msg\n in : " . __FILE__ . '(' . (__LINE__ + 9).')');
-
-        $this->expectOutputString($expectedMsg);
-
-        $this->mockLogger(Logger::ERROR, $expectedMsg);
-
-        Handler::register();
-
-        $date = date('d-M-Y H:i:s e');
-        trigger_error('msg', E_USER_ERROR);
-
-        ini_set('error_log', $cur_error_log);
-        restore_error_handler();
-        restore_exception_handler();
-
-        $r = fopen(__DIR__ . '/error.log', 'r');
-
-        $lines = [];
-        while (!feof($r)) {
-            if (($str = fgets($r)) !== false) {
-                $lines[] = trim($str, "\n\r");
-            }
-        }
-        fclose($r);
-        unlink(__DIR__ . '/error.log');
-        $this->assertCount(3, $lines);
-        $this->assertEquals('[' . $date . '] ' . $expectedMsg, implode("\n", $lines));
     }
 
     public function testTriggerErrorDefaultWriter()

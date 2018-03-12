@@ -30,9 +30,6 @@ class JsonTest extends TestCase
         $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
         $data[] = [true, $error];
 
-        $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [true, $error];
-
         return $data;
     }
 

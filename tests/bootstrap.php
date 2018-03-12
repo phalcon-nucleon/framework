@@ -1,9 +1,5 @@
 <?php
 
-global $config;
-
-$config = [];
-
 /*
 |--------------------------------------------------------------------------
 | Register The Composer Auto Loader

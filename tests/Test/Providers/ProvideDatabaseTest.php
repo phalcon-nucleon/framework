@@ -33,9 +33,7 @@ class ProvideDatabaseTest extends TestCase
 
     public function setUp()
     {
-        global $config;
-
-        $config = array_merge($config, [
+        self::setConfig([
             'database' => [
                 'default'     => 'sqlite',
                 'connections' => [

@@ -19,9 +19,9 @@ trait TraitTestCase
 
     public static function setUpBeforeClass()
     {
-        global $config;
+        parent::setUpBeforeClass();
 
-        $config = array_merge($config, [
+        self::setConfig([
             'cache'       => [
                 'stores' => ['memory' => [
                     'driver' => \Phalcon\Cache\Backend\Memory::class,
@@ -31,17 +31,5 @@ trait TraitTestCase
             ],
             'app' => ['base_uri' => '/']
         ]);
-
-        parent::setUpBeforeClass();
     }
-
-    public static function tearDownAfterClass()
-    {
-        parent::tearDownAfterClass();
-
-        global $config;
-
-        $config = [];
-    }
-
 }

@@ -209,9 +209,7 @@ class AllProvidersTest extends TestCase
 
     public function setUp()
     {
-        global $config;
-
-        $config = array_merge($config, [
+        self::setConfig([
             'cache' => [
                 'stores' => ['memory' => [
                     'driver' => \Phalcon\Cache\Backend\Memory::class,

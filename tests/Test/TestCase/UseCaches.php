@@ -16,9 +16,7 @@ trait UseCaches
     {
         parent::setUpBeforeClass();
 
-        global $config;
-
-        $config = array_merge($config, [
+        self::setConfig([
             'cache' => [
                 'default' => 'memory',
                 'stores' => [
@@ -54,15 +52,6 @@ trait UseCaches
                 ]
             ]
         ]);
-    }
-
-    public static function tearDownAfterClass()
-    {
-        parent::tearDownAfterClass();
-
-        global $config;
-
-        $config = [];
     }
 
     public function tearDown()

@@ -20,9 +20,7 @@ class ViewClearTaskTest extends TestCase
 
     public function setUp()
     {
-        global $config;
-
-        $config['view']['compiled_path'] = BASE_PATH . '/storage/views/';
+        $this->setConfig(['view' => ['compiled_path' => BASE_PATH . '/storage/views/']]);
 
         parent::setUp();
     }

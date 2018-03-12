@@ -9,7 +9,6 @@ use Neutrino\Constants\Services;
 use Neutrino\Support\Arr;
 use Neutrino\Support\Facades\Router;
 use Neutrino\Support\Str;
-use Phalcon\Di\Service;
 
 /**
  * Class RouteListTask
@@ -76,17 +75,28 @@ class RouteListTask extends Task
 
             $action .= Arr::fetch($infos, 'actionSuffix', '');
 
-            $datas[] = [
+            $module = Arr::get($paths, 'module');
+            $namespace = Arr::fetch($paths, 'namespace', Arr::fetch($infos['defaults'], 'namespace'));
+
+            $datas[$module . '::' . $namespace][] = [
                 'domain'     => $route->getHostname(),
                 'name'       => $route->getName(),
                 'method'     => $httpMethods,
                 'pattern'    => $compiled,
-                'action'     => Arr::fetch($paths, 'namespace', Arr::fetch($infos['defaults'], 'namespace')) . '\\' . $controller . '::' . $action,
+                'action'     => $controller . '::' . $action,
                 'middleware' => $middleware
             ];
         }
 
-        $this->table($datas);
+        foreach ($datas as $key => $data) {
+            $parts = explode('::', $key, 2);
+
+            $this->block(['MODULE    : '.$parts[0], 'NAMESPACE : ' . $parts[1]], 'notice');
+
+            $this->table($data);
+
+            $this->line('');
+        }
     }
 
     /**

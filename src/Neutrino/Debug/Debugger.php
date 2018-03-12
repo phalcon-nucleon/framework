@@ -6,6 +6,7 @@ use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
 use Neutrino\Dotconst;
 use Neutrino\Error\Handler;
+use Neutrino\Support\Str;
 use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
@@ -256,7 +257,16 @@ class Debugger extends Injectable
         }
 
         $build['phalcon']['ini'] = ini_get_all('phalcon');
-        $build['neutrino']['const'] = Dotconst\Loader::fromFiles(BASE_PATH);
+
+        $consts = Dotconst\Loader::fromFiles(BASE_PATH);
+
+        foreach ($consts as $key => $const) {
+            if (Str::contains($key, ['PASSWORD', 'PWD'])) {
+                $consts[$key] = '****';
+            }
+        }
+
+        $build['neutrino']['const'] = $consts;
 
         return $build;
     }

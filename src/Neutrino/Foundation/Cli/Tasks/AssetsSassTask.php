@@ -14,9 +14,11 @@ class AssetsSassTask extends Task
 {
     /**
      * Compilation des assets sass.
-     * Execute la commande :
-     *    sass resources/assets/scss/app.scss public/css/app.css
+     * Run command :
+     *    sass {src} {dest} [--style={outputStyle}] [--sourcemap={type}]
      *
+     * @option --src={path}          : Define the src file. If not specified, we compile all files in config
+     * @option --dest={path}         : Define the dest file. If not specified, we compile all files in config
      * @option --sourcemap={type}    : Define sourcemap type
      * @option --style={outputStyle} : Define output style
      * @option --compress            : alias of --style=compressed
@@ -28,22 +30,52 @@ class AssetsSassTask extends Task
      */
     public function mainAction()
     {
-        $this->output->write('Compiling sass... ', false);
+        if($this->hasOption('src') && $this->hasOption('dest')){
+            $src = $this->getOption('src');
+            $dest = $this->getOption('dest');
+
+            $this->compile($src, $dest);
+            return;
+        }
+
+        if($this->hasOption('src')){
+            $this->block(['You pass {src} option, without {dest} option.'], 'error');
+            return;
+        }
+
+        if($this->hasOption('dest')){
+            $this->block(['You pass {dest} option, without {src} option.'], 'error');
+            return;
+        }
+
+        $files = $this->config->assets->sass->files;
+
+        foreach ($files as $src => $dest) {
+            $this->compile($src, $dest);
+        }
+    }
+
+    private function compile($src, $dest)
+    {
+        $this->notice('Compiling : ');
+        $this->notice("\tsrc  : $src");
+        $this->notice("\tdest : $dest");
 
         try {
             (new SassCompiler())->compile([
-              'sass_file' => $this->config->assets->sass->app_file,
-              'output_file' =>  $this->config->assets->sass->output_file,
-              'cmd_options' => array_filter([
-                ($style = $this->getSassStyle()) ? "--style=$style" : '',
-                ($sourcemap = $this->getOption('sourcemap')) ? '--sourcemap="' . $sourcemap . '"' : '',
-              ])
+                'sass_file'   => $src,
+                'output_file' => $dest,
+                'cmd_options' => array_filter([
+                    ($style = $this->getSassStyle()) ? "--style=$style" : '',
+                    ($sourcemap = $this->getSourcemap()) ? '--sourcemap="' . $sourcemap . '"' : '',
+                ])
             ]);
         } catch (\Exception $e) {
-            throw $e;
+            $this->block([$e->getMessage()], 'error');
+            return;
         }
 
-        $this->info('Success');
+        $this->info('Success !');
     }
 
     private function getSassStyle()
@@ -66,9 +98,20 @@ class AssetsSassTask extends Task
             case 'nested':
             case 'compact':
             case 'expanded':
-                return $compress;
+            return $compress;
         }
 
-        return null;
+        return isset($this->config->assets->sass->options->style)
+            ? $this->config->assets->sass->options->style
+            : null;
+    }
+
+    private function getSourcemap()
+    {
+        return $this->hasOption('sourcemap')
+            ? $this->getOption('sourcemap')
+            : isset($this->config->assets->sass->options->sourcemap)
+                ? $this->config->assets->sass->options->sourcemap
+                : null;
     }
 }

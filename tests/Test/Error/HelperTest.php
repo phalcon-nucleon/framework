@@ -19,7 +19,7 @@ class HelperTest extends TestCase
             ["'str'", 'str'],
             ["'123456789'", '123456789'],
             ['object(stdClass)', new \stdClass()],
-            ['arrayOf(stdClass)[1]', [new \stdClass()]],
+            ['array(object(stdClass))', [new \stdClass()]],
             ['arrayOf(stdClass)[4]', [new \stdClass(), new \stdClass(), new \stdClass(), new \stdClass()]],
             ['array[4]', [new \stdClass(), null, new \stdClass(), 123]],
         ];

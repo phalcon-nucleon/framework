@@ -132,15 +132,17 @@ class Helper
                         $found[$type] = true;
                     }
 
-                    if (count($found) === 1) {
-                        return 'arrayOf(' . $type . ')[' . count($value) . ']';
-                    } elseif (count($value) < 4) {
+                    if (count($value) < 4) {
                         $str = [];
                         foreach ($value as $item) {
-                            $str[] = self::verboseType($item, $lvl+1);
+                            $str[] = self::verboseType($item, $lvl + 1);
                         }
+
                         return 'array(' . implode(', ', $str) . ')';
+                    } elseif (count($found) === 1) {
+                        return 'arrayOf(' . $type . ')[' . count($value) . ']';
                     }
+
                     return 'array[' . count($value) . ']';
                 }
 

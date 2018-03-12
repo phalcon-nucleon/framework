@@ -5,7 +5,7 @@ namespace Neutrino\Providers;
 use Neutrino\Constants\Services;
 
 use Neutrino\Support\Provider;
-use Phalcon\Flash\Direct as FlashDirect;
+use Phalcon\Flash\Direct as PhalconFlashDirect;
 
 /**
  * Class Flash
@@ -18,19 +18,14 @@ class Flash extends Provider
 
     protected $shared = false;
 
-    protected $aliases = [FlashDirect::class];
+    protected $aliases = [PhalconFlashDirect::class];
 
     /**
      * @return \Phalcon\Flash\Direct
      */
     protected function register()
     {
-        $flash = new FlashDirect([
-            'error'   => 'alert alert-danger',
-            'success' => 'alert alert-success',
-            'notice'  => 'alert alert-info',
-            'warning' => 'alert alert-warning'
-        ]);
+        $flash = new PhalconFlashDirect();
 
         $flash->setImplicitFlush(false);
 

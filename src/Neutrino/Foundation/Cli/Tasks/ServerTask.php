@@ -11,6 +11,12 @@ use Neutrino\Cli\Task;
  */
 class ServerTask extends Task
 {
+    /**
+     * Runs a local web server
+     *
+     * @option --ip   : Define the ip to use. Default : 127.0.0.1.
+     * @option --port : Define the port to use. Default : 8000.
+     */
     public function mainAction()
     {
         $ip = $this->getOption('ip', '127.0.0.1');

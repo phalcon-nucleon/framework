@@ -54,16 +54,31 @@ class RouteListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write' => ['exactly' => 9, 'consecutive' => [
-                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN                     | ACTION                                                               | MIDDLEWARE                    |'],
-                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get                        | \StubController::indexAction                                         |                               |'],
-                ['|        |      | POST     | /post                       | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
-                ['|        |      | GET      | /u/'.Decorate::notice('{user}').'                   | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
-                ['|        |      | GET|HEAD | /get-head                   | Fake\Kernels\Http\Controllers\StubController::indexAction            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['|        |      | GET      | /back/'.Decorate::notice('{controller}').'/'.Decorate::notice('{action}').' | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'Controller::'.Decorate::notice('{action}').'Action |                               |'],
-                ['+--------+------+----------+-----------------------------+----------------------------------------------------------------------+-------------------------------+'],
+            'notice' => ['exactly' => 8, 'consecutive' => [
+                ['                '],
+                ['  MODULE    :   '],
+                ['  NAMESPACE :   '],
+                ['                '],
+                ['                                             '],
+                ['  MODULE    :                                '],
+                ['  NAMESPACE : Fake\Kernels\Http\Controllers  '],
+                ['                                             '],
+            ]],
+            'write' => ['exactly' => 15, 'consecutive' => [
+                ['+--------+------+--------+---------+-----------------------------+------------+'],
+                ['| DOMAIN | NAME | METHOD | PATTERN | ACTION                      | MIDDLEWARE |'],
+                ['+--------+------+--------+---------+-----------------------------+------------+'],
+                ['|        |      | GET    | /get    | StubController::indexAction |            |'],
+                ['+--------+------+--------+---------+-----------------------------+------------+'],
+                [''],
+                ['+--------+------+----------+-----------------------------+----------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN                     | ACTION                                 | MIDDLEWARE                    |'],
+                ['+--------+------+----------+-----------------------------+----------------------------------------+-------------------------------+'],
+                ['|        |      | POST     | /post                       | StubController::indexAction            |                               |'],
+                ['|        |      | GET      | /u/'.Decorate::notice('{user}').'                   | StubController::indexAction            |                               |'],
+                ['|        |      | GET|HEAD | /get-head                   | StubController::indexAction            | Neutrino\Http\Middleware\Csrf |'],
+                ['|        |      | GET      | /back/'.Decorate::notice('{controller}').'/'.Decorate::notice('{action}').' | '.Decorate::notice('{controller}').'Controller::'.Decorate::notice('{action}').'Action |                               |'],
+                ['+--------+------+----------+-----------------------------+----------------------------------------+-------------------------------+'],
             ]]
         ];
 
@@ -77,8 +92,7 @@ class RouteListTaskTest extends TestCase
         $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
         foreach ($expected as $func => $params) {
-            $method = $mock->expects($this->exactly($params['exactly']))
-                ->method($func);
+            $method = $mock->expects($this->exactly($params['exactly']))->method($func);
 
             if (!empty($params['consecutive'])) {
                 $method->withConsecutive(...$params['consecutive']);
@@ -93,16 +107,31 @@ class RouteListTaskTest extends TestCase
     public function testMainActionNoSubstitution()
     {
         $expected = [
-            'write' => ['exactly' => 9, 'consecutive' => [
-                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
-                ['| DOMAIN | NAME | METHOD   | PATTERN                   | ACTION                                                               | MIDDLEWARE                    |'],
-                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
-                ['|        |      | GET      | /get                      | \StubController::indexAction                                         |                               |'],
-                ['|        |      | POST     | /post                     | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
-                ['|        |      | GET      | /u/:int                   | Fake\Kernels\Http\Controllers\StubController::indexAction            |                               |'],
-                ['|        |      | GET|HEAD | /get-head                 | Fake\Kernels\Http\Controllers\StubController::indexAction            | '.\Neutrino\Http\Middleware\Csrf::class.' |'],
-                ['|        |      | GET      | /back/:controller/:action | Fake\Kernels\Http\Controllers\\'.Decorate::notice('{controller}').'Controller::'.Decorate::notice('{action}').'Action |                               |'],
-                ['+--------+------+----------+---------------------------+----------------------------------------------------------------------+-------------------------------+'],
+            'notice' => ['exactly' => 8, 'consecutive' => [
+                ['                '],
+                ['  MODULE    :   '],
+                ['  NAMESPACE :   '],
+                ['                '],
+                ['                                             '],
+                ['  MODULE    :                                '],
+                ['  NAMESPACE : Fake\Kernels\Http\Controllers  '],
+                ['                                             '],
+            ]],
+            'write' => ['exactly' => 15, 'consecutive' => [
+                ['+--------+------+--------+---------+-----------------------------+------------+'],
+                ['| DOMAIN | NAME | METHOD | PATTERN | ACTION                      | MIDDLEWARE |'],
+                ['+--------+------+--------+---------+-----------------------------+------------+'],
+                ['|        |      | GET    | /get    | StubController::indexAction |            |'],
+                ['+--------+------+--------+---------+-----------------------------+------------+'],
+                [''],
+                ['+--------+------+----------+---------------------------+----------------------------------------+-------------------------------+'],
+                ['| DOMAIN | NAME | METHOD   | PATTERN                   | ACTION                                 | MIDDLEWARE                    |'],
+                ['+--------+------+----------+---------------------------+----------------------------------------+-------------------------------+'],
+                ['|        |      | POST     | /post                     | StubController::indexAction            |                               |'],
+                ['|        |      | GET      | /u/:int                   | StubController::indexAction            |                               |'],
+                ['|        |      | GET|HEAD | /get-head                 | StubController::indexAction            | Neutrino\Http\Middleware\Csrf |'],
+                ['|        |      | GET      | /back/:controller/:action | '.Decorate::notice('{controller}').'Controller::'.Decorate::notice('{action}').'Action |                               |'],
+                ['+--------+------+----------+---------------------------+----------------------------------------+-------------------------------+'],
             ]]
         ];
 
@@ -117,8 +146,7 @@ class RouteListTaskTest extends TestCase
         $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
         foreach ($expected as $func => $params) {
-            $method = $mock->expects($this->exactly($params['exactly']))
-                ->method($func);
+            $method = $mock->expects($this->exactly($params['exactly']))->method($func);
 
             if (!empty($params['consecutive'])) {
                 $method->withConsecutive(...$params['consecutive']);

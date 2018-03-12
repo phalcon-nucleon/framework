@@ -164,14 +164,13 @@ final class Helper
                 preg_match_all('/\*([^\n\r]+)/', $docBlock, $lines);
 
                 foreach ($lines[1] as $line) {
-                    $line = trim($line);
                     if ($line == '*' || $line == '/') {
                         continue;
                     }
-                    $description .= $line . ' ';
+                    $description .= preg_replace('/^ /', '', $line) . PHP_EOL;
                 }
 
-                $infos['description'] = trim($description);
+                $infos['description'] = $description;
             }
         }
 

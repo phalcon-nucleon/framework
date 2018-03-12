@@ -51,7 +51,7 @@ class HelperTask extends Task
         }
 
         $this->line('Description :');
-        $this->line("\t" . $infos['description']);
+        $this->line("\t" . preg_replace('/' . PHP_EOL . '/', PHP_EOL . "\t", $infos['description']));
 
         if (Arr::has($infos, 'arguments')) {
             $this->line('Arguments :');

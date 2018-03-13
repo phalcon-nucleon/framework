@@ -487,54 +487,93 @@ namespace Neutrino\Debug {
          * Dump a variable
          *
          * @param mixed $var
+         *
+         * @return string
          */
         function __dump($var)
         {
-            static $dumped;
+            static $dumped, $dumpRef, $reflex, $lvl;
 
             if(!isset($dumped)){
                 $dumped = [];
             }
 
-            if ((is_array($var) || is_object($var)) && in_array($var, $dumped, true)) {
-                echo '<code  class="nuc-' . gettype($var) . '">';
-                if(is_object($var)){
-                    echo (preg_replace('/.*\\\\(\w+)$/', '$1', get_class($var)));
-                } else {
-                    echo 'array';
-                }
-                echo '</code> *RECURSION*';
-                return;
+            if(!isset($dumpRef)){
+                $dumpRef = [];
             }
 
-            $dumped[] = $var;
+            if(!isset($lvl)){
+                $lvl = 0;
+            }
+
+            if ($lvl === 0) {
+                $dumped = [];
+                $dumpRef = [];
+            }
+
+            $lvl++;
+
+            if ($lvl > 64) {
+                $dump = '<span>** MAX DUMP LVL **</span>';
+                $lvl--;
+
+                return $dump;
+            }
+
+            if (is_array($var) && in_array($var, $dumped, true)) {
+                $dump = '<code  class="nuc-' . gettype($var) . '">';
+                $dump .= 'array</code> *RECURSION*';
+                $lvl--;
+
+                return $dump;
+            }
+
+            if (is_object($var) && isset($dumpRef[spl_object_hash($var)])) {
+                $dump = '<code  class="nuc-' . gettype($var) . '">';
+                $class = (preg_replace('/.*\\\\(\w+)$/', '$1', get_class($var)));
+                $dump .= $class . '</code> <span class="nuc-closure nuc-open">{</span>';
+                $dump .= '<span data-target="nuc-ref-' . spl_object_hash($var) . '">#' . spl_object_hash($var) . '<span>';
+                $dump .= '<span class="nuc-closure nuc-close">}</span>';
+                $lvl--;
+
+                return $dump;
+            }
 
             if (is_null($var)) {
-                echo '<code  class="nuc-const">null</code>';
+                $dump = '<code  class="nuc-const">null</code>';
             } elseif (is_bool($var)) {
-                echo '<code  class="nuc-const">' . ($var ? 'true' : 'false') . '</code>';
+                $dump = '<code  class="nuc-const">' . ($var ? 'true' : 'false') . '</code>';
             } elseif (is_string($var)) {
-                echo '<code  class="nuc-string" title="'.strlen($var).' characters">' . htmlentities($var) . '</code>';
+                $dump = '<span class="nuc-sep">"</span><code class="nuc-string" title="'.strlen($var).' characters">' . htmlentities($var) . '</code><span class="nuc-sep">"</span>';
             } elseif (is_scalar($var)) {
-                echo '<code  class="nuc-' . gettype($var) . '">' . $var . '</code>';
+                $dump = '<code  class="nuc-' . gettype($var) . '">' . $var . '</code>';
             } elseif (is_resource($var)) {
-                echo '<code class="nuc-resource">resource</code>';
+                $dump = '<code class="nuc-resource">resource</code>';
             } elseif(is_array($var)){
-                echo '<code class="nuc-array">array</code> <span class="nuc-open">[</span>';
-                echo '<ul class="nuc-array">';
+                $dumped[] = $var;
+
+                $dump = '<code class="nuc-array">array</code> <span class="nuc-closure nuc-open">[</span>';
+                $dump .= '<ul class="nuc-array">';
                 foreach ($var as $key => $val) {
-                    echo '<li class="nuc-' . gettype($val) . ' ' . (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
-                    echo '- <code class="nuc-key">' . $key . '</code>: ';
-                    __dump($val);
-                    echo '</li>';
+                    $dump .= '<li class="nuc-' . gettype($val) . ' ' . (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
+                    $dump .= '- <code class="nuc-key">' . $key . '</code>: ';
+                    $dump .= __dump($val);
+                    $dump .= '</li>';
                 }
-                echo '</ul>';
-                echo '<span class="nuc-close">]</span>';
+                $dump .= '</ul>';
+                $dump .= '<span class="nuc-closure nuc-close">]</span>';
+
+                array_pop($dumped);
             } elseif(is_object($var)){
-                echo '<code class="nuc-object">' . (preg_replace('/.*\\\\(\w+)$/', '$1', get_class($var))) . '</code> <span class="nuc-open">{</span>';
-                echo '<ul class="nuc-object">';
-                $class = new \ReflectionClass(get_class($var));
-                $properties = $class->getProperties();
+                $dumpRef[spl_object_hash($var)] = true;
+
+                $class = get_class($var);
+                $dump = '<code class="nuc-object">' . (preg_replace('/.*\\\\(\w+)$/', '$1', $class)) . '</code> <span class="nuc-closure nuc-open">{</span>';
+                $dump .= '<ul class="nuc-object" id="nuc-ref-' . spl_object_hash($var) . '">';
+                if (!isset($reflex[$class])) {
+                    $reflex[$class] = (new \ReflectionClass(get_class($var)))->getProperties();
+                }
+                $properties = $reflex[$class];
                 $dumpedProperties = [];
                 foreach ($properties as $property) {
                     $property->setAccessible(true);
@@ -548,26 +587,33 @@ namespace Neutrino\Debug {
                     } else {
                         $type = 'public';
                     }
-                    echo '<li class="nuc-' . gettype($val) . ' ' .  (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
-                    echo '<small class="nuc-modifier">(' . $type . ')</small> <code class="nuc-key">' . $property->getName() . '</code>: ';
-                    __dump($val);
-                    echo '</li>';
+                    $dump .= '<li class="nuc-' . gettype($val) . ' ' .  (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
+                    $dump .= '<small class="nuc-modifier">(' . $type . ')</small> <code class="nuc-key">' . $property->getName() . '</code>: ';
+                    $dump .= __dump($val);
+                    $dump .= '</li>';
                 }
                 foreach ($var as $key => $val) {
                     if (!in_array($key, $dumpedProperties, true)) {
-                        echo '<li class="nuc-' . gettype($val) . ' ' .  (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
-                        echo '<small class="nuc-modifier">(public)</small> <code class="nuc-key">' . $key . '</code>: ';
-                        __dump($val);
-                        echo '</li>';
+                        $dump .= '<li class="nuc-' . gettype($val) . ' ' .  (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
+                        $dump .= '<small class="nuc-modifier">(public)</small> <code class="nuc-key">' . $key . '</code>: ';
+                        $dump .= __dump($val);
+                        $dump .= '</li>';
                     }
                 }
-                echo '</ul>';
-                echo '<span class="nuc-close">}</span>';
+                $dump .= '</ul>';
+                $dump .= '<span class="nuc-closure nuc-close">}</span>';
+            } else {
+                $dump = '';
             }
 
-            array_pop($dumped);
+            $lvl--;
 
-            flush();ob_flush();
+            if ($lvl === 0) {
+                $dumped = [];
+                $dumpRef = [];
+            }
+
+            return $dump;
         }
     }
 }

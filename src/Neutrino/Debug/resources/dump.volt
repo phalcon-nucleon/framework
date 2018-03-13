@@ -4,15 +4,15 @@
     margin:0 0 5px 0;
     padding: 5px;
     background: #232525;
-    color: #f5f5f5;
+    color: #eeeeee;
     line-height: 1.5;
     font: 12px monospace;
     text-align: left;
     word-wrap: break-word;
     white-space: pre-wrap;
+    word-break: break-all;
     position: relative;
     z-index: 99999;
-    word-break: break-all;
   }
   pre.nuc-dump code {
     color: #a69730;
@@ -33,19 +33,25 @@
   pre.nuc-dump small {
     font-size: 80%;
   }
-
-  pre.nuc-dump li.nuc-close > *:not(ul),
-  pre.nuc-dump li.nuc-open > *:not(ul) {
-    cursor: pointer;
-  }
   pre.nuc-dump li.nuc-close > ul {
     display: none;
   }
   pre.nuc-dump li.nuc-open > ul {
     display: inherit;
   }
-  pre.nuc-dump span.nuc-open, pre.nuc-dump span.nuc-close {
+  pre.nuc-dump span.nuc-closure.nuc-open {
     cursor: pointer;
+  }
+  pre.nuc-dump span.nuc-closure.nuc-open::after {
+    cursor: pointer;
+    color:#d800ff;
+    font-weight: bold;
+  }
+  pre.nuc-dump .nuc-open span.nuc-closure.nuc-open::after {
+    content:"-";
+  }
+  pre.nuc-dump .nuc-close span.nuc-closure.nuc-open::after {
+    content:"+";
   }
   pre.nuc-dump code.nuc-key {
     color: #a69730;
@@ -65,20 +71,22 @@
   pre.nuc-dump code.nuc-string.nuc-truncate {
     cursor: pointer;
   }
-  pre.nuc-dump code.nuc-string:before, pre.nuc-dump code.nuc-string:after {
-    content: '"';
+  pre.nuc-dump .nuc-sep {
     color: #CC7832;
   }
 
-  pre.nuc-dump code.nuc-string.nuc-truncate:not(.nuc-open):after {
-    content: ' >"';
+  pre.nuc-dump code.nuc-string.nuc-truncate::after {
+    color:#d800ff;
+    font-weight: bold;
+    line-height: 11px;
+    content: ' >';
   }
-  pre.nuc-dump code.nuc-string.nuc-truncate.nuc-open:after {
-    content: ' <"';
+  pre.nuc-dump code.nuc-string.nuc-truncate.nuc-open::after {
+    content: ' <';
   }
 
   pre.nuc-dump code.nuc-object {
-    color: #a032cc;
+    color: #ea80fc;
   }
 </style>
 
@@ -90,6 +98,7 @@
   (function (document) {
     var pre = document.getElementById('{{ id }}');
     var elements = pre.querySelectorAll('code.nuc-string'), element;
+
     for (var i = 0, l = elements.length; i < l; i++) {
       element = elements[i];
       if (element.innerText.length > 120) {
@@ -100,31 +109,27 @@
     }
 
     pre.addEventListener('click', function (ev) {
-      var target = ev.target, classList = target.classList;
-      if (target.tagName === 'CODE' && classList.contains('nuc-string')
-        && classList.contains('nuc-truncate')) {
-        classList.toggle('nuc-open')
+      var target = ev.target, tag = target.tagName, classList = target.classList;
+
+      if (target.tagName === 'CODE' && classList.contains('nuc-truncate')) {
+        classList.toggle('nuc-open');
         if (classList.contains('nuc-open')) {
           target.innerText = target.dataset.contentStr;
         } else {
-          target.innerText = target.dataset.contentStr.substr(0, 177);
+          target.innerText = target.dataset.contentStr.substr(0, 117);
         }
-      }
-    });
-    pre.addEventListener('click', function (ev) {
-      var target = ev.target, tag = target.tagName;
-      var li;
-      if (tag === 'LI') {
-        li = target;
-      } else {
+      } else if (tag === 'SPAN' && target.hasAttribute('data-target')) {
+        target.parentNode.appendChild(document.getElementById(target.getAttribute('data-target')));
+      } else if (tag === 'SPAN' && classList.contains('nuc-closure') && classList.contains('nuc-open')) {
+        var li;
         li = target.parentElement;
-      }
-      if (li.tagName !== 'LI') {
-        return;
-      }
-      if (li && li.querySelector('ul')) {
-        li.classList.toggle('nuc-close');
-        li.classList.toggle('nuc-open')
+        if (li.tagName !== 'LI') {
+          return;
+        }
+        if (li && li.querySelector('ul')) {
+          li.classList.toggle('nuc-close');
+          li.classList.toggle('nuc-open')
+        }
       }
     });
   })(document)

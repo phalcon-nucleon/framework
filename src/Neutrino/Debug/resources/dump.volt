@@ -108,6 +108,13 @@
       }
     }
 
+    function openLi(li){
+      if (li && li.querySelector('ul')) {
+        li.classList.toggle('nuc-close');
+        li.classList.toggle('nuc-open')
+      }
+    }
+
     pre.addEventListener('click', function (ev) {
       var target = ev.target, tag = target.tagName, classList = target.classList;
 
@@ -119,17 +126,15 @@
           target.innerText = target.dataset.contentStr.substr(0, 117);
         }
       } else if (tag === 'SPAN' && target.hasAttribute('data-target')) {
-        target.parentNode.appendChild(document.getElementById(target.getAttribute('data-target')));
+        target.parentNode.insertBefore(document.getElementById(target.getAttribute('data-target')), target.nextSibling);
+        openLi(target.parentElement)
       } else if (tag === 'SPAN' && classList.contains('nuc-closure') && classList.contains('nuc-open')) {
         var li;
         li = target.parentElement;
         if (li.tagName !== 'LI') {
           return;
         }
-        if (li && li.querySelector('ul')) {
-          li.classList.toggle('nuc-close');
-          li.classList.toggle('nuc-open')
-        }
+        openLi(li)
       }
     });
   })(document)

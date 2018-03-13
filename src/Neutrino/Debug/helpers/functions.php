@@ -481,6 +481,21 @@ namespace Neutrino\Debug {
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\__dump')) {
+        function __obj_id($var)
+        {
+            static $hash, $id;
+
+            $spl = spl_object_hash($var);
+
+            if (isset($hash[$spl])) {
+                return $hash[$spl];
+            }
+            if (!isset($id)) {
+                $id = 1;
+            }
+            return $hash[$spl] = $id++;
+        }
+
         /**
          * @internal
          *
@@ -528,11 +543,10 @@ namespace Neutrino\Debug {
                 return $dump;
             }
 
-            if (is_object($var) && isset($dumpRef[spl_object_hash($var)])) {
+            if (is_object($var) && isset($dumpRef[__obj_id($var)])) {
                 $dump = '<code  class="nuc-' . gettype($var) . '">';
                 $class = (preg_replace('/.*\\\\(\w+)$/', '$1', get_class($var)));
-                $dump .= $class . '</code> <span class="nuc-closure nuc-open">{</span>';
-                $dump .= '<span data-target="nuc-ref-' . spl_object_hash($var) . '">#' . spl_object_hash($var) . '<span>';
+                $dump .= $class . '</code> <span class="nuc-closure nuc-open" data-target="nuc-ref-' . __obj_id($var) . '">{#' . __obj_id($var) . '</span>';
                 $dump .= '<span class="nuc-closure nuc-close">}</span>';
                 $lvl--;
 
@@ -565,11 +579,12 @@ namespace Neutrino\Debug {
 
                 array_pop($dumped);
             } elseif(is_object($var)){
-                $dumpRef[spl_object_hash($var)] = true;
+                $dumpRef[__obj_id($var)] = true;
 
                 $class = get_class($var);
-                $dump = '<code class="nuc-object">' . (preg_replace('/.*\\\\(\w+)$/', '$1', $class)) . '</code> <span class="nuc-closure nuc-open">{</span>';
-                $dump .= '<ul class="nuc-object" id="nuc-ref-' . spl_object_hash($var) . '">';
+                $dump = '<code class="nuc-object">' . (preg_replace('/.*\\\\(\w+)$/', '$1', $class)) . '</code> ';
+                $dump .= '<span class="nuc-closure nuc-open" data-target="nuc-ref-' . __obj_id($var) . '">{#' . __obj_id($var) . '</span>';
+                $dump .= '<ul class="nuc-object" id="nuc-ref-' . __obj_id($var) . '">';
                 if (!isset($reflex[$class])) {
                     $reflex[$class] = (new \ReflectionClass(get_class($var)))->getProperties();
                 }
@@ -581,21 +596,21 @@ namespace Neutrino\Debug {
                     $dumpedProperties[] = $property->getName();
 
                     if ($property->isPrivate()) {
-                        $type = 'private';
+                        $type = '-';
                     } elseif ($property->isProtected()) {
-                        $type = 'protected';
+                        $type = '#';
                     } else {
-                        $type = 'public';
+                        $type = '+';
                     }
                     $dump .= '<li class="nuc-' . gettype($val) . ' ' .  (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
-                    $dump .= '<small class="nuc-modifier">(' . $type . ')</small> <code class="nuc-key">' . $property->getName() . '</code>: ';
+                    $dump .= '<small class="nuc-modifier">' . $type . '</small> <code class="nuc-key">' . $property->getName() . '</code>: ';
                     $dump .= __dump($val);
                     $dump .= '</li>';
                 }
                 foreach ($var as $key => $val) {
                     if (!in_array($key, $dumpedProperties, true)) {
                         $dump .= '<li class="nuc-' . gettype($val) . ' ' .  (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
-                        $dump .= '<small class="nuc-modifier">(public)</small> <code class="nuc-key">' . $key . '</code>: ';
+                        $dump .= '<small class="nuc-modifier">+</small> <code class="nuc-key">' . $key . '</code>: ';
                         $dump .= __dump($val);
                         $dump .= '</li>';
                     }

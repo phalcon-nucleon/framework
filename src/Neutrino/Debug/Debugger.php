@@ -7,6 +7,7 @@ use Neutrino\Constants\Services;
 use Neutrino\Dotconst;
 use Neutrino\Error\Handler;
 use Neutrino\Support\Str;
+use Neutrino\View\Engines\Volt\Compiler\Extensions\PhpFunctionExtension;
 use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
@@ -289,6 +290,12 @@ class Debugger extends Injectable
      */
     public static function getIsolateView()
     {
+        static $view;
+
+        if (isset($view)) {
+            return $view;
+        }
+
         include __DIR__ . '/helpers/functions.php';
 
         $view = new View\Simple();
@@ -308,6 +315,9 @@ class Debugger extends Injectable
                 $compiler->addFunction('is_string', function ($resolvedArgs) {
                     return 'is_string(' . $resolvedArgs . ')';
                 });
+                $compiler->addFunction('__dump', function ($resolvedArgs) {
+                    return __NAMESPACE__ . '\\__dump(' . $resolvedArgs . ')';
+                });
                 $compiler->addFilter('human_mtime', function ($resolvedArgs) {
                     return __NAMESPACE__ . '\\human_mtime(' . $resolvedArgs . ')';
                 });
@@ -326,6 +336,7 @@ class Debugger extends Injectable
                 $compiler->addFilter('merge', function ($resolvedArgs) {
                     return 'array_merge(' . $resolvedArgs . ')';
                 });
+                $compiler->addExtension(new PhpFunctionExtension($compiler));
                 return $volt;
             },
           ]
@@ -352,5 +363,28 @@ class Debugger extends Injectable
         ];
 
         return $profiler;
+    }
+
+    public static function dump($var)
+    {
+        // We force the start of the session so that it is initialized before the first exit.
+        switch (session_status()){
+            case PHP_SESSION_DISABLED:
+            case PHP_SESSION_ACTIVE:
+                break;
+            default:
+                $di = Di::getDefault();
+                if($di->has(Services::SESSION)){
+                    $di->get(Services::SESSION);
+                } else {
+                    session_start();
+                }
+        }
+
+        echo self::getIsolateView()
+          ->setVar('var', $var)
+          ->render('dump');
+
+        flush();ob_flush();
     }
 }

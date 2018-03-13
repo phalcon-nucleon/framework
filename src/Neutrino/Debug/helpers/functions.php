@@ -433,4 +433,85 @@ namespace Neutrino\Debug {
             );
         }
     }
+    if (!function_exists(__NAMESPACE__ . '\\dump')) {
+        function __dump($var)
+        {
+            static $dumped;
+
+            if(!isset($dumped)){
+                $dumped = [];
+            }
+
+            if ((is_array($var) || is_object($var)) && in_array($var, $dumped, true)) {
+                echo '<code  class="nuc-' . gettype($var) . '">';
+                if(is_object($var)){
+                    echo (preg_replace('/.*\\\\(\w+)$/', '$1', get_class($var)));
+                } else {
+                    echo 'array';
+                }
+                echo '</code> *RECURSION*';
+                return;
+            }
+
+            $dumped[] = $var;
+
+            if (is_null($var)) {
+                echo '<code  class="nuc-const">null</code>';
+            } elseif (is_bool($var)) {
+                echo '<code  class="nuc-const">' . ($var ? 'true' : 'false') . '</code>';
+            } elseif (is_scalar($var)) {
+                echo '<code  class="nuc-' . gettype($var) . '">' . htmlentities($var) . '</code>';
+            } elseif (is_resource($var)) {
+                echo '<code class="nuc-resource">resource</code>';
+            } elseif(is_array($var)){
+                echo '<code class="nuc-array">array</code> <span class="nuc-open">[</span>';
+                echo '<ul class="nuc-array">';
+                foreach ($var as $key => $val) {
+                    echo '<li class="nuc-' . gettype($val) . ' ' . (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
+                    echo '- <code class="nuc-key">' . $key . '</code>: ';
+                    __dump($val);
+                    echo '</li>';
+                }
+                echo '</ul>';
+                echo '<span class="nuc-close">]</span>';
+            } elseif(is_object($var)){
+                echo '<code class="nuc-object">' . (preg_replace('/.*\\\\(\w+)$/', '$1', get_class($var))) . '</code> <span class="nuc-open">{</span>';
+                echo '<ul class="nuc-object">';
+                $class = new \ReflectionClass(get_class($var));
+                $properties = $class->getProperties();
+                $dumpedProperties = [];
+                foreach ($properties as $property) {
+                    $property->setAccessible(true);
+                    $val = $property->getValue($var);
+                    $dumpedProperties[] = $property->getName();
+
+                    if ($property->isPrivate()) {
+                        $type = 'private';
+                    } elseif ($property->isProtected()) {
+                        $type = 'protected';
+                    } else {
+                        $type = 'public';
+                    }
+                    echo '<li class="nuc-' . gettype($val) . ' ' .  (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
+                    echo '<small class="nuc-modifier">(' . $type . ')</small> <code class="nuc-key">' . $property->getName() . '</code>: ';
+                    __dump($val);
+                    echo '</li>';
+                }
+                foreach ($var as $key => $val) {
+                    if (!in_array($key, $dumpedProperties, true)) {
+                        echo '<li class="nuc-' . gettype($val) . ' ' .  (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
+                        echo '<small class="nuc-modifier">(public)</small> <code class="nuc-key">' . $key . '</code>: ';
+                        __dump($val);
+                        echo '</li>';
+                    }
+                }
+                echo '</ul>';
+                echo '<span class="nuc-close">}</span>';
+            }
+
+            array_pop($dumped);
+
+            flush();ob_flush();
+        }
+    }
 }

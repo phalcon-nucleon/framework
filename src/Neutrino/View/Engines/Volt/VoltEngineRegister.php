@@ -55,6 +55,12 @@ class VoltEngineRegister extends EngineRegister
             });
         }
 
+        $compiler->addFunction('dump', function ($resolvedArgs, $exprArgs) {
+            if (APP_DEBUG) {
+                return 'Neutrino\Debug\Debugger::dump(' . $resolvedArgs . ')';
+            }
+            return 'null';
+        });
         $functions = isset($config->functions) ? $config->functions : [];
         foreach ($functions as $name => $function) {
             $function = new $function($compiler);

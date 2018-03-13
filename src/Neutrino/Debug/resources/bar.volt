@@ -231,7 +231,7 @@
             </tr>
             <tr>
               <td colspan="2">
-                <a href="#debug-build-info" data-debug-modal-trigger="debug-build-info" class="debug-modal-trigger">
+                <a href="javascript:" data-debug-modal-trigger="debug-build-info" class="debug-modal-trigger">
                   more info
                 </a>
               </td>

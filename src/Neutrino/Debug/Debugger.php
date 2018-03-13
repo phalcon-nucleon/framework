@@ -75,6 +75,14 @@ class Debugger extends Injectable
             $di->setInternalEventsManager($em = new DebugEventsManagerWrapper($em));
         }
 
+        $em = $di->get(Services::EVENTS_MANAGER);
+
+        if (is_null($em)) {
+            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper(new Manager()));
+        } else {
+            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper($em));
+        }
+
         $em = $app->getEventsManager();
 
         if (is_null($em)) {
@@ -363,28 +371,5 @@ class Debugger extends Injectable
         ];
 
         return $profiler;
-    }
-
-    public static function dump($var)
-    {
-        // We force the start of the session so that it is initialized before the first exit.
-        switch (session_status()){
-            case PHP_SESSION_DISABLED:
-            case PHP_SESSION_ACTIVE:
-                break;
-            default:
-                $di = Di::getDefault();
-                if($di->has(Services::SESSION)){
-                    $di->get(Services::SESSION);
-                } else {
-                    session_start();
-                }
-        }
-
-        echo self::getIsolateView()
-          ->setVar('var', $var)
-          ->render('dump');
-
-        flush();ob_flush();
     }
 }

@@ -62,11 +62,22 @@
   pre.nuc-dump code.nuc-string {
     color:#629755;
   }
+  pre.nuc-dump code.nuc-string.nuc-truncate {
+    cursor: pointer;
+  }
   pre.nuc-dump code.nuc-string:before, pre.nuc-dump code.nuc-string:after {
-    content:'"';
+    content: '"';
     color: #CC7832;
   }
-   pre.nuc-dump code.nuc-object {
+
+  pre.nuc-dump code.nuc-string.nuc-truncate:not(.nuc-open):after {
+    content: ' >"';
+  }
+  pre.nuc-dump code.nuc-string.nuc-truncate.nuc-open:after {
+    content: ' <"';
+  }
+
+  pre.nuc-dump code.nuc-object {
     color: #a032cc;
   }
 </style>
@@ -78,7 +89,28 @@
 <script>
   (function (document) {
     var pre = document.getElementById('{{ id }}');
+    var elements = pre.querySelectorAll('code.nuc-string'), element;
+    for (var i = 0, l = elements.length; i < l; i++) {
+      element = elements[i];
+      if (element.innerText.length > 120) {
+        element.classList.add('nuc-truncate');
+        element.dataset.contentStr = element.innerText;
+        element.innerText = element.innerText.substr(0, 117);
+      }
+    }
 
+    pre.addEventListener('click', function (ev) {
+      var target = ev.target, classList = target.classList;
+      if (target.tagName === 'CODE' && classList.contains('nuc-string')
+        && classList.contains('nuc-truncate')) {
+        classList.toggle('nuc-open')
+        if (classList.contains('nuc-open')) {
+          target.innerText = target.dataset.contentStr;
+        } else {
+          target.innerText = target.dataset.contentStr.substr(0, 177);
+        }
+      }
+    });
     pre.addEventListener('click', function (ev) {
       var target = ev.target, tag = target.tagName;
       var li;
@@ -90,10 +122,10 @@
       if (li.tagName !== 'LI') {
         return;
       }
-      if (li && li.querySelector('ul')){
+      if (li && li.querySelector('ul')) {
         li.classList.toggle('nuc-close');
         li.classList.toggle('nuc-open')
       }
-    })
+    });
   })(document)
 </script>

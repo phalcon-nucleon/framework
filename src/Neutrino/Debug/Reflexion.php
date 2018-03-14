@@ -143,7 +143,19 @@ final class Reflexion
      */
     public static function set($object, $property, $value)
     {
-        self::getReflectionProperty($object, $property)->setValue(is_string($object) ? null : $object, $value);
+        $property = self::getReflectionProperty($object, $property);
+
+        if ($isString = is_string($object)) {
+            if (($declaringClass = $property->getDeclaringClass()->getName()) !== $object) {
+                self::getReflectionProperty($declaringClass, $property->getName())->setValue(null, $value);
+                return;
+            }
+
+            $property->setValue(null, $value);
+            return;
+        }
+
+        $property->setValue($object, $value);
     }
 
     /**
@@ -155,7 +167,17 @@ final class Reflexion
      */
     public static function get($object, $property)
     {
-        return self::getReflectionProperty($object, $property)->getValue(is_string($object) ? null : $object);
+        $property = self::getReflectionProperty($object, $property);
+
+        if ($isString = is_string($object)) {
+            if (($declaringClass = $property->getDeclaringClass()->getName()) !== $object) {
+                return self::getReflectionProperty($declaringClass, $property->getName())->getValue(null);
+            }
+
+            return $property->getValue(null);
+        }
+
+        return $property->getValue($object);
     }
 
     /**
@@ -168,6 +190,16 @@ final class Reflexion
      */
     public static function invoke($object, $method, ...$params)
     {
-        return self::getReflectionMethod($object, $method)->invokeArgs(is_string($object) ? null : $object, $params);
+        $method = self::getReflectionMethod($object, $method);
+
+        if ($isString = is_string($object)) {
+            if (($declaringClass = $method->getDeclaringClass()->getName()) !== $object) {
+                return self::getReflectionMethod($declaringClass, $method->getName())->invokeArgs(null, $params);
+            }
+
+            return $method->invokeArgs(null, $params);
+        }
+
+        return $method->invokeArgs($object, $params);
     }
 }

@@ -38,17 +38,16 @@ class RoundFilter extends FilterExtend
                     case 'ceil':
                         return "ceil($value)";
                 }
-                break;
-        }
-
-        switch (isset($exprArgs[2]['expr']['value']) ? $exprArgs[2]['expr']['value'] :  null) {
-            case 'floor':
-                return "floor($value)";
-            case 'ceil':
-                return "ceil($value)";
         }
 
         $precision = isset($exprArgs[1]['expr']['value']) ? $exprArgs[1]['expr']['value'] : 0;
+
+        switch (isset($exprArgs[2]['expr']['value']) ? $exprArgs[2]['expr']['value'] :  null) {
+            case 'floor':
+                return "floor($value*(10**$precision))/(10**$precision)";
+            case 'ceil':
+                return "ceil($value*(10**$precision))/(10**$precision)";
+        }
 
         return "round($value, $precision)";
     }

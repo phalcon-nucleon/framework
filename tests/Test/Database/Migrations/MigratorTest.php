@@ -7,7 +7,7 @@ use Neutrino\Constants\Services;
 use Neutrino\Database\Migrations\Migrator;
 use Neutrino\Database\Migrations\Prefix\TimestampPrefix;
 use Neutrino\Database\Migrations\Storage\StorageInterface;
-use Neutrino\Support\Reflacker;
+use Neutrino\Debug\Reflexion;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Dialect;
 use Test\TestCase\TestCase;
@@ -36,8 +36,8 @@ class MigratorTest extends TestCase
     {
         $migrator = new Migrator($this->createMock(StorageInterface::class), new TimestampPrefix());
 
-        Reflacker::invoke($migrator, 'note', "my first message");
-        Reflacker::invoke($migrator, 'note', "my second message");
+        Reflexion::invoke($migrator, 'note', "my first message");
+        Reflexion::invoke($migrator, 'note', "my second message");
 
         $this->assertEquals([
             "my first message",
@@ -120,7 +120,7 @@ class MigratorTest extends TestCase
 
         $migrator = new Migrator($storage, new TimestampPrefix());
 
-        $result = Reflacker::invoke($migrator, 'getMigrationsForRollback', []);
+        $result = Reflexion::invoke($migrator, 'getMigrationsForRollback', []);
 
         $this->assertEquals($getLast, $result);
 
@@ -128,7 +128,7 @@ class MigratorTest extends TestCase
             ['migration' => 'get_migrations']
         ]);
 
-        $result = Reflacker::invoke($migrator, 'getMigrationsForRollback', ['step' => 1]);
+        $result = Reflexion::invoke($migrator, 'getMigrationsForRollback', ['step' => 1]);
 
         $this->assertEquals($getMigrations, $result);
 

@@ -7,7 +7,7 @@ use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Question\ChoiceQuestion;
 use Neutrino\Cli\Question\ConfirmationQuestion;
 use Neutrino\Cli\Question\Question;
-use Neutrino\Support\Reflacker;
+use Neutrino\Debug\Reflexion;
 use Test\TestCase\TestCase;
 
 class QuestionHelperTest extends TestCase
@@ -62,7 +62,7 @@ class QuestionHelperTest extends TestCase
 
         $this->assertEquals(
             'test',
-            Reflacker::invoke(QuestionHelper::class, 'doAsk', $output, $this->getStdIn(), $question)
+            Reflexion::invoke(QuestionHelper::class, 'doAsk', $output, $this->getStdIn(), $question)
         );
     }
 
@@ -93,7 +93,7 @@ class QuestionHelperTest extends TestCase
 
         $this->mockStdIn($mock);
 
-        $result = Reflacker::invoke(QuestionHelper::class, 'ask', $output, $this->getStdIn(), $question);
+        $result = Reflexion::invoke(QuestionHelper::class, 'ask', $output, $this->getStdIn(), $question);
 
         $this->assertEquals($expected, $result);
     }
@@ -105,7 +105,7 @@ class QuestionHelperTest extends TestCase
         $this->mockStdIn("\n\nb");
         $question = new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 'a', 3);
 
-        $result = Reflacker::invoke(QuestionHelper::class, 'ask', $output, $this->getStdIn(), $question);
+        $result = Reflexion::invoke(QuestionHelper::class, 'ask', $output, $this->getStdIn(), $question);
 
         $this->assertEquals('b', $result);
     }

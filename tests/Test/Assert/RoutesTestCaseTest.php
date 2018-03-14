@@ -4,9 +4,8 @@ namespace Test\Assert;
 
 use Fake\Kernels\Http\Controllers\StubController;
 use Fake\Test\StubRouteTestCase;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Http\Standards\Method;
-use Neutrino\Support\Reflacker;
-use Neutrino\Test\RoutesTestCase;
 use Phalcon\Mvc\Router\Route;
 use Test\TestCase\TestCase;
 use Test\TestCase\TraitTestCase;
@@ -78,6 +77,6 @@ class RoutesTestCaseTest extends TestCase
             ['', Method::GET, true, null, null, null],
             ['', Method::GET, true, 'Stub', 'index', null],
             ['/parameted/param_1', Method::GET, true, 'Stub', 'index', ['tags' => 'param_1']],
-        ], Reflacker::get($routesTestCase, 'testedRoutes'));
+        ], Reflexion::get($routesTestCase, 'testedRoutes'));
     }
 }

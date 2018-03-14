@@ -4,8 +4,8 @@ namespace Test\Middleware;
 
 use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Foundation\Middleware\Controller;
-use Neutrino\Support\Reflacker;
 use Test\TestCase\TestCase;
 
 /**
@@ -32,7 +32,7 @@ class MiddlewareControllerTest extends TestCase
 
         $this->assertEquals(
             [],
-            Reflacker::get($controller, 'filter')
+            Reflexion::get($controller, 'filter')
         );
 
         $this->assertEquals($controller, $controller->only([]));
@@ -41,7 +41,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => [],
             'except' => []
-        ], Reflacker::get($controller, 'filter'));
+        ], Reflexion::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only(['test']));
         $this->assertEquals($controller, $controller->except(['test']));
@@ -49,7 +49,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => ['test'=>true],
             'except' => ['test'=>true]
-        ], Reflacker::get($controller, 'filter'));
+        ], Reflexion::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only(null));
         $this->assertEquals($controller, $controller->except(null));
@@ -57,7 +57,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => ['test'=>true],
             'except' => ['test'=>true]
-        ], Reflacker::get($controller, 'filter'));
+        ], Reflexion::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only([]));
         $this->assertEquals($controller, $controller->except([]));
@@ -65,7 +65,7 @@ class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => [],
             'except' => []
-        ], Reflacker::get($controller, 'filter'));
+        ], Reflexion::get($controller, 'filter'));
     }
 
     public function dataCheck()

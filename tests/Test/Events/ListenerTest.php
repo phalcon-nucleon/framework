@@ -3,8 +3,8 @@ namespace Test;
 
 use Fake\Core\Listeners\StubListener;
 use Neutrino\Constants\Events;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Events\Listener;
-use Neutrino\Support\Reflacker;
 use Phalcon\Events\Manager;
 use Test\TestCase\TestCase;
 
@@ -53,9 +53,9 @@ class ListenerTest extends TestCase
             $method->with(array_keys($event)[0], $this->isInstanceOf(\Closure::class));
         }
 
-        Reflacker::set($listener, '_eventsManager', $mock);
+        Reflexion::set($listener, '_eventsManager', $mock);
 
-        Reflacker::set($listener, $property, $event);
+        Reflexion::set($listener, $property, $event);
 
         $listener->attach();
     }
@@ -86,9 +86,9 @@ class ListenerTest extends TestCase
             $method->with(array_keys($event)[0], $this->isInstanceOf(\Closure::class));
         }
 
-        Reflacker::set($listener, '_eventsManager', $mock);
+        Reflexion::set($listener, '_eventsManager', $mock);
 
-        Reflacker::set($listener, $property, $event);
+        Reflexion::set($listener, $property, $event);
 
         $listener->attach();
 

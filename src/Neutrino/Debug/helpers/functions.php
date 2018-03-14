@@ -2,6 +2,16 @@
 
 namespace Neutrino\Debug {
     if (!function_exists(__NAMESPACE__ . '\\human_mtime')) {
+        /**
+         * @internal
+         *
+         * Convert a microtime to it's human representation
+         *
+         * @param number $time
+         * @param null $precision
+         *
+         * @return string
+         */
         function human_mtime($time, $precision = null)
         {
             $units = [1 => 'ms', 2 => 'µs', 3 => 'ns'];
@@ -29,6 +39,16 @@ namespace Neutrino\Debug {
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\human_bytes')) {
+        /**
+         * @internal
+         *
+         * Convert a bytes numbre to it's human representation
+         *
+         * @param number $bytes
+         * @param int $precision
+         *
+         * @return string
+         */
         function human_bytes($bytes, $precision = 2)
         {
             $units = ['', 'K', 'M', 'G', 'T'];
@@ -44,6 +64,15 @@ namespace Neutrino\Debug {
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\sql_highlight')) {
+        /**
+         * @internal
+         *
+         * Simple SQL highlight
+         *
+         * @param string $sql
+         *
+         * @return string
+         */
         function sql_highlight($sql)
         {
             $func = implode('|', [
@@ -412,6 +441,15 @@ namespace Neutrino\Debug {
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\file_highlight')) {
+        /**
+         * @internal
+         *
+         * Highlight the file part of string represented by {path}\{file}
+         *
+         * @param string $file
+         *
+         * @return string
+         */
         function file_highlight($file)
         {
             $file = str_replace(BASE_PATH . DIRECTORY_SEPARATOR, '', str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $file));
@@ -424,6 +462,15 @@ namespace Neutrino\Debug {
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\func_highlight')) {
+        /**
+         * @internal
+         *
+         * Highlight the function part of string represented by {namespace}\{function}
+         *
+         * @param string $func
+         *
+         * @return string
+         */
         function func_highlight($func)
         {
             return preg_replace(

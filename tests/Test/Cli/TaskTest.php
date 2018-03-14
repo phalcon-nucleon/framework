@@ -7,8 +7,8 @@ use Fake\Kernels\Cli\Tasks\StubTask;
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Foundation\Cli\Kernel;
-use Neutrino\Support\Reflacker;
 use Phalcon\Cli\Dispatcher;
 use Test\TestCase\TestCase;
 
@@ -49,12 +49,12 @@ class TaskTest extends TestCase
 
         $task = $this->stubTask();
 
-        $this->assertTrue(Reflacker::invoke($task, 'hasOption', $shouldHave));
-        $this->assertFalse(Reflacker::invoke($task, 'hasOption', $shouldNotHave));
+        $this->assertTrue(Reflexion::invoke($task, 'hasOption', $shouldHave));
+        $this->assertFalse(Reflexion::invoke($task, 'hasOption', $shouldNotHave));
 
-        $this->assertEquals($value, Reflacker::invoke($task, 'getOption', $shouldHave));
+        $this->assertEquals($value, Reflexion::invoke($task, 'getOption', $shouldHave));
 
-        $this->assertEquals($options, Reflacker::invoke($task, 'getOptions'));
+        $this->assertEquals($options, Reflexion::invoke($task, 'getOptions'));
     }
 
     /**
@@ -69,12 +69,12 @@ class TaskTest extends TestCase
 
         $task = $this->stubTask();
 
-        $this->assertTrue(Reflacker::invoke($task, 'hasArg', $shouldHave));
-        $this->assertFalse(Reflacker::invoke($task, 'hasArg', $shouldNotHave));
+        $this->assertTrue(Reflexion::invoke($task, 'hasArg', $shouldHave));
+        $this->assertFalse(Reflexion::invoke($task, 'hasArg', $shouldNotHave));
 
-        $this->assertEquals($value, Reflacker::invoke($task, 'getArg', $shouldHave));
+        $this->assertEquals($value, Reflexion::invoke($task, 'getArg', $shouldHave));
 
-        $this->assertEquals($options, Reflacker::invoke($task, 'getArgs'));
+        $this->assertEquals($options, Reflexion::invoke($task, 'getArgs'));
     }
 
     public function dataOutput()

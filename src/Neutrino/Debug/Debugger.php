@@ -7,6 +7,7 @@ use Neutrino\Constants\Services;
 use Neutrino\Dotconst;
 use Neutrino\Error\Handler;
 use Neutrino\Support\Str;
+use Neutrino\View\Engines\Volt\Compiler\Extensions\PhpFunctionExtension;
 use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
@@ -72,6 +73,14 @@ class Debugger extends Injectable
             $di->setInternalEventsManager($em = new DebugEventsManagerWrapper(new Manager()));
         } else {
             $di->setInternalEventsManager($em = new DebugEventsManagerWrapper($em));
+        }
+
+        $em = $di->get(Services::EVENTS_MANAGER);
+
+        if (is_null($em)) {
+            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper(new Manager()));
+        } else {
+            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper($em));
         }
 
         $em = $app->getEventsManager();
@@ -289,6 +298,12 @@ class Debugger extends Injectable
      */
     public static function getIsolateView()
     {
+        static $view;
+
+        if (isset($view)) {
+            return $view;
+        }
+
         include __DIR__ . '/helpers/functions.php';
 
         $view = new View\Simple();
@@ -308,6 +323,9 @@ class Debugger extends Injectable
                 $compiler->addFunction('is_string', function ($resolvedArgs) {
                     return 'is_string(' . $resolvedArgs . ')';
                 });
+                $compiler->addFunction('__dump', function ($resolvedArgs) {
+                    return __NAMESPACE__ . '\\__dump(' . $resolvedArgs . ')';
+                });
                 $compiler->addFilter('human_mtime', function ($resolvedArgs) {
                     return __NAMESPACE__ . '\\human_mtime(' . $resolvedArgs . ')';
                 });
@@ -326,6 +344,7 @@ class Debugger extends Injectable
                 $compiler->addFilter('merge', function ($resolvedArgs) {
                     return 'array_merge(' . $resolvedArgs . ')';
                 });
+                $compiler->addExtension(new PhpFunctionExtension($compiler));
                 return $volt;
             },
           ]

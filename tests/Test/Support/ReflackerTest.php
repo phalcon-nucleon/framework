@@ -8,7 +8,7 @@
 
 namespace Test\Support;
 
-use Neutrino\Support\Reflacker;
+use Neutrino\Debug\Reflexion;
 
 class ReflackerTest extends \PHPUnit_Framework_TestCase
 {
@@ -16,127 +16,129 @@ class ReflackerTest extends \PHPUnit_Framework_TestCase
     {
         $stb = new StubHacker();
 
-        $this->assertEquals(123, Reflacker::get($stb, 'privateProp'));
-        $this->assertEquals(456, Reflacker::get($stb, 'protectedProp'));
-        $this->assertEquals(789, Reflacker::get($stb, 'publicProp'));
+        $this->assertEquals(123, Reflexion::get($stb, 'privateProp'));
+        $this->assertEquals(456, Reflexion::get($stb, 'protectedProp'));
+        $this->assertEquals(789, Reflexion::get($stb, 'publicProp'));
 
-        $this->assertEquals('abc', Reflacker::get($stb, 'privateStaticProp'));
-        $this->assertEquals('def', Reflacker::get($stb, 'protectedStaticProp'));
-        $this->assertEquals('ghi', Reflacker::get($stb, 'publicStaticProp'));
+        $this->assertEquals('abc', Reflexion::get($stb, 'privateStaticProp'));
+        $this->assertEquals('def', Reflexion::get($stb, 'protectedStaticProp'));
+        $this->assertEquals('ghi', Reflexion::get($stb, 'publicStaticProp'));
 
-        $this->assertEquals('abc', Reflacker::get(StubHacker::class, 'privateStaticProp'));
-        $this->assertEquals('def', Reflacker::get(StubHacker::class, 'protectedStaticProp'));
-        $this->assertEquals('ghi', Reflacker::get(StubHacker::class, 'publicStaticProp'));
+        $this->assertEquals('abc', Reflexion::get(StubHacker::class, 'privateStaticProp'));
+        $this->assertEquals('def', Reflexion::get(StubHacker::class, 'protectedStaticProp'));
+        $this->assertEquals('ghi', Reflexion::get(StubHacker::class, 'publicStaticProp'));
 
         // ---- TEST EXTENDS
         $estb = new ExtendsStubHacker();
 
-        $this->assertEquals(123, Reflacker::get($estb, 'privateProp'));
-        $this->assertEquals(456, Reflacker::get($estb, 'protectedProp'));
-        $this->assertEquals(789, Reflacker::get($estb, 'publicProp'));
-        $this->assertEquals(1234, Reflacker::get($estb, 'privateProp2'));
-        $this->assertEquals(4567, Reflacker::get($estb, 'protectedProp2'));
+        $this->assertEquals(123, Reflexion::get($estb, 'privateProp'));
+        $this->assertEquals(456, Reflexion::get($estb, 'protectedProp'));
+        $this->assertEquals(789, Reflexion::get($estb, 'publicProp'));
+        $this->assertEquals(1234, Reflexion::get($estb, 'privateProp2'));
+        $this->assertEquals(4567, Reflexion::get($estb, 'protectedProp2'));
 
-        $this->assertEquals('abc', Reflacker::get($estb, 'privateStaticProp'));
-        $this->assertEquals('def', Reflacker::get($estb, 'protectedStaticProp'));
-        $this->assertEquals('ghi', Reflacker::get($estb, 'publicStaticProp'));
+        $this->assertEquals('abc', Reflexion::get($estb, 'privateStaticProp'));
+        $this->assertEquals('def', Reflexion::get($estb, 'protectedStaticProp'));
+        $this->assertEquals('opq', Reflexion::get($estb, 'publicStaticProp'));
+        $this->assertEquals('opq', Reflexion::get($stb, 'publicStaticProp'));
 
-        $this->assertEquals('abc', Reflacker::get(ExtendsStubHacker::class, 'privateStaticProp'));
-        $this->assertEquals('def', Reflacker::get(ExtendsStubHacker::class, 'protectedStaticProp'));
-        $this->assertEquals('ghi', Reflacker::get(ExtendsStubHacker::class, 'publicStaticProp'));
+        $this->assertEquals('abc', Reflexion::get(ExtendsStubHacker::class, 'privateStaticProp'));
+        $this->assertEquals('def', Reflexion::get(ExtendsStubHacker::class, 'protectedStaticProp'));
+        $this->assertEquals('opq', Reflexion::get(ExtendsStubHacker::class, 'publicStaticProp'));
+        $this->assertEquals('opq', Reflexion::get(StubHacker::class, 'publicStaticProp'));
     }
 
     public function testSet()
     {
         $stb = new StubHacker();
 
-        Reflacker::set($stb, 'privateProp', 111);
-        Reflacker::set($stb, 'protectedProp', 444);
-        Reflacker::set($stb, 'publicProp', 777);
+        Reflexion::set($stb, 'privateProp', 111);
+        Reflexion::set($stb, 'protectedProp', 444);
+        Reflexion::set($stb, 'publicProp', 777);
 
-        $this->assertEquals(111, Reflacker::get($stb, 'privateProp'));
-        $this->assertEquals(444, Reflacker::get($stb, 'protectedProp'));
-        $this->assertEquals(777, Reflacker::get($stb, 'publicProp'));
+        $this->assertEquals(111, Reflexion::get($stb, 'privateProp'));
+        $this->assertEquals(444, Reflexion::get($stb, 'protectedProp'));
+        $this->assertEquals(777, Reflexion::get($stb, 'publicProp'));
 
-        Reflacker::set($stb, 'privateStaticProp', 'aaa');
-        Reflacker::set($stb, 'protectedStaticProp', 'ddd');
-        Reflacker::set($stb, 'publicStaticProp', 'ggg');
+        Reflexion::set($stb, 'privateStaticProp', 'aaa');
+        Reflexion::set($stb, 'protectedStaticProp', 'ddd');
+        Reflexion::set($stb, 'publicStaticProp', 'ggg');
 
-        $this->assertEquals('aaa', Reflacker::get($stb, 'privateStaticProp'));
-        $this->assertEquals('ddd', Reflacker::get($stb, 'protectedStaticProp'));
-        $this->assertEquals('ggg', Reflacker::get($stb, 'publicStaticProp'));
-        $this->assertEquals('aaa', Reflacker::get(StubHacker::class, 'privateStaticProp'));
-        $this->assertEquals('ddd', Reflacker::get(StubHacker::class, 'protectedStaticProp'));
-        $this->assertEquals('ggg', Reflacker::get(StubHacker::class, 'publicStaticProp'));
+        $this->assertEquals('aaa', Reflexion::get($stb, 'privateStaticProp'));
+        $this->assertEquals('ddd', Reflexion::get($stb, 'protectedStaticProp'));
+        $this->assertEquals('ggg', Reflexion::get($stb, 'publicStaticProp'));
+        $this->assertEquals('aaa', Reflexion::get(StubHacker::class, 'privateStaticProp'));
+        $this->assertEquals('ddd', Reflexion::get(StubHacker::class, 'protectedStaticProp'));
+        $this->assertEquals('ggg', Reflexion::get(StubHacker::class, 'publicStaticProp'));
 
-        Reflacker::set(StubHacker::class, 'privateStaticProp', 'bbb');
-        Reflacker::set(StubHacker::class, 'protectedStaticProp', 'fff');
-        Reflacker::set(StubHacker::class, 'publicStaticProp', 'hhh');
+        Reflexion::set(StubHacker::class, 'privateStaticProp', 'bbb');
+        Reflexion::set(StubHacker::class, 'protectedStaticProp', 'fff');
+        Reflexion::set(StubHacker::class, 'publicStaticProp', 'hhh');
 
-        $this->assertEquals('bbb', Reflacker::get($stb, 'privateStaticProp'));
-        $this->assertEquals('fff', Reflacker::get($stb, 'protectedStaticProp'));
-        $this->assertEquals('hhh', Reflacker::get($stb, 'publicStaticProp'));
-        $this->assertEquals('bbb', Reflacker::get(StubHacker::class, 'privateStaticProp'));
-        $this->assertEquals('fff', Reflacker::get(StubHacker::class, 'protectedStaticProp'));
-        $this->assertEquals('hhh', Reflacker::get(StubHacker::class, 'publicStaticProp'));
+        $this->assertEquals('bbb', Reflexion::get($stb, 'privateStaticProp'));
+        $this->assertEquals('fff', Reflexion::get($stb, 'protectedStaticProp'));
+        $this->assertEquals('hhh', Reflexion::get($stb, 'publicStaticProp'));
+        $this->assertEquals('bbb', Reflexion::get(StubHacker::class, 'privateStaticProp'));
+        $this->assertEquals('fff', Reflexion::get(StubHacker::class, 'protectedStaticProp'));
+        $this->assertEquals('hhh', Reflexion::get(StubHacker::class, 'publicStaticProp'));
 
         // ---- TEST EXTENDS
         $estb = new ExtendsStubHacker();
 
-        Reflacker::set($estb, 'privateProp', 111);
-        Reflacker::set($estb, 'protectedProp', 444);
-        Reflacker::set($estb, 'publicProp', 777);
-        Reflacker::set($estb, 'privateProp2', 1111);
-        Reflacker::set($estb, 'protectedProp2', 4444);
+        Reflexion::set($estb, 'privateProp', 111);
+        Reflexion::set($estb, 'protectedProp', 444);
+        Reflexion::set($estb, 'publicProp', 777);
+        Reflexion::set($estb, 'privateProp2', 1111);
+        Reflexion::set($estb, 'protectedProp2', 4444);
 
-        $this->assertEquals(111, Reflacker::get($estb, 'privateProp'));
-        $this->assertEquals(444, Reflacker::get($estb, 'protectedProp'));
-        $this->assertEquals(777, Reflacker::get($estb, 'publicProp'));
-        $this->assertEquals(1111, Reflacker::get($estb, 'privateProp2'));
-        $this->assertEquals(4444, Reflacker::get($estb, 'protectedProp2'));
+        $this->assertEquals(111, Reflexion::get($estb, 'privateProp'));
+        $this->assertEquals(444, Reflexion::get($estb, 'protectedProp'));
+        $this->assertEquals(777, Reflexion::get($estb, 'publicProp'));
+        $this->assertEquals(1111, Reflexion::get($estb, 'privateProp2'));
+        $this->assertEquals(4444, Reflexion::get($estb, 'protectedProp2'));
 
-        Reflacker::set($estb, 'privateStaticProp', 'aaaa');
-        Reflacker::set($estb, 'protectedStaticProp', 'dddd');
-        Reflacker::set($estb, 'publicStaticProp', 'gggg');
+        Reflexion::set($estb, 'privateStaticProp', 'aaaa');
+        Reflexion::set($estb, 'protectedStaticProp', 'dddd');
+        Reflexion::set($estb, 'publicStaticProp', 'gggg');
 
-        $this->assertEquals('aaaa', Reflacker::get($stb, 'privateStaticProp'));
-        $this->assertEquals('dddd', Reflacker::get($stb, 'protectedStaticProp'));
-        $this->assertEquals('gggg', Reflacker::get($stb, 'publicStaticProp'));
-        $this->assertEquals('aaaa', Reflacker::get(StubHacker::class, 'privateStaticProp'));
-        $this->assertEquals('dddd', Reflacker::get(StubHacker::class, 'protectedStaticProp'));
-        $this->assertEquals('gggg', Reflacker::get(StubHacker::class, 'publicStaticProp'));
-        $this->assertEquals('aaaa', Reflacker::get($estb, 'privateStaticProp'));
-        $this->assertEquals('dddd', Reflacker::get($estb, 'protectedStaticProp'));
-        $this->assertEquals('gggg', Reflacker::get($estb, 'publicStaticProp'));
-        $this->assertEquals('aaaa', Reflacker::get(ExtendsStubHacker::class, 'privateStaticProp'));
-        $this->assertEquals('dddd', Reflacker::get(ExtendsStubHacker::class, 'protectedStaticProp'));
-        $this->assertEquals('gggg', Reflacker::get(ExtendsStubHacker::class, 'publicStaticProp'));
+        $this->assertEquals('aaaa', Reflexion::get($stb, 'privateStaticProp'));
+        $this->assertEquals('dddd', Reflexion::get($stb, 'protectedStaticProp'));
+        $this->assertEquals('gggg', Reflexion::get($stb, 'publicStaticProp'));
+        $this->assertEquals('aaaa', Reflexion::get(StubHacker::class, 'privateStaticProp'));
+        $this->assertEquals('dddd', Reflexion::get(StubHacker::class, 'protectedStaticProp'));
+        $this->assertEquals('gggg', Reflexion::get(StubHacker::class, 'publicStaticProp'));
+        $this->assertEquals('aaaa', Reflexion::get($estb, 'privateStaticProp'));
+        $this->assertEquals('dddd', Reflexion::get($estb, 'protectedStaticProp'));
+        $this->assertEquals('gggg', Reflexion::get($estb, 'publicStaticProp'));
+        $this->assertEquals('aaaa', Reflexion::get(ExtendsStubHacker::class, 'privateStaticProp'));
+        $this->assertEquals('dddd', Reflexion::get(ExtendsStubHacker::class, 'protectedStaticProp'));
+        $this->assertEquals('gggg', Reflexion::get(ExtendsStubHacker::class, 'publicStaticProp'));
     }
 
     public function testInvoke()
     {
         $stb = new StubHacker();
 
-        $this->assertEquals(StubHacker::class . '::privateMethod', Reflacker::invoke($stb, 'privateMethod'));
-        $this->assertEquals(StubHacker::class . '::protectedMethod', Reflacker::invoke($stb, 'protectedMethod'));
-        $this->assertEquals(StubHacker::class . '::publicMethod', Reflacker::invoke($stb, 'publicMethod'));
+        $this->assertEquals(StubHacker::class . '::privateMethod', Reflexion::invoke($stb, 'privateMethod'));
+        $this->assertEquals(StubHacker::class . '::protectedMethod', Reflexion::invoke($stb, 'protectedMethod'));
+        $this->assertEquals(StubHacker::class . '::publicMethod', Reflexion::invoke($stb, 'publicMethod'));
 
-        $this->assertEquals(StubHacker::class . '::privateStaticMethod', Reflacker::invoke($stb, 'privateStaticMethod'));
-        $this->assertEquals(StubHacker::class . '::protectedStaticMethod', Reflacker::invoke($stb, 'protectedStaticMethod'));
-        $this->assertEquals(StubHacker::class . '::publicStaticMethod', Reflacker::invoke($stb, 'publicStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::privateStaticMethod', Reflexion::invoke($stb, 'privateStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::protectedStaticMethod', Reflexion::invoke($stb, 'protectedStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::publicStaticMethod', Reflexion::invoke($stb, 'publicStaticMethod'));
 
-        $this->assertEquals(StubHacker::class . '::privateStaticMethod', Reflacker::invoke(StubHacker::class, 'privateStaticMethod'));
-        $this->assertEquals(StubHacker::class . '::protectedStaticMethod', Reflacker::invoke(StubHacker::class, 'protectedStaticMethod'));
-        $this->assertEquals(StubHacker::class . '::publicStaticMethod', Reflacker::invoke(StubHacker::class, 'publicStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::privateStaticMethod', Reflexion::invoke(StubHacker::class, 'privateStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::protectedStaticMethod', Reflexion::invoke(StubHacker::class, 'protectedStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::publicStaticMethod', Reflexion::invoke(StubHacker::class, 'publicStaticMethod'));
 
 
         // ---- TEST EXTENDS
         $estb = new ExtendsStubHacker();
-        $this->assertEquals(StubHacker::class . '::privateStaticMethod', Reflacker::invoke(ExtendsStubHacker::class, 'privateStaticMethod'));
-        $this->assertEquals(StubHacker::class . '::protectedStaticMethod', Reflacker::invoke(ExtendsStubHacker::class, 'protectedStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::privateStaticMethod', Reflexion::invoke(ExtendsStubHacker::class, 'privateStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::protectedStaticMethod', Reflexion::invoke(ExtendsStubHacker::class, 'protectedStaticMethod'));
 
-        $this->assertEquals(StubHacker::class . '::privateStaticMethod', Reflacker::invoke($estb, 'privateStaticMethod'));
-        $this->assertEquals(StubHacker::class . '::protectedStaticMethod', Reflacker::invoke($estb, 'protectedStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::privateStaticMethod', Reflexion::invoke($estb, 'privateStaticMethod'));
+        $this->assertEquals(StubHacker::class . '::protectedStaticMethod', Reflexion::invoke($estb, 'protectedStaticMethod'));
 
     }
 
@@ -147,7 +149,7 @@ class ReflackerTest extends \PHPUnit_Framework_TestCase
     {
         $stb = new StubHacker();
 
-        Reflacker::get($stb, 'something nonexistent');
+        Reflexion::get($stb, 'something nonexistent');
     }
 }
 
@@ -159,14 +161,17 @@ class StubHacker
 
     private $privateProp;
 
-    public static $publicStaticProp = 'ghi';
+    public static $publicStaticProp;
 
-    protected static $protectedStaticProp = 'def';
+    protected static $protectedStaticProp;
 
-    private static $privateStaticProp = 'abc';
+    private static $privateStaticProp;
 
     public function __construct()
     {
+        self::$privateStaticProp = 'abc';
+        self::$protectedStaticProp = 'def';
+        self::$publicStaticProp = 'ghi';
         $this->privateProp = 123;
         $this->protectedProp = 456;
         $this->publicProp = 789;
@@ -212,6 +217,8 @@ class ExtendsStubHacker extends StubHacker
     public function __construct()
     {
         parent::__construct();
+
+        self::$publicStaticProp = 'opq';
 
         $this->privateProp2 = 1234;
         $this->protectedProp2 = 4567;

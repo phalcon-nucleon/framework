@@ -12,7 +12,6 @@ use Phalcon\Di;
  */
 class Dumper
 {
-    private $dumped = [];
 
     private $dumpRefs = [];
 
@@ -39,7 +38,7 @@ class Dumper
 
         if (is_array($var) && isset($this->dumpRefs[$id])) {
             $dump = '<code  class="nuc-array">';
-            $dump .= 'array:' . count($var) . ' </code> <span class="nuc-closure">[</span><span class="nuc-toggle nuc-toggle-array" data-target="nuc-ref-' . $id . '">#' . $id . '</span>';
+            $dump .= 'array:' . count($var) . ' </code> <span class="nuc-closure">[</span><span class="nuc-toggle nuc-toggle-array" data-target="nuc-ref-' . $id . '"></span>';
             $dump .= '<span class="nuc-closure nuc-close">]</span>';
             $this->lvl--;
 
@@ -65,13 +64,18 @@ class Dumper
         } elseif (is_scalar($var)) {
             $dump = '<code class="nuc-' . gettype($var) . '">' . $var . '</code>';
         } elseif (is_resource($var)) {
-            $dump = '<code class="nuc-resource">resource</code>';
+            $dump = '<code class="nuc-resource">' . get_resource_type($var) . '</code>';
         } elseif (is_array($var)) {
             $dump = '<code class="nuc-array">array:' . count($var) . '</code> <span class="nuc-closure">[</span>';
             if(!empty($var)){
-                $this->dumpRefs[$id] = true;
-                $dump .= '<span class="nuc-toggle nuc-toggle-array" data-target="nuc-ref-' . $id . '">#' . $id . '</span>';
-                $dump .= '<ul class="nuc-array" id="nuc-ref-' . $id . '">';
+                if(!is_null($id)){
+                    $this->dumpRefs[$id] = true;
+                    $dump .= '<span class="nuc-toggle nuc-toggle-array" data-target="nuc-ref-' . $id . '"></span>';
+                    $dump .= '<ul class="nuc-array" id="nuc-ref-' . $id . '">';
+                } else {
+                    $dump .= '<span class="nuc-toggle nuc-toggle-array"></span>';
+                    $dump .= '<ul class="nuc-array">';
+                }
                 foreach ($var as $key => $val) {
                     $dump .= '<li class="nuc-' . gettype($val) . ' ' . (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
                     $dump .= $this->__dump($key) . ' <span class="nuc-sep">=></span> ';
@@ -95,6 +99,7 @@ class Dumper
                 $property->setAccessible(true);
                 $val = $property->getValue($var);
                 $dumpedProperties[] = $name = $property->getName();
+                $isStatic = $property->isStatic();
 
                 if ($property->isPrivate()) {
                     $type='private';
@@ -108,8 +113,9 @@ class Dumper
                 }
                 $ctype = gettype($val);
                 $vtype = $ctype ==='object' ? get_class($val) : $ctype;
+                $title = $type . ' ' . ($isStatic ? 'static ' : '') . $name . ':' . $vtype;
                 $prop .= '<li class="nuc-' . $ctype . ' ' . (is_array($val) || is_object($val) ? 'nuc-close' : '') . '">';
-                $prop .= '<code class="nuc-key" title="' . $type . ' ' . $name . ':' . $vtype . '"><small class="nuc-modifier">' . $mod . '</small> ' . $name . '</code>: ';
+                $prop .= '<code class="nuc-key" title="' . $title . '"><small class="nuc-modifier">' . $mod . '</small> ' . ($isStatic ? '::' : '') . $name . '</code>: ';
                 $prop .= $this->__dump($val);
                 $prop .= '</li>';
             }
@@ -143,8 +149,8 @@ class Dumper
     {
         if (is_object($var)) {
             $hash = spl_object_hash($var);
-        } elseif (is_array($var)) {
-            $hash = md5(@var_export($var, true));
+        } elseif (is_array($var) && $this->arrIsComplex($var)) {
+            $hash = $this->arrId($var);
         }
 
         if (isset($hash)) {
@@ -156,6 +162,76 @@ class Dumper
         }
 
         return null;
+    }
+
+    private function arrId(array $var)
+    {
+        return md5($this->arrHash($var));
+    }
+
+    private function arrHash(array $var)
+    {
+        static $dump;
+
+        if(!isset($dump)){
+            $dump = [];
+        }
+
+        if (in_array($var, $dump, true)) {
+            return 'array recursion';
+        }
+
+        $dump[] = $var;
+
+        $hash = [];
+        foreach ($var as $k => $v) {
+            if(is_object($v)){
+                $hash[$k] = spl_object_hash($v);
+            } elseif(is_array($v)){
+                $hash[$k] = $this->arrHash($v);
+            } elseif (is_resource($v)){
+                $hash[$k] = intval($v) . get_resource_type($v);
+            } else {
+                $hash[$k] = $v;
+            }
+        }
+
+        $hash = json_encode($hash);
+
+        array_pop($dump);
+
+        return $hash;
+    }
+
+    private function arrIsComplex(array $var)
+    {
+        static $dump;
+
+        if(!isset($dump)){
+            $dump = [];
+        }
+
+        if (in_array($var, $dump, true)) {
+            return true;
+        }
+
+        $dump[] = $var;
+
+        $return = false;
+
+        foreach ($var as $item) {
+            if(is_object($item)){
+                $return = true;
+                break;
+            } elseif(is_array($item) && $this->arrIsComplex($item)){
+                $return = true;
+                break;
+            }
+        }
+
+        array_pop($dump);
+
+        return $return;
     }
 
     private static function uid()
@@ -191,8 +267,6 @@ class Dumper
 
         echo '<pre class="nuc-dump" id="' . $id . '">' . (new self)->__dump($var) . '</pre>';
         echo '<script>nucDumper("' . $id . '")</script>';
-
-        flush();ob_flush();
     }
 
     private static function outputBasic()

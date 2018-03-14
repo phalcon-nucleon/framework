@@ -1,6 +1,8 @@
 <?php
 
-namespace Neutrino\Support;
+namespace Neutrino\Debug;
+
+use Neutrino\Support\Str;
 
 /**
  * Class Hacker
@@ -10,7 +12,7 @@ namespace Neutrino\Support;
  *
  * @package Neutrino\Support
  */
-final class Reflacker
+final class Reflexion
 {
     private static $cache = [];
 
@@ -26,20 +28,6 @@ final class Reflacker
         }
 
         return $value;
-    }
-
-    /**
-     * @param $class
-     *
-     * @return \ReflectionClass
-     */
-    private static function getReflectionClass($class)
-    {
-        if (!isset(self::$cache[$class]['class'])) {
-            self::$cache[$class]['class'] = new \ReflectionClass($class);
-        }
-
-        return self::$cache[$class]['class'];
     }
 
     /**
@@ -78,6 +66,7 @@ final class Reflacker
      * @param string        $name
      *
      * @return \ReflectionMethod|\ReflectionProperty
+     * @throws \ReflectionException
      */
     private static function getReflectionElement($object, $type, $name)
     {
@@ -85,12 +74,28 @@ final class Reflacker
     }
 
     /**
+     * @param string $class
+     *
+     * @return \ReflectionClass
+     * @throws \ReflectionException
+     */
+    public static function getReflectionClass($class)
+    {
+        if (!isset(self::$cache[$class]['class'])) {
+            self::$cache[$class]['class'] = new \ReflectionClass($class);
+        }
+
+        return self::$cache[$class]['class'];
+    }
+
+    /**
      * @param string|object $object
      * @param string        $property
      *
      * @return \ReflectionProperty
+     * @throws \ReflectionException
      */
-    private static function getReflectionProperty($object, $property)
+    public static function getReflectionProperty($object, $property)
     {
         return self::getReflectionElement($object, 'property', $property);
     }
@@ -100,16 +105,41 @@ final class Reflacker
      * @param string        $method
      *
      * @return \ReflectionMethod
+     * @throws \ReflectionException
      */
-    private static function getReflectionMethod($object, $method)
+    public static function getReflectionMethod($object, $method)
     {
         return self::getReflectionElement($object, 'method', $method);
     }
 
     /**
-     * @param mixed  $object
+     * @param string|object $object
+     *
+     * @return \ReflectionProperty[]
+     * @throws \ReflectionException
+     */
+    public static function getReflectionProperties($object)
+    {
+        return self::getReflectionClass(self::toClassName($object))->getProperties();
+    }
+
+    /**
+     * @param string|object $object
+     *
+     * @return \ReflectionMethod[]
+     * @throws \ReflectionException
+     */
+    public static function getReflectionMethods($object)
+    {
+        return self::getReflectionClass(self::toClassName($object))->getMethods();
+    }
+
+    /**
+     * @param string|object $object
      * @param string $property
      * @param mixed  $value
+     *
+     * @throws \ReflectionException
      */
     public static function set($object, $property, $value)
     {
@@ -117,10 +147,11 @@ final class Reflacker
     }
 
     /**
-     * @param string|mixed $object
+     * @param string|object $object
      * @param string       $property
      *
      * @return mixed
+     * @throws \ReflectionException
      */
     public static function get($object, $property)
     {
@@ -128,11 +159,12 @@ final class Reflacker
     }
 
     /**
-     * @param string|mixed $object
+     * @param string|object $object
      * @param string       $method
      * @param array        ...$params
      *
      * @return mixed
+     * @throws \ReflectionException
      */
     public static function invoke($object, $method, ...$params)
     {

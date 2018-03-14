@@ -2,8 +2,8 @@
 
 namespace Test\Error;
 
+use Neutrino\Debug\Reflexion;
 use Neutrino\Error\Error;
-use Neutrino\Support\Reflacker;
 use Test\TestCase\TestCase;
 
 /**
@@ -28,7 +28,7 @@ class ErrorTest extends TestCase
     {
         $error = new Error($options);
 
-        $attributes = Reflacker::get($error, 'attributes');
+        $attributes = Reflexion::get($error, 'attributes');
 
         $keys = [
             'type',

@@ -3,6 +3,7 @@
 namespace Test\Facades;
 
 use Neutrino\Constants\Services;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Support\Facades\Auth;
 use Neutrino\Support\Facades\Cache;
 use Neutrino\Support\Facades\Flash;
@@ -13,7 +14,6 @@ use Neutrino\Support\Facades\Router;
 use Neutrino\Support\Facades\Session;
 use Neutrino\Support\Facades\Url;
 use Neutrino\Support\Facades\View;
-use Neutrino\Support\Reflacker;
 use Test\TestCase\TestCase;
 
 /**
@@ -50,7 +50,7 @@ class AllFacadeTest extends TestCase
     {
         $this->assertEquals(
             $serviceName,
-            Reflacker::invoke($facadeClass, 'getFacadeAccessor')
+            Reflexion::invoke($facadeClass, 'getFacadeAccessor')
         );
     }
 }

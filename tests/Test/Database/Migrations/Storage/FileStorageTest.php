@@ -3,7 +3,7 @@
 namespace Test\Database\Migrations\Storage;
 
 use Neutrino\Database\Migrations\Storage\FileStorage;
-use Neutrino\Support\Reflacker;
+use Neutrino\Debug\Reflexion;
 use Test\TestCase\TestCase;
 
 /**
@@ -52,7 +52,7 @@ class FileStorageTest extends TestCase
 
         $expected = [];
 
-        $data = Reflacker::invoke($fileStorage, 'getData');
+        $data = Reflexion::invoke($fileStorage, 'getData');
 
         $this->assertEquals($expected, $data);
     }
@@ -65,7 +65,7 @@ class FileStorageTest extends TestCase
 
         file_put_contents(self::$storageFilePath, '');
 
-        $data = Reflacker::invoke($fileStorage, 'getData');
+        $data = Reflexion::invoke($fileStorage, 'getData');
 
         $this->assertEquals($expected, $data);
     }
@@ -78,7 +78,7 @@ class FileStorageTest extends TestCase
 
         file_put_contents(self::$storageFilePath, json_encode([['migration' => __FILE__, 'batch' => 1]]));
 
-        $data = Reflacker::invoke($fileStorage, 'getData');
+        $data = Reflexion::invoke($fileStorage, 'getData');
 
         $this->assertEquals($expected, $data);
     }
@@ -89,9 +89,9 @@ class FileStorageTest extends TestCase
 
         $expected = [['migration' => __FILE__, 'batch' => 1]];
 
-        Reflacker::invoke($fileStorage, 'setData', $expected);
+        Reflexion::invoke($fileStorage, 'setData', $expected);
 
-        $data = Reflacker::get($fileStorage, 'data');
+        $data = Reflexion::get($fileStorage, 'data');
 
         $this->assertEquals($expected, $data);
         $this->assertFileExists(self::$storageFilePath);
@@ -157,7 +157,7 @@ class FileStorageTest extends TestCase
 
         $fileStorage->log('789_' . __FILE__, 3);
 
-        $data = Reflacker::get($fileStorage, 'data');
+        $data = Reflexion::get($fileStorage, 'data');
 
         $this->assertEquals([
             ['migration' => '123_' . __FILE__, 'batch' => 1],
@@ -179,7 +179,7 @@ class FileStorageTest extends TestCase
 
         $fileStorage->delete('789_' . __FILE__);
 
-        $data = Reflacker::get($fileStorage, 'data');
+        $data = Reflexion::get($fileStorage, 'data');
 
         $this->assertEquals([
             ['migration' => '123_' . __FILE__, 'batch' => 1],

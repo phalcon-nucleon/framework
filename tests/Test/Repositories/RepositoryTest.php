@@ -3,9 +3,9 @@
 namespace Test\Repositories;
 
 use Neutrino\Constants\Services;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Model;
 use Neutrino\Repositories\Repository;
-use Neutrino\Support\Reflacker;
 use Neutrino\Support\Str;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\Message;
@@ -119,7 +119,7 @@ class RepositoryTest extends TestCase
     {
         $repository = new StubRepositoryModel;
 
-        $actual = Reflacker::invoke($repository, 'paramsToCriteria', ...$params);
+        $actual = Reflexion::invoke($repository, 'paramsToCriteria', ...$params);
 
         $this->assertEquals($criteria, $actual);
     }

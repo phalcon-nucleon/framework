@@ -145,8 +145,8 @@ final class Reflexion
     {
         $property = self::getReflectionProperty($object, $property);
 
-        if ($isString = is_string($object)) {
-            if (($declaringClass = $property->getDeclaringClass()->getName()) !== $object) {
+        if ($isString = is_string($object) || $property->isStatic()) {
+            if (($declaringClass = $property->getDeclaringClass()->getName()) !== self::toClassName($object)) {
                 self::getReflectionProperty($declaringClass, $property->getName())->setValue(null, $value);
                 return;
             }
@@ -169,8 +169,8 @@ final class Reflexion
     {
         $property = self::getReflectionProperty($object, $property);
 
-        if ($isString = is_string($object)) {
-            if (($declaringClass = $property->getDeclaringClass()->getName()) !== $object) {
+        if ($isString = is_string($object) || $property->isStatic()) {
+            if (($declaringClass = $property->getDeclaringClass()->getName()) !== self::toClassName($object)) {
                 return self::getReflectionProperty($declaringClass, $property->getName())->getValue(null);
             }
 
@@ -192,8 +192,8 @@ final class Reflexion
     {
         $method = self::getReflectionMethod($object, $method);
 
-        if ($isString = is_string($object)) {
-            if (($declaringClass = $method->getDeclaringClass()->getName()) !== $object) {
+        if ($isString = is_string($object) || $method->isStatic()) {
+            if (($declaringClass = $method->getDeclaringClass()->getName()) !== self::toClassName($object)) {
                 return self::getReflectionMethod($declaringClass, $method->getName())->invokeArgs(null, $params);
             }
 

@@ -1,16 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: xlzi590
- * Date: 31/07/2017
- * Time: 11:02
- */
 
-namespace Test\Support;
+namespace Test\Debug;
 
 use Neutrino\Debug\Reflexion;
 
-class ReflackerTest extends \PHPUnit_Framework_TestCase
+class ReflexionTest extends \PHPUnit_Framework_TestCase
 {
     public function testGet()
     {

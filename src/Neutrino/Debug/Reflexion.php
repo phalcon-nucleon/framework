@@ -36,8 +36,6 @@ final class Reflexion
      * @param string           $name
      *
      * @return \ReflectionProperty|\ReflectionMethod
-     *
-     * @throws \ReflectionException
      */
     private static function retrieveReflectionElement(\ReflectionClass $reflectionClass, $type, $name)
     {
@@ -66,7 +64,6 @@ final class Reflexion
      * @param string        $name
      *
      * @return \ReflectionMethod|\ReflectionProperty
-     * @throws \ReflectionException
      */
     private static function getReflectionElement($object, $type, $name)
     {
@@ -77,7 +74,6 @@ final class Reflexion
      * @param string $class
      *
      * @return \ReflectionClass
-     * @throws \ReflectionException
      */
     public static function getReflectionClass($class)
     {
@@ -93,7 +89,6 @@ final class Reflexion
      * @param string        $property
      *
      * @return \ReflectionProperty
-     * @throws \ReflectionException
      */
     public static function getReflectionProperty($object, $property)
     {
@@ -105,7 +100,6 @@ final class Reflexion
      * @param string        $method
      *
      * @return \ReflectionMethod
-     * @throws \ReflectionException
      */
     public static function getReflectionMethod($object, $method)
     {
@@ -116,7 +110,6 @@ final class Reflexion
      * @param string|object $object
      *
      * @return \ReflectionProperty[]
-     * @throws \ReflectionException
      */
     public static function getReflectionProperties($object)
     {
@@ -127,7 +120,6 @@ final class Reflexion
      * @param string|object $object
      *
      * @return \ReflectionMethod[]
-     * @throws \ReflectionException
      */
     public static function getReflectionMethods($object)
     {
@@ -138,8 +130,6 @@ final class Reflexion
      * @param string|object $object
      * @param string $property
      * @param mixed  $value
-     *
-     * @throws \ReflectionException
      */
     public static function set($object, $property, $value)
     {
@@ -163,7 +153,6 @@ final class Reflexion
      * @param string       $property
      *
      * @return mixed
-     * @throws \ReflectionException
      */
     public static function get($object, $property)
     {
@@ -186,7 +175,6 @@ final class Reflexion
      * @param array        ...$params
      *
      * @return mixed
-     * @throws \ReflectionException
      */
     public static function invoke($object, $method, ...$params)
     {

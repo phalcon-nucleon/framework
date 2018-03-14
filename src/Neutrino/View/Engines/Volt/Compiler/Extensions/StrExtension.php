@@ -2,6 +2,7 @@
 
 namespace Neutrino\View\Engines\Volt\Compiler\Extensions;
 
+use Neutrino\Debug\Reflexion;
 use Neutrino\Support\Str;
 use Neutrino\View\Engines\Volt\Compiler\ExtensionExtend;
 
@@ -28,7 +29,7 @@ class StrExtension extends ExtensionExtend
 
         $name = substr($name, 4);
 
-        if (method_exists(Str::class, $name)) {
+        if (method_exists(Str::class, $name) && Reflexion::getReflectionMethod(Str::class, $name)->isPublic()) {
             return Str::class . '::' . $name . '(' . $arguments . ')';
         }
 

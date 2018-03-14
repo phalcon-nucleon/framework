@@ -166,9 +166,15 @@ class VarDumpTest extends TestCase
             Reflexion::invoke($dump, '__dump', (object)[])
         );
 
+        if(PHP_VERSION_ID > 70200){
+            $type = 'resource (closed)';
+        } else {
+            $type = 'unknown type';
+        }
+
         $r = fopen('php://memory', 'a');
         fclose($r);
-        $this->assertEquals('<code class="nuc-unknown">unknown type</code>', Reflexion::invoke($dump, '__dump', $r));
+        $this->assertEquals('<code class="nuc-unknown">' . $type . '</code>', Reflexion::invoke($dump, '__dump', $r));
     }
 
     public function testArrInternalDump()

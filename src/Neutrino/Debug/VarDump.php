@@ -10,7 +10,7 @@ use Phalcon\Di;
  *
  * @package Neutrino\Debug
  */
-class Dumper
+class VarDump
 {
 
     private $dumpRefs = [];

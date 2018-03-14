@@ -144,20 +144,12 @@ class VarDump
             $dump .= '<span class="nuc-closure">{</span>';
 
             $prop = '';
-            try {
-                $properties = Reflexion::getReflectionProperties($var);
-            } catch (\ReflectionException $e) {
-                $properties = [];
-            }
+            $properties = Reflexion::getReflectionProperties($var);
             $dumpedProperties = [];
             foreach ($properties as $property) {
                 $dumpedProperties[] = $name = $property->getName();
                 $isStatic = $property->isStatic();
-                try {
-                    $val = Reflexion::get($isStatic ? $class : $var, $name);
-                } catch (\ReflectionException $e) {
-                    $val = null;
-                }
+                $val = Reflexion::get($isStatic ? $class : $var, $name);
 
                 if ($property->isPrivate()) {
                     $type='private';
@@ -212,7 +204,7 @@ class VarDump
         if (is_object($var)) {
             $hash = spl_object_hash($var);
         } elseif (is_resource($var)) {
-            $hash = intval($var);
+            $hash = intval($var) . '#resource#' . get_resource_type($var);
         } elseif (is_array($var) && $this->arrIsComplex($var)) {
             $hash = $this->arrId($var);
         }
@@ -284,6 +276,10 @@ class VarDump
         $return = false;
 
         foreach ($var as $item) {
+            if(is_object($item) && $this->arrObjHasRef($item)){
+                $return = true;
+                break;
+            }
             if(is_array($item) && $this->arrIsComplex($item)){
                 $return = true;
                 break;
@@ -295,15 +291,54 @@ class VarDump
         return $return;
     }
 
-    private static function uid()
+    private function arrObjHasRef($obj)
     {
-        static $uid;
+        static $dump;
 
-        if (!isset($uid)) {
-            $uid = 0;
+        if(!isset($dump)){
+            $dump = [];
         }
 
-        return ++$uid;
+        if (in_array($obj, $dump, true)) {
+            return true;
+        }
+
+        $dump[] = $obj;
+
+        $return = false;
+
+        $props = Reflexion::getReflectionProperties($obj);
+        foreach ($props as $prop) {
+            $val = Reflexion::get($obj, $prop->getName());
+            if (is_array($val) && $this->arrIsComplex($val)) {
+                $return = true;
+                break;
+            } elseif(is_object($val) && $this->arrObjHasRef($val)) {
+                $return = true;
+                break;
+            }
+        }
+        foreach ($obj as $val) {
+            if (is_array($val) && $this->arrIsComplex($val)) {
+                $return = true;
+                break;
+            } elseif(is_object($val) && $this->arrObjHasRef($val)) {
+                $return = true;
+                break;
+            }
+        }
+
+
+        array_pop($dump);
+
+        return $return;
+    }
+
+    private static $uid = 0;
+
+    private static function uid()
+    {
+        return ++self::$uid;
     }
 
     /**

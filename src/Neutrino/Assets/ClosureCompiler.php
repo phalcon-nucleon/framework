@@ -56,8 +56,8 @@ class ClosureCompiler implements AssetsCompilator
 
         $response = $request->send();
 
-        if ($response->isOk()) {
-            throw new CompilatorException('Can\t call closure compile api');
+        if (!$response->isOk()) {
+            throw new CompilatorException('Can\'t call closure compile api');
         }
 
         $content = $response->parse(JsonArray::class)->getData();
@@ -67,21 +67,6 @@ class ClosureCompiler implements AssetsCompilator
         unset($content['compiledCode']);
 
         return $content;
-    }
-
-    private function extractJsCode(array $directories)
-    {
-        $content = [];
-
-        foreach ($directories as $directory) {
-            foreach ($this->getDirFiles(BASE_PATH . '/' . $directory) as $item) {
-                if (is_file($item)) {
-                    $content[] = file_get_contents($item);
-                }
-            }
-        }
-
-        return implode(';', $content);
     }
 
     private function applyPrecompilation($content, array $precompilators)
@@ -99,6 +84,21 @@ class ClosureCompiler implements AssetsCompilator
         }
 
         return $content;
+    }
+
+    private function extractJsCode(array $directories)
+    {
+        $content = [];
+
+        foreach ($directories as $directory) {
+            foreach ($this->getDirFiles(BASE_PATH . '/' . $directory) as $item) {
+                if (is_file($item)) {
+                    $content[] = file_get_contents($item);
+                }
+            }
+        }
+
+        return implode(';', $content);
     }
 
     private function getDirFiles($path)

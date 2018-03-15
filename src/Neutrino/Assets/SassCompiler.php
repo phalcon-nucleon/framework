@@ -3,13 +3,16 @@
 namespace Neutrino\Assets;
 
 use Neutrino\Assets\Exception\CompilatorException;
+use Neutrino\Process\Exception;
+use Neutrino\Process\Process;
+use Phalcon\Di\Injectable;
 
 /**
  * Class SassCompiler
  *
  * Neutrino\Assets
  */
-class SassCompiler implements AssetsCompilator
+class SassCompiler extends Injectable implements AssetsCompilator
 {
     /**
      * @param array $options
@@ -26,38 +29,38 @@ class SassCompiler implements AssetsCompilator
         if (empty($options['output_file'])) {
             throw new CompilatorException('output_file option can\'t be empty.');
         }
+        if (empty($options['sass_cmd'])) {
+            $cmd = 'sass';
+            $procOptions = ['bypass_shell' => false];
+        } else {
+            $cmd = $options['sass_cmd'];
+            $procOptions = [];
+        }
 
-        $cmd = ['sass', '"' . $options['sass_file'] . '"', '"' . $options['output_file'] . '"'];
+        $cmd = [$cmd, '"' . $options['sass_file'] . '"', '"' . $options['output_file'] . '"'];
 
         $cmd = array_merge($cmd, isset($options['cmd_options']) ? $options['cmd_options'] : []);
 
-        $desc = [
-          ["pipe", "r+"],
-          ["pipe", "w+"],
-          ["pipe", "w+"]
-        ];
+        $cwd = isset($options['base_path']) ? $options['base_path'] : BASE_PATH;
 
-        $proc = proc_open(implode(' ', $cmd), $desc, $pipes, isset($options['base_path']) ? $options['base_path'] : BASE_PATH);
+        /** @var Process $proc */
+        $proc = $this->getDI()->get(Process::class, [implode(' ', $cmd), $cwd, $procOptions]);
 
-        if(!is_resource($proc)) {
+        try {
+            $proc->start();
+        } catch (Exception $e) {
             throw new CompilatorException('Can\'t open process.');
         }
 
-        while (($status = proc_get_status($proc)) && !empty($status['running'])){
-            sleep(1);
-        }
+        $proc->wait();
 
-        if (!empty($str = stream_get_contents($pipes[1]))) {
+        if (!empty($str = $proc->getOutput())) {
             throw new CompilatorException($str);
         }
 
-        if (!empty($str = stream_get_contents($pipes[2]))) {
+        if (!empty($str = $proc->getError())) {
             throw new CompilatorException($str);
         }
-
-        fclose($pipes[0]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
 
         return true;
     }

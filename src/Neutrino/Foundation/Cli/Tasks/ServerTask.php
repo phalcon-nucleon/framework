@@ -3,6 +3,8 @@
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
+use Neutrino\Process\Exception;
+use Neutrino\Process\Process;
 
 /**
  * Class ServerTask
@@ -11,6 +13,9 @@ use Neutrino\Cli\Task;
  */
 class ServerTask extends Task
 {
+    /** @var Process */
+    private $proc;
+
     /**
      * Runs a local web server
      *
@@ -37,31 +42,25 @@ class ServerTask extends Task
 
     private function run($ip, $port)
     {
-        $proc = proc_open(PHP_BINARY . ' -S ' . $ip . ':' . $port . ' app_dev.php', [], $pipes, BASE_PATH . '/public');
+        $cmd = PHP_BINARY . ' -S ' . $ip . ':' . $port . ' app_dev.php';
+        $cwd = BASE_PATH . '/public';
 
-        if (!(is_resource($proc) && $this->isRunning($proc))) {
+        $this->proc = $this->getDI()->get(Process::class, [$cmd, $cwd]);
+
+        try{
+            $this->proc->start();
+        } catch (Exception $e){
             $this->block(['Can\'t run server'], 'error');
-            return;
         }
 
         $this->block(['[OK] http://' . $ip . ':' . $port], 'info');
 
-        do {
-            sleep(1);
-        } while ($this->isRunning($proc));
+        $this->proc->wait();
 
-        proc_terminate($proc);
+        $this->block(['[ERR] server suddenly stopped'], 'error');
 
-        proc_close($proc);
+        $this->proc->close();
     }
-
-    private function isRunning($proc)
-    {
-        $status = proc_get_status($proc);
-
-        return (isset($status['running']) ? $status['running'] : false) === true;
-    }
-
 
     private function acquierePort($ip)
     {

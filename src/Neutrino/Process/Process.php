@@ -172,7 +172,7 @@ class Process
      */
     public function isRunning()
     {
-        return true === is_resource($this->proc) && true === $this->readStatus(true)['running'];
+        return true === is_resource($this->proc) && true === $this->readStatus()['running'];
     }
 
     /**
@@ -204,13 +204,11 @@ class Process
     }
 
     /**
-     * @param bool $fresh
-     *
      * @return array|bool
      */
-    public function readStatus($fresh = false)
+    public function readStatus()
     {
-        if (!isset($this->status) || $fresh && is_resource($this->proc)) {
+        if (is_resource($this->proc)) {
             $this->status = proc_get_status($this->proc);
         }
 

@@ -19,14 +19,14 @@ class DebugPrecompilation extends Precompilation
 */
 function debug(_arg){
     console.log.apply(console, arguments);
-};
+}
 JS;
         } else {
             $debug = <<<JS
 /**
 * @param {...*} _arg
 */
-function debug(_arg){};
+function debug(_arg){}
 JS;
         }
 

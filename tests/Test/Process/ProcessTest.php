@@ -37,7 +37,7 @@ class ProcessTest extends TestCase
     public function testExec(){
         $process = new Process(PHP_BINARY . ' -r "ob_start();var_dump(PHP_VERSION_ID);flush();ob_flush();sleep(3);echo \'end\';"', __DIR__);
 
-        $this->assertTrue($process->exec());
+        $process->exec();
 
         $this->assertFalse($process->isRunning());
         $this->assertNotEmpty($process->pid());

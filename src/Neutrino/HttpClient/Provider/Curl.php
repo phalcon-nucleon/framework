@@ -88,8 +88,8 @@ class Curl extends Request
 
             $this->curlInfos($ch);
 
-            if ($this->response->errorCode) {
-                throw new HttpException($this->response->error, $this->response->errorCode);
+            if ($this->response->getErrorCode()) {
+                throw new HttpException($this->response->getError(), $this->response->getErrorCode());
             }
 
             return $this->response;
@@ -142,7 +142,7 @@ class Curl extends Request
     {
         $result = curl_exec($ch);
 
-        $this->response->body = $result;
+        $this->response->setBody($result);
     }
 
     /**
@@ -155,11 +155,11 @@ class Curl extends Request
      */
     protected function curlHeaderFunction($ch, $raw)
     {
-        if ($this->response->code === null) {
-            $this->response->code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($this->response->getCode() === null) {
+            $this->response->setCode(curl_getinfo($ch, CURLINFO_HTTP_CODE));
         }
 
-        $this->response->header->parse($raw);
+        $this->response->getHeader()->parse($raw);
 
         return strlen($raw);
     }
@@ -171,16 +171,16 @@ class Curl extends Request
      */
     protected function curlInfos($ch)
     {
-        if ($this->response->code === null) {
-            $this->response->code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($this->response->getCode() === null) {
+            $this->response->setCode(curl_getinfo($ch, CURLINFO_HTTP_CODE));
         }
 
         if (($errno = curl_errno($ch)) !== 0) {
-            $this->response->errorCode = curl_errno($ch);
-            $this->response->error     = curl_error($ch);
+            $this->response->setErrorCode(curl_errno($ch));
+            $this->response->setError(curl_error($ch));
         }
 
-        $this->response->providerDatas = curl_getinfo($ch);
+        $this->response->setProviderDatas(curl_getinfo($ch));
     }
 
     /**

@@ -2,16 +2,18 @@
 
 namespace Neutrino\HttpClient\Contract\Streaming;
 
+use Phalcon\Events\EventsAwareInterface;
+
 /**
  * Interface Streamable
  *
  * @package Neutrino\HttpClient\Contract\Streaming
  */
-interface Streamable
+interface Streamable extends EventsAwareInterface
 {
-    const EVENT_START    = 'start';
-    const EVENT_PROGRESS = 'progress';
-    const EVENT_FINISH   = 'finish';
+    const EVENT_START    = 'stream:start';
+    const EVENT_PROGRESS = 'stream:progress';
+    const EVENT_FINISH   = 'stream:finish';
 
     /**
      * @param string $event

@@ -4,8 +4,8 @@ namespace Neutrino\Assets;
 
 use Neutrino\Assets\Exception\CompilatorException;
 use Neutrino\Http\Standards\Method;
+use Neutrino\HttpClient\Factory;
 use Neutrino\HttpClient\Parser\JsonArray;
-use Neutrino\HttpClient\Provider\Curl;
 
 /**
  * Class JsCompiler
@@ -46,21 +46,21 @@ class ClosureCompiler implements AssetsCompilator
         $query = http_build_query($data);
         $query = preg_replace('/%5B[0-9]+%5D/simU', '', $query);
 
-        $request = new Curl();
+        $request = Factory::makeRequest();
         $request
             ->setMethod(Method::POST)
             ->setHeader('Content-type', 'application/x-www-form-urlencoded')
             ->setUri('https://closure-compiler.appspot.com/compile')
-            ->setOption(CURLOPT_POSTFIELDS, $query)
+            ->setParams($query)
             ->disableSsl();
 
         $response = $request->send();
 
-        if ($response->code !== 200) {
+        if ($response->isOk()) {
             throw new CompilatorException('Can\t call closure compile api');
         }
 
-        $content = $response->parse(JsonArray::class)->data;
+        $content = $response->parse(JsonArray::class)->getData();
 
         file_put_contents(BASE_PATH . '/' . $options['output_file'], $content['compiledCode']);
 

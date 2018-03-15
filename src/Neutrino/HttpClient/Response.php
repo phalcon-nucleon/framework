@@ -10,25 +10,25 @@ use Neutrino\HttpClient\Contract\Parser\Parserize;
 class Response
 {
     /** @var int|null */
-    public $code;
+    protected $code;
 
     /** @var Header */
-    public $header;
+    protected $header;
 
     /** @var string */
-    public $body = '';
+    protected $body = '';
 
     /** @var mixed */
-    public $data;
+    protected $data;
 
     /** @var int|null */
-    public $errorCode;
+    protected $errorCode;
 
     /** @var string|null */
-    public $error;
+    protected $error;
 
     /** @var mixed */
-    public $providerDatas;
+    protected $providerDatas;
 
     /**
      * Response constructor.
@@ -37,7 +37,7 @@ class Response
      */
     public function __construct(Header $header = null)
     {
-        $this->header = $header === null ? new Header() : $header;
+        $this->setHeader($header === null ? new Header() : $header);
     }
 
     /**
@@ -51,13 +51,24 @@ class Response
     }
 
     /**
-     * Check if an HTTP error append
+     * Check if an HTTP Response is a redirection (3xx)
+     *
+     * @return bool
+     */
+    public function isRedirect()
+    {
+        return $this->code >= 300 && $this->code < 400;
+    }
+
+
+    /**
+     * Check if an HTTP error append (4xx, 5xx)
      *
      * @return bool
      */
     public function isFail()
     {
-        return $this->code < 200 || $this->code >= 300;
+        return $this->code >= 400;
     }
 
     /**
@@ -89,5 +100,133 @@ class Response
         }
 
         throw new \RuntimeException(__METHOD__ . ': $parserize must implement ' . Parserize::class);
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getCode()
+    {
+        return $this->code;
+    }
+
+    /**
+     * @param int|null $code
+     *
+     * @return Response
+     */
+    public function setCode($code)
+    {
+        $this->code = $code;
+
+        return $this;
+    }
+
+    /**
+     * @return \Neutrino\HttpClient\Header
+     */
+    public function getHeader()
+    {
+        return $this->header;
+    }
+
+    /**
+     * @param \Neutrino\HttpClient\Header $header
+     *
+     * @return Response
+     */
+    public function setHeader(Header $header)
+    {
+        $this->header = $header;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBody()
+    {
+        return $this->body;
+    }
+
+    /**
+     * @param string $body
+     *
+     * @return Response
+     */
+    public function setBody($body)
+    {
+        $this->body = $body;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getError()
+    {
+        return $this->error;
+    }
+
+    /**
+     * @param null|string $error
+     *
+     * @return Response
+     */
+    public function setError($error)
+    {
+        $this->error = $error;
+
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getErrorCode()
+    {
+        return $this->errorCode;
+    }
+
+    /**
+     * @param int|null $errorCode
+     *
+     * @return Response
+     */
+    public function setErrorCode($errorCode)
+    {
+        $this->errorCode = $errorCode;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProviderDatas()
+    {
+        return $this->providerDatas;
+    }
+
+    /**
+     * @param mixed $providerDatas
+     *
+     * @return Response
+     */
+    public function setProviderDatas($providerDatas)
+    {
+        $this->providerDatas = $providerDatas;
+
+        return $this;
     }
 }

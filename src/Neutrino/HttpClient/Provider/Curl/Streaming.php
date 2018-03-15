@@ -5,6 +5,7 @@ namespace Neutrino\HttpClient\Provider\Curl;
 use Neutrino\HttpClient\Contract\Streaming\Streamable;
 use Neutrino\HttpClient\Contract\Streaming\Streamize;
 use Neutrino\HttpClient\Provider\Curl;
+use Phalcon\Events\ManagerInterface;
 
 /**
  * Class Streaming
@@ -31,12 +32,12 @@ class Streaming extends Curl implements Streamable
         if (!$this->hasStarted) {
             $this->hasStarted = true;
 
-            $this->getEventManager()->fire(self::EVENT_START, $this);
+            $this->getEventsManager()->fire(self::EVENT_START, $this);
         }
 
         $length = strlen($content);
 
-        $this->getEventManager()->fire(self::EVENT_PROGRESS, $this, $content);
+        $this->getEventsManager()->fire(self::EVENT_PROGRESS, $this, $content);
 
         return $length;
     }
@@ -48,7 +49,7 @@ class Streaming extends Curl implements Streamable
     {
         parent::send();
 
-        $this->getEventManager()->fire(self::EVENT_FINISH, $this);
+        $this->getEventsManager()->fire(self::EVENT_FINISH, $this);
     }
 
     /**

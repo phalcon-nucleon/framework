@@ -19,6 +19,8 @@ trait TraitWithLocalServer
         parent::setUpBeforeClass();
 
         self::$server = proc_open(PHP_BINARY . ' -S  127.0.0.1:7999 server.php', [], $pipes, __DIR__ . '/../resources', null, ['bypass_shell' => true]);
+
+        sleep(1);
     }
 
     public static function tearDownAfterClass()

@@ -41,13 +41,19 @@ class StreamContext extends Request
     }
 
     /**
-     * @param int $timeout
-     *
-     * @return $this
+     * @inheritdoc
      */
     public function setTimeout($timeout)
     {
         return $this->setOption('timeout', $timeout);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function disableSsl()
+    {
+        return $this->setOption('ssl', ['verify_peer' => true]);
     }
 
     /**
@@ -58,8 +64,8 @@ class StreamContext extends Request
      */
     protected function errorHandler($errno, $errstr)
     {
-        $this->response->error = $errstr;
-        $this->response->errorCode = $errno;
+        $this->response->setError($errstr);
+        $this->response->setErrorCode($errno);
 
         throw new HttpException($errstr, $errno);
     }
@@ -80,7 +86,7 @@ class StreamContext extends Request
 
             restore_error_handler();
 
-            $this->response->body = $content;
+            $this->response->setBody($content);
 
             return $this->response;
         } finally {
@@ -134,9 +140,9 @@ class StreamContext extends Request
      */
     protected function streamContextParseHeader($headers)
     {
-        $this->response->header->parse($headers);
+        $this->response->getHeader()->parse($headers);
 
-        $this->response->code = $this->response->header->code;
+        $this->response->setCode($this->response->getHeader()->code);
     }
 
     /**
@@ -154,10 +160,14 @@ class StreamContext extends Request
                         ->setHeader('Content-Length', strlen($params));
                 }
 
-                return $this
-                    ->setOption('content', $params = http_build_query($this->params))
-                    ->setHeader('Content-Type', 'application/x-www-form-urlencoded')
-                    ->setHeader('Content-Length', strlen($params));
+                if (!empty($this->params)) {
+                    return $this
+                        ->setOption('content', $params = http_build_query($this->params))
+                        ->setHeader('Content-Type', 'application/x-www-form-urlencoded')
+                        ->setHeader('Content-Length', strlen($params));
+                }
+
+                return $this;
             }
 
             return $this->buildUrl();

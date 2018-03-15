@@ -22,14 +22,14 @@ class Streaming extends StreamContext implements Streamable
      */
     protected function streamContextExec($context)
     {
-        $emitter = $this->getEventManager();
+        $emitter = $this->getEventsManager();
 
         try {
             $handler = fopen($this->uri->build(), 'r', null, $context);
 
             $this->streamContextParseHeader($http_response_header);
 
-            $this->response->providerDatas = stream_get_meta_data($handler);
+            $this->response->setProviderDatas(stream_get_meta_data($handler));
 
             $emitter->fire(self::EVENT_START, $this);
 
@@ -39,7 +39,7 @@ class Streaming extends StreamContext implements Streamable
                 $emitter->fire(self::EVENT_PROGRESS, $this, stream_get_contents($handler, $buffer));
             }
 
-            $this->response->providerDatas = stream_get_meta_data($handler);
+            $this->response->setProviderDatas(stream_get_meta_data($handler));
 
             $emitter->fire(self::EVENT_FINISH, $this);
 
@@ -50,5 +50,4 @@ class Streaming extends StreamContext implements Streamable
             }
         }
     }
-
 }

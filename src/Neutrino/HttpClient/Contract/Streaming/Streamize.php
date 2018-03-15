@@ -3,6 +3,7 @@
 namespace Neutrino\HttpClient\Contract\Streaming;
 
 use Phalcon\Events\Manager;
+use Phalcon\Events\ManagerInterface;
 
 /**
  * Trait Streamize
@@ -18,12 +19,22 @@ trait Streamize
     protected $bufferSize;
 
     /**
+     * Sets the events manager
+     *
+     * @param ManagerInterface $eventsManager
+     */
+    public function setEventsManager(ManagerInterface $eventsManager)
+    {
+        $this->eventManager = $eventsManager;
+    }
+
+    /**
      * @return \Phalcon\Events\Manager
      */
-    protected function getEventManager()
+    public function getEventsManager()
     {
         if (!isset($this->eventManager)) {
-            $this->eventManager = new Manager();
+            $this->setEventsManager(new Manager());
         }
 
         return $this->eventManager;
@@ -39,7 +50,7 @@ trait Streamize
     {
         $this->checkEvent($event);
 
-        $this->getEventManager()->attach($event, $callback);
+        $this->getEventsManager()->attach($event, $callback);
 
         return $this;
     }
@@ -54,7 +65,7 @@ trait Streamize
     {
         $this->checkEvent($event);
 
-        $this->getEventManager()->detach($event, $callback);
+        $this->getEventsManager()->detach($event, $callback);
 
         return $this;
     }

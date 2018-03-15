@@ -3,7 +3,6 @@
 namespace Neutrino\HttpClient;
 
 use Neutrino\Http\Standards\Method;
-use Neutrino\HttpClient\Contract\Request\Component;
 
 /**
  * Class Request
@@ -15,67 +14,28 @@ abstract class Request
     /*
      | Request Parameters
      */
-    /**
-     * Method HTTP
-     *
-     * @var string
-     */
+    /** @var string */
     protected $method;
 
-    /**
-     * Url de la requete
-     *
-     * @var Uri
-     */
+    /** @var Uri */
     protected $uri;
 
-    /**
-     * Parametres de la requete
-     *
-     * @var array
-     */
+    /** @var array */
     protected $params = [];
 
-    /**
-     * Header de la requete
-     *
-     * @var \Neutrino\HttpClient\Header
-     */
+    /** @var \Neutrino\HttpClient\Header */
     protected $header;
 
-    /**
-     * Proxy de la requete
-     *
-     * @var array
-     */
+    /** @var array */
     protected $proxy = [];
 
-    /**
-     * Authentification
-     *
-     * @var Component
-     */
-    protected $auth;
-
-    /**
-     * Cookies de la requete
-     *
-     * @var array
-     */
+    /** @var array */
     protected $cookies = [];
 
-    /**
-     * Options
-     *
-     * @var array
-     */
+    /** @var array */
     protected $options = [];
 
-    /**
-     * Flag spécifiant si l'on doit faire une requete JSON. Uniquement pour les methods HTTP POST, PUT, PATCH
-     *
-     * @var bool
-     */
+    /** @var bool */
     protected $jsonRequest = false;
 
     /** @var bool */
@@ -98,6 +58,8 @@ abstract class Request
     }
 
     /**
+     * Return the request response's
+     *
      * @return Response
      */
     public function getResponse()
@@ -106,7 +68,7 @@ abstract class Request
     }
 
     /**
-     * Retour l'url de la requete, construite avec les parametres si la method HTTP n'est pas POST, PUT, PATCH
+     * Return builded url
      *
      * @return Uri
      */
@@ -120,7 +82,7 @@ abstract class Request
     }
 
     /**
-     * Definie l'url de la requete
+     * Define request Url
      *
      * @param string|Uri $uri
      *
@@ -134,7 +96,7 @@ abstract class Request
     }
 
     /**
-     * Retourne la method HTTP de la requete
+     * Return request method
      *
      * @return string
      */
@@ -144,7 +106,7 @@ abstract class Request
     }
 
     /**
-     * Definie la method HTTP de la requete
+     * Define request method
      *
      * @param string $method
      *
@@ -158,7 +120,7 @@ abstract class Request
     }
 
     /**
-     * Renvoie si l'on fais un appel HTTP basée sur le POST
+     * Return request is based on POST (..., PUT, PATCH)
      *
      * @return bool
      */
@@ -170,7 +132,7 @@ abstract class Request
     }
 
     /**
-     * Est-ce que l'on doit envoyer un body "json" contenant les parametres de la requete
+     * Return if request is a json request
      *
      * @return bool
      */
@@ -180,7 +142,7 @@ abstract class Request
     }
 
     /**
-     * Definie si l'on doit envoyer un body "json" contenant les parametres de la requete
+     * Define if it's a json request
      *
      * @param bool $jsonRequest
      *
@@ -223,10 +185,10 @@ abstract class Request
     }
 
     /**
-     * Definie, ou ajoute, des parametres de la requete
+     * Define the parameters
      *
      * @param array $parameters
-     * @param bool $merge Est-ce que l'on ajout les parametres aux parametres existant, ou les ecrases
+     * @param bool $merge Merge or Erase current parameters
      *
      * @return $this
      */
@@ -242,7 +204,7 @@ abstract class Request
     }
 
     /**
-     * Ajout un parametre à la requete
+     * Define a parameter
      *
      * @param string $name
      * @param string|array $value
@@ -257,7 +219,7 @@ abstract class Request
     }
 
     /**
-     * Construit l'url de la requete, Si la method HTTP n'est pas [POST, PUT, PATCH]
+     * Builds the url of the request, If the HTTP method is not [POST, PUT, PATCH]
      *
      * @return $this
      */
@@ -271,7 +233,7 @@ abstract class Request
     }
 
     /**
-     * Ajout des parametres en GET à l'url
+     * Add parametre to the URL
      *
      * @param array $parameters
      *
@@ -287,6 +249,8 @@ abstract class Request
     }
 
     /**
+     * Return the headers
+     *
      * @return array
      */
     public function getHeaders()
@@ -295,10 +259,10 @@ abstract class Request
     }
 
     /**
-     * Definie, ou ajoute, des headers à la requete
+     * Define the headers
      *
      * @param array $headers
-     * @param bool $merge Est-ce que l'on ajout les parametres aux parametres existant, ou les ecrases
+     * @param bool $merge Merge or Erase current headers
      *
      * @return $this
      */
@@ -310,7 +274,7 @@ abstract class Request
     }
 
     /**
-     * Ajout un header à la requete
+     * Define a header
      *
      * @param string $name
      * @param string $value
@@ -325,7 +289,7 @@ abstract class Request
     }
 
     /**
-     * Retourne les informations de proxy
+     * Return proxy setting
      *
      * @return array
      */
@@ -335,7 +299,7 @@ abstract class Request
     }
 
     /**
-     * Definie les informations de proxy
+     * Define proxy setting
      *
      * @param string $host
      * @param int $port
@@ -355,47 +319,9 @@ abstract class Request
     }
 
     /**
-     * Retourne les informations d'authentification
+     * Return the cookies
      *
-     * @return Component|null
-     */
-    public function getAuth()
-    {
-        return $this->auth;
-    }
-
-    /**
-     * Definie les informations d'authentification
-     *
-     * @param \Neutrino\HttpClient\Contract\Request\Component $authComponent
-     *
-     * @return $this
-     */
-    public function setAuth(Component $authComponent)
-    {
-        $this->auth = $authComponent;
-
-        return $this;
-    }
-
-    /**
-     * Construit les informations d'authentification de la requete
-     *
-     * @return $this
-     */
-    protected function buildAuth()
-    {
-        if (isset($this->auth)) {
-            $this->auth->build($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Retourne les cookies
-     *
-     * @param bool $format Retourne les cookies formatés
+     * @param bool $format Return the cookies formatted
      *
      * @return array|string
      */
@@ -409,8 +335,10 @@ abstract class Request
     }
 
     /**
+     * Define the cookies
+     *
      * @param array $cookies
-     * @param bool $merge Est-ce que l'on ajout les $cookies aux $cookies existant, ou les ecrases
+     * @param bool $merge Merge or Erase current cookies
      *
      * @return $this
      */
@@ -426,7 +354,7 @@ abstract class Request
     }
 
     /**
-     * Ajoute un cookie a la requete
+     * Define a cookie
      *
      * @param null|string $key
      * @param string $value
@@ -446,7 +374,7 @@ abstract class Request
     }
 
     /**
-     * Retourne les options
+     * Return the options
      *
      * @return array
      */
@@ -456,7 +384,7 @@ abstract class Request
     }
 
     /**
-     * Definie, ou ajoute, des options
+     * Define the options
      *
      * @param array $options
      * @param bool $merge Est-ce que l'on ajoute les options aux options existantes, ou les ecrases
@@ -475,10 +403,10 @@ abstract class Request
     }
 
     /**
-     * Ajout une option CURL
+     * Define an option
      *
      * @param string $name
-     * @param string $value
+     * @param mixed $value
      *
      * @return $this
      */
@@ -490,13 +418,14 @@ abstract class Request
     }
 
     /**
+     * Send the request & return the response
+     *
      * @return \Neutrino\HttpClient\Response
      */
     public function send()
     {
         $this
             ->buildParams()
-            ->buildAuth()
             ->buildProxy()
             ->buildCookies()
             ->buildHeaders();
@@ -507,6 +436,8 @@ abstract class Request
     }
 
     /**
+     * Build a HTTP request
+     *
      * @param string $method
      * @param string $uri
      * @param array $params
@@ -537,6 +468,8 @@ abstract class Request
     }
 
     /**
+     * Build a HTTP [GET] request
+     *
      * @param string $uri
      * @param array $params
      * @param array $options
@@ -549,6 +482,8 @@ abstract class Request
     }
 
     /**
+     * Build a HTTP [HEAD] request
+     *
      * @param string $uri
      * @param array $params
      * @param array $options
@@ -561,6 +496,8 @@ abstract class Request
     }
 
     /**
+     * Build a HTTP [DELETE] request
+     *
      * @param string $uri
      * @param array $params
      * @param array $options
@@ -573,6 +510,8 @@ abstract class Request
     }
 
     /**
+     * Build a HTTP [POST] request
+     *
      * @param string $uri
      * @param array $params
      * @param array $options
@@ -585,6 +524,8 @@ abstract class Request
     }
 
     /**
+     * Build a HTTP [PUT] request
+     *
      * @param string $uri
      * @param array $params
      * @param array $options
@@ -597,6 +538,8 @@ abstract class Request
     }
 
     /**
+     * Build a HTTP [PATCH] request
+     *
      * @param string $uri
      * @param array $params
      * @param array $options
@@ -609,7 +552,7 @@ abstract class Request
     }
 
     /**
-     * Definie le timeout de la requete
+     * Define request timeout
      *
      * @param int $timeout
      *
@@ -618,33 +561,40 @@ abstract class Request
     abstract public function setTimeout($timeout);
 
     /**
+     * Disable Ssl
+     *
+     * @return $this
+     */
+    abstract public function disableSsl();
+
+    /**
      * @return \Neutrino\HttpClient\Response
      */
     abstract protected function makeCall();
 
     /**
-     * Construit les parametres de la requete.
+     * Build request params's
      *
      * @return $this
      */
     abstract protected function buildParams();
 
     /**
-     * Construit les headers de la requete.
+     * Build request header's
      *
      * @return $this
      */
     abstract protected function buildHeaders();
 
     /**
-     * Construit le proxy de la requete
+     * Build request proxy's
      *
      * @return $this
      */
     abstract protected function buildProxy();
 
     /**
-     * Construit les cookies de la requete
+     * Build request cookie's
      *
      * @return $this
      */

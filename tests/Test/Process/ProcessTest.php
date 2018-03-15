@@ -3,6 +3,7 @@
 namespace Test\Process;
 
 use Neutrino\Process\Process;
+use Neutrino\Process\Timeout;
 use Test\TestCase\TestCase;
 
 class ProcessTest extends TestCase
@@ -21,13 +22,13 @@ class ProcessTest extends TestCase
         $process->wait(1000);
 
         $this->assertTrue($process->isRunning());
-        $this->assertEquals("Command line code:1:\nint(" . PHP_VERSION_ID . ")\n", $process->getOutput());
+        $this->assertContains("int(" . PHP_VERSION_ID . ")\n", $process->getOutput());
         $this->assertEquals('', $process->getError());
 
         $process->wait();
 
         $this->assertFalse($process->isRunning());
-        $this->assertEquals("Command line code:1:\nint(" . PHP_VERSION_ID . ")\nend", $process->getOutput());
+        $this->assertContains("int(" . PHP_VERSION_ID . ")\nend", $process->getOutput());
         $this->assertEquals('', $process->getError());
 
         $process->close();
@@ -36,11 +37,39 @@ class ProcessTest extends TestCase
     public function testExec(){
         $process = new Process(PHP_BINARY . ' -r "ob_start();var_dump(PHP_VERSION_ID);flush();ob_flush();sleep(3);echo \'end\';"', __DIR__);
 
-        $process->exec();
+        $this->assertTrue($process->exec());
 
         $this->assertFalse($process->isRunning());
         $this->assertNotEmpty($process->pid());
-        $this->assertEquals("Command line code:1:\nint(" . PHP_VERSION_ID . ")\nend", $process->getOutput());
+        $this->assertContains("int(" . PHP_VERSION_ID . ")\nend", $process->getOutput());
         $this->assertEquals('', $process->getError());
+    }
+
+    public function testExecTimeout()
+    {
+        $process = new Process(PHP_BINARY . ' -r "ob_start();var_dump(PHP_VERSION_ID);flush();ob_flush();sleep(3);echo \'end\';"', __DIR__);
+
+        $total = INF;
+        $start = microtime(true);
+        try{
+            $process->exec(100);
+        } catch (\Exception $e){
+            $total = microtime(true) - $start;
+            $this->assertInstanceOf(Timeout::class, $e);
+        }
+
+        $this->assertFalse($process->isRunning());
+        $this->assertNotEmpty($process->pid());
+        $this->assertLessThan(1, $total);
+    }
+
+    /**
+     * @expectedException \Neutrino\Process\Exception
+     */
+    public function testFailStart()
+    {
+        $process = new Process('this_is_not_a_valid_program');
+
+        $process->start();
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Neutrino\Process;
 
+use Neutrino\Error\Error;
+
 /**
  * Class Process
  *
@@ -44,18 +46,30 @@ class Process
     {
         $this->spec = [
             // 0 => ['pipe', 'w+'],
-            1 => fopen('php://temp/maxmemory:' . (1024 * 1024), 'w+'),
-            2 => fopen('php://temp/maxmemory:' . (1024 * 1024), 'w+'),
+          1 => fopen('php://temp/maxmemory:' . (1024 * 1024), 'w+'),
+          2 => fopen('php://temp/maxmemory:' . (1024 * 1024), 'w+'),
         ];
 
         if ('\\' === DIRECTORY_SEPARATOR) {
             $this->options = array_merge(['bypass_shell' => true], (array)$this->options);
         }
 
+        /** @var Error $error */
+        $error = null;
+
+        set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$error) {
+            $error = Error::fromError($errno, $errstr, $errfile, $errline);
+        });
+
         $this->proc = proc_open($this->cmd, $this->spec, $this->pipes, $this->cwd, null, $this->options);
+
+        restore_error_handler();
 
         $this->pipes = $this->spec;
 
+        if (!is_null($error)) {
+            throw new Exception('Can\'t create process', 0, new Exception($error->message, $error->code));
+        }
         if (!$this->isRunning()) {
             throw new Exception('Can\'t create process');
         }
@@ -64,26 +78,26 @@ class Process
     }
 
     /**
-     * Wait until process end
+     * Wait until process end or wait time
      *
-     * @param int|null $timeout in ms
-     * @param int      $step    in ms
+     * @param int|null $wait in ms
+     * @param int $step in ms
      */
-    public function wait($timeout = null, $step = 1000)
+    public function wait($wait = null, $step = 1000)
     {
-        $withTimeout = false === is_null($timeout);
+        $withTimeout = false === is_null($wait);
 
         if ($withTimeout) {
             $start = microtime(true);
-            if ($timeout < $step) {
-                $step = $timeout;
+            if ($wait < $step) {
+                $step = $wait;
             }
         }
 
         while ($this->isRunning()) {
             usleep($step * 1000);
 
-            if ($withTimeout && ($start + $timeout) > microtime(true)) {
+            if ($withTimeout && ($start + $wait) > microtime(true)) {
                 return;
             }
         }
@@ -136,20 +150,19 @@ class Process
      *
      * @param int|null $timeout in ms
      *
-     * @return bool
+     * @throws Exception
      */
     public function exec($timeout = null)
     {
         try {
             $this->start();
             $this->wait($timeout, 500);
-        } catch (Exception $e) {
-            return false;
+            if ($this->isRunning()) {
+                throw new Timeout;
+            }
         } finally {
             $this->close();
         }
-
-        return true;
     }
 
     /**
@@ -206,12 +219,16 @@ class Process
 
     private function readOutput()
     {
-        $this->content .= $this->read($this->pipes[1], strlen($this->content));
+        if (isset($this->pipes[1])) {
+            $this->content .= $this->read($this->pipes[1], strlen($this->content));
+        }
     }
 
     private function readError()
     {
-        $this->error .= $this->read($this->pipes[2], strlen($this->error));
+        if (isset($this->pipes[2])) {
+            $this->error .= $this->read($this->pipes[2], strlen($this->error));
+        }
     }
 
     private function read($pipe, $offset = 0)

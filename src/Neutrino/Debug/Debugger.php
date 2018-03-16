@@ -78,12 +78,10 @@ class Debugger extends Injectable
             $di->setInternalEventsManager($em = new DebugEventsManagerWrapper($em));
         }
 
-        $em = $di->get(Services::EVENTS_MANAGER);
-
-        if (is_null($em)) {
-            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper(new Manager()));
+        if ($di->has(Services::EVENTS_MANAGER)) {
+            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper($di->get(Services::EVENTS_MANAGER)));
         } else {
-            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper($em));
+            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper(new Manager()));
         }
 
         $em = $app->getEventsManager();
@@ -103,7 +101,7 @@ class Debugger extends Injectable
 
         /** @var \Phalcon\Loader $loader */
         if (isset($loader)) {
-            $this->attachEventManager($loader);
+            $this->attachEventsManager($loader);
         }
     }
 
@@ -120,32 +118,32 @@ class Debugger extends Injectable
 
             $resolved[$data['name']] = true;
 
-            $this->tryAttachEventManager($data['instance']);
+            $this->tryAttachEventsManager($data['instance']);
 
             if($data['instance'] instanceof Adapter\Pdo){
                 $this->dbProfilerRegister();
             }
             if($data['instance'] instanceof View) {
                 foreach ($data['instance']->getRegisteredEngines() as $engine) {
-                    $this->tryAttachEventManager($engine);
+                    $this->tryAttachEventsManager($engine);
                 }
                 $this->viewProfilerRegister();
             }
         });
     }
 
-    private function tryAttachEventManager($service) {
+    private function tryAttachEventsManager($service) {
 
         if ($service instanceof EventsAwareInterface
           || (method_exists($service, 'getEventsManager') && method_exists($service, 'setEventsManager'))) {
-            $this->attachEventManager($service);
+            $this->attachEventsManager($service);
         }
     }
 
     /**
      * @param EventsAwareInterface $service
      */
-    private function attachEventManager($service)
+    private function attachEventsManager($service)
     {
         $em = $service->getEventsManager();
         if ($em) {

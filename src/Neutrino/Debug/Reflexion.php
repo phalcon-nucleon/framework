@@ -67,16 +67,18 @@ final class Reflexion
      */
     private static function getReflectionElement($object, $type, $name)
     {
-        return self::retrieveReflectionElement(self::getReflectionClass(self::toClassName($object)), $type, $name);
+        return self::retrieveReflectionElement(self::getReflectionClass($object), $type, $name);
     }
 
     /**
-     * @param string $class
+     * @param object|string $class
      *
      * @return \ReflectionClass
      */
     public static function getReflectionClass($class)
     {
+        $class = self::toClassName($class);
+
         if (!isset(self::$cache[$class]['class'])) {
             self::$cache[$class]['class'] = new \ReflectionClass($class);
         }
@@ -113,7 +115,7 @@ final class Reflexion
      */
     public static function getReflectionProperties($object)
     {
-        return self::getReflectionClass(self::toClassName($object))->getProperties();
+        return self::getReflectionClass($object)->getProperties();
     }
 
     /**
@@ -123,7 +125,7 @@ final class Reflexion
      */
     public static function getReflectionMethods($object)
     {
-        return self::getReflectionClass(self::toClassName($object))->getMethods();
+        return self::getReflectionClass($object)->getMethods();
     }
 
     /**

@@ -41,7 +41,6 @@ class DebugEventsManagerWrapper extends Manager implements ManagerInterface
                 if (strlen($var) > 40) {
                     return "'" . substr($var, 0, 30) . '...\'[' . strlen($var) . ']';
                 }
-                return $var;
             case 'boolean':
             case 'integer':
             case 'double':

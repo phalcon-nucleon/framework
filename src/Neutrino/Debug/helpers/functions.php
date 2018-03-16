@@ -26,13 +26,13 @@ namespace Neutrino\Debug {
                     $p = (int)($time * $pow / $pow) * $pow;
                     $i = (int)($v + $p);
 
-                    $s = round($v + $p, is_null($precision) ? 4 - strlen($i) : $precision) . ' ' . $unit;
+                    $s = round($v + $p, max(0, is_null($precision) ? 4 - strlen($i) : $precision)) . ' ' . $unit;
                     break;
                 }
             }
 
             if (empty($s)) {
-                $s = round(fmod($time * (1000 ** 3), (1000 ** 3)), 3) . 'ns';
+                $s = round(fmod($time * (1000 ** 3), (1000 ** 3)), 3) . ' ns';
             }
 
             return trim($s, '.-');
@@ -433,6 +433,7 @@ namespace Neutrino\Debug {
             $sql = preg_replace('/(FROM|JOIN|INTO|UPDATE|LOW_PRIORITY) (`[\w]+`)/', '$1 <span class="table">$2</span>', $sql);
             $sql = preg_replace('/(`[\w]+`).(`[\w]+`)/', '<span class="table">$1</span>.<span class="column">$2</span>', $sql);
             $sql = preg_replace('/([ ,\(])(`[\w]+`)([\) ,])/', '$1<span class="column">$2</span>$3', $sql);
+            $sql = preg_replace('/([ ,\(])(`[\w]+`)$/', '$1<span class="column">$2</span>', $sql);
             $sql = trim(preg_replace('/(' . $keyWordsLn . ')/', PHP_EOL . '$1', $sql));
             $sql = preg_replace('/(' . $keyWordsLn . '|' . $keyWords . ')/', '<span class="keyw">$1</span>', $sql);
             $sql = preg_replace('/(' . $func . ')( ?\()/', '<i class="func">$1</i>$2', $sql);
@@ -474,8 +475,8 @@ namespace Neutrino\Debug {
         function func_highlight($func)
         {
             return preg_replace(
-              '!(.+)->(\w+)(.+)!',
-              '<span class="red-text text-darken-4">$1</span>-><span class="red-text text-darken-2">$2</span><span class="grey-text text-darken-1">$3</span>',
+              '!(.+)(->|::)(\w+)(?:(\(.+\)))?!',
+              '<span class="red-text text-darken-4">$1</span>$2<span class="red-text text-darken-2">$3</span><span class="grey-text text-darken-1">$4</span>',
               $func
             );
         }

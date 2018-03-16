@@ -13,6 +13,8 @@ use Neutrino\Process\Process;
  */
 class ServerTask extends Task
 {
+    const IP_PATTERN = '/^(?:(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/';
+
     /** @var Process */
     private $proc;
 
@@ -24,22 +26,64 @@ class ServerTask extends Task
      */
     public function mainAction()
     {
+        try {
+            $ip = $this->getIp();
+            $port = $this->getPort($ip);
+
+            $this->run($ip, $port);
+        } catch (\Exception $e) {
+            $this->block([$e->getMessage()], 'error');
+            return;
+        }
+    }
+
+    /**
+     * @return null|string
+     * @throws \Exception
+     */
+    private function getIp()
+    {
         $ip = $this->getOption('ip', '127.0.0.1');
 
-        if($this->hasOption('port')){
+        if (empty($ip) || true === $ip) {
+            throw new \Exception('IP can\'t be empty');
+        }
+
+        if(!preg_match(self::IP_PATTERN, $ip)){
+            throw new \Exception('['.$ip.'] is not a valid ip');
+        }
+
+        return $ip;
+    }
+
+    /**
+     * @param $ip
+     * @return int|null|string
+     * @throws \Exception
+     */
+    private function getPort($ip)
+    {
+        if ($this->hasOption('port')) {
             $port = $this->getOption('port');
 
+            if(empty($port) || true === $port){
+                throw new \Exception('Port can\'t be empty');
+            }
             if ($this->portIsOpen($ip, $port)) {
-                $this->block(['Port [' . $port . '] on ip [' . $ip . '] is already used.'], 'error');
-                return;
+                throw new \Exception('Port [' . $port . '] on ip [' . $ip . '] is already used.');
             }
         } else {
             $port = $this->acquirePort($ip);
         }
 
-        $this->run($ip, $port);
+        return $port;
     }
 
+    /**
+     * @param $ip
+     * @param $port
+     * @throws Exception
+     */
     private function run($ip, $port)
     {
         $cmd = PHP_BINARY . ' -S ' . $ip . ':' . $port . ' app_dev.php';
@@ -47,12 +91,7 @@ class ServerTask extends Task
 
         $this->proc = $this->getDI()->get(Process::class, [$cmd, $cwd]);
 
-        try{
-            $this->proc->start();
-        } catch (Exception $e){
-            $this->block(['Can\'t run server'], 'error');
-            return;
-        }
+        $this->proc->start();
 
         $this->block(['[OK] http://' . $ip . ':' . $port], 'info');
 

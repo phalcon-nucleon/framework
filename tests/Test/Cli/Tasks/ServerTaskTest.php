@@ -18,7 +18,34 @@ class ServerTaskTest extends TestCase
         return StubKernelCli::class;
     }
 
-    public function testAcquirePort()
+    public function testIp()
+    {
+        $server = new ServerTask;
+
+        $this->assertEquals('127.0.0.1', Reflexion::invoke($server, 'getIp'));
+
+        Reflexion::set($server, 'options', ['ip' => true]);
+
+        try{
+            Reflexion::invoke($server, 'getIp');
+        } catch (\Exception $e){}
+
+        $this->assertTrue(isset($e));
+        $this->assertInstanceOf(\Exception::class, $e);
+        $this->assertEquals('IP can\'t be empty', $e->getMessage());
+
+        Reflexion::set($server, 'options', ['ip' => '123456789']);
+
+        try{
+            Reflexion::invoke($server, 'getIp');
+        } catch (\Exception $e){}
+
+        $this->assertTrue(isset($e));
+        $this->assertInstanceOf(\Exception::class, $e);
+        $this->assertEquals('[123456789] is not a valid ip', $e->getMessage());
+    }
+
+    public function testPort()
     {
         try {
             $p1 = new Process(PHP_BINARY . ' -S 127.0.0.1:8000');
@@ -32,6 +59,27 @@ class ServerTaskTest extends TestCase
             $server = new ServerTask;
 
             $this->assertEquals(8002, Reflexion::invoke($server, 'acquirePort', '127.0.0.1'));
+            $this->assertEquals(8002, Reflexion::invoke($server, 'getPort', '127.0.0.1'));
+
+            Reflexion::set($server, 'options', ['port' => true]);
+
+            try{
+                Reflexion::invoke($server, 'getPort', '127.0.0.1');
+            } catch (\Exception $e){}
+
+            $this->assertTrue(isset($e));
+            $this->assertInstanceOf(\Exception::class, $e);
+            $this->assertEquals('Port can\'t be empty', $e->getMessage());
+
+            Reflexion::set($server, 'options', ['port' => 8000]);
+
+            try{
+                Reflexion::invoke($server, 'getPort', '127.0.0.1');
+            } catch (\Exception $e){}
+
+            $this->assertTrue(isset($e));
+            $this->assertInstanceOf(\Exception::class, $e);
+            $this->assertEquals('Port [8000] on ip [127.0.0.1] is already used.', $e->getMessage());
         } finally {
             $p1->close();
             $p2->close();

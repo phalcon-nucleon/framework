@@ -10,6 +10,14 @@ use Test\TestCase\TestCase;
 
 class FactoryTest extends TestCase
 {
+    public static function tearDownAfterClass()
+    {
+        Reflexion::set(Curl::class, 'isAvailable', null);
+        Reflexion::set(StreamContext::class, 'isAvailable', null);
+
+        parent::tearDownAfterClass();
+    }
+
     public function testCurlAvailable()
     {
         Reflexion::set(Curl::class, 'isAvailable', true);

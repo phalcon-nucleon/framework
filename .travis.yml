@@ -26,6 +26,7 @@ install:
   - git clone --depth=1 -q --branch=${PHALCON_VERSION} https://github.com/phalcon/cphalcon.git
   - '(cd cphalcon/build; bash install && phpenv config-add ../tests/_ci/phalcon.ini && cd ../..;)'
   - php -r 'echo \Phalcon\Version::get() . PHP_EOL;'
+  - php -m
   - travis_retry composer install --no-interaction --prefer-source --dev
 
 before_script:

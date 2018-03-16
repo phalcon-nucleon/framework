@@ -34,7 +34,7 @@ class ServerTask extends Task
                 return;
             }
         } else {
-            $port = $this->acquierePort($ip);
+            $port = $this->acquirePort($ip);
         }
 
         $this->run($ip, $port);
@@ -51,6 +51,7 @@ class ServerTask extends Task
             $this->proc->start();
         } catch (Exception $e){
             $this->block(['Can\'t run server'], 'error');
+            return;
         }
 
         $this->block(['[OK] http://' . $ip . ':' . $port], 'info');
@@ -62,7 +63,7 @@ class ServerTask extends Task
         $this->proc->close();
     }
 
-    private function acquierePort($ip)
+    private function acquirePort($ip)
     {
         $port = 8000;
 

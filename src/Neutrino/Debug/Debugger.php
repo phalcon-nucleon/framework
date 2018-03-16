@@ -34,6 +34,9 @@ class Debugger extends Injectable
     /** @var self */
     private static $instance;
 
+    /** @var View\Simple */
+    private static $view;
+
     /** @var \Neutrino\Debug\DebugEventsManagerWrapper */
     private $em;
 
@@ -298,10 +301,8 @@ class Debugger extends Injectable
      */
     public static function getIsolateView()
     {
-        static $view;
-
-        if (isset($view)) {
-            return $view;
+        if (isset(self::$view)) {
+            return self::$view;
         }
 
         include __DIR__ . '/helpers/functions.php';
@@ -350,7 +351,7 @@ class Debugger extends Injectable
           ]
         );
 
-        return $view;
+        return self::$view = $view;
     }
 
     /**

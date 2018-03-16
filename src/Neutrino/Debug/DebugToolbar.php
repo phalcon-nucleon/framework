@@ -3,6 +3,7 @@
 namespace Neutrino\Debug;
 
 use Neutrino\Constants\Events\Kernel;
+use Neutrino\Constants\Services;
 use Phalcon\Di;
 
 /**
@@ -19,6 +20,11 @@ class DebugToolbar
             $render_time = (microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']);
 
             $events = DebugEventsManagerWrapper::getEvents();
+
+            if (!self::toolbarIsAllowed()) {
+                return;
+            }
+
             $httpInfo = self::getHttpInfo();
             $buildInfo = Debugger::getBuildInfo();
             $phpErrors = DebugErrorLogger::errors();
@@ -36,10 +42,6 @@ class DebugToolbar
             $view->setVar('viewProfiles', $viewsProfiles);
             $view->setVar('profilers', $registeredProfilers);
 
-            if (!self::toolbarIsAllowed()) {
-                return;
-            }
-
             echo $view->render('bar');
         });
     }
@@ -48,14 +50,14 @@ class DebugToolbar
     {
         $di = Di::getDefault();
         /** @var \Phalcon\Http\Request $request */
-        $request = $di->get('request');
+        $request = $di->get(Services::REQUEST);
 
-        if ($request->isAjax() || $request->getHeader('X-Requested-With') == 'XMLHttpRequest') {
+        if ($request->isAjax()) {
             return false;
         }
 
         /** @var \Phalcon\Http\Response $response */
-        $response = $di->get('response');
+        $response = $di->get(Services::RESPONSE);
 
         $statusCode = $response->getStatusCode();
         if ($statusCode >= 300 && $statusCode < 400) {
@@ -68,7 +70,7 @@ class DebugToolbar
         }
 
         $contentDisposition = $response->getHeaders()->get('Content-Disposition');
-        if(false !== $contentDisposition && false === strpos($contentDisposition, 'attachment;')){
+        if(false !== $contentDisposition && false !== strpos($contentDisposition, 'attachment;')){
             return false;
         }
 

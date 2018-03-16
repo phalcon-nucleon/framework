@@ -4,6 +4,7 @@ namespace Test\HttpClient\Provider;
 
 use Neutrino\Http\Standards\Method;
 use Neutrino\Http\Standards\StatusCode;
+use Neutrino\Process\Process;
 
 /**
  * Class TraitCaller
@@ -12,21 +13,22 @@ use Neutrino\Http\Standards\StatusCode;
  */
 trait TraitWithLocalServer
 {
+    /** @var Process */
     private static $server;
 
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
 
-        self::$server = proc_open(PHP_BINARY . ' -S  127.0.0.1:7999 server.php', [], $pipes, __DIR__ . '/../resources', null, ['bypass_shell' => true]);
+        self::$server = new Process(PHP_BINARY . ' -S  127.0.0.1:7999 server.php', __DIR__ . '/../resources', ['bypass_shell' => true]);
+        self::$server->start();
 
         sleep(1);
     }
 
     public static function tearDownAfterClass()
     {
-        proc_terminate(self::$server);
-        proc_close(self::$server);
+        self::$server->close();
 
         parent::tearDownAfterClass();
     }

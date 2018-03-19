@@ -14,11 +14,10 @@ use Neutrino\Cli\Task;
 class AssetsJsTask extends Task
 {
     /**
-     * Compilation, Optimization, Minification des assets js.
-     * Utilise l'api Closure Compiler.
+     * Compilation, Optimization, Minification of assets js.
+     * Use the Closure Compile API.
      *
-     * @throws \Neutrino\Assets\Exception\CompilatorException
-     * @throws \Exception
+     * @option --verbose-externs : Display errors & warnings of externals files
      */
     public function mainAction()
     {
@@ -26,7 +25,7 @@ class AssetsJsTask extends Task
 
         $options = $this->config->assets->js->toArray();
 
-        $result = (new ClosureCompiler)->compile($options);
+        $result = $this->getDI()->get(ClosureCompiler::class)->compile($options);
 
         if (!empty($result['errors'])) {
             $this->outputErrors($result['errors'], 'errors', 'error', $options);
@@ -51,8 +50,8 @@ class AssetsJsTask extends Task
     {
         $this->block([str_pad(strtoupper($type), 40, ' ', STR_PAD_BOTH)], $display, 4);
 
-        if (!$this->hasOption('verbose-externs')) {
-            $externs = $this->excludeExterns($items, $options['compile']['externs_url']);
+        if ($this->hasOption('verbose-externs')) {
+            $externs = $this->extractExternsErrors($items, $options['compile']['externs_url']);
 
             foreach ($externs as $file => $count) {
                 $externs[$file] = "$file : $count";
@@ -72,7 +71,7 @@ class AssetsJsTask extends Task
 
     private function formatErrorsOrWarnings($item)
     {
-        $row = [['type', 'value']];
+        $row = [];
         foreach ($item as $type => $value) {
             $row[] = [$type, str_replace("\n", ', ', $value)];
         }
@@ -80,7 +79,7 @@ class AssetsJsTask extends Task
         return $row;
     }
 
-    private function excludeExterns(&$result, $externs)
+    private function extractExternsErrors(&$result, $externs)
     {
         $count = [];
         foreach ($result as $k => $item) {
@@ -91,6 +90,8 @@ class AssetsJsTask extends Task
                   : $count[$item['file']] = 1;
             }
         }
+
+        $result = array_values($result);
 
         return $count;
     }

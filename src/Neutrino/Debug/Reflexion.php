@@ -71,6 +71,8 @@ final class Reflexion
     }
 
     /**
+     * Return the reflection class of an object or a class
+     *
      * @param string|object $object
      *
      * @return \ReflectionClass
@@ -87,6 +89,8 @@ final class Reflexion
     }
 
     /**
+     * Return a reflection property of an object or a class
+     *
      * @param string|object $object
      * @param string        $property
      *
@@ -98,6 +102,8 @@ final class Reflexion
     }
 
     /**
+     * Return a reflection method of an object or a class
+     *
      * @param string|object $object
      * @param string        $method
      *
@@ -109,6 +115,8 @@ final class Reflexion
     }
 
     /**
+     * Return all reflection properties of an object or a class
+     *
      * @param string|object $object
      *
      * @return \ReflectionProperty[]
@@ -119,6 +127,8 @@ final class Reflexion
     }
 
     /**
+     * Return all reflection methods of an object or a class
+     *
      * @param string|object $object
      *
      * @return \ReflectionMethod[]
@@ -129,6 +139,8 @@ final class Reflexion
     }
 
     /**
+     * Set the value of a property of an object or a class
+     *
      * @param string|object $object
      * @param string $property
      * @param mixed  $value
@@ -151,6 +163,8 @@ final class Reflexion
     }
 
     /**
+     * Get the value of a property of an object or a class
+     *
      * @param string|object $object
      * @param string       $property
      *
@@ -172,6 +186,10 @@ final class Reflexion
     }
 
     /**
+     * Invoke a method of an object or a class
+     *
+     * Don't support reference variables.
+     *
      * @param string|object $object
      * @param string       $method
      * @param array        ...$params
@@ -179,6 +197,32 @@ final class Reflexion
      * @return mixed
      */
     public static function invoke($object, $method, ...$params)
+    {
+        $method = self::getReflectionMethod($object, $method);
+
+        if (is_string($object) || $method->isStatic()) {
+            if (($declaringClass = $method->getDeclaringClass()->getName()) !== self::toClassName($object)) {
+                return self::getReflectionMethod($declaringClass, $method->getName())->invokeArgs(null, $params);
+            }
+
+            return $method->invokeArgs(null, $params);
+        }
+
+        return $method->invokeArgs($object, $params);
+    }
+
+    /**
+     * Invoke a method of an object or a class
+     *
+     * Support reference variables.
+     *
+     * @param string|object $object
+     * @param string       $method
+     * @param array        ...$params
+     *
+     * @return mixed
+     */
+    public static function invokeArgs($object, $method, $params)
     {
         $method = self::getReflectionMethod($object, $method);
 

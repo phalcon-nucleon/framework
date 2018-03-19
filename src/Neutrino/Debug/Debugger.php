@@ -46,7 +46,7 @@ class Debugger extends Injectable
 
         $di = Di::getDefault();
 
-        if($di->get(Services::APP) instanceof Console){
+        if ($di->get(Services::APP) instanceof Console) {
             return;
         }
 
@@ -109,10 +109,10 @@ class Debugger extends Injectable
     {
         $em = $this->em;
 
-        $em->attach('di:afterServiceResolve', function($ev, $src, $data) {
+        $em->attach('di:afterServiceResolve', function ($ev, $src, $data) {
             static $resolved;
 
-            if(isset($resolved[$data['name']])){
+            if (isset($resolved[$data['name']])) {
                 return;
             }
 
@@ -120,11 +120,11 @@ class Debugger extends Injectable
 
             $this->tryAttachEventsManager($data['instance']);
 
-            if($data['instance'] instanceof Adapter\Pdo){
+            if ($data['instance'] instanceof Adapter\Pdo) {
                 $this->dbProfilerRegister();
             }
-            if($data['instance'] instanceof View) {
-                foreach ($data['instance']->getRegisteredEngines() as $engine) {
+            if ($data['instance'] instanceof View) {
+                foreach ((array)$data['instance']->getRegisteredEngines() as $engine) {
                     $this->tryAttachEventsManager($engine);
                 }
                 $this->viewProfilerRegister();
@@ -132,7 +132,8 @@ class Debugger extends Injectable
         });
     }
 
-    private function tryAttachEventsManager($service) {
+    private function tryAttachEventsManager($service)
+    {
 
         if ($service instanceof EventsAwareInterface
           || (method_exists($service, 'getEventsManager') && method_exists($service, 'setEventsManager'))) {
@@ -221,7 +222,7 @@ class Debugger extends Injectable
 
     public static function register()
     {
-        if(self::isEnable()){
+        if (self::isEnable()) {
             return;
         }
 
@@ -245,7 +246,7 @@ class Debugger extends Injectable
     public static function getBuildInfo()
     {
         $build = [
-            'php' => [
+          'php' => [
             'version' => PHP_VERSION,
           ],
           'zend' => [
@@ -309,8 +310,8 @@ class Debugger extends Injectable
         $view->setDI(new Di());
         $view->setViewsDir(__DIR__ . '/resources/');
         $view->registerEngines(
-            [
-                ".volt" => function ($view, $di) {
+          [
+            ".volt" => function ($view, $di) {
                 $volt = new View\Engine\Volt($view, $di);
                 $volt->setOptions([
                   "compiledPath" => Di::getDefault()->get('config')->view->compiled_path,
@@ -354,19 +355,19 @@ class Debugger extends Injectable
 
     /**
      * @param string $name
-     * @param string|null   $icon
+     * @param string|null $icon
      *
      * @return \Phalcon\Db\Profiler
      */
     public static function registerProfiler($name, $icon = null)
     {
-        if(isset(self::$profilers[$name])){
+        if (isset(self::$profilers[$name])) {
             return self::$profilers[$name]['profiler'];
         }
 
         self::$profilers[$name] = [
-            'icon'     => $icon,
-            'profiler' => $profiler = new Profiler()
+          'icon' => $icon,
+          'profiler' => $profiler = new Profiler()
         ];
 
         return $profiler;

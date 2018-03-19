@@ -23,6 +23,11 @@ class DebugEventsManagerWrapper extends Manager implements ManagerInterface
 
     protected $manager;
 
+    public function __construct(ManagerInterface $manager)
+    {
+        $this->manager = $manager;
+    }
+
     private function __verboseType($var){
         switch ($type = gettype($var)) {
             case 'array':
@@ -62,11 +67,6 @@ class DebugEventsManagerWrapper extends Manager implements ManagerInterface
         ];
 
         return $this->manager->fire($eventType, $source, $data, $cancelable, ...$args);
-    }
-
-    public function __construct(ManagerInterface $manager)
-    {
-        $this->manager = $manager;
     }
 
     public function attach($eventType, $handler, $priority = 100, ...$args)

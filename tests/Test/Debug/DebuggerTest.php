@@ -6,8 +6,13 @@ use Neutrino\Constants\Services;
 use Neutrino\Debug\DebugEventsManagerWrapper;
 use Neutrino\Debug\Debugger;
 use Neutrino\Debug\Reflexion;
+use Phalcon\Db\Adapter\Pdo;
 use Phalcon\Db\Profiler;
+use Phalcon\Events\EventsAwareInterface;
 use Phalcon\Events\Manager;
+use Phalcon\Events\ManagerInterface;
+use Phalcon\Loader;
+use Phalcon\Mvc\View;
 use Test\TestCase\TestCase;
 
 class DebuggerTest extends TestCase
@@ -27,7 +32,7 @@ class DebuggerTest extends TestCase
         $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
 
         Reflexion::set($this->getDI(), '_eventsManager', $dim = new Manager());
-        $this->getDI()->set(Services::EVENTS_MANAGER,$em = new Manager());
+        $this->getDI()->set(Services::EVENTS_MANAGER, $em = new Manager());
         Reflexion::set($this->app, '_eventsManager', $appm = new Manager());
 
         Reflexion::invoke($debugger, 'registerGlobalEventManager');
@@ -50,6 +55,24 @@ class DebuggerTest extends TestCase
         $this->assertInstanceOf(DebugEventsManagerWrapper::class, $this->app->getEventsManager());
     }
 
+
+    public function testGetGlobalEventsManager()
+    {
+        try {
+            Debugger::getGlobalEventsManager();
+        } catch (\Exception $e) {
+        }
+        $this->assertTrue(isset($e));
+        $this->assertEquals('Exception', get_class($e));
+        $this->assertEquals('Debugger wasn\'t registered', $e->getMessage());
+
+        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
+        Reflexion::set($debugger, 'instance', $debugger);
+        Reflexion::invoke($debugger, 'registerGlobalEventManager');
+
+        $this->assertInstanceOf(DebugEventsManagerWrapper::class, Debugger::getGlobalEventsManager());
+    }
+
     public function testRegisterProfiler()
     {
         $profiler = Reflexion::invoke(Debugger::class, 'registerProfiler', 'db');
@@ -66,7 +89,6 @@ class DebuggerTest extends TestCase
         $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
 
         Reflexion::invoke($debugger, 'registerGlobalEventManager');
-
         Reflexion::invoke($debugger, 'tryAttachEventsManager', '');
 
         $dispatcher = $this->getDI()->get(Services::DISPATCHER);
@@ -78,5 +100,85 @@ class DebuggerTest extends TestCase
         Reflexion::invoke($debugger, 'tryAttachEventsManager', $dispatcher);
         $this->assertInstanceOf(DebugEventsManagerWrapper::class, $dispatcher->getEventsManager());
         $this->assertEquals($em, Reflexion::get($dispatcher->getEventsManager(), 'manager'));
+
+        Reflexion::set($dispatcher, '_eventsManager', $em = new DebugEventsManagerWrapper(new Manager()));
+        Reflexion::invoke($debugger, 'tryAttachEventsManager', $dispatcher);
+        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $dispatcher->getEventsManager());
+        $this->assertEquals($em, $dispatcher->getEventsManager());
+    }
+
+    public function testListenLoader()
+    {
+        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
+        Reflexion::invoke($debugger, 'registerGlobalEventManager');
+        Reflexion::invoke($debugger, 'listenLoader');
+
+        global $loader;
+
+        $loader = new Loader();
+        Reflexion::invoke($debugger, 'listenLoader');
+        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $loader->getEventsManager());
+
+        unset($loader);
+    }
+
+    public function testListenServices()
+    {
+        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
+        Reflexion::invoke($debugger, 'registerGlobalEventManager');
+        Reflexion::invoke($debugger, 'listenServices');
+        $gem = Reflexion::get($debugger, 'em');
+
+        $em = Reflexion::get($this->getDI()->getInternalEventsManager(), 'manager');
+
+        $events = Reflexion::get($em, '_events');
+
+        $this->assertArrayHasKey('di:afterServiceResolve', $events);
+
+        $this->getDI()->set('my-service', $service = new StubService());
+        $this->getDI()->get('my-service');
+        $em = $service->getEventsManager();
+        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $em);
+
+        $this->getDI()->get('my-service');
+        $this->assertEquals($em, $service->getEventsManager());
+
+        $this->getDI()->set('my-db', $service = Reflexion::getReflectionClass(Pdo\Mysql::class)->newInstanceWithoutConstructor());
+        $this->getDI()->get('my-db');
+        $em = $service->getEventsManager();
+        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $em);
+        $this->assertInstanceOf(Profiler::class, Reflexion::get(Debugger::class, 'profilers')['db']['profiler']);
+        $this->assertNotEmpty($gem->getListeners('db'));
+
+        $this->getDI()->set('my-view', $service = Reflexion::getReflectionClass(View::class)->newInstanceWithoutConstructor());
+        $this->getDI()->get('my-view');
+        $em = $service->getEventsManager();
+        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $em);
+        $this->assertNotEmpty($gem->getListeners('view'));
+    }
+}
+
+class StubService implements EventsAwareInterface
+{
+    protected $em;
+
+    /**
+     * Sets the events manager
+     *
+     * @param ManagerInterface $eventsManager
+     */
+    public function setEventsManager(ManagerInterface $eventsManager)
+    {
+        $this->em = $eventsManager;
+    }
+
+    /**
+     * Returns the internal event manager
+     *
+     * @return ManagerInterface
+     */
+    public function getEventsManager()
+    {
+        return $this->em;
     }
 }

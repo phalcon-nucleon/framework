@@ -1,5 +1,10 @@
 # Release Note
 
+## v1.2.1
+
+### Fixed 
+ - DebugToolbar : View render time
+
 ## v1.2.0
 
 ### Added
@@ -37,6 +42,8 @@
     - Allow to configuring multiple engines.
  - Blueprint : Support foreign key with onDelete or/and onUpdate
  - Blueprint : Allow to create index with custom type
+ - Built-in Server
+    - `php quark server:run` : run php built-in server
 ### Change
  - Namespace `Neutrino\View\Engine` moved to `Neutrino\View\Engines`
  - Class `Neutrino\View\Engine\PhpFunction` moved to `Neutrino\View\Engines\Volt\Compiler\Extensions\PhpFunctionExtension`

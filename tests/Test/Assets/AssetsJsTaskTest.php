@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Test\Assets;
-
 
 use Fake\Kernels\Cli\StubKernelCli;
 use Neutrino\Assets\ClosureCompiler;
@@ -11,7 +9,6 @@ use Neutrino\Constants\Services;
 use Neutrino\Debug\Reflexion;
 use Neutrino\Foundation\Cli\Tasks\AssetsJsTask;
 use Test\TestCase\TestCase;
-
 
 class AssetsJsTaskTest extends TestCase
 {

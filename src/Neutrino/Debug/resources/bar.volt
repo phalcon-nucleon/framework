@@ -99,13 +99,13 @@
             </tr>
             <tr>
               <td>Render</td>
-              <td>{{ viewProfiles['render']['elapsedTime'] | human_mtime }}</td>
+              <td>{{ viewProfiles['render'] | default([]) | length }} in {{ viewProfiles['render'][0]['elapsedTime'] | human_mtime }}</td>
             </tr>
             </tbody>
           </table>
           <span>
             <i class="nuc view"></i>
-            <span class="info">{{ viewProfiles['render']['elapsedTime'] | human_mtime }}</span>
+            <span class="info">{{ viewProfiles['render'][0]['elapsedTime'] | human_mtime }}</span>
           </span>
         </li>
         {% for name, elements in profilers | default([]) %}

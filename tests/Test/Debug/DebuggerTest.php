@@ -156,6 +156,105 @@ class DebuggerTest extends TestCase
         $this->assertInstanceOf(DebugEventsManagerWrapper::class, $em);
         $this->assertNotEmpty($gem->getListeners('view'));
     }
+
+    public function testDbProfilerRegister()
+    {
+        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
+        Reflexion::invoke($debugger, 'registerGlobalEventManager');
+        Reflexion::invoke($debugger, 'dbProfilerRegister');
+        /** @var Manager $gem */
+        $gem = Reflexion::get($debugger, 'em');
+        $profiler = Debugger::registerProfiler('db');
+
+        $this->assertNotEmpty($gem->getListeners('db'));
+
+        $db = $this->createMock(Pdo\Mysql::class);
+        $db->expects($this->once())->method('getSQLStatement')->willReturn('SELECT * FROM schema_table WHERE abc = :abc:');
+        $db->expects($this->once())->method('getSqlVariables')->willReturn(['abc' => 'abc']);
+        $db->expects($this->once())->method('getSQLBindTypes')->willReturn(['abc' => 2]);
+        $gem->fire('db:beforeQuery', $db, []);
+
+        $this->assertInstanceOf(\Phalcon\Db\Profiler\Item::class, $profiler->getLastProfile());
+        $this->assertEquals('SELECT * FROM schema_table WHERE abc = :abc:', $profiler->getLastProfile()->getSqlStatement());
+        $this->assertEquals(['abc' => 'abc'], $profiler->getLastProfile()->getSqlVariables());
+        $this->assertEquals(['abc' => 2], $profiler->getLastProfile()->getSqlBindTypes());
+        $this->assertEmpty($profiler->getProfiles());
+
+        $gem->fire('db:afterQuery', $db, []);
+        $this->assertCount(1, $profiler->getProfiles());
+    }
+
+    public function testViewProfilerRegister()
+    {
+        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
+        Reflexion::invoke($debugger, 'registerGlobalEventManager');
+        Reflexion::invoke($debugger, 'viewProfilerRegister');
+        /** @var Manager $gem */
+        $gem = Reflexion::get($debugger, 'em');
+
+        $view = $this->createMock(View::class);
+        $gem->fire('view:beforeRender', $view, []);
+        $gem->fire('view:beforeRender', $view, []);
+        $gem->fire('view:beforeRenderView', $view, []);
+        $gem->fire('view:beforeRenderView', $view, []);
+        $gem->fire('view:notFoundView', $view, []);
+        $gem->fire('view:afterRenderView', $view, []);
+        $gem->fire('view:afterRenderView', $view, []);
+        $gem->fire('view:afterRender', $view, []);
+        $gem->fire('view:afterRender', $view, []);
+
+        $profiles = Reflexion::get($debugger, 'viewProfiles');
+        $this->assertNotEmpty($gem->getListeners('view'));
+        $this->assertEmpty($profiles['__render']);
+        $this->assertEmpty($profiles['__renderViews']);
+        $this->assertCount(2, $profiles['render']);
+        $this->assertCount(2, $profiles['renderViews']);
+        $this->assertCount(1, $profiles['notFoundView']);
+
+        foreach ($profiles['render'] as $profile) {
+            $this->assertArrayHasKey('initialTime', $profile);
+            $this->assertArrayHasKey('finalTime', $profile);
+            $this->assertArrayHasKey('elapsedTime', $profile);
+        }
+        foreach ($profiles['renderViews'] as $profile) {
+            $this->assertArrayHasKey('initialTime', $profile);
+            $this->assertArrayHasKey('finalTime', $profile);
+            $this->assertArrayHasKey('elapsedTime', $profile);
+        }
+    }
+
+    public function testGetIsolateView()
+    {
+        $this->setConfig(['view' => ['compiled_path' => __DIR__]]);
+        $view = Debugger::getIsolateView();
+
+        Reflexion::invoke($view, '_loadTemplateEngines');
+
+        $engines = Reflexion::get($view, '_engines');
+
+        $this->assertArrayHasKey('.volt', $engines);
+        $this->assertInstanceOf(View\Engine\Volt::class, $engines['.volt']);
+    }
+
+    public function testRegister()
+    {
+        global $loader;
+        $loader = new Loader();
+        Debugger::register();
+
+        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $loader->getEventsManager());
+
+        $gem = Debugger::getGlobalEventsManager();
+        $em = Reflexion::get($gem, 'manager');
+        $events = Reflexion::get($em, '_events');
+
+        $this->assertArrayHasKey('di:afterServiceResolve', $events);
+        $this->assertArrayHasKey('kernel:terminate', $events);
+        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $loader->getEventsManager());
+
+        unset($loader);
+        Reflexion::set($em, '_events', []);
+    }
 }
 
 class StubService implements EventsAwareInterface

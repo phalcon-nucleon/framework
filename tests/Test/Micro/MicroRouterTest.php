@@ -256,7 +256,7 @@ class StubMicroController extends Controller
     }
 }
 
-class StubMicroHttpMiddleware extends Middleware implements BeforeInterface, AfterInterface
+class StubMicroHttpMiddleware extends \Neutrino\Foundation\Middleware\Controller implements BeforeInterface, AfterInterface
 {
     public static $call;
 

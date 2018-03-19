@@ -62,7 +62,7 @@ class AssetsSassTask extends Task
         $this->notice("\tdest : $dest");
 
         try {
-            (new SassCompiler())->compile([
+            $this->getDI()->get(SassCompiler::class)->compile([
                 'sass_file'   => $src,
                 'output_file' => $dest,
                 'cmd_options' => array_filter([
@@ -108,10 +108,13 @@ class AssetsSassTask extends Task
 
     private function getSourcemap()
     {
-        return $this->hasOption('sourcemap')
-            ? $this->getOption('sourcemap')
-            : isset($this->config->assets->sass->options->sourcemap)
-                ? $this->config->assets->sass->options->sourcemap
-                : null;
+        if ($this->hasOption('sourcemap')) {
+            return $this->getOption('sourcemap');
+        }
+        if (isset($this->config->assets->sass->options->sourcemap)) {
+            return $this->config->assets->sass->options->sourcemap;
+        }
+
+        return null;
     }
 }

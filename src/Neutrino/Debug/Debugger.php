@@ -7,7 +7,6 @@ use Neutrino\Constants\Services;
 use Neutrino\Dotconst;
 use Neutrino\Error\Handler;
 use Neutrino\Support\Str;
-use Neutrino\View\Engines\Volt\Compiler\Extensions\PhpFunctionExtension;
 use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
@@ -124,7 +123,12 @@ class Debugger extends Injectable
                 $this->dbProfilerRegister();
             }
             if ($data['instance'] instanceof View) {
-                foreach ((array)$data['instance']->getRegisteredEngines() as $engine) {
+                try {
+                    $engines = (array)Reflexion::get($data['instance'], '_engines');
+                } catch (\Exception $e) {
+                    $engines = [];
+                }
+                foreach ($engines as $engine) {
                     $this->tryAttachEventsManager($engine);
                 }
                 $this->viewProfilerRegister();
@@ -134,7 +138,6 @@ class Debugger extends Injectable
 
     private function tryAttachEventsManager($service)
     {
-
         if ($service instanceof EventsAwareInterface
           || (method_exists($service, 'getEventsManager') && method_exists($service, 'setEventsManager'))) {
             $this->attachEventsManager($service);
@@ -191,30 +194,30 @@ class Debugger extends Injectable
         $this->em->attach(
           Events::VIEW,
           function (Event $event, $src, $data) {
-
-              static $stores;
-
               $eventType = $event->getType();
               if ($eventType === 'beforeRender') {
-                  self::$viewProfiles['render'] = [
+                  self::$viewProfiles['render'][] = self::$viewProfiles['__render'][] =  [
                     'initialTime' => microtime(true)
                   ];
               } elseif ($eventType === 'beforeRenderView') {
-                  $stores['renderViews'][] = self::$viewProfiles['renderViews'][] = [
+                  self::$viewProfiles['__renderViews'][] = self::$viewProfiles['renderViews'][] = [
                     'file' => $data,
                     'initialTime' => microtime(true)
                   ];
               } elseif ($eventType === 'afterRenderView') {
-                  $profile = array_pop($stores['renderViews']);
+                  $profile = array_pop(self::$viewProfiles['__renderViews']);
                   $profile['finalTime'] = microtime(true);
                   $profile['elapsedTime'] = $profile['finalTime'] - $profile['initialTime'];
 
-                  self::$viewProfiles['renderViews'][count($stores['renderViews'])] = $profile;
+                  self::$viewProfiles['renderViews'][count(self::$viewProfiles['__renderViews'])] = $profile;
               } elseif ($eventType === 'notFoundView') {
                   self::$viewProfiles['notFoundView'][] = $data;
               } elseif ($eventType === 'afterRender') {
-                  self::$viewProfiles['render']['finalTime'] = microtime(true);
-                  self::$viewProfiles['render']['elapsedTime'] = self::$viewProfiles['render']['finalTime'] - self::$viewProfiles['render']['initialTime'];
+                  $profile = array_pop(self::$viewProfiles['__render']);
+                  $profile['finalTime'] = microtime(true);
+                  $profile['elapsedTime'] = $profile['finalTime'] - $profile['initialTime'];
+
+                  self::$viewProfiles['render'][count(self::$viewProfiles['__render'])] = $profile;
               }
           }
         );
@@ -320,31 +323,13 @@ class Debugger extends Injectable
                   'compileAlways' => true,
                 ]);
                 $compiler = $volt->getCompiler();
-                $compiler->addFunction('is_string', function ($resolvedArgs) {
-                    return 'is_string(' . $resolvedArgs . ')';
-                });
-                $compiler->addFunction('__dump', function ($resolvedArgs) {
-                    return __NAMESPACE__ . '\\__dump(' . $resolvedArgs . ')';
-                });
-                $compiler->addFilter('human_mtime', function ($resolvedArgs) {
-                    return __NAMESPACE__ . '\\human_mtime(' . $resolvedArgs . ')';
-                });
-                $compiler->addFilter('human_bytes', function ($resolvedArgs) {
-                    return __NAMESPACE__ . '\\human_bytes(' . $resolvedArgs . ')';
-                });
-                $compiler->addFilter('sql_highlight', function ($resolvedArgs) {
-                    return __NAMESPACE__ . '\\sql_highlight(' . $resolvedArgs . ')';
-                });
-                $compiler->addFilter('file_highlight', function ($resolvedArgs) {
-                    return __NAMESPACE__ . '\\file_highlight(' . $resolvedArgs . ')';
-                });
-                $compiler->addFilter('func_highlight', function ($resolvedArgs) {
-                    return __NAMESPACE__ . '\\func_highlight(' . $resolvedArgs . ')';
-                });
-                $compiler->addFilter('merge', function ($resolvedArgs) {
-                    return 'array_merge(' . $resolvedArgs . ')';
-                });
-                $compiler->addExtension(new PhpFunctionExtension($compiler));
+                $compiler->addFunction('is_string', 'is_string');
+                $compiler->addFilter('human_mtime', __NAMESPACE__ . '\\human_mtime');
+                $compiler->addFilter('human_bytes', __NAMESPACE__ . '\\human_bytes');
+                $compiler->addFilter('sql_highlight', __NAMESPACE__ . '\\sql_highlight');
+                $compiler->addFilter('file_highlight', __NAMESPACE__ . '\\file_highlight');
+                $compiler->addFilter('func_highlight', __NAMESPACE__ . '\\func_highlight');
+                $compiler->addFilter('merge', 'array_merge');
                 return $volt;
             },
           ]

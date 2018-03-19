@@ -7,10 +7,10 @@ use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
-use Neutrino\Support\Reflacker;
 use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Router\Route;
 use Phalcon\Events\Manager;
@@ -75,9 +75,9 @@ class ListTaskTest extends TestCase
 
         $task = new ListTask();
 
-        Reflacker::invoke($task, 'describe', $cmd, $class, $action);
+        Reflexion::invoke($task, 'describe', $cmd, $class, $action);
 
-        $describes = Reflacker::get($task, 'describes');
+        $describes = Reflexion::get($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }
@@ -119,9 +119,9 @@ class ListTaskTest extends TestCase
 
         $task = new ListTask();
 
-        Reflacker::invoke($task, 'describeRoute', $route);
+        Reflexion::invoke($task, 'describeRoute', $route);
 
-        $describes = Reflacker::get($task, 'describes');
+        $describes = Reflexion::get($task, 'describes');
 
         $this->assertEquals([$expected], $describes);
     }
@@ -129,37 +129,44 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write'  => ['exactly' => 17, 'consecutive' => [
+            'write'  => ['exactly' => 20, 'consecutive' => [
                 //['Available Commands :'],
                 [Helper::neutrinoVersion() . PHP_EOL, true],
-                [' ' . Decorate::info('clear-compiled') . '         Clear compilation.                         ', true],
-                [' ' . Decorate::info('help ( .*)*') . '                                                       ', true],
-                [' ' . Decorate::info('list') . '                   List all commands available.               ', true],
-                [' ' . Decorate::info('migrate') . '                Run the database migrations.               ', true],
-                [' ' . Decorate::info('optimize') . '               Optimize the autoloader.                   ', true],
+                [' ' . Decorate::info('clear-compiled') . '         Clear compilation.                                    ', true],
+                [' ' . Decorate::info('help ( .*)*') . '                                                                  ', true],
+                [' ' . Decorate::info('list') . '                   List all commands available.                          ', true],
+                [' ' . Decorate::info('migrate') . '                Run the database migrations.                          ', true],
+                [' ' . Decorate::info('optimize') . '               Optimize the autoloader.                              ', true],
+                // assets
+                [' ' . Decorate::info('assets:js') . '              Compilation, Optimization, Minification of assets js. ', true],
+                [' ' . Decorate::info('assets:sass') . '            Compilation des assets sass.                          ', true],
                 //['config', true],
-                [' ' . Decorate::info('config:cache') . '           Cache the configuration.                   ', true],
-                [' ' . Decorate::info('config:clear') . '           Clear the configuration cache.             ', true],
+                [' ' . Decorate::info('config:cache') . '           Cache the configuration.                              ', true],
+                [' ' . Decorate::info('config:clear') . '           Clear the configuration cache.                        ', true],
                 //['make', true],
-                [' ' . Decorate::info('make:migration ' . Decorate::notice('{name}')) . '  Create a new migration file.               ', true],
+                [' ' . Decorate::info('make:migration ' . Decorate::notice('{name}')) . '  Create a new migration file.                          ', true],
                 //['migrate', true],
-                [' ' . Decorate::info('migrate:fresh') . '          Drop all tables and re-run all migrations. ', true],
-                [' ' . Decorate::info('migrate:install') . '        Create the migration storage.              ', true],
-                [' ' . Decorate::info('migrate:refresh') . '        Reset and re-run all migrations.           ', true],
-                [' ' . Decorate::info('migrate:reset') . '          Rollback all database migrations.          ', true],
-                [' ' . Decorate::info('migrate:rollback') . '       Rollback the last database migration.      ', true],
-                [' ' . Decorate::info('migrate:status') . '         Show the status of each migration.         ', true],
+                [' ' . Decorate::info('migrate:fresh') . '          Drop all tables and re-run all migrations.            ', true],
+                [' ' . Decorate::info('migrate:install') . '        Create the migration storage.                         ', true],
+                [' ' . Decorate::info('migrate:refresh') . '        Reset and re-run all migrations.                      ', true],
+                [' ' . Decorate::info('migrate:reset') . '          Rollback all database migrations.                     ', true],
+                [' ' . Decorate::info('migrate:rollback') . '       Rollback the last database migration.                 ', true],
+                [' ' . Decorate::info('migrate:status') . '         Show the status of each migration.                    ', true],
                 //['route', true],
-                [' ' . Decorate::info('route:list') . '             List all routes.                           ', true],
+                [' ' . Decorate::info('route:list') . '             List all routes.                                      ', true],
+                //['server', true],
+                [' ' . Decorate::info('server:run') . '             Runs a local web server                               ', true],
                 //['view', true],
-                [' ' . Decorate::info('view:clear') . '             Clear all compiled view files.             ', true],
+                [' ' . Decorate::info('view:clear') . '             Clear all compiled view files.                        ', true],
             ]],
-            'notice' => ['exactly' => 6, 'consecutive' => [
+            'notice' => ['exactly' => 8, 'consecutive' => [
                 ['Available Commands :'],
+                ['assets'],
                 ['config'],
                 ['make'],
                 ['migrate'],
                 ['route'],
+                ['server'],
                 ['view'],
             ]]
         ];

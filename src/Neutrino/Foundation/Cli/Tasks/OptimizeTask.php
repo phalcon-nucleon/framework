@@ -102,7 +102,9 @@ class OptimizeTask extends Task
         $files = require __DIR__ . '/Optimize/compile.php';
 
         if (file_exists(BASE_PATH . '/config/compile.php')) {
-            $files = array_merge($files, require BASE_PATH . '/config/compile.php');
+            $files = array_unique(array_map(function ($path) {
+                return Str::normalizePath($path);
+            }, array_merge($files, require BASE_PATH . '/config/compile.php')));
         }
 
         foreach ($files as $file) {

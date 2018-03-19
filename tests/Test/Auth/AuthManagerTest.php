@@ -23,10 +23,10 @@ class AuthManagerTest extends TestCase
 {
     public function setUp()
     {
-        global $config;
-
-        $config['session']['id'] = 'unittest';
-        $config['auth']['model'] = BasicUser::class;
+        self::setConfig([
+            'session' => ['id' => 'unittest'],
+            'auth' => ['model' => BasicUser::class]
+        ]);
 
         parent::setUp();
     }

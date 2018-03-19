@@ -2,8 +2,11 @@
 
 namespace Neutrino\Micro;
 
-use Neutrino\Support\Arr;
+use Neutrino\Constants\Events;
+use Neutrino\Interfaces\Middleware\AfterInterface;
+use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Phalcon\Di\Injectable;
+use Phalcon\Events\Event;
 use Phalcon\Mvc\Micro;
 use Phalcon\Mvc\Micro\Collection;
 
@@ -385,11 +388,11 @@ class Router extends Injectable implements RouterInterface
      * @return \Closure
      */
     protected function pathToHandler($path){
-        if($path instanceof \Closure){
+        if ($path instanceof \Closure) {
             return $path;
         }
 
-        if(is_array($path)){
+        if (is_array($path)) {
             return function (...$args) use ($path) {
                 /** @var Micro $this */
 
@@ -398,11 +401,50 @@ class Router extends Injectable implements RouterInterface
 
                 $handler = $this->getDI()->get($controller);
 
-                if(!method_exists($handler, $action)){
+                if (!method_exists($handler, $action)) {
                     throw new \RuntimeException('Method : "' . $action . '" doesn\'t exist on "' . $controller . '"');
                 }
 
-                return $handler->$action(...$args);
+                if (isset($path['middlewares'])) {
+                    foreach ($path['middlewares'] as $middleware => $params) {
+                        if (is_string($params)) {
+                            $middleware = $params;
+                            $params = [];
+                        }
+
+                        /** @var \Neutrino\Foundation\Middleware\Controller $middleware */
+                        $middlewares[] = $middleware = new $middleware($controller, ...$params);
+
+                        if ($middleware instanceof BeforeInterface) {
+                            if (!isset($event)) {
+                                $event = new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this);
+                            }
+
+                            $result = $middleware->before($event, $this, null);
+
+                            if ($result === false) {
+                                return $this->response;
+                            }
+                        }
+                    }
+                }
+
+                $value = $handler->$action(...$args);
+
+                if (isset($middlewares)) {
+                    $event = null;
+                    foreach ($middlewares as $middleware) {
+                        if ($middleware instanceof AfterInterface) {
+                            if (!isset($event)) {
+                                $event = new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $this);
+                            }
+
+                            $middleware->after($event, $this, null);
+                        }
+                    }
+                }
+
+                return $value;
             };
         }
 

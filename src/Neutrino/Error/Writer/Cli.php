@@ -24,7 +24,10 @@ class Cli implements Writable
         $di = Di::getDefault();
 
         if ($di && $di->has(Services\Cli::OUTPUT)) {
+            /** @var \Neutrino\Cli\Output\Writer $output */
             $output = $di->getShared(Services\Cli::OUTPUT);
+
+            $output->line('');
 
             $block = new Block($output, $this->getColoration($error), ['padding' => 4]);
 

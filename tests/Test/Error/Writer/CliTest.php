@@ -55,12 +55,23 @@ class CliTest extends TestCase
             $lines = explode("\n", $expectedMessage);
 
             $maxlen = 0;
+            $rows = [];
+
             foreach ($lines as $line) {
-                $maxlen = max($maxlen, strlen($line));
+                $len = strlen($line);
+
+                if ($len > 100) {
+                    $parts = str_split($line, 100);
+                    $rows = array_merge($rows, $parts);
+                    $maxlen = max($maxlen, 100);
+                } else {
+                    $maxlen = max($maxlen, $len);
+                    $rows[] = $line;
+                }
             }
 
             $with[] = [str_repeat(' ', $maxlen + 4)];
-            foreach ($lines as $line) {
+            foreach ($rows as $line) {
                 $with[] = ['  ' . str_pad($line, $maxlen, ' ', STR_PAD_RIGHT) . '  '];
             }
             $with[] = [str_repeat(' ', $maxlen + 4)];

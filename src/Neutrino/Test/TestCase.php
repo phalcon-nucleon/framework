@@ -3,7 +3,7 @@
 namespace Neutrino\Test;
 
 use Mockery;
-use Neutrino\Constants\Services;
+use Neutrino\Foundation\Bootstrap;
 use Neutrino\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Config as PhConfig;
@@ -25,7 +25,7 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
      *
      * @var Config|null
      */
-    protected $config;
+    protected static $config;
 
     /**
      * @var \Phalcon\Application|\Phalcon\Cli\Console|\Neutrino\Foundation\Kernelize
@@ -35,22 +35,20 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     /**
      * @var \Neutrino\Foundation\Bootstrap
      */
-    protected $lxApp;
+    protected $bootstrap;
 
     /**
      * This method is called before a test is executed.
      */
     protected function setUp()
     {
-        global $config;
-
         parent::setUp();
 
         $this->checkExtension('phalcon');
 
         // Creating the application
-        $this->lxApp = new \Neutrino\Foundation\Bootstrap(new PhConfig($config));
-        $this->app   = $this->lxApp->make($this->kernel());
+        $this->bootstrap = new Bootstrap(self::getConfig());
+        $this->app = $this->bootstrap->make($this->kernel());
         $this->app->boot();
     }
 
@@ -80,6 +78,16 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         $this->app = null;
 
         parent::tearDown();
+    }
+
+    /**
+     * This method is called before the first test of this test class is run.
+     */
+    public static function setUpBeforeClass()
+    {
+        self::$config = new PhConfig();
+
+        parent::setUpBeforeClass();
     }
 
     /**
@@ -143,15 +151,22 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
     /**
      * Sets the Config object.
      *
-     * @param Config $config
-     *
-     * @return $this
+     * @param Config|array $config
+     * @param bool         $merge
      */
-    public function setConfig(Config $config)
+    public static function setConfig($config, $merge = true)
     {
-        $this->config = $config;
+        if (is_array($config)) {
+            $config = new PhConfig($config);
+        }
 
-        return $this;
+        if (isset(self::$config) && $merge) {
+            self::$config->merge($config);
+
+            return;
+        }
+
+        self::$config = $config;
     }
 
     /**
@@ -159,13 +174,16 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
      *
      * @return null|Config
      */
-    public function getConfig()
+    public static function getConfig()
     {
-        if (!$this->config instanceof Config && $this->getDI()->has('config')) {
-            return $this->getDI()->getShared('config');
+        if(is_array(self::$config)){
+            return new PhConfig(self::$config);
+        }
+        if(self::$config instanceof Config){
+            return self::$config;
         }
 
-        return $this->config;
+        return new PhConfig();
     }
 
     /**

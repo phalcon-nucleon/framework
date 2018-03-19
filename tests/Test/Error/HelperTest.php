@@ -13,15 +13,15 @@ class HelperTest extends TestCase
     {
         return [
             ['null', null],
-            ['Array', []],
+            ['array', []],
             ['123', 123],
             ['123.123', 123.123],
             ["'str'", 'str'],
-            ["string(9)", '123456789'],
-            ['stdClass', new \stdClass()],
-            ['stdClass[1]', [new \stdClass()]],
-            ['stdClass[4]', [new \stdClass(), new \stdClass(), new \stdClass(), new \stdClass()]],
-            ['Array', [new \stdClass(), null, new \stdClass(), 123]],
+            ["'123456789'", '123456789'],
+            ['object(stdClass)', new \stdClass()],
+            ['array(object(stdClass))', [new \stdClass()]],
+            ['arrayOf(stdClass)[4]', [new \stdClass(), new \stdClass(), new \stdClass(), new \stdClass()]],
+            ['array[4]', [new \stdClass(), null, new \stdClass(), 123]],
         ];
     }
 
@@ -75,7 +75,7 @@ class HelperTest extends TestCase
             ['E_RECOVERABLE_ERROR', E_RECOVERABLE_ERROR],
             ['E_DEPRECATED', E_DEPRECATED],
             ['E_USER_DEPRECATED', E_USER_DEPRECATED],
-            ['Other', 'Other'],
+            ['(unknown error bit Other)', 'Other'],
         ];
     }
 
@@ -127,7 +127,7 @@ class HelperTest extends TestCase
 
         foreach ($e->getTrace() as $i => $t) {
             $trace .= '#' . $i . ' '
-                . (isset($t['class']) ? $t['class'] . '::' : '')
+                . (isset($t['class']) ? $t['class'] . '->' : '')
                 . (isset($t['function']) ? $t['function'] : '')
                 . '(' . implode(', ', array_map('\Neutrino\Error\Helper::verboseType', $t['args'])) . ')'
                 . "\n";

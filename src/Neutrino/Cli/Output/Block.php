@@ -34,8 +34,26 @@ class Block
     public function draw($lines = [])
     {
         $maxlen = 0;
+        $rows = [];
+
+        $_lines = [];
         foreach ($lines as $line) {
-            $maxlen = max($maxlen, strlen($line));
+            $_lines = array_merge($_lines, explode(PHP_EOL, $line));
+        }
+
+        $lines = $_lines;
+
+        foreach ($lines as $line) {
+            $len = strlen($line);
+
+            if ($len > 100) {
+                $parts = str_split($line, 100);
+                $rows = array_merge($rows, $parts);
+                $maxlen = max($maxlen, 100);
+            } else {
+                $maxlen = max($maxlen, $len);
+                $rows[] = $line;
+            }
         }
 
         $padding = Arr::get($this->options, 'padding', 4);
@@ -44,7 +62,7 @@ class Block
 
         $pad = str_repeat(' ', $padding / 2);
 
-        foreach ($lines as $line) {
+        foreach ($rows as $line) {
             $this->output->{$this->style}($pad . str_pad($line, $maxlen, ' ', STR_PAD_RIGHT) . $pad);
         }
 

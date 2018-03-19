@@ -2,6 +2,8 @@
 
 namespace Neutrino\Foundation;
 
+use Neutrino\Constants\Env;
+use Neutrino\Debug\Debugger;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Config;
 use Phalcon\Http\Response;
@@ -41,6 +43,10 @@ class Bootstrap
         $kernel = new $kernelClass;
 
         $kernel->bootstrap($this->config);
+
+        if (APP_DEBUG && APP_ENV !== Env::TEST) {
+            Debugger::register();
+        }
 
         $kernel->registerServices();
         $kernel->registerMiddlewares();

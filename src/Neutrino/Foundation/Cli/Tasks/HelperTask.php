@@ -47,11 +47,11 @@ class HelperTask extends Task
 
         if (!empty($route)) {
             $this->line('Usage :');
-            $this->info("\t" . $route->getPattern());
+            $this->info("\t" . Helper::describeRoutePattern($route, true));
         }
 
         $this->line('Description :');
-        $this->line("\t" . $infos['description']);
+        $this->line("\t" . preg_replace('/' . PHP_EOL . '/', PHP_EOL . "\t", $infos['description']));
 
         if (Arr::has($infos, 'arguments')) {
             $this->line('Arguments :');

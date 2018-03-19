@@ -13,6 +13,13 @@ class Helper
 {
     public static function format(Error $error)
     {
+        return implode("\n", self::formatLines($error));
+    }
+
+    private static function formatLines(Error $error, $pass = 0)
+    {
+        $pass++;
+
         $lines[] = self::getErrorType($error->type);
         if ($error->isException) {
             $lines[] = '  Class : ' . get_class($error->exception);
@@ -42,9 +49,18 @@ class Helper
                 $lines[] = $row;
             }
 
+            $previous = $error->exception->getPrevious();
+
+            if (!is_null($previous)) {
+                $lines[] = '';
+                $lines[] = '# Previous exception : ' . $pass;
+                $lines[] = '';
+
+                $lines = array_merge($lines, self::formatLines(Error::fromException($previous), $pass));
+            }
         }
 
-        return implode("\n", $lines);
+        return $lines;
     }
 
     /**
@@ -63,7 +79,7 @@ class Helper
 
             $_trace['func'] = '';
             if (isset($trace['class'])) {
-                $_trace['func'] = $trace['class'] . '::';
+                $_trace['func'] = $trace['class'] . '->';
             }
             if (isset($trace['function'])) {
                 $_trace['func'] .= $trace['function'];
@@ -102,11 +118,11 @@ class Helper
         return $arguments;
     }
 
-    public static function verboseType($value)
+    public static function verboseType($value, $lvl = 0)
     {
         switch ($type = gettype($value)) {
             case 'array':
-                if (!empty($value)) {
+                if (!empty($value) && $lvl === 0) {
                     $found = [];
                     foreach ($value as $item) {
                         $type = gettype($item);
@@ -116,12 +132,24 @@ class Helper
                         $found[$type] = true;
                     }
 
-                    return count($found) === 1 ? $type . '[' . count($value) . ']' : 'Array';
+                    if (count($value) < 4) {
+                        $str = [];
+                        foreach ($value as $item) {
+                            $str[] = self::verboseType($item, $lvl + 1);
+                        }
+
+                        return 'array(' . implode(', ', $str) . ')';
+                    } elseif (count($found) === 1) {
+                        return 'arrayOf(' . $type . ')[' . count($value) . ']';
+                    }
+
+                    return 'array[' . count($value) . ']';
                 }
 
-                return 'Array';
+                return 'array';
             case 'object':
-                return get_class($value);
+                $class = explode('\\', get_class($value));
+                return 'object(' . array_pop($class) . ')';
             case 'NULL':
                 return 'null';
             case 'unknown type':
@@ -130,8 +158,8 @@ class Helper
             case 'resource (closed)':
                 return $type;
             case 'string':
-                if (strlen($value) > 8) {
-                    return 'string(' . strlen($value) . ')';
+                if (strlen($value) > 20) {
+                    return "'" . substr($value, 0, 8) . '...\'[' . strlen($value) . ']';
                 }
             case 'boolean':
             case 'integer':
@@ -185,7 +213,36 @@ class Helper
                 return 'E_USER_DEPRECATED';
         }
 
-        return (string)$code;
+        return "(unknown error bit $code)";
+    }
+
+    public static function verboseErrorType($code)
+    {
+        switch ($code) {
+            case -1:
+                return 'Uncaught exception';
+            case E_COMPILE_ERROR:
+            case E_CORE_ERROR:
+            case E_ERROR:
+            case E_PARSE:
+            case E_RECOVERABLE_ERROR:
+            case E_USER_ERROR:
+                return 'Fatal error [' . self::getErrorType($code) . ']';
+            case E_WARNING:
+            case E_USER_WARNING:
+            case E_CORE_WARNING:
+            case E_COMPILE_WARNING:
+                return 'Warning [' . self::getErrorType($code) . ']';
+            case E_NOTICE:
+            case E_USER_NOTICE:
+                return 'Notice [' . self::getErrorType($code) . ']';
+            case E_STRICT:
+            case E_DEPRECATED:
+            case E_USER_DEPRECATED:
+                return 'Deprecated [' . self::getErrorType($code) . ']';
+        }
+
+        return "(unknown error bit $code)";
     }
 
     /**

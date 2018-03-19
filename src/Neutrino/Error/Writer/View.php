@@ -3,6 +3,9 @@
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Constants\Services;
+use Neutrino\Debug\DebugErrorLogger;
+use Neutrino\Debug\DebugEventsManagerWrapper;
+use Neutrino\Debug\Debugger;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
 use Neutrino\Support\Arr;
@@ -23,6 +26,11 @@ class View implements Writable
     public function handle(Error $error)
     {
         if (!$error->isFateful()) {
+            return;
+        }
+
+        if (Debugger::isEnable()) {
+            $this->debugErrorView($error);
             return;
         }
 
@@ -58,28 +66,66 @@ class View implements Writable
                         ['error' => $error]
                     );
                 } else {
-                    $view->setContent(APP_DEBUG ? Helper::format($error) : 'Whoops. Something went wrong.');
+                    $view->setContent('Whoops. Something went wrong.');
                 }
                 $view->finish();
 
-                if ($di->has(Services::RESPONSE)
-                    && ($response = $di->getShared(Services::RESPONSE)) instanceof Response
-                    && !$response->isSent()
-                ) {
-                    $response
-                        ->setStatusCode(500)
-                        ->setContent($view->getContent())
-                        ->send();
-
-                    return;
-                } else {
-                    echo $view->getContent();
-
-                    return;
-                }
+                $this->send($view->getContent());
+                return;
             }
         }
 
-        echo APP_DEBUG ? Helper::format($error) : 'Whoops. Something went wrong.';
+        echo 'Whoops. Something went wrong.';
+    }
+
+    private function debugErrorView(Error $error)
+    {
+        $view = Debugger::getIsolateView();
+
+        $exceptions = [];
+
+        if ($isException = $error->isException) {
+            $exception = $error->exception;
+
+            do {
+                $exceptions[] = [
+                  'class' => get_class($exception),
+                  'code' => $exception->getCode(),
+                  'message' => $exception->getMessage(),
+                  'file' => $exception->getFile(),
+                  'line' => $exception->getLine(),
+                  'traces' => Helper::formatExceptionTrace($exception),
+                ];
+            } while ($exception = $exception->getPrevious());
+        }
+
+        $view->setVars([
+          'error' => $error,
+          'isException' => $isException,
+          'exceptions' => $exceptions,
+          'php_errors' => DebugErrorLogger::errors(),
+          'events'     => DebugEventsManagerWrapper::getEvents(),
+          'profilers'  => Debugger::getRegisteredProfilers(),
+          'build'      => Debugger::getBuildInfo(),
+        ]);
+
+        $this->send($view->render('errors'));
+    }
+
+    private function send($content)
+    {
+        $di = Di::getDefault();
+
+        if ($di->has(Services::RESPONSE)
+          && ($response = $di->getShared(Services::RESPONSE)) instanceof Response
+          && !$response->isSent()
+        ) {
+            $response->setStatusCode(500, 'Internal Server Error');
+            $response->setContent($content);
+            $response->send();
+            return;
+        }
+
+        echo $content;
     }
 }

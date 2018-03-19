@@ -74,9 +74,7 @@ abstract class RoutesTestCase extends FuncTestCase
 
         $_routes = [];
         foreach ($routes as $route) {
-            $key =
-                $route[1] . '-' . $route[0] . '-' . ($route[2] ? 'true' : 'false') . '-' . substr(md5(uniqid('', true)),
-                    0, 6);
+            $key = $route[1] . '-' . $route[0] . '-' . ($route[2] ? 'true' : 'false') . '-' . substr(md5(uniqid('', true)), 0, 6);
 
             $_routes[$key] = $route;
         }
@@ -113,7 +111,7 @@ abstract class RoutesTestCase extends FuncTestCase
      *
      * @param \Phalcon\Mvc\Router\RouteInterface $route
      */
-    public function testRoutesTested($route = null)
+    public function testRoutesTested($route)
     {
         if (!array_key_exists($route->getPattern(), self::$testedRoutes)) {
             $this->markTestIncomplete('Route "' . $route->getPattern() . '" has not been testing');

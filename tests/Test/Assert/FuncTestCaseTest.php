@@ -16,9 +16,7 @@ class FuncTestCaseTest extends TestCase
 
     public function setUp()
     {
-        global $config;
-
-        $config['app']['base_uri'] = '/';
+        self::setConfig(['app' => ['base_uri' => '/']]);
 
         parent::setUp();
 

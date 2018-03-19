@@ -163,15 +163,15 @@ final class Helper
             if (empty($infos['description'])) {
                 preg_match_all('/\*([^\n\r]+)/', $docBlock, $lines);
 
+                $rows = [];
                 foreach ($lines[1] as $line) {
-                    $line = trim($line);
                     if ($line == '*' || $line == '/') {
                         continue;
                     }
-                    $description .= $line . ' ';
+                    $rows[] = preg_replace('/^ /', '', rtrim($line));
                 }
 
-                $infos['description'] = trim($description);
+                $infos['description'] = implode(PHP_EOL, $rows);
             }
         }
 

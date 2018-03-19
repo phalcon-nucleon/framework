@@ -5,7 +5,7 @@ namespace Test\Cli\Output;
 use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Table;
 use Neutrino\Cli\Output\Writer;
-use Neutrino\Support\Reflacker;
+use Neutrino\Debug\Reflexion;
 use Test\TestCase\TestCase;
 
 /**
@@ -56,9 +56,9 @@ class TableTest extends TestCase
 
         $table = new Table($output, $datas);
 
-        Reflacker::invoke($table, 'generateColumns');
+        Reflexion::invoke($table, 'generateColumns');
 
-        $columns = Reflacker::get($table, 'columns');
+        $columns = Reflexion::get($table, 'columns');
 
         $this->assertEquals($expected, $columns);
     }
@@ -102,9 +102,9 @@ class TableTest extends TestCase
 
         $table = new Table($output, $datas, $headers, $style);
 
-        Reflacker::invoke($table, 'generateColumns');
+        Reflexion::invoke($table, 'generateColumns');
 
-        Reflacker::invoke($table, 'header');
+        Reflexion::invoke($table, 'header');
 
         $this->assertEquals($expected, $output->out);
     }
@@ -148,9 +148,9 @@ class TableTest extends TestCase
 
         $table = new Table($output, $datas, $headers, $style);
 
-        Reflacker::invoke($table, 'generateColumns');
+        Reflexion::invoke($table, 'generateColumns');
 
-        Reflacker::invoke($table, 'separator');
+        Reflexion::invoke($table, 'separator');
 
         $this->assertEquals($expected, $output->out);
     }
@@ -201,7 +201,7 @@ class TableTest extends TestCase
 
         $table = new Table($output, $datas, $headers, $style);
 
-        Reflacker::invoke($table, 'display');
+        Reflexion::invoke($table, 'display');
 
         $this->assertEquals($expected, $output->out);
     }

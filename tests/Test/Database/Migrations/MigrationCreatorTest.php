@@ -5,7 +5,7 @@ namespace Test\Database\Migrations;
 use Neutrino\Database\Migrations\MigrationCreator;
 use Neutrino\Database\Migrations\Prefix\DatePrefix;
 use Neutrino\Database\Migrations\Prefix\PrefixInterface;
-use Neutrino\Support\Reflacker;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Support\Str;
 use Test\TestCase\TestCase;
 
@@ -20,7 +20,7 @@ class MigrationCreatorTest extends TestCase
     {
         $migrationCreator = new MigrationCreator(new DatePrefix());
 
-        $this->assertEquals('MyClassName', Reflacker::invoke($migrationCreator, 'getClassName', 'my_class_name'));
+        $this->assertEquals('MyClassName', Reflexion::invoke($migrationCreator, 'getClassName', 'my_class_name'));
     }
 
     public function testGetPath()
@@ -34,7 +34,7 @@ class MigrationCreatorTest extends TestCase
 
         $migrationCreator = new MigrationCreator($prefix);
 
-        $this->assertEquals('path/prefix_name.php', Reflacker::invoke($migrationCreator, 'getPath', 'name', 'path'));
+        $this->assertEquals('path/prefix_name.php', Reflexion::invoke($migrationCreator, 'getPath', 'name', 'path'));
     }
 
     public function testStubsPath()
@@ -64,7 +64,7 @@ class MigrationCreatorTest extends TestCase
     {
         $migrationCreator = new MigrationCreator(new DatePrefix());
 
-        $this->assertEquals($expected, Reflacker::invoke($migrationCreator, 'populateStub', ...$arguments));
+        $this->assertEquals($expected, Reflexion::invoke($migrationCreator, 'populateStub', ...$arguments));
     }
 
     public function dataGetStubContent()
@@ -85,7 +85,7 @@ class MigrationCreatorTest extends TestCase
 
         $migrationCreator = new MigrationCreator(new DatePrefix());
 
-        $stub = Reflacker::invoke($migrationCreator, 'getStubContent', $table, $create);
+        $stub = Reflexion::invoke($migrationCreator, 'getStubContent', $table, $create);
 
         $this->assertStringEqualsFile($dir . '/stubs/' . $expectedStub, $stub);
     }
@@ -94,7 +94,7 @@ class MigrationCreatorTest extends TestCase
     {
         $migrationCreator = new MigrationCreator(new DatePrefix());
 
-        Reflacker::invoke($migrationCreator, 'ensureMigrationDoesntAlreadyExist', 'my_class_name', self::$tmpPath);
+        Reflexion::invoke($migrationCreator, 'ensureMigrationDoesntAlreadyExist', 'my_class_name', self::$tmpPath);
     }
 
     /**
@@ -119,7 +119,7 @@ class MigrationCreatorTest extends TestCase
 
         $migrationCreator->create('my_class_name', self::$tmpPath);
 
-        Reflacker::invoke($migrationCreator, 'ensureMigrationDoesntAlreadyExist', 'my_class_name', self::$tmpPath);
+        Reflexion::invoke($migrationCreator, 'ensureMigrationDoesntAlreadyExist', 'my_class_name', self::$tmpPath);
     }
 
     public function dataCreate()
@@ -147,8 +147,8 @@ class MigrationCreatorTest extends TestCase
 
         $migrationCreator->create('my_class_name', self::$tmpPath . '', $table, $create);
 
-        $stub = Reflacker::invoke($migrationCreator, 'getStubContent', $table, $create);
-        $stub = Reflacker::invoke($migrationCreator, 'populateStub', 'my_class_name', $stub, $table);
+        $stub = Reflexion::invoke($migrationCreator, 'getStubContent', $table, $create);
+        $stub = Reflexion::invoke($migrationCreator, 'populateStub', 'my_class_name', $stub, $table);
 
         $this->assertFileExists(self::$tmpPath . '/prefix_my_class_name.php');
         $this->assertEquals(

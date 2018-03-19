@@ -2,8 +2,14 @@
 
 namespace Test\Micro;
 
+use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
+use Neutrino\Http\Middleware;
+use Neutrino\Interfaces\Middleware\AfterInterface;
+use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Neutrino\Micro\Router;
+use Phalcon\Events\Event;
+use Phalcon\Mvc\Controller;
 use Phalcon\Mvc\Micro\Collection;
 use Test\TestCase\TestCase;
 
@@ -11,7 +17,7 @@ class MicroRouterTest extends TestCase
 {
     use MicroTestCase;
 
-    public function dataRegisteringHttpMethod()
+    public function dataRegisteringClosureHttpMethod()
     {
         return [
             ['test.get', 'get', 'test.get', function () {
@@ -60,14 +66,14 @@ class MicroRouterTest extends TestCase
     }
 
     /**
-     * @dataProvider dataRegisteringHttpMethod
+     * @dataProvider dataRegisteringClosureHttpMethod
      *
      * @param $expected
      * @param $httpMethod
      * @param $path
      * @param $handler
      */
-    public function testRegisteringHttpMethod($expected, $httpMethod, $path, $handler)
+    public function testRegisteringClosureHttpMethod($expected, $httpMethod, $path, $handler)
     {
         /** @var Router $router */
         $router = $this->app->{Services::MICRO_ROUTER};
@@ -79,6 +85,65 @@ class MicroRouterTest extends TestCase
         $this->assertEquals($output, $this->getContent());
         $this->assertEquals($expected, $this->getContent());
         $this->assertEquals($expected, $output);
+    }
+
+    public function testRegisteringControllerHttpMethod()
+    {
+        StubMicroHttpMiddleware::$call = null;
+        StubMicroHttpMiddleware::$return = null;
+
+        /** @var Router $router */
+        $router = $this->app->{Services::MICRO_ROUTER};
+
+        $router->addGet('/micro/index', [
+            'controller' => StubMicroController::class,
+            'action' => 'index',
+            'middlewares' => [StubMicroHttpMiddleware::class]
+        ]);
+
+        $this->dispatch('/micro/index');
+
+        $this->assertEquals(json_encode(['foo' => 'bar']), $this->getContent());
+        $this->assertEquals([
+            [
+                'method' => 'before',
+                'event'  => new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this->app),
+                'src'    => $this->app,
+                'data'   => null
+            ],
+            [
+                'method' => 'after',
+                'event'  => new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $this->app),
+                'src'    => $this->app,
+                'data'   => null
+            ]
+        ], StubMicroHttpMiddleware::$call);
+    }
+
+    public function testRegisteringHttpControllerMiddlewareReturnFalse()
+    {
+        StubMicroHttpMiddleware::$call = null;
+        StubMicroHttpMiddleware::$return = false;
+
+        /** @var Router $router */
+        $router = $this->app->{Services::MICRO_ROUTER};
+        $router->addGet('/micro/index', [
+            'controller' => StubMicroController::class,
+            'action' => 'index',
+            'middlewares' => [StubMicroHttpMiddleware::class]
+        ]);
+
+        $this->dispatch('/micro/index');
+
+        $this->assertEquals('', $this->getContent());
+        $this->assertEquals([
+            [
+                'method' => 'before',
+                'event'  => new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this->app),
+                'src'    => $this->app,
+                'data'   => null
+            ]
+        ], StubMicroHttpMiddleware::$call);
     }
 
     public function dataTryRegisteringUnsupportedHttpMethod()
@@ -180,5 +245,42 @@ class MicroRouterTest extends TestCase
 
             $mrouter->$method(...$params);
         }
+    }
+}
+
+class StubMicroController extends Controller
+{
+    public function index()
+    {
+        return $this->response->setJsonContent(['foo' => 'bar']);
+    }
+}
+
+class StubMicroHttpMiddleware extends \Neutrino\Foundation\Middleware\Controller implements BeforeInterface, AfterInterface
+{
+    public static $call;
+
+    public static $return;
+
+    public function before(Event $event, $source, $data = null)
+    {
+        self::$call[] = [
+            'method' => 'before',
+            'event'  => $event,
+            'src'    => $source,
+            'data'   => $data
+        ];
+
+        return self::$return;
+    }
+
+    public function after(Event $event, $source, $data = null)
+    {
+        self::$call[] = [
+            'method' => 'after',
+            'event'  => $event,
+            'src'    => $source,
+            'data'   => $data
+        ];
     }
 }

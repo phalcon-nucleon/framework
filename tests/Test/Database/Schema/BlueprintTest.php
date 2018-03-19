@@ -2,11 +2,11 @@
 
 namespace Test\Database\Schema;
 
-use Neutrino\Database\Schema\Exception\UnknownCommandException;
-use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema;
+use Neutrino\Database\Schema\Blueprint;
+use Neutrino\Database\Schema\Exception\UnknownCommandException;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Support\Fluent;
-use Neutrino\Support\Reflacker;
 use Phalcon\Db\Column;
 use Phalcon\Db\Index;
 use Phalcon\Db\Reference;
@@ -362,7 +362,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         $blueprint = new Blueprint('test');
 
-        $actual = Reflacker::invoke($blueprint, 'fluentToColumn', $fluent, $this->getMockForAbstractClass(MockDialect::class));
+        $actual = Reflexion::invoke($blueprint, 'fluentToColumn', $fluent, $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($column, $actual);
     }
@@ -392,7 +392,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
         $actualColumns = [];
         foreach ($columns as $column) {
-            $actualColumns[] = Reflacker::invoke($blueprint, 'fluentToColumn', $column, $this->getMockForAbstractClass(MockDialect::class));
+            $actualColumns[] = Reflexion::invoke($blueprint, 'fluentToColumn', $column, $this->getMockForAbstractClass(MockDialect::class));
         }
 
         $this->assertEquals($expectedColumns, $actualColumns);
@@ -419,12 +419,14 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             'type'       => 'foreign',
             'columns'    => ['column'],
             'on'         => 'test_2',
-            'references' => ['column']
+            'references' => ['column'],
+            'onUpdate' => null,
+            'onDelete' => null
         ]);
 
         $blueprint = new Blueprint('test');
 
-        $actualColumn = Reflacker::invoke($blueprint, 'fluentToColumn', $column, $this->getMockForAbstractClass(MockDialect::class));
+        $actualColumn = Reflexion::invoke($blueprint, 'fluentToColumn', $column, $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($expectedColumn, $actualColumn);
         $this->assertEquals([$expectedReference], $blueprint->getReferences());
@@ -462,7 +464,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         $blueprint = new Blueprint('test');
 
-        $actual = Reflacker::invoke($blueprint, 'fluentToIndex', $fluent, $this->getMockForAbstractClass(MockDialect::class));
+        $actual = Reflexion::invoke($blueprint, 'fluentToIndex', $fluent, $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($index, $actual);
     }
@@ -507,7 +509,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         $blueprint = new Blueprint('test');
 
-        $actual = Reflacker::invoke($blueprint, 'fluentToReference', $fluent, $this->getMockForAbstractClass(MockDialect::class));
+        $actual = Reflexion::invoke($blueprint, 'fluentToReference', $fluent, $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($reference, $actual);
     }
@@ -721,7 +723,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
      */
     public function testBuildTableDefinition(Blueprint $blueprint, $expected)
     {
-        $actual = Reflacker::invoke($blueprint, 'buildTableDefinition', $this->getMockForAbstractClass(MockDialect::class));
+        $actual = Reflexion::invoke($blueprint, 'buildTableDefinition', $this->getMockForAbstractClass(MockDialect::class));
 
         $this->assertEquals($expected, $actual);
     }
@@ -782,19 +784,19 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
         $blueprint->update();
 
-        $this->assertEquals('update', Reflacker::get($blueprint, 'action'));
+        $this->assertEquals('update', Reflexion::get($blueprint, 'action'));
 
         $blueprint->create();
 
-        $this->assertEquals('create', Reflacker::get($blueprint, 'action'));
+        $this->assertEquals('create', Reflexion::get($blueprint, 'action'));
 
         $blueprint->drop();
 
-        $this->assertEquals('drop', Reflacker::get($blueprint, 'action'));
+        $this->assertEquals('drop', Reflexion::get($blueprint, 'action'));
 
         $blueprint->dropIfExists();
 
-        $this->assertEquals('dropIfExists', Reflacker::get($blueprint, 'action'));
+        $this->assertEquals('dropIfExists', Reflexion::get($blueprint, 'action'));
 
     }
 
@@ -914,7 +916,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
         $db->expects($this->once())->method('describeColumns')->willReturn($describeColumnsMock);
 
-        Reflacker::invoke($blueprint, 'buildCommands', $db, ['dbname' => 'schema']);
+        Reflexion::invoke($blueprint, 'buildCommands', $db, ['dbname' => 'schema']);
 
         $this->assertEquals($expectedCommands, $blueprint->getCommands());
     }
@@ -925,7 +927,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             $blueprint = new Blueprint('test');
             $blueprint->update();
 
-            Reflacker::set($blueprint, 'commands', [new Fluent(['name' => 'unexist'])]);
+            Reflexion::set($blueprint, 'commands', [new Fluent(['name' => 'unexist'])]);
 
             $db = $this->createMock(\Phalcon\Db\Adapter::class);
             $dbConfig = ['dbname' => 'schema'];

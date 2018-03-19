@@ -68,7 +68,8 @@ class Error implements \ArrayAccess, \JsonSerializable
             $this->attributes[$option] = $value;
         }
 
-        $this->attributes['typeStr'] = Helper::getErrorType($this->attributes['type']);
+        $this->attributes['typeStr'] = Helper::verboseErrorType($this->attributes['type']);
+        $this->attributes['logLvl'] = Helper::getLogType($this->attributes['type']);
     }
 
     /**
@@ -110,7 +111,6 @@ class Error implements \ArrayAccess, \JsonSerializable
             $type == E_PARSE ||
             $type == E_CORE_ERROR ||
             $type == E_COMPILE_ERROR ||
-            $type == E_USER_ERROR ||
             $type == E_RECOVERABLE_ERROR;
     }
 

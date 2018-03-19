@@ -49,7 +49,7 @@ class ListTask extends Task
         $datas = [];
 
         foreach ($this->describes as $describe) {
-            $datas[$describe['cmd']] = $describe['description'];
+            $datas[$describe['cmd']] = explode(PHP_EOL, $describe['description'], 2)[0];
         }
 
         $this->notice('Available Commands :');

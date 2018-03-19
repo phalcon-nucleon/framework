@@ -11,7 +11,6 @@ use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
 use Phalcon\Di;
-use Phalcon\Di\Injectable;
 use Phalcon\Events\Event;
 use Phalcon\Events\EventsAwareInterface;
 use Phalcon\Events\Manager;
@@ -22,7 +21,7 @@ use Phalcon\Mvc\View;
  *
  * Neutrino
  */
-class Debugger extends Injectable
+class Debugger
 {
     /** @var array */
     private static $viewProfiles;
@@ -66,29 +65,27 @@ class Debugger extends Injectable
     private function registerGlobalEventManager()
     {
         /** @var Di $di */
-        $di = $this->getDI();
-        $app = $di->get(Services::APP);
-
-        $em = $di->getInternalEventsManager();
-
-        if (is_null($em)) {
-            $di->setInternalEventsManager($em = new DebugEventsManagerWrapper(new Manager()));
-        } else {
-            $di->setInternalEventsManager($em = new DebugEventsManagerWrapper($em));
-        }
+        $di = Di::getDefault();
 
         if ($di->has(Services::EVENTS_MANAGER)) {
-            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper($di->get(Services::EVENTS_MANAGER)));
+            $di->setShared(Services::EVENTS_MANAGER, $gem = new DebugEventsManagerWrapper($di->get(Services::EVENTS_MANAGER)));
         } else {
-            $di->setShared(Services::EVENTS_MANAGER, $em = new DebugEventsManagerWrapper(new Manager()));
+            $di->setShared(Services::EVENTS_MANAGER, $gem = new DebugEventsManagerWrapper(new Manager()));
         }
 
+        $app = $di->get(Services::APP);
         $em = $app->getEventsManager();
-
         if (is_null($em)) {
-            $app->setEventsManager($em = $di->getInternalEventsManager());
+            $app->setEventsManager($gem);
         } else {
             $app->setEventsManager($em = new DebugEventsManagerWrapper($em));
+        }
+
+        $em = $di->getInternalEventsManager();
+        if (is_null($em)) {
+            $di->setInternalEventsManager($gem);
+        } else {
+            $di->setInternalEventsManager($em = new DebugEventsManagerWrapper($em));
         }
 
         return $this->em = $em;

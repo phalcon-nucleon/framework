@@ -18,7 +18,7 @@ trait Eachable
      *
      * @return \Generator|\Neutrino\Model[]|\Phalcon\Mvc\Model[]
      */
-    public function each(array $criteria = null, $start = null, $end = null, $pad = 100)
+    public static function each(array $criteria = null, $start = null, $end = null, $pad = 100)
     {
         /** @var \Neutrino\Model $this */
 
@@ -48,7 +48,7 @@ trait Eachable
 
             $criteria['offset'] = $start + ($pad * $page);
 
-            $models = $this::find($criteria);
+            $models = self::find($criteria);
 
             foreach ($models as $model) {
                 $finish = false;

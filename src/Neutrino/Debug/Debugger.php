@@ -78,17 +78,17 @@ class Debugger
         if (is_null($em)) {
             $app->setEventsManager($gem);
         } else {
-            $app->setEventsManager($em = new DebugEventsManagerWrapper($em));
+            $app->setEventsManager($gem = new DebugEventsManagerWrapper($em));
         }
 
         $em = $di->getInternalEventsManager();
         if (is_null($em)) {
             $di->setInternalEventsManager($gem);
         } else {
-            $di->setInternalEventsManager($em = new DebugEventsManagerWrapper($em));
+            $di->setInternalEventsManager($gem = new DebugEventsManagerWrapper($em));
         }
 
-        return $this->em = $em;
+        return $this->em = $gem;
     }
 
     private function listenLoader()
@@ -103,9 +103,7 @@ class Debugger
 
     private function listenServices()
     {
-        $em = $this->em;
-
-        $em->attach('di:afterServiceResolve', function ($ev, $src, $data) {
+        $this->em->attach('di:afterServiceResolve', function ($ev, $src, $data) {
             static $resolved;
 
             if (isset($resolved[$data['name']])) {

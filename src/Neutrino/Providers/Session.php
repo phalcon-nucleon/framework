@@ -34,7 +34,8 @@ class Session extends Injectable implements Providable
         $di->setShared(Services::SESSION, function () {
             /** @var \Phalcon\DiInterface $this */
 
-            $adapter = $this->getShared(Services::CONFIG)->session->adapter;
+            $sessionConfig = $this->getShared(Services::CONFIG)->session;
+            $adapter = $sessionConfig->adapter;
 
             switch ($adapter){
                 case 'Aerospike':
@@ -62,8 +63,12 @@ class Session extends Injectable implements Providable
             }
 
             try {
+                $options = [];
+                if (!empty($sessionConfig->options)) {
+                    $options = $sessionConfig->options->toArray();
+                }
                 /** @var \Phalcon\Session\Adapter|\Phalcon\Session\AdapterInterface $session */
-                $session = new $class();
+                $session = new $class($options);
             } catch (\Throwable $e) {
                 throw new \RuntimeException("Session Adapter $class construction fail.", $e);
             }

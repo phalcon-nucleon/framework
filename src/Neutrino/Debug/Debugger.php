@@ -267,16 +267,6 @@ class Debugger
 
         $build['phalcon']['ini'] = ini_get_all('phalcon');
 
-        $consts = Dotconst\Loader::fromFiles(BASE_PATH);
-
-        foreach ($consts as $key => $const) {
-            if (Str::contains($key, ['PASSWORD', 'PWD'])) {
-                $consts[$key] = '****';
-            }
-        }
-
-        $build['neutrino']['const'] = $consts;
-
         return $build;
     }
 

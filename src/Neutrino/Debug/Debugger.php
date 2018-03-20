@@ -304,7 +304,6 @@ class Debugger
                 $volt->setOptions([
                   "compiledPath" => Di::getDefault()->get('config')->view->compiled_path,
                   'compiledSeparator' => '_',
-                  "compiledExtension" => ".compiled",
                   'compileAlways' => true,
                 ]);
                 $compiler = $volt->getCompiler();

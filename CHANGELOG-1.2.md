@@ -1,5 +1,13 @@
 # Release Note
 
+## v1.2.2
+
+### Fixed 
+ - Debugger : registering on Micro App
+
+### Changed 
+ - DebugToolbar : remove nucleon .const information
+
 ## v1.2.1
 
 ### Fixed 

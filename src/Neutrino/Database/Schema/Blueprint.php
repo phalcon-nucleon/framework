@@ -20,6 +20,9 @@ class Blueprint
     /** @var string */
     protected $table;
 
+    /** @var string FOR POSTGRESQL */
+    protected $schema = null;
+
     /** @var Fluent[] */
     protected $columns = [];
 
@@ -88,7 +91,7 @@ class Blueprint
      */
     protected function buildCreate(Db $db, array $dbConfig, DialectInterface $grammar)
     {
-        return $db->createTable($this->table, $dbConfig['dbname'], $this->buildTableDefinition($grammar));
+        return $db->createTable($this->table, $this->schema, $this->buildTableDefinition($grammar));
     }
 
     /**
@@ -165,7 +168,7 @@ class Blueprint
         $this->buildCommands($db, $dbConfig);
 
         $table = $this->table;
-        $schema = $dbConfig['dbname'];
+        $schema = $this->schema;
 
         foreach ($this->commands as $command) {
             switch ($command->get('name')) {
@@ -287,7 +290,7 @@ class Blueprint
      */
     protected function buildCommands(Db $db, array $dbConfig)
     {
-        $columns = $db->describeColumns($this->table, $dbConfig['dbname']);
+        $columns = $db->describeColumns($this->table, $this->schema);
         foreach ($this->columns as $column) {
             $this->buildIndexAndForeignFromFluentColumn($column);
 
@@ -320,7 +323,7 @@ class Blueprint
      */
     protected function buildDrop(Db $connection, array $dbConfig, DialectInterface $grammar, $ifExist = false)
     {
-        return $connection->dropTable($this->table, $dbConfig['dbname'], $ifExist);
+        return $connection->dropTable($this->table, $this->schema, $ifExist);
     }
 
     /**
@@ -623,6 +626,20 @@ class Blueprint
     public function dropRememberToken()
     {
         $this->dropColumn('remember_token');
+    }
+
+    /**
+     * Define schema. FOR POSTGRESQL.
+     *
+     * @param  string $schema
+     *
+     * @return $this
+     */
+    public function schema($schema)
+    {
+        $this->schema = $schema;
+
+        return $this;
     }
 
     /**

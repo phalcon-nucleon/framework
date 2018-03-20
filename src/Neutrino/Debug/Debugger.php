@@ -78,17 +78,17 @@ class Debugger
         if (is_null($em)) {
             $app->setEventsManager($gem);
         } else {
-            $app->setEventsManager($em = new DebugEventsManagerWrapper($em));
+            $app->setEventsManager($gem = new DebugEventsManagerWrapper($em));
         }
 
         $em = $di->getInternalEventsManager();
         if (is_null($em)) {
             $di->setInternalEventsManager($gem);
         } else {
-            $di->setInternalEventsManager($em = new DebugEventsManagerWrapper($em));
+            $di->setInternalEventsManager($gem = new DebugEventsManagerWrapper($em));
         }
 
-        return $this->em = $em;
+        return $this->em = $gem;
     }
 
     private function listenLoader()
@@ -103,9 +103,7 @@ class Debugger
 
     private function listenServices()
     {
-        $em = $this->em;
-
-        $em->attach('di:afterServiceResolve', function ($ev, $src, $data) {
+        $this->em->attach('di:afterServiceResolve', function ($ev, $src, $data) {
             static $resolved;
 
             if (isset($resolved[$data['name']])) {
@@ -268,16 +266,6 @@ class Debugger
         }
 
         $build['phalcon']['ini'] = ini_get_all('phalcon');
-
-        $consts = Dotconst\Loader::fromFiles(BASE_PATH);
-
-        foreach ($consts as $key => $const) {
-            if (Str::contains($key, ['PASSWORD', 'PWD'])) {
-                $consts[$key] = '****';
-            }
-        }
-
-        $build['neutrino']['const'] = $consts;
 
         return $build;
     }

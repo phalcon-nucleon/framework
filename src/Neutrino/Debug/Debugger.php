@@ -191,7 +191,7 @@ class Debugger
           function (Event $event, $src, $data) {
               $eventType = $event->getType();
               if ($eventType === 'beforeRender') {
-                  self::$viewProfiles['render'][] = self::$viewProfiles['__render'][] =  [
+                  self::$viewProfiles['render'][] = self::$viewProfiles['__render'][] = [
                     'initialTime' => microtime(true)
                   ];
               } elseif ($eventType === 'beforeRenderView') {
@@ -283,43 +283,13 @@ class Debugger
         return self::$profilers;
     }
 
-    /**
-     * @return \Phalcon\Mvc\View\Simple
-     */
-    public static function getIsolateView()
+    public static function internalRender($file, $params)
     {
-        if (isset(self::$view)) {
-            return self::$view;
-        }
-
         include __DIR__ . '/helpers/functions.php';
 
-        $view = new View\Simple();
-        $view->setDI(new Di());
-        $view->setViewsDir(__DIR__ . '/resources/');
-        $view->registerEngines(
-          [
-            ".volt" => function ($view, $di) {
-                $volt = new View\Engine\Volt($view, $di);
-                $volt->setOptions([
-                  "compiledPath" => Di::getDefault()->get('config')->view->compiled_path,
-                  'compiledSeparator' => '_',
-                  'compileAlways' => true,
-                ]);
-                $compiler = $volt->getCompiler();
-                $compiler->addFunction('is_string', 'is_string');
-                $compiler->addFilter('human_mtime', __NAMESPACE__ . '\\human_mtime');
-                $compiler->addFilter('human_bytes', __NAMESPACE__ . '\\human_bytes');
-                $compiler->addFilter('sql_highlight', __NAMESPACE__ . '\\sql_highlight');
-                $compiler->addFilter('file_highlight', __NAMESPACE__ . '\\file_highlight');
-                $compiler->addFilter('func_highlight', __NAMESPACE__ . '\\func_highlight');
-                $compiler->addFilter('merge', 'array_merge');
-                return $volt;
-            },
-          ]
-        );
+        extract($params);
 
-        return self::$view = $view;
+        return include __DIR__ . '/resources/' . $file . '.html.php';
     }
 
     /**

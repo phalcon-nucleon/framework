@@ -31,18 +31,17 @@ class DebugToolbar
             $viewsProfiles = Debugger::getViewProfiles();
             $registeredProfilers = Debugger::getRegisteredProfilers();
 
-            $view = Debugger::getIsolateView();
+            $params = array_merge($httpInfo, [
+              'mem_peak' => $mem_peak,
+              'render_time' => $render_time,
+              'events' => $events,
+              'build' => $buildInfo,
+              'php_errors' => $phpErrors,
+              'viewProfiles' => $viewsProfiles,
+              'profilers' => $registeredProfilers,
+            ]);
 
-            $view->setVar('mem_peak', $mem_peak);
-            $view->setVar('render_time', $render_time);
-            $view->setVar('events', $events);
-            $view->setVars($httpInfo);
-            $view->setVar('build', $buildInfo);
-            $view->setVar('php_errors', $phpErrors);
-            $view->setVar('viewProfiles', $viewsProfiles);
-            $view->setVar('profilers', $registeredProfilers);
-
-            echo $view->render('bar');
+            echo Debugger::internalRender('bar', $params);
         });
     }
 

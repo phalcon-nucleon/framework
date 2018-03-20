@@ -80,8 +80,6 @@ class View implements Writable
 
     private function debugErrorView(Error $error)
     {
-        $view = Debugger::getIsolateView();
-
         $exceptions = [];
 
         if ($isException = $error->isException) {
@@ -99,17 +97,15 @@ class View implements Writable
             } while ($exception = $exception->getPrevious());
         }
 
-        $view->setVars([
+        $this->send(Debugger::internalRender('errors', [
           'error' => $error,
           'isException' => $isException,
           'exceptions' => $exceptions,
           'php_errors' => DebugErrorLogger::errors(),
           'events'     => DebugEventsManagerWrapper::getEvents(),
           'profilers'  => Debugger::getRegisteredProfilers(),
-          'build'      => Debugger::getBuildInfo(),
-        ]);
-
-        $this->send($view->render('errors'));
+          'build'      => Debugger::getBuildInfo()
+        ]));
     }
 
     private function send($content)

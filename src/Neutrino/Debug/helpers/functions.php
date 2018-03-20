@@ -481,4 +481,25 @@ namespace Neutrino\Debug {
             );
         }
     }
+    if (!function_exists(__NAMESPACE__ . '\\length')) {
+        /**
+         * @internal
+         *
+         * Get length of an array or a string
+         *
+         * @param string $var
+         *
+         * @return int|null
+         */
+        function length($var)
+        {
+            if(is_string($var)){
+                return strlen($var);
+            }
+            if(is_array($var)){
+                return count($var);
+            }
+            return null;
+        }
+    }
 }

@@ -8,82 +8,82 @@
             <tbody>
             <tr>
               <td>HTTP status</td>
-              <td>{{ responseHttpCode }}</td>
+              <td><?= $responseHttpCode ?></td>
             </tr>
             <tr>
               <td>Module</td>
-              <td>{{ dispatch['module'] }}</td>
+              <td><?= $dispatch['module'] ?></td>
             </tr>
             <tr>
               <td>Controller</td>
-              <td>{{ dispatch['controller'] }}@{{ dispatch['method'] }}</td>
+              <td><?= $dispatch['controller'] ?>@<?= $dispatch['method'] ?></td>
             </tr>
             <tr>
               <td>Controller Class</td>
-              <td>{{ dispatch['controllerClass'] }}</td>
+              <td><?= $dispatch['controllerClass'] ?></td>
             </tr>
             <tr>
               <td>Route</td>
-              <td>{{ route['pattern'] }}</td>
+              <td><?= $route['pattern'] ?></td>
             </tr>
             </tbody>
           </table>
-          <span class="http-{{ responseHttpCode }}">
-              {{ responseHttpCode }}
+          <span class="http-<?= $responseHttpCode ?>">
+              <?= $responseHttpCode ?>
             </span>
           <span>
-            {{ dispatch['controller'] }}@{{ dispatch['method'] }}
+            <?= $dispatch['controller'] ?>@<?= $dispatch['method'] ?>
           </span>
         </li>
-        <li class="{{ render_time > 0.6 ? 'slow-request' : '' }}">
+        <li class="<?= ($render_time > 0.6 ? 'slow-request' : '') ?>">
           <span>
-            {{ render_time | human_mtime }}
+            <?= Neutrino\Debug\human_mtime($render_time) ?>
           </span>
         </li>
         <li>
           <span>
-            {{ mem_peak | human_bytes }}
+            <?= Neutrino\Debug\human_bytes($mem_peak) ?>
           </span>
         </li>
-        <li class="{{ php_errors | length > 0 ? 'with-errors' : 'no-errors' }}">
+        <li class="<?= (Neutrino\Debug\length($php_errors) > 0 ? 'with-errors' : 'no-errors') ?>">
           <table style="margin: 0;padding: 0;white-space: nowrap;" class="dropup-content bordered">
-            {% set phpdeprecated = 0 %}
-            {% set phpnotice = 0 %}
-            {% set phpwarning = 0 %}
-            {% set phperror = 0 %}
-            {% for error in php_errors %}
-              {% if error['logLvl'] === constant('Phalcon\Logger::INFO') %}
-                {% set phpdeprecated = phpdeprecated + 1 %}
-              {% elseif error['logLvl'] === constant('Phalcon\Logger::NOTICE') %}
-                {% set phpnotice = phpnotice + 1 %}
-              {% elseif error['logLvl'] === constant('Phalcon\Logger::WARNING') %}
-                {% set phpwarning = phpwarning + 1 %}
-              {% else %}
-                {% set phperror = phperror + 1 %}
-              {% endif %}
-            {% endfor %}
+              <?php $phpdeprecated = 0; ?>
+              <?php $phpnotice = 0; ?>
+              <?php $phpwarning = 0; ?>
+              <?php $phperror = 0; ?>
+              <?php foreach ($php_errors as $error) : ?>
+                  <?php if ($error['logLvl'] === constant('Phalcon\Logger::INFO')) : ?>
+                      <?php $phpdeprecated = $phpdeprecated + 1; ?>
+                  <?php elseif ($error['logLvl'] === constant('Phalcon\Logger::NOTICE')) : ?>
+                      <?php $phpnotice = $phpnotice + 1; ?>
+                  <?php elseif ($error['logLvl'] === constant('Phalcon\Logger::WARNING')) : ?>
+                      <?php $phpwarning = $phpwarning + 1; ?>
+                  <?php else : ?>
+                      <?php $phperror = $phperror + 1; ?>
+                  <?php endif; ?>
+              <?php endforeach; ?>
             <tbody>
-            <tr class="debug-modal-trigger" data-debug-modal-trigger="debug-phperrors-error" {{ phperror > 0 ? 'style="cursor:pointer"' : '' }}>
+            <tr class="debug-modal-trigger" data-debug-modal-trigger="debug-phperrors-error" <?= ($phperror > 0 ? 'style="cursor:pointer"' : '') ?>>
               <td>Error</td>
-              <td><span class="bag php-error {{ phperror > 0 ? 'error' : '' }}">{{ phperror }}</span></td>
+              <td><span class="bag php-error <?= ($phperror > 0 ? 'error' : '') ?>"><?= $phperror ?></span></td>
             </tr>
-            <tr class="debug-modal-trigger" data-debug-modal-trigger="debug-phperrors-warning" {{ phpwarning > 0 ? 'style="cursor:pointer"' : '' }}>
+            <tr class="debug-modal-trigger" data-debug-modal-trigger="debug-phperrors-warning" <?= ($phpwarning > 0 ? 'style="cursor:pointer"' : '') ?>>
               <td>Warning</td>
-              <td><span class="bag php-error {{ phpwarning > 0 ? 'warning' : '' }}">{{ phpwarning }}</span></td>
+              <td><span class="bag php-error <?= ($phpwarning > 0 ? 'warning' : '') ?>"><?= $phpwarning ?></span></td>
             </tr>
-            <tr class="debug-modal-trigger" data-debug-modal-trigger="debug-phperrors-notice" {{ phpnotice > 0 ? 'style="cursor:pointer"' : '' }}>
+            <tr class="debug-modal-trigger" data-debug-modal-trigger="debug-phperrors-notice" <?= ($phpnotice > 0 ? 'style="cursor:pointer"' : '') ?>>
               <td>Notice</td>
-              <td><span class="bag php-error {{ phpnotice > 0 ? 'notice' : '' }}">{{ phpnotice }}</span></td>
+              <td><span class="bag php-error <?= ($phpnotice > 0 ? 'notice' : '') ?>"><?= $phpnotice ?></span></td>
             </tr>
-            <tr class="debug-modal-trigger" data-debug-modal-trigger="debug-phperrors-info" {{ phpdeprecated > 0 ? 'style="cursor:pointer"' : '' }}>
+            <tr class="debug-modal-trigger" data-debug-modal-trigger="debug-phperrors-info" <?= ($phpdeprecated > 0 ? 'style="cursor:pointer"' : '') ?>>
               <td>Deprecated</td>
-              <td><span class="bag php-error {{ phpdeprecated > 0 ? 'info' : '' }}">{{ phpdeprecated }}</span></td>
+              <td><span class="bag php-error <?= ($phpdeprecated > 0 ? 'info' : '') ?>"><?= $phpdeprecated ?></span></td>
             </tr>
             </tbody>
           </table>
           <span>
             <i class="nuc bug"></i>
-            <span class="bag">{{ php_errors | length }}</span>
+            <span class="bag"><?= Neutrino\Debug\length($php_errors) ?></span>
           </span>
         </li>
         <li class="">
@@ -91,83 +91,84 @@
             <tbody>
             <tr>
               <td>Views</td>
-              <td>{{ viewProfiles['renderViews'] | default([]) | length }}</td>
+              <td><?= Neutrino\Debug\length((empty($viewProfiles['renderViews']) ? ([]) : ($viewProfiles['renderViews']))) ?></td>
             </tr>
             <tr>
               <td>View not found</td>
-              <td>{{ viewProfiles['notFoundView'] | default([]) | length }}</td>
+              <td><?= Neutrino\Debug\length((empty($viewProfiles['notFoundView']) ? ([]) : ($viewProfiles['notFoundView']))) ?></td>
             </tr>
             <tr>
               <td>Render</td>
-              <td>{{ viewProfiles['render'] | default([]) | length }} in {{ viewProfiles['render'][0]['elapsedTime'] | human_mtime }}</td>
+              <td><?= Neutrino\Debug\length($viewProfiles['render']) ?> in <?= Neutrino\Debug\human_mtime($viewProfiles['render'][0]['elapsedTime']) ?></td>
             </tr>
             </tbody>
           </table>
           <span>
             <i class="nuc view"></i>
-            <span class="info">{{ viewProfiles['render'][0]['elapsedTime'] | human_mtime }}</span>
+            <span class="info"><?= Neutrino\Debug\human_mtime($viewProfiles['render'][0]['elapsedTime']) ?></span>
           </span>
         </li>
-        {% for name, elements in profilers | default([]) %}
-          {% set profiler = elements['profiler'] %}
-          {% set profiles = profiler.getProfiles() | default([]) %}
-          <li class="">
-            {% if profiles is not empty %}
-              <div class="dropup-content bottom-sheet">
-                <table style="margin: 0;padding: 0;" class="bordered">
-                  <thead>
-                  <tr>
-                    <th>-</th>
-                    <th>sql</th>
-                    <th>vars</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {% for profile in profiles | default([]) %}
-                    <tr>
-                      <td>
-                        <small style="white-space: nowrap;">{{ profile.getTotalElapsedSeconds() | human_mtime }}</small>
-                      </td>
-                      <td>
-                        <pre class="sql">{{ profile.getSqlStatement() | sql_highlight }}</pre>
-                      </td>
-                      <td style="padding: 5px 10px;border-radius: 0">
-                        {% set vars = profile.getSqlVariables() %}
-                        {% if vars is not null %}
-                          {% for var, value in vars %}
-                            <pre>:{{ var }} = {{ value }}</pre>
-                          {% endfor %}
-                        {% else %}
-                          --
-                        {% endif %}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            {% endif %}
-            <span>
-            {% if elements['icon'] is empty %}
-              {{ name }}
-            {% else %}
-              {{ elements['icon'] }}
-            {% endif %}
-              <span class="info">{{ profiles |  length }}
-                {% if profiles is not empty %}
-                  {% set totalTime = 0 %}
-                  {% for profile in profiles %}
-                    {% set totalTime = totalTime + (profile.getTotalElapsedSeconds() | default(0)) %}
-                  {% endfor %} in {{ totalTime | human_mtime }}
-                {% endif %}
+          <?php foreach ((empty($profilers) ? ([]) : ($profilers)) as $name => $elements) : ?>
+              <?php $profiler = $elements['profiler']; ?>
+              <?php $profiles = (empty($profiler->getProfiles()) ? ([]) : ($profiler->getProfiles())); ?>
+            <li class="">
+                <?php if (!empty($profiles)) : ?>
+                  <div class="dropup-content bottom-sheet">
+                    <table style="margin: 0;padding: 0;" class="bordered">
+                      <thead>
+                      <tr>
+                        <th>-</th>
+                        <th>sql</th>
+                        <th>vars</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <?php foreach ((empty($profiles) ? ([]) : ($profiles)) as $profile) : ?>
+                        <tr>
+                          <td>
+                            <small style="white-space: nowrap;"><?= Neutrino\Debug\human_mtime($profile->getTotalElapsedSeconds()) ?></small>
+                          </td>
+                          <td>
+                            <pre class="sql"><?= Neutrino\Debug\sql_highlight($profile->getSqlStatement()) ?></pre>
+                          </td>
+                          <td style="padding: 5px 10px;border-radius: 0">
+                              <?php $vars = $profile->getSqlVariables(); ?>
+                              <?php if ($vars != null) : ?>
+                                  <?php foreach ($vars as $var => $value) : ?>
+                                  <pre>:<?= $var ?> = <?= $value ?></pre>
+                                  <?php endforeach; ?>
+                              <?php else : ?>
+                                --
+                              <?php endif; ?>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                      </tbody>
+                    </table>
+                  </div>
+                <?php endif; ?>
+              <span>
+            <?php if (empty($elements['icon'])) : ?>
+                <?= $name ?>
+            <?php else : ?>
+                <?= $elements['icon'] ?>
+            <?php endif; ?>
+                <span class="info"><?= Neutrino\Debug\length($profiles) ?>
+                    <?php if (!empty($profiles)) : ?>
+                        <?php $totalTime = 0; ?>
+                        <?php foreach ($profiles as $profile) : ?>
+                            <?php $totalTime = $totalTime + ((empty($profile->getTotalElapsedSeconds()) ? (0) : ($profile->getTotalElapsedSeconds()))); ?>
+                        <?php endforeach; ?>
+                        in <?= Neutrino\Debug\human_mtime($totalTime) ?>
+                    <?php endif; ?>
             </span>
             </span>
-          </li>
-        {% endfor %}
+            </li>
+          <?php endforeach; ?>
         <li class="">
           <div class="dropup-content bottom-sheet">
             <table style="margin: 0;padding: 0;" class="bordered">
-              {% set mt_start = _SERVER['REQUEST_TIME_FLOAT'] %}
+                <?php $mt_start = $_SERVER['REQUEST_TIME_FLOAT']; ?>
               <thead>
               <tr>
                 <th>-</th>
@@ -191,30 +192,30 @@
                 <td>
                 </td>
               </tr>
-              {% for event in events | default([]) %}
+              <?php foreach ((empty($events) ? ([]) : ($events)) as $event) : ?>
                 <tr>
                   <td style="white-space:nowrap">
-                    <small>{{ (event['mt'] - mt_start) | human_mtime }}</small>
+                    <small><?= Neutrino\Debug\human_mtime(($event['mt'] - $mt_start)) ?></small>
                   </td>
                   <td style="white-space:nowrap">
                     <small class="event">
-                      <span class="space">{{ event['space'] }}</span>:<span class="type">{{ event['type'] }}</span>
+                      <span class="space"><?= $event['space'] ?></span>:<span class="type"><?= $event['type'] ?></span>
                     </small>
                   </td>
                   <td>
-                    <small>{{ event['src'] }}</small>
+                    <small><?= $event['src'] ?></small>
                   </td>
                   <td style="word-break: break-all;">
-                    <small title="{{ is_string(event['raw_data']) ? event['raw_data'] : '' }}">{{ event['data'] }}</small>
+                    <small title="<?= (is_string($event['raw_data']) ? $event['raw_data'] : '') ?>"><?= $event['data'] ?></small>
                   </td>
                 </tr>
-              {% endfor %}
+              <?php endforeach; ?>
               </tbody>
             </table>
           </div>
           <span>
             <i class="nuc events"></i>
-            <span class="bag" data-badge-caption>{{ events | length }}</span>
+            <span class="bag" data-badge-caption><?= Neutrino\Debug\length($events) ?></span>
           </span>
         </li>
       </ul>
@@ -223,11 +224,11 @@
           <table class="dropup-content" style="white-space: nowrap;">
             <tr>
               <td style="padding:5px 0 0 5px"><i class="nuc neutrino"></i></td>
-              <td style="word-break: keep-all;white-space: nowrap;padding: 5px;">{{ build['neutrino']['version'] }}</td>
+              <td style="word-break: keep-all;white-space: nowrap;padding: 5px;"><?= $build['neutrino']['version'] ?></td>
             </tr>
             <tr>
               <td style="padding:5px 0 0 5px"><i class="nuc phalcon"></i></td>
-              <td style="word-break: keep-all;white-space: nowrap;padding: 5px;">{{ build['phalcon']['version'] }}</td>
+              <td style="word-break: keep-all;white-space: nowrap;padding: 5px;"><?= $build['phalcon']['version'] ?></td>
             </tr>
             <tr>
               <td colspan="2">
@@ -239,7 +240,7 @@
           </table>
           <span>
             <i class="nuc neutrino"></i>
-            {{ build['neutrino']['version'] }}
+              <?= $build['neutrino']['version'] ?>
           </span>
         </li>
       </ul>
@@ -252,84 +253,84 @@
       <ul>
         <li>
           <span><i class="nuc neutrino"></i> neutrino</span>
-          <code>{{ build['neutrino']['version'] }}</code>
+          <code><?= $build['neutrino']['version'] ?></code>
         </li>
         <li>
           <span><i class="nuc phalcon"></i> phalcon</span>
-          <code>{{ build['phalcon']['version'] }}</code>
-          {% if build['phalcon']['ini'] is not empty %}
-            <div>
-              {% for key, info in build['phalcon']['ini'] %}
-                <p>
-                  <span>{{ key }}</span>
-                  <code>{{ info['global_value'] }}</code>
-                  <code>{{ info['local_value'] }}</code>
-                </p>
-              {% endfor %}
-            </div>
-          {% endif %}
+          <code><?= $build['phalcon']['version'] ?></code>
+            <?php if (!empty($build['phalcon']['ini'])) : ?>
+              <div>
+                  <?php foreach ($build['phalcon']['ini'] as $key => $info) : ?>
+                    <p>
+                      <span><?= $key ?></span>
+                      <code><?= $info['global_value'] ?></code>
+                      <code><?= $info['local_value'] ?></code>
+                    </p>
+                  <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
         </li>
         <li>
           <span><i class="nuc zend"></i> zend</span>
-          <code>{{ build['zend']['version'] }}</code>
-          {% if build['zend']['extensions'] is not empty %}
-            <div>
-              {% for key, version in build['zend']['extensions'] %}
-                <p>
-                  <span>{{ key }}</span>
-                  <span>{{ version }}</span>
-                </p>
-              {% endfor %}
-            </div>
-          {% endif %}
+          <code><?= $build['zend']['version'] ?></code>
+            <?php if (!empty($build['zend']['extensions'])) : ?>
+              <div>
+                  <?php foreach ($build['zend']['extensions'] as $key => $version) : ?>
+                    <p>
+                      <span><?= $key ?></span>
+                      <span><?= $version ?></span>
+                    </p>
+                  <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
         </li>
         <li>
           <span><i class="nuc php"></i> php</span>
-          <code>{{ build['php']['version'] }}</code>
-          {% if build['php']['extensions'] is not empty %}
-            <div>
-              {% for key, version in build['php']['extensions'] %}
-                <p>
-                  <span>{{ key }}</span>
-                  <span>{{ version }}</span>
-                </p>
-              {% endfor %}
-            </div>
-          {% endif %}
+          <code><?= $build['php']['version'] ?></code>
+            <?php if (!empty($build['php']['extensions'])) : ?>
+              <div>
+                  <?php foreach ($build['php']['extensions'] as $key => $version) : ?>
+                    <p>
+                      <span><?= $key ?></span>
+                      <span><?= $version ?></span>
+                    </p>
+                  <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
         </li>
       </ul>
     </div>
   </div>
-  {% set phperrors = ['error': [], 'warning': [], 'notice':[], 'info':[]] %}
-  {% for error in php_errors %}
-    {% if error['logLvl'] === constant('Phalcon\Logger::INFO') %}
-      {% set phperrors['info'] = phperrors['info'] | merge([error]) %}
-    {% elseif error['logLvl'] === constant('Phalcon\Logger::NOTICE') %}
-      {% set phperrors['notice'] = phperrors['notice'] | merge([error]) %}
-    {% elseif error['logLvl'] === constant('Phalcon\Logger::WARNING') %}
-      {% set phperrors['warning'] = phperrors['warning'] | merge([error]) %}
-    {% else %}
-      {% set phperrors['error'] = phperrors['error'] | merge([error]) %}
-    {% endif %}
-  {% endfor %}
-  {% for type, errors in phperrors %}
-    {% if errors | length > 0 %}
-      <div class="debug-modal" id="debug-phperrors-{{ type }}">
-        <div class="debug-modal-content">
-          <div style="margin: 0;padding: 0;">
-            {% for error in errors %}
-              <div class="php-error {{ type }}">
-                <span class="type">{{ error['typeStr'] }}</span> :
-                <pre class="msg">{{ error['message'] | default('no message') }}</pre>
-                <span class="file"><b>in : </b>{{ (error['file']) | file_highlight }} (line: {{ error['line'] }})</span>
-              </div>
-            {% endfor %}
+    <?php $phperrors = ['error' => [], 'warning' => [], 'notice' => [], 'info' => []]; ?>
+    <?php foreach ($php_errors as $error) : ?>
+        <?php if ($error['logLvl'] === constant('Phalcon\Logger::INFO')) : ?>
+            <?php $phperrors['info'] = array_merge($phperrors['info'], [$error]); ?>
+        <?php elseif ($error['logLvl'] === constant('Phalcon\Logger::NOTICE')) : ?>
+            <?php $phperrors['notice'] = array_merge($phperrors['notice'], [$error]); ?>
+        <?php elseif ($error['logLvl'] === constant('Phalcon\Logger::WARNING')) : ?>
+            <?php $phperrors['warning'] = array_merge($phperrors['warning'], [$error]); ?>
+        <?php else : ?>
+            <?php $phperrors['error'] = array_merge($phperrors['error'], [$error]); ?>
+        <?php endif; ?>
+    <?php endforeach; ?>
+    <?php foreach ($phperrors as $type => $errors) : ?>
+        <?php if (Neutrino\Debug\length($errors) > 0) : ?>
+        <div class="debug-modal" id="debug-phperrors-<?= $type ?>">
+          <div class="debug-modal-content">
+            <div style="margin: 0;padding: 0;">
+                <?php foreach ($errors as $error) : ?>
+                  <div class="php-error <?= $type ?>">
+                    <span class="type"><?= $error['typeStr'] ?></span> :
+                    <pre class="msg"><?= (empty($error['message']) ? ('no message') : ($error['message'])) ?></pre>
+                    <span class="file"><b>in : </b><?= Neutrino\Debug\file_highlight(($error['file'])) ?> (line: <?= $error['line'] ?>)</span>
+                  </div>
+                <?php endforeach; ?>
+            </div>
           </div>
         </div>
-      </div>
-    {% endif %}
-  {% endfor %}
+        <?php endif; ?>
+    <?php endforeach; ?>
 </div>
 <script type="application/javascript">
-(function(h,a){function d(b,a){if(Array.isArray(b))for(var c=0,d=b.length;c<d;c++)a.call(b[c],c,b[c]);else for(c in b)e.call(b,c)&&a.call(b[c],c,b[c])}function f(b){if(b=a.getElementById(b))a.body.classList.add("nuc-debug-modal-open"),d(a.querySelectorAll("#nuc-debug-modal .debug-modal"),function(){this.classList.remove("open")}),b.classList.add("open")}function g(){a.body.classList.remove("nuc-debug-modal-open");d(a.querySelectorAll("#nuc-debug-modal .debug-modal"),function(){this.classList.remove("open")})}var e=Object.prototype.hasOwnProperty;(function(){d(a.querySelectorAll("#nuc-debug-bar .debug-modal-trigger"),function(){this.addEventListener("click",function(){f(this.getAttribute("data-debug-modal-trigger"))})})})();(function(){a.getElementById("nuc-debug-modal").addEventListener("click",function(b){b.target===this&&g()})})();d(a.querySelectorAll("#nuc-debug-modal ul li"),function(){this.addEventListener("click",function(){d(a.querySelectorAll("#nuc-debug-modal ul li"),function(b,a){a!==this&&a.classList.remove("open")}.bind(this));this.classList.toggle("open")})})})(window,document);
+  (function(h,a){function d(b,a){if(Array.isArray(b))for(var c=0,d=b.length;c<d;c++)a.call(b[c],c,b[c]);else for(c in b)e.call(b,c)&&a.call(b[c],c,b[c])}function f(b){if(b=a.getElementById(b))a.body.classList.add("nuc-debug-modal-open"),d(a.querySelectorAll("#nuc-debug-modal .debug-modal"),function(){this.classList.remove("open")}),b.classList.add("open")}function g(){a.body.classList.remove("nuc-debug-modal-open");d(a.querySelectorAll("#nuc-debug-modal .debug-modal"),function(){this.classList.remove("open")})}var e=Object.prototype.hasOwnProperty;(function(){d(a.querySelectorAll("#nuc-debug-bar .debug-modal-trigger"),function(){this.addEventListener("click",function(){f(this.getAttribute("data-debug-modal-trigger"))})})})();(function(){a.getElementById("nuc-debug-modal").addEventListener("click",function(b){b.target===this&&g()})})();d(a.querySelectorAll("#nuc-debug-modal ul li"),function(){this.addEventListener("click",function(){d(a.querySelectorAll("#nuc-debug-modal ul li"),function(b,a){a!==this&&a.classList.remove("open")}.bind(this));this.classList.toggle("open")})})})(window,document);
 </script>

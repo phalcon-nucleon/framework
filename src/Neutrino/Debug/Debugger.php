@@ -290,21 +290,16 @@ class Debugger
      */
     public static function internalRender($file, $params, $clean = false)
     {
-        include __DIR__ . '/helpers/functions.php';
-
-        extract($params);
-
-        if ($clean) {
-            ob_start();
+        if(!isset(self::$view)){
+            include __DIR__ . '/helpers/functions.php';
+            $view = new View\Simple();
+            $view->setDI(new Di());
+            $view->setViewsDir(__DIR__ . '/resources/');
+            $view->registerEngines(['.html.php' => View\Engine\Php::class]);
+            self::$view = $view;
         }
 
-        include __DIR__ . '/resources/' . $file . '.html.php';
-
-        if ($clean) {
-            return ob_get_clean();
-        }
-
-        return null;
+        return self::$view->setVars($params)->render($file);
     }
 
     /**

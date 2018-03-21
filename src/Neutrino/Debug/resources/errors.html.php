@@ -48,7 +48,7 @@
   </div>
   <div id="error" class="col s12">
       <?php if ($error['isException']) : ?>
-          <?php $index = 0 ?>
+          <?php $index = 1 ?>
           <?php foreach ($exceptions as $exception) : ?>
           <div class="card grey lighten-3">
             <div class="card-content">

@@ -44,7 +44,7 @@ class Bootstrap
 
         $kernel->bootstrap($this->config);
 
-        if (APP_DEBUG && APP_ENV !== Env::TEST) {
+        if (APP_DEBUG && APP_ENV !== Env::TEST && php_sapi_name() !== 'cli') {
             Debugger::register();
         }
 

@@ -105,7 +105,7 @@ class View implements Writable
           'events'     => DebugEventsManagerWrapper::getEvents(),
           'profilers'  => Debugger::getRegisteredProfilers(),
           'build'      => Debugger::getBuildInfo()
-        ]));
+        ], true));
     }
 
     private function send($content)

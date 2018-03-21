@@ -41,7 +41,7 @@ class DebugToolbar
               'profilers' => $registeredProfilers,
             ]);
 
-            echo Debugger::internalRender('bar', $params);
+            Debugger::internalRender('bar', $params);
         });
     }
 

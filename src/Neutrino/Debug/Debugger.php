@@ -4,9 +4,7 @@ namespace Neutrino\Debug;
 
 use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
-use Neutrino\Dotconst;
 use Neutrino\Error\Handler;
-use Neutrino\Support\Str;
 use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
@@ -283,13 +281,30 @@ class Debugger
         return self::$profilers;
     }
 
-    public static function internalRender($file, $params)
+    /**
+     * @param      $file
+     * @param      $params
+     * @param bool $clean
+     *
+     * @return string|null
+     */
+    public static function internalRender($file, $params, $clean = false)
     {
         include __DIR__ . '/helpers/functions.php';
 
         extract($params);
 
-        return include __DIR__ . '/resources/' . $file . '.html.php';
+        if ($clean) {
+            ob_start();
+        }
+
+        include __DIR__ . '/resources/' . $file . '.html.php';
+
+        if ($clean) {
+            return ob_get_clean();
+        }
+
+        return null;
     }
 
     /**

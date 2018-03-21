@@ -282,13 +282,12 @@ class Debugger
     }
 
     /**
-     * @param      $file
-     * @param      $params
-     * @param bool $clean
+     * @param string $file
+     * @param array $params
      *
      * @return string|null
      */
-    public static function internalRender($file, $params, $clean = false)
+    public static function internalRender($file, array $params = [])
     {
         if(!isset(self::$view)){
             include __DIR__ . '/helpers/functions.php';

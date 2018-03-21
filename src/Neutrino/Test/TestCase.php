@@ -73,7 +73,9 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         Mockery::close();
         Facade::clearResolvedInstances();
 
+        ob_start();
         $this->app->terminate();
+        ob_end_clean();
         $this->app->getDI()->reset();
         $this->app = null;
 

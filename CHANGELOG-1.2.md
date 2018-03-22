@@ -1,5 +1,21 @@
 # Release Note
 
+## v1.2.3
+
+### Added 
+ - DebugToolbar : Allow to close toolbar
+ - Support\Path::normalize : Moved from Str::normalizePath
+ - Support\Path::findRelative : Find the relative path, from a path to an another path.
+
+### Fixed 
+ - Migration on PostgreSQL : allow set schema on table.
+ - DatabaseStrategy : implement now \Phalcon\Db\AdapterInterface.
+ - Provider\Session : allow to pass options to Session Adapter
+
+### Changed 
+ - Optimize\Composer : Path is now dynamic
+ - Str::normalizePath is deprecated, use Path::normalize. Will trigger E_USER_DEPRECATED in v1.3.
+
 ## v1.2.2
 
 ### Fixed 

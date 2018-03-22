@@ -268,21 +268,21 @@ class StrFuncTest extends TestCase
      */
     public function testNormalizePath($expected, $path)
     {
-        $error = [];
+        /*$error = [];
         set_error_handler(function ($errno, $errstr) use (&$error) {
             $error[] = [
                 'no'  => $errno,
                 'str' => $errstr
             ];
-        });
+        });*/
 
         $this->assertEquals($expected, Str::normalizePath($path));
 
-        restore_error_handler();
+        /*restore_error_handler();
 
         $this->assertCount(1, $error);
         $this->assertEquals(E_USER_DEPRECATED, $error[0]['no']);
-        $this->assertEquals('Deprecated: Neutrino\Support\Str::normalizePath. Use Neutrino\Support\Path::normalize instead.', $error[0]['str']);
+        $this->assertEquals('Deprecated: Neutrino\Support\Str::normalizePath. Use Neutrino\Support\Path::normalize instead.', $error[0]['str']);*/
     }
 
 }

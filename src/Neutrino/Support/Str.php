@@ -463,7 +463,7 @@ class Str
      */
     public static function normalizePath($path)
     {
-        trigger_error('Deprecated: ' . __METHOD__ . '. Use ' . Path::class . '::normalize instead.', E_USER_DEPRECATED);
+        //trigger_error('Deprecated: ' . __METHOD__ . '. Use ' . Path::class . '::normalize instead.', E_USER_DEPRECATED);
 
         if (empty($path)) {
             return '';

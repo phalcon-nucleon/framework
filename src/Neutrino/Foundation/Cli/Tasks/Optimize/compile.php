@@ -3,6 +3,8 @@
 $path = __DIR__ . '/../../../../../Neutrino/';
 
 return [
+    $path . '/Error/Error.php',
+    $path . '/Error/Helper.php',
     $path . '/Error/Handler.php',
 
     $path . '/Constants/Services.php',

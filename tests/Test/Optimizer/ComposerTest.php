@@ -2,6 +2,7 @@
 
 namespace Test\Optimizer;
 
+use Neutrino\Debug\Reflexion;
 use Neutrino\Optimizer\Composer;
 use Test\TestCase\TestCase;
 
@@ -50,13 +51,7 @@ class ComposerTest extends TestCase
     {
         $composer = new Composer(__DIR__ . '/.data/loader.php', null, null);
 
-        $reflection = new \ReflectionClass(Composer::class);
-
-        $method = $reflection->getMethod('generateOutput');
-
-        $method->setAccessible(true);
-
-        $this->assertTrue($method->invoke($composer, $files, $namespaces, $directories, $classmap));
+        $this->assertTrue(Reflexion::invoke($composer, 'generateOutput', $files, $namespaces, $directories, $classmap));
 
         $this->assertTrue(file_exists(__DIR__ . '/.data/loader.php'));
 
@@ -71,21 +66,16 @@ class ComposerTest extends TestCase
             '$loader->registerClasses(' . var_export($classmap, true) . ');',
             '$loader->register();'
         ];
-        $this->assertEquals(implode(PHP_EOL, $cmd) . PHP_EOL, $content);
+        $this->assertEquals(implode("\n", $cmd) . "\n", $content);
     }
 
     public function testOptimizeMemory()
     {
         $composer = new Composer(__DIR__ . '/.data/loader.php', __DIR__ . '/fixture', null);
 
-        $reflection = new \ReflectionClass(Composer::class);
-        $property   = $reflection->getProperty('composer');
-
-        $property->setAccessible(true);
-        $property->setValue($composer, $this->createMock(Composer\Script::class));
+        Reflexion::set($composer, 'composer', $this->createMock(Composer\Script::class));
 
         $composer->optimizeMemory();
-
 
         $this->assertTrue(file_exists(__DIR__ . '/.data/loader.php'));
 
@@ -121,21 +111,16 @@ class ComposerTest extends TestCase
             ], true) . ');',
             '$loader->register();'
         ];
-        $this->assertEquals(implode(PHP_EOL, $cmd) . PHP_EOL, $content);
+        $this->assertEquals(implode("\n", $cmd) . "\n", $content);
     }
 
     public function testOptimizeProcess()
     {
         $composer = new Composer(__DIR__ . '/.data/loader.php', __DIR__ . '/fixture', null);
 
-        $reflection = new \ReflectionClass(Composer::class);
-        $property   = $reflection->getProperty('composer');
-
-        $property->setAccessible(true);
-        $property->setValue($composer, $this->createMock(Composer\Script::class));
+        Reflexion::set($composer, 'composer', $this->createMock(Composer\Script::class));
 
         $composer->optimizeProcess();
-
 
         $this->assertTrue(file_exists(__DIR__ . '/.data/loader.php'));
 
@@ -158,6 +143,6 @@ class ComposerTest extends TestCase
             ], true) . ');',
             '$loader->register();'
         ];
-        $this->assertEquals(implode(PHP_EOL, $cmd) . PHP_EOL, $content);
+        $this->assertEquals(implode("\n", $cmd) . "\n", $content);
     }
 }

@@ -3,7 +3,6 @@
 namespace Test\Cli\Tasks;
 
 use Fake\Kernels\Cli\StubKernelCli;
-use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
 use Test\TestCase\TestCase;
 
 class OptimizeTaskTest extends TestCase
@@ -92,18 +91,18 @@ class OptimizeTaskTest extends TestCase
     public function testTaskMemory()
     {
         $this->mockAutoloadFiles([
-            'file_1.php',
-            'file_2.php',
+            BASE_PATH . '/vendor/file_1.php',
+            BASE_PATH . '/vendor/file_2.php',
         ]);
 
         $this->mockAutoloadNamespaces([
-            'namespace_1' => array('dir_1'),
-            'namespace_2' => array('dir_2', 'dir_3'),
+            'namespace_1' => array(BASE_PATH . '/vendor/dir_1'),
+            'namespace_2' => array(BASE_PATH . '/vendor/dir_2', BASE_PATH . '/vendor/dir_3'),
         ]);
 
         $this->mockAutoloadPsr4([
-            'namespace_3' => array('dir_4'),
-            'namespace_4' => array('dir_5', 'dir_6'),
+            'namespace_3' => array(BASE_PATH . '/vendor/dir_4'),
+            'namespace_4' => array(BASE_PATH . '/vendor/dir_5', BASE_PATH . '/vendor/dir_6'),
         ]);
 
         $this->mockComposerScript();
@@ -113,23 +112,39 @@ class OptimizeTaskTest extends TestCase
         $file = file_get_contents(BASE_PATH . '/bootstrap/compile/loader.php');
 
         $this->assertEquals(
-            '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL .
-            '$loader->registerFiles(' . var_export(array_values([
-                'file_1.php',
-                'file_2.php',
-            ]), true) . ');' . PHP_EOL .
-            '$loader->registerDirs(' . var_export(array_values([
-                'dir_1',
-                'dir_2',
-                'dir_3',
-            ]), true) . ');' . PHP_EOL .
-            '$loader->registerNamespaces(' . var_export([
-                'namespace_1' => array('dir_1'),
-                'namespace_2' => array('dir_2', 'dir_3'),
-                'namespace_3' => array('dir_4'),
-                'namespace_4' => array('dir_5', 'dir_6'),
-            ], true) . ');' . PHP_EOL .
-            '$loader->register();' . PHP_EOL,
+            '<?php' . "\n" .
+            "\$basePath = __DIR__ . '/../../';\n" .
+            "\$loader = new Phalcon\Loader;\n" .
+            "\$loader->registerFiles(array (\n" .
+            "  0 => \$basePath . 'vendor/file_1.php',\n" .
+            "  1 => \$basePath . 'vendor/file_2.php',\n" .
+            "));\n" .
+            "\$loader->registerDirs(array (\n" .
+            "  0 => \$basePath . 'vendor/dir_1',\n" .
+            "  1 => \$basePath . 'vendor/dir_2',\n" .
+            "  2 => \$basePath . 'vendor/dir_3',\n" .
+            "));\n" .
+            "\$loader->registerNamespaces(array (\n" .
+            "  'namespace_1' => \n" .
+            "  array (\n" .
+            "    0 => \$basePath . 'vendor/dir_1',\n" .
+            "  ),\n" .
+            "  'namespace_2' => \n" .
+            "  array (\n" .
+            "    0 => \$basePath . 'vendor/dir_2',\n" .
+            "    1 => \$basePath . 'vendor/dir_3',\n" .
+            "  ),\n" .
+            "  'namespace_3' => \n" .
+            "  array (\n" .
+            "    0 => \$basePath . 'vendor/dir_4',\n" .
+            "  ),\n" .
+            "  'namespace_4' => \n" .
+            "  array (\n" .
+            "    0 => \$basePath . 'vendor/dir_5',\n" .
+            "    1 => \$basePath . 'vendor/dir_6',\n" .
+            "  ),\n" .
+            "));\n" .
+            "\$loader->register();\n",
             $file
         );
     }
@@ -137,13 +152,13 @@ class OptimizeTaskTest extends TestCase
     public function testTaskProcess()
     {
         $this->mockAutoloadFiles([
-            'file_1.php',
-            'file_2.php',
+            BASE_PATH . '/vendor/file_1.php',
+            BASE_PATH . '/vendor/file_2.php',
         ]);
 
         $this->mockAutoloadClassmap([
-            'Class\Class_1' => 'file_1.php',
-            'Class\Class_2' => 'file_2.php'
+            'Class\Class_1' => BASE_PATH . '/vendor/file_1.php',
+            'Class\Class_2' => BASE_PATH . '/vendor/file_2.php'
         ]);
 
         $this->mockComposerScript();
@@ -153,16 +168,18 @@ class OptimizeTaskTest extends TestCase
         $file = file_get_contents(BASE_PATH . '/bootstrap/compile/loader.php');
 
         $this->assertEquals(
-            '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL .
-            '$loader->registerFiles(' . var_export(array_values([
-                'file_1.php',
-                'file_2.php',
-            ]), true) . ');' . PHP_EOL .
-            '$loader->registerClasses(' . var_export([
-                'Class\Class_1' => 'file_1.php',
-                'Class\Class_2' => 'file_2.php'
-            ], true) . ');' . PHP_EOL .
-            '$loader->register();' . PHP_EOL,
+            "<?php\n" .
+            "\$basePath = __DIR__ . '/../../';\n" .
+            "\$loader = new Phalcon\Loader;\n" .
+            "\$loader->registerFiles(array (\n" .
+            "  0 => \$basePath . 'vendor/file_1.php',\n" .
+            "  1 => \$basePath . 'vendor/file_2.php',\n" .
+            "));\n" .
+            "\$loader->registerClasses(array (\n" .
+            "  'Class\\\\Class_1' => \$basePath . 'vendor/file_1.php',\n" .
+            "  'Class\\\\Class_2' => \$basePath . 'vendor/file_2.php',\n" .
+            "));\n" .
+            "\$loader->register();\n",
             $file
         );
     }

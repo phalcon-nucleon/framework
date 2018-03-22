@@ -2,6 +2,8 @@
 
 namespace Neutrino\Optimizer;
 
+use Neutrino\Support\Arr;
+use Neutrino\Support\Path;
 use Phalcon\Di\Injectable;
 
 /**
@@ -15,6 +17,11 @@ class Composer extends Injectable
      * @var string
      */
     private $loaderFilePath;
+
+    /**
+     * @var string
+     */
+    private $basePath;
 
     /**
      * @var \Neutrino\Optimizer\Composer\Autoload
@@ -36,6 +43,7 @@ class Composer extends Injectable
     public function __construct($loaderFilePath, $composerPath, $basePath = null)
     {
         $this->loaderFilePath = $loaderFilePath;
+        $this->basePath = $basePath;
 
         $di = $this->getDI();
         $this->autoload = $di->get(Composer\Autoload::class, [$composerPath]);
@@ -104,25 +112,49 @@ class Composer extends Injectable
             return false;
         }
 
-        fwrite($res, '<?php' . PHP_EOL . '$loader = new Phalcon\Loader;' . PHP_EOL);
+        fwrite($res, '<?php' . "\n");
+
+        if (isset($this->basePath)) {
+            $relativePath = Path::findRelative(dirname($this->loaderFilePath), $this->basePath);
+            fwrite($res, '$basePath = __DIR__ . ' . var_export('/' . $relativePath . '/', true) . ";\n");
+        }
+
+        fwrite($res, '$loader = new Phalcon\Loader;' . "\n");
 
         if (!empty($files)) {
-            fwrite($res, '$loader->registerFiles(' . var_export(array_values($files), true) . ');' . PHP_EOL);
+            fwrite($res, '$loader->registerFiles(' . $this->prepareOutput(array_values($files)) . ');' . "\n");
         }
         if (!empty($directories)) {
-            fwrite($res, '$loader->registerDirs(' . var_export(array_values($directories), true) . ');' . PHP_EOL);
+            fwrite($res, '$loader->registerDirs(' . $this->prepareOutput(array_values($directories)) . ');' . "\n");
         }
         if (!empty($namespaces)) {
-            fwrite($res, '$loader->registerNamespaces(' . var_export($namespaces, true) . ');' . PHP_EOL);
+            fwrite($res, '$loader->registerNamespaces(' . $this->prepareOutput($namespaces) . ');' . "\n");
         }
         if (!empty($classmap)) {
-            fwrite($res, '$loader->registerClasses(' . var_export($classmap, true) . ');' . PHP_EOL);
+            fwrite($res, '$loader->registerClasses(' . $this->prepareOutput($classmap) . ');' . "\n");
         }
 
-        fwrite($res, '$loader->register();' . PHP_EOL);
+        fwrite($res, '$loader->register();' . "\n");
 
         fclose($res);
 
         return true;
+    }
+
+    protected function prepareOutput(array $items)
+    {
+        $items = Arr::map(function ($item) {
+            return str_replace(DIRECTORY_SEPARATOR, '/', $item);
+        }, $items, true);
+
+        $output = var_export($items, true);
+
+        if (isset($this->basePath)) {
+            $bs = substr(var_export(str_replace(DIRECTORY_SEPARATOR, '/', $this->basePath) . '/', true), 1, -1);
+
+            $output = preg_replace("/'" . preg_quote($bs, '/') . '/', "\$basePath . '", $output);
+        }
+
+        return $output;
     }
 }

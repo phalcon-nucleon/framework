@@ -520,6 +520,28 @@ class Arr
     }
 
     /**
+     * Map an array recursively
+     *
+     * @param callable $callback
+     * @param array    $array
+     * @param bool     $recursive Array map recursively
+     *
+     * @return array
+     */
+    public static function map($callback, array $array, $recursive = false)
+    {
+        if($recursive){
+            $func = function ($item) use (&$func, &$callback) {
+                return is_array($item) ? array_map($func, $item) : call_user_func($callback, $item);
+            };
+
+            return array_map($func, $array);
+        }
+
+        return array_map($callback, $array);
+    }
+
+    /**
      * Explode the "value" and "key" arguments passed to "pluck".
      *
      * @param string|array      $value

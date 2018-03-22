@@ -3,7 +3,7 @@
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Task;
-use Neutrino\Support\Str;
+use Neutrino\Support\Path;
 
 /**
  * Class ViewClearTask
@@ -28,7 +28,7 @@ class ViewClearTask extends Task
 
     private function rm($path)
     {
-        $path = Str::normalizePath($path);
+        $path = Path::normalize($path);
 
         if (is_dir($path)) {
             foreach (glob($path . '/*') as $sub) {

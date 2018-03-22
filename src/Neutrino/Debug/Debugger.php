@@ -4,9 +4,7 @@ namespace Neutrino\Debug;
 
 use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
-use Neutrino\Dotconst;
 use Neutrino\Error\Handler;
-use Neutrino\Support\Str;
 use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
@@ -191,7 +189,7 @@ class Debugger
           function (Event $event, $src, $data) {
               $eventType = $event->getType();
               if ($eventType === 'beforeRender') {
-                  self::$viewProfiles['render'][] = self::$viewProfiles['__render'][] =  [
+                  self::$viewProfiles['render'][] = self::$viewProfiles['__render'][] = [
                     'initialTime' => microtime(true)
                   ];
               } elseif ($eventType === 'beforeRenderView') {
@@ -284,43 +282,23 @@ class Debugger
     }
 
     /**
-     * @return \Phalcon\Mvc\View\Simple
+     * @param string $file
+     * @param array $params
+     *
+     * @return string|null
      */
-    public static function getIsolateView()
+    public static function internalRender($file, array $params = [])
     {
-        if (isset(self::$view)) {
-            return self::$view;
+        if(!isset(self::$view)){
+            include __DIR__ . '/helpers/functions.php';
+            $view = new View\Simple();
+            $view->setDI(new Di());
+            $view->setViewsDir(__DIR__ . '/resources/');
+            $view->registerEngines(['.html.php' => View\Engine\Php::class]);
+            self::$view = $view;
         }
 
-        include __DIR__ . '/helpers/functions.php';
-
-        $view = new View\Simple();
-        $view->setDI(new Di());
-        $view->setViewsDir(__DIR__ . '/resources/');
-        $view->registerEngines(
-          [
-            ".volt" => function ($view, $di) {
-                $volt = new View\Engine\Volt($view, $di);
-                $volt->setOptions([
-                  "compiledPath" => Di::getDefault()->get('config')->view->compiled_path,
-                  'compiledSeparator' => '_',
-                  "compiledExtension" => ".compiled",
-                  'compileAlways' => true,
-                ]);
-                $compiler = $volt->getCompiler();
-                $compiler->addFunction('is_string', 'is_string');
-                $compiler->addFilter('human_mtime', __NAMESPACE__ . '\\human_mtime');
-                $compiler->addFilter('human_bytes', __NAMESPACE__ . '\\human_bytes');
-                $compiler->addFilter('sql_highlight', __NAMESPACE__ . '\\sql_highlight');
-                $compiler->addFilter('file_highlight', __NAMESPACE__ . '\\file_highlight');
-                $compiler->addFilter('func_highlight', __NAMESPACE__ . '\\func_highlight');
-                $compiler->addFilter('merge', 'array_merge');
-                return $volt;
-            },
-          ]
-        );
-
-        return self::$view = $view;
+        return self::$view->setVars($params)->render($file);
     }
 
     /**

@@ -7,7 +7,7 @@ use Neutrino\Cli\Task;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
 use Neutrino\Optimizer\Composer;
-use Neutrino\Support\Str;
+use Neutrino\Support\Path;
 
 /**
  * Class OptimizeTask
@@ -103,16 +103,16 @@ class OptimizeTask extends Task
 
         if (file_exists(BASE_PATH . '/config/compile.php')) {
             $files = array_unique(array_map(function ($path) {
-                return Str::normalizePath($path);
+                return Path::normalize($path);
             }, array_merge($files, require BASE_PATH . '/config/compile.php')));
         }
 
         foreach ($files as $file) {
             try {
-                fwrite($handle, $preloader->getCode(Str::normalizePath($file), false) . PHP_EOL);
+                fwrite($handle, $preloader->getCode(Path::normalize($file), false) . PHP_EOL);
             } catch (\Exception $e) {
                 $this->block(array_merge([
-                    "File : " . Str::normalizePath($file),
+                    "File : " . Path::normalize($file),
                 ], explode("\n", Helper::format(Error::fromException($e)))), 'warn', 4);
             }
         }

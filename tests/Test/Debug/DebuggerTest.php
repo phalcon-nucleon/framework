@@ -223,19 +223,6 @@ class DebuggerTest extends TestCase
         }
     }
 
-    public function testGetIsolateView()
-    {
-        $this->setConfig(['view' => ['compiled_path' => __DIR__]]);
-        $view = Debugger::getIsolateView();
-
-        Reflexion::invoke($view, '_loadTemplateEngines');
-
-        $engines = Reflexion::get($view, '_engines');
-
-        $this->assertArrayHasKey('.volt', $engines);
-        $this->assertInstanceOf(View\Engine\Volt::class, $engines['.volt']);
-    }
-
     public function testRegister()
     {
         global $loader;

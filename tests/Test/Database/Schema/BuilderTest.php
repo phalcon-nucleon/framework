@@ -180,7 +180,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("createTable")
-            ->with('table', 'test', [
+            ->with('table', null, [
                 'columns' => [
                     new Column('id', [
                         'autoIncrement' => true,
@@ -220,7 +220,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("addColumn")
-            ->with('table', 'test', new Column('name', [
+            ->with('table', null, new Column('name', [
                 'type'    => Column::TYPE_VARCHAR,
                 'size'    => 256,
                 'notNull' => true
@@ -258,7 +258,7 @@ class BuilderTest extends TestCase
             ->method("modifyColumn")
             ->with(
                 'table',
-                'test',
+                null,
                 new Column('name', [
                     'type'    => Column::TYPE_VARCHAR,
                     'size'    => 512,
@@ -296,7 +296,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("addColumn")
-            ->with('table', 'test', new Column('name', [
+            ->with('table', null, new Column('name', [
                 'type'    => Column::TYPE_VARCHAR,
                 'size'    => 256,
                 'notNull' => true
@@ -304,7 +304,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("addIndex")
-            ->with('table', 'test', new Index('table_name_unique', ['name'], 'unique'));
+            ->with('table', null, new Index('table_name_unique', ['name'], 'unique'));
 
         (new Builder)->table('table', function (Blueprint $blueprint) {
             $blueprint->string('name', 256)->unique();
@@ -331,7 +331,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("addColumn")
-            ->with('table', 'test', new Column('ref', [
+            ->with('table', null, new Column('ref', [
                 'type'     => Column::TYPE_INTEGER,
                 'notNull'  => true,
                 'unsigned' => true
@@ -339,7 +339,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("addForeignKey")
-            ->with('table', 'test', new Reference('table_ref_foreign_table_2_ref', [
+            ->with('table', null, new Reference('table_ref_foreign_table_2_ref', [
                 'columns'           => ['ref'],
                 'referencedTable'   => 'table_2',
                 'referencedColumns' => ['ref']]));
@@ -376,7 +376,7 @@ class BuilderTest extends TestCase
             ->method("modifyColumn")
             ->with(
                 'table',
-                'test',
+                null,
                 new Column('new_name', [
                     'type'    => Column::TYPE_VARCHAR,
                     'size'    => 256,
@@ -422,7 +422,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("dropColumn")
-            ->with('table', 'test', 'name');
+            ->with('table', null, 'name');
 
         (new Builder)->table('table', function (Blueprint $blueprint) {
             $blueprint->dropColumn('name');
@@ -436,8 +436,8 @@ class BuilderTest extends TestCase
         $db->expects($this->exactly(2))
             ->method("dropColumn")
             ->withConsecutive(
-                ['table', 'test', 'col_1'],
-                ['table', 'test', 'col_2']
+                ['table', null, 'col_1'],
+                ['table', null, 'col_2']
             )
             ->willReturn(true);
 
@@ -453,9 +453,9 @@ class BuilderTest extends TestCase
         $db->expects($this->exactly(3))
             ->method("dropIndex")
             ->withConsecutive(
-                ['table', 'test', 'index_1'],
-                ['table', 'test', 'index_2'],
-                ['table', 'test', 'index_3']
+                ['table', null, 'index_1'],
+                ['table', null, 'index_2'],
+                ['table', null, 'index_3']
             )
             ->willReturn(true);
 
@@ -472,9 +472,9 @@ class BuilderTest extends TestCase
         $db->expects($this->exactly(3))
             ->method("dropForeignKey")
             ->withConsecutive(
-                ['table', 'test', 'foreign_1'],
-                ['table', 'test', 'foreign_2'],
-                ['table', 'test', 'foreign_3']
+                ['table', null, 'foreign_1'],
+                ['table', null, 'foreign_2'],
+                ['table', null, 'foreign_3']
             )
             ->willReturn(true);
 
@@ -490,7 +490,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("dropPrimaryKey")
-            ->with('table', 'test')
+            ->with('table', null)
             ->willReturn(true);
 
         (new Builder)->table('table', function (Blueprint $blueprint) {
@@ -504,7 +504,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("dropTable")
-            ->with('table', 'test', false);
+            ->with('table', null, false);
 
         (new Builder)->drop('table');
     }
@@ -515,7 +515,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("dropTable")
-            ->with('table', 'test', true);
+            ->with('table', null, true);
 
         (new Builder)->dropIfExists('table');
     }

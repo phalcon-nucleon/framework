@@ -160,7 +160,7 @@ class DatabaseStorageTest extends TestCase
 
         $db->expects($this->once())
             ->method("createTable")
-            ->with('migrations', 'test', [
+            ->with('migrations', null, [
                 'columns' => [
                     new Column('id', [
                         'autoIncrement' => true,

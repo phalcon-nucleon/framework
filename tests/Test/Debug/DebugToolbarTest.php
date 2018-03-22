@@ -114,44 +114,8 @@ class DebugToolbarTest extends TestCase
         $em = new Manager();
 
         Reflexion::set(Debugger::class, 'instance', (object)['em' => $em]);
-        Reflexion::set(Debugger::class, 'view', $view = $this->createMock(Simple::class));
 
-        $view->expects($this->once())
-            ->method('setVars')
-            ->with([
-                'requestHttpMethod' => 'GET',
-                'responseHttpCode'  => 200,
-                'dispatch'          => [
-                    'module'          => 'Module',
-                    'controllerClass' => 'getHandlerClass',
-                    'controller'      => 'getControllerName',
-                    'method'          => 'getActionName',
-                ],
-                'route'             => [
-                    'pattern' => null,
-                    'name'    => null,
-                    'id'      => null,
-                ],
-            ]);
-
-        $view->expects($this->exactly(7))
-            ->method('setVar')
-            ->withConsecutive(
-                ['mem_peak'],
-                ['render_time'],
-                ['events'],
-                ['build'],
-                ['php_errors'],
-                ['viewProfiles'],
-                ['profilers']
-            );
-
-        $this->expectOutputString('foo\baz');
-
-        $view->expects($this->once())
-            ->method('render')
-            ->with('bar')
-            ->willReturn('foo\baz');
+        $this->expectOutputRegex('!^<style!');
 
         DebugToolbar::register();
 

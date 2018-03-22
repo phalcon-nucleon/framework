@@ -16,6 +16,12 @@
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true" addUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./src</directory>
+            <exclude>
+                <directory suffix=".php">./src/Neutrino/Debug/resources</directory>
+            </exclude>
         </whitelist>
     </filter>
+    <php>
+        <env name="APP_ENV" value="test"/>
+    </php>
 </phpunit>

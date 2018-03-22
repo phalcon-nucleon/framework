@@ -461,4 +461,22 @@ class ArrFuncTest extends \PHPUnit_Framework_TestCase
         Arr::forget($array, ['emails.joe@example.com', 'emails.jane@localhost']);
         $this->assertEquals(['emails' => ['joe@example.com' => ['name' => 'Joe']]], $array);
     }
+
+    public function testMap()
+    {
+        $arr = ['abc', ['def', ['ghi']]];
+
+        $mapped = Arr::map(function ($item){
+            return gettype($item);
+        }, $arr);
+
+        $this->assertEquals(['string', 'array'], $mapped);
+
+        $mapped = Arr::map(function ($item){
+            return gettype($item);
+        }, $arr, true);
+
+        $this->assertEquals(['string', ['string', ['string']]], $mapped);
+
+    }
 }

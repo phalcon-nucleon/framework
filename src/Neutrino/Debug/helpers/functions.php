@@ -487,7 +487,7 @@ namespace Neutrino\Debug {
          *
          * Get length of an array or a string
          *
-         * @param string $var
+         * @param array|string $var
          *
          * @return int|null
          */

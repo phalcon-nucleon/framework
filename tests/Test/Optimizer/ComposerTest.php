@@ -35,10 +35,10 @@ class ComposerTest extends TestCase
     {
         return [
             [
-                'files'       => ['123' => __FILE__],
-                'namespaces'  => ['namespaces' => [__DIR__]],
-                'directories' => [__DIR__],
-                'classmap'    => ['Class_A' => __FILE__],
+                'files'       => ['123' => str_replace(DIRECTORY_SEPARATOR, '/', __FILE__)],
+                'namespaces'  => ['namespaces' => [str_replace(DIRECTORY_SEPARATOR, '/', __DIR__)]],
+                'directories' => [str_replace(DIRECTORY_SEPARATOR, '/', __DIR__)],
+                'classmap'    => ['Class_A' => str_replace(DIRECTORY_SEPARATOR, '/', __FILE__)],
             ]
         ];
     }
@@ -91,31 +91,33 @@ class ComposerTest extends TestCase
 
         $content = file_get_contents(__DIR__ . '/.data/loader.php');
 
+        $base = str_replace(DIRECTORY_SEPARATOR, '/', __DIR__);
+
         $cmd = [
             '<?php',
             '$loader = new Phalcon\Loader;',
             '$loader->registerFiles(' . var_export(array_values([
-                '123456' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/files_A.php',
-                '234567' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/files_B.php',
-                '345678' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/files_C.php',
+                '123456' => $base . '/fixture/files_A.php',
+                '234567' => $base . '/fixture/files_B.php',
+                '345678' => $base . '/fixture/files_C.php',
             ]), true) . ');',
             '$loader->registerDirs(' . var_export(array_values([
-                __DIR__ . DIRECTORY_SEPARATOR . 'fixture/namespace/src',
-                __DIR__ . DIRECTORY_SEPARATOR . 'fixture/namespace2/src',
-                __DIR__ . DIRECTORY_SEPARATOR . 'fixture/namespace2/lib'
+                $base . '/fixture/namespace/src',
+                $base . '/fixture/namespace2/src',
+                $base . '/fixture/namespace2/lib'
             ]), true) . ');',
             '$loader->registerNamespaces(' . var_export([
-                'Namespace'  => [__DIR__ . DIRECTORY_SEPARATOR . 'fixture/namespace/src'],
+                'Namespace'  => [$base . '/fixture/namespace/src'],
                 'Namespace2' => [
-                    __DIR__ . DIRECTORY_SEPARATOR . 'fixture/namespace2/src',
-                    __DIR__ . DIRECTORY_SEPARATOR . 'fixture/namespace2/lib'
+                    $base . '/fixture/namespace2/src',
+                    $base . '/fixture/namespace2/lib'
                 ],
-                'Psr4'       => [__DIR__ . DIRECTORY_SEPARATOR . 'fixture/Psr4/src'],
+                'Psr4'       => [$base . '/fixture/Psr4/src'],
             ], true) . ');',
             '$loader->registerClasses(' . var_export([
-                'Class_A' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/Class_A.php',
-                'Class_B' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/Class_B.php',
-                'Class_C' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/Class_C.php',
+                'Class_A' => $base . '/fixture/Class_A.php',
+                'Class_B' => $base . '/fixture/Class_B.php',
+                'Class_C' => $base . '/fixture/Class_C.php',
             ], true) . ');',
             '$loader->register();'
         ];
@@ -139,18 +141,20 @@ class ComposerTest extends TestCase
 
         $content = file_get_contents(__DIR__ . '/.data/loader.php');
 
+        $base = str_replace(DIRECTORY_SEPARATOR, '/', __DIR__);
+
         $cmd = [
             '<?php',
             '$loader = new Phalcon\Loader;',
             '$loader->registerFiles(' . var_export(array_values([
-                '123456' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/files_A.php',
-                '234567' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/files_B.php',
-                '345678' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/files_C.php',
+                '123456' => $base . '/fixture/files_A.php',
+                '234567' => $base . '/fixture/files_B.php',
+                '345678' => $base . '/fixture/files_C.php',
             ]), true) . ');',
             '$loader->registerClasses(' . var_export([
-                'Class_A' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/Class_A.php',
-                'Class_B' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/Class_B.php',
-                'Class_C' => __DIR__ . DIRECTORY_SEPARATOR . 'fixture/Class_C.php',
+                'Class_A' => $base . '/fixture/Class_A.php',
+                'Class_B' => $base . '/fixture/Class_B.php',
+                'Class_C' => $base . '/fixture/Class_C.php',
             ], true) . ');',
             '$loader->register();'
         ];

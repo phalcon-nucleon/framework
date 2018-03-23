@@ -2,6 +2,7 @@
 
 namespace Neutrino\PhpPreloader;
 
+use Neutrino\PhpPreloader\Visitors\ArrayShortConverterVisitor;
 use Neutrino\PhpPreloader\Visitors\DirConstVisitor;
 use Neutrino\PhpPreloader\Visitors\FileConstVisitor;
 use Neutrino\PhpPreloader\Visitors\UseRemoverVisitor;
@@ -47,6 +48,7 @@ class Factory
         $traverser->addVisitor(new UseRemoverVisitor());
         $traverser->addVisitor(new DirConstVisitor());
         $traverser->addVisitor(new FileConstVisitor());
+        $traverser->addVisitor(new ArrayShortConverterVisitor());
 
         return $traverser;
     }

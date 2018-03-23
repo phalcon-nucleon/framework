@@ -26,6 +26,10 @@ class ConfigCacheTask extends Task
 
         $preloader = new ConfigPreloader();
 
-        $preloader->compile();
+        try {
+            $preloader->compile();
+        } catch (\Exception $e) {
+            $this->block([$e->getMessage()], 'error');
+        }
     }
 }

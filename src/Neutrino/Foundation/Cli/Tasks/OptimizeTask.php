@@ -111,11 +111,16 @@ class OptimizeTask extends Task
         }
 
         try {
+            $parts = [];
+
             foreach ($files as $file) {
                 $file = Path::normalize($file);
 
                 try {
-                    fwrite($handle, $preloader->getCode($file) . PHP_EOL);
+                    $stmts = $preloader->parse($file);
+                    $stmts = $preloader->traverse($stmts);
+
+                    $parts = array_merge($parts, $stmts);
                 } catch (DirConstantException $e) {
                     $this->block([
                         "Usage of __DIR__ constant is prohibited. Use BASE_PATH . '/path' instead.",
@@ -133,6 +138,8 @@ class OptimizeTask extends Task
                     ], 'error');
                 }
             }
+
+            fwrite($handle, $preloader->prettyPrint($parts) . PHP_EOL);
         } finally {
             if (isset($r) && is_resource($r)) {
                 fclose($r);

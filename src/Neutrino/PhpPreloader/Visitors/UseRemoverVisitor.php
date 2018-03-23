@@ -1,6 +1,6 @@
 <?php
 
-namespace Neutrino\PhpParser;
+namespace Neutrino\PhpPreloader\Visitors;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
@@ -12,7 +12,7 @@ use PhpParser\NodeVisitorAbstract;
  *
  * @package Neutrino\PhpParser
  */
-class UseRemover extends NodeVisitorAbstract
+class UseRemoverVisitor extends NodeVisitorAbstract
 {
     public function leaveNode(Node $node)
     {

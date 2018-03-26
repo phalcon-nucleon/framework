@@ -68,7 +68,6 @@ class ClosureCompilerTest extends TestCase
         Reflexion::set(Curl::class, 'isAvailable', true);
         $curl = $this->mockService(Curl::class, Curl::class, false);
         $curl->expects($this->once())->method('setMethod')->with(Method::POST)->willReturnSelf();
-        $curl->expects($this->once())->method('setHeader')->with('Content-type', 'application/x-www-form-urlencoded')->willReturnSelf();
         $curl->expects($this->once())->method('setUri')->with('https://closure-compiler.appspot.com/compile')->willReturnSelf();
         $curl->expects($this->once())->method('setParams')->willReturnSelf();
         $curl->expects($this->once())->method('disableSsl')->willReturnSelf();
@@ -120,7 +119,6 @@ JS;
         Reflexion::set(Curl::class, 'isAvailable', true);
         $curl = $this->mockService(Curl::class, Curl::class, false);
         $curl->expects($this->once())->method('setMethod')->with(Method::POST)->willReturnSelf();
-        $curl->expects($this->once())->method('setHeader')->with('Content-type', 'application/x-www-form-urlencoded')->willReturnSelf();
         $curl->expects($this->once())->method('setUri')->with('https://closure-compiler.appspot.com/compile')->willReturnSelf();
         $curl->expects($this->once())->method('setParams')->with($query)->willReturnSelf();
         $curl->expects($this->once())->method('disableSsl')->willReturnSelf();

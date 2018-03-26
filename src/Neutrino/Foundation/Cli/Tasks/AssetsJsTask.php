@@ -50,14 +50,14 @@ class AssetsJsTask extends Task
     {
         $this->block([str_pad(strtoupper($type), 40, ' ', STR_PAD_BOTH)], $display, 4);
 
-        if ($this->hasOption('verbose-externs')) {
+        if (!$this->hasOption('verbose-externs')) {
             $externs = $this->extractExternsErrors($items, $options['compile']['externs_url']);
 
             foreach ($externs as $file => $count) {
                 $externs[$file] = "$file : $count";
             }
 
-            $this->block(array_merge(['External ' . $type . ' : (don\'t care)'], $externs), 'line');
+            $this->block(array_merge(['External ' . $type . ' :'], $externs), 'line');
         }
 
         if(!empty($items)){

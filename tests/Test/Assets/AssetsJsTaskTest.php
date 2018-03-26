@@ -62,7 +62,7 @@ class AssetsJsTaskTest extends TestCase
     public function testOutputErrors()
     {
         $task = new AssetsJsTask();
-        Reflexion::set($task, 'options', ['verbose-externs' => true]);
+        Reflexion::set($task, 'options', []);
 
         $output = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
         $output
@@ -80,10 +80,10 @@ class AssetsJsTaskTest extends TestCase
           ->expects($this->exactly(4))
           ->method('line')
           ->withConsecutive(
-            ['                                    '],
-            ['  External warnings : (don\'t care)  '],
-            ['  jquery.js : 1                     '],
-            ['                                    ']
+            ['                       '],
+            ['  External warnings :  '],
+            ['  jquery.js : 1        '],
+            ['                       ']
           );
         $output
           ->expects($this->exactly(5))
@@ -114,7 +114,7 @@ class AssetsJsTaskTest extends TestCase
     public function testMainAction()
     {
         $task = new AssetsJsTask();
-        Reflexion::set($task, 'options', ['verbose-externs' => true]);
+        Reflexion::set($task, 'options', []);
         $this->setConfig(['assets' => ['js' => ['compile' => ['externs_url' => ['jquery.js']]]]]);
 
         $closure = $this->mockService(ClosureCompiler::class, ClosureCompiler::class, true);

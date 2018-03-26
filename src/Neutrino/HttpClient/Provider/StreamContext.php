@@ -167,7 +167,7 @@ class StreamContext extends Request
                     }
 
                     return $this
-                        ->setOption('content', $params = http_build_query($params))
+                        ->setOption('content', $params)
                         ->setHeader('Content-Type', 'application/x-www-form-urlencoded')
                         ->setHeader('Content-Length', strlen($params));
                 }

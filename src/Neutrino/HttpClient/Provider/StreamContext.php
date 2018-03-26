@@ -153,16 +153,21 @@ class StreamContext extends Request
     protected function buildParams()
     {
             if ($this->isPostMethod()) {
+                $params = $this->params;
                 if ($this->isJsonRequest()) {
                     return $this
-                        ->setOption('content', $params = json_encode($this->params))
+                        ->setOption('content', $params = json_encode($params))
                         ->setHeader('Content-Type', 'application/json')
                         ->setHeader('Content-Length', strlen($params));
                 }
 
-                if (!empty($this->params)) {
+                if (!empty($params)) {
+                    if (!is_string($params)) {
+                        $params = http_build_query($params);
+                    }
+
                     return $this
-                        ->setOption('content', $params = http_build_query($this->params))
+                        ->setOption('content', $params = http_build_query($params))
                         ->setHeader('Content-Type', 'application/x-www-form-urlencoded')
                         ->setHeader('Content-Length', strlen($params));
                 }

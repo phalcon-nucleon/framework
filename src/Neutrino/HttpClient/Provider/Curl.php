@@ -95,6 +95,8 @@ class Curl extends Request
             return $this->response;
         } finally {
             if (isset($ch) && is_resource($ch)) {
+                $this->curlInfos($ch);
+
                 curl_close($ch);
             }
         }
@@ -171,9 +173,7 @@ class Curl extends Request
      */
     protected function curlInfos($ch)
     {
-        if ($this->response->getCode() === null) {
-            $this->response->setCode(curl_getinfo($ch, CURLINFO_HTTP_CODE));
-        }
+        $this->response->setCode(curl_getinfo($ch, CURLINFO_HTTP_CODE));
 
         if (($errno = curl_errno($ch)) !== 0) {
             $this->response->setErrorCode(curl_errno($ch));
@@ -191,16 +191,23 @@ class Curl extends Request
     protected function buildParams()
     {
         if ($this->isPostMethod()) {
+            $params = $this->params;
             if ($this->isJsonRequest()) {
                 return $this
-                    ->setOption(CURLOPT_POSTFIELDS, json_encode($this->params))
-                    ->setHeader('Content-Type', 'application/json');
+                    ->setOption(CURLOPT_POSTFIELDS, $params = json_encode($params))
+                    ->setHeader('Content-Type', 'application/json')
+                    ->setHeader('Content-Length', strlen($params));
             }
 
-            if (!empty($this->params)) {
+            if (!empty($params)) {
+                if (!is_string($params)) {
+                    $params = http_build_query($this->params);
+                }
+
                 return $this
-                    ->setOption(CURLOPT_POSTFIELDS, http_build_query($this->params))
-                    ->setHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    ->setOption(CURLOPT_POSTFIELDS, $params)
+                    ->setHeader('Content-Type', 'application/x-www-form-urlencoded')
+                    ->setHeader('Content-Length', strlen($params));
             }
 
             return $this;

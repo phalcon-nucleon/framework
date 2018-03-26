@@ -38,7 +38,7 @@ class Block
 
         $_lines = [];
         foreach ($lines as $line) {
-            $_lines = array_merge($_lines, explode(PHP_EOL, $line));
+            $_lines = array_merge($_lines, explode("\n", $line));
         }
 
         $lines = $_lines;

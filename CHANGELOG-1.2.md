@@ -1,5 +1,11 @@
 # Release Note
 
+## v1.2.4
+
+### Fixed 
+ - AssetsJsTask: Fix option "verbose-externs"
+ - HttpClient: Don't parse params if is already a string, for x-www-form-urlencoded
+
 ## v1.2.3
 
 ### Added 

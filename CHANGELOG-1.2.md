@@ -2,6 +2,9 @@
 
 ## v1.2.4
 
+### Added 
+ - DebugToolbar : Responsive hide infos for small screen
+ 
 ### Fixed 
  - AssetsJsTask: Fix option "verbose-externs"
  - HttpClient: Don't parse params if is already a string, for x-www-form-urlencoded

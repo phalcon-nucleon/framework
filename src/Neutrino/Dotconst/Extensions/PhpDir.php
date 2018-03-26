@@ -3,6 +3,7 @@
 namespace Neutrino\Dotconst\Extensions;
 
 use Neutrino\Dotconst\Helper;
+use Neutrino\Support\Path;
 
 /**
  * Class PhpDir
@@ -15,27 +16,28 @@ class PhpDir extends Extension
 
     /**
      * @param string $value
-     * @param string $path
+     * @param string $basePath
      *
      * @return string
      */
-    public function parse($value, $path)
+    public function parse($value, $basePath)
     {
         $match = $this->match($value);
 
-        return Helper::normalizePath($path . DIRECTORY_SEPARATOR . (isset($match[1]) ? $match[1] : '') . (isset($match[2]) ? $match[2] : ''));
+        return Helper::normalizePath($basePath . DIRECTORY_SEPARATOR . (isset($match[1]) ? $match[1] : '') . (isset($match[2]) ? $match[2] : ''));
     }
 
     /**
      * @param string $value
-     * @param string $path
+     * @param string $basePath
+     * @param string $compilePath
      *
      * @return string
      */
-    public function compile($value, $path)
+    public function compile($value, $basePath, $compilePath)
     {
         $match = $this->match($value);
 
-        return "'" . addslashes(Helper::normalizePath($path . DIRECTORY_SEPARATOR . (isset($match[1]) ? $match[1] : ''))) . "'";
+        return "__DIR__ . '" . addslashes('/' . Path::findRelative($compilePath, $basePath) . '/' . (isset($match[1]) ? $match[1] : '')) . "'";
     }
 }

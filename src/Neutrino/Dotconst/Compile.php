@@ -16,18 +16,18 @@ class Compile
     /**
      * Compile loaded & parsed ini files to php files.
      *
-     * @param $path
-     * @param $compilePath
+     * @param string $basePath
+     * @param string $compilePath
      *
      * @throws \Neutrino\Dotconst\Exception\InvalidFileException
      */
-    public static function compile($path, $compilePath)
+    public static function compile($basePath, $compilePath)
     {
         $extensions = Dotconst::getExtensions();
 
-        $raw = Loader::loadRaw($path);
+        $raw = Loader::loadRaw($basePath);
 
-        $config = Loader::fromFiles($path);
+        $config = Loader::fromFiles($basePath);
 
         $r = fopen($compilePath . '/consts.php', 'w');
 
@@ -46,7 +46,7 @@ class Compile
                 }
 
                 if ($extension->identify($value)) {
-                    fwrite($r, "define('$const', " . $extension->compile($value, $path) . ");" . PHP_EOL);
+                    fwrite($r, "define('$const', " . $extension->compile($value, $basePath, $compilePath) . ");" . PHP_EOL);
 
                     continue 2;
                 }

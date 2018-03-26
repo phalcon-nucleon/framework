@@ -13,11 +13,11 @@ class PhpConst extends Extension
 
     /**
      * @param string $value
-     * @param string $path
+     * @param string $basePath
      *
      * @return string
      */
-    public function parse($value, $path)
+    public function parse($value, $basePath)
     {
         $match = $this->match($value);
 
@@ -26,11 +26,12 @@ class PhpConst extends Extension
 
     /**
      * @param string $value
-     * @param string $path
+     * @param string $basePath
+     * @param string $compilePath
      *
      * @return string
      */
-    public function compile($value, $path)
+    public function compile($value, $basePath, $compilePath)
     {
         $match = $this->match($value);
 

@@ -40,17 +40,18 @@ abstract class Extension
 
     /**
      * @param string $value
-     * @param string $path
+     * @param string $basePath
      *
      * @return string
      */
-    abstract public function parse($value, $path);
+    abstract public function parse($value, $basePath);
 
     /**
      * @param string $value
-     * @param string $path
+     * @param string $basePath
+     * @param string $compilePath
      *
      * @return string
      */
-    abstract public function compile($value, $path);
+    abstract public function compile($value, $basePath, $compilePath);
 }

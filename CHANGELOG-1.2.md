@@ -9,6 +9,9 @@
  - AssetsJsTask: Fix option "verbose-externs"
  - HttpClient: Don't parse params if is already a string, for x-www-form-urlencoded
 
+### Changed 
+ - DebugToolbar : Better output anonymous class
+
 ## v1.2.3
 
 ### Added 

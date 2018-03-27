@@ -72,8 +72,9 @@ class VarDump
 
         if (is_object($var) && isset($this->dumpRefs[$id])) {
             $class = get_class($var);
-            $dump = '<code title="' . $class . '" class="nuc-object">';
-            $short = (preg_replace('/.*\\\\(\w+)$/', '$1', $class));
+            $className = $this->getClassName($class);
+            $dump = '<code title="' . $className . '" class="nuc-object">';
+            $short = (preg_replace('/.*\\\\(\w+)$/', '$1', $className));
             $dump .= $short . '</code> <span class="nuc-closure">{</span><span class="nuc-toggle nuc-toggle-object" data-target="nuc-ref-' . $id . '">#' . $id . '</span>';
             $dump .= '<span class="nuc-closure nuc-close">}</span>';
             $this->lvl--;
@@ -140,7 +141,9 @@ class VarDump
             $this->dumpRefs[$id] = true;
 
             $class = get_class($var);
-            $dump = '<code class="nuc-object" title="'.$class.'">' . (preg_replace('/.*\\\\(\w+)$/', '$1', $class)) . '</code> ';
+            $className = $this->getClassName($class);
+
+            $dump = '<code class="nuc-object" title="' . $className . '">' . (preg_replace('/.*\\\\(\w+)$/', '$1', $className)) . '</code> ';
             $dump .= '<span class="nuc-closure">{</span>';
 
             $prop = '';
@@ -162,7 +165,7 @@ class VarDump
                     $mod = '+';
                 }
                 $ctype = str_replace(' ', '-', gettype($val));
-                $vtype = $ctype ==='object' ? get_class($val) : $ctype;
+                $vtype = $ctype ==='object' ? $this->getClassName(get_class($val)) : $ctype;
                 $title = $type . ' ' . ($isStatic ? 'static ' : '') . $name . ':' . $vtype;
                 $prop .= '<li class="nuc-' . $ctype . ($this->__can_has_child($val) ? ' nuc-close' : '') . '">';
                 $prop .= '<code class="nuc-key" title="' . $title . '"><small class="nuc-modifier">' . $mod . '</small> ' . ($isStatic ? '::' : '') . $name . '</code>: ';
@@ -172,7 +175,7 @@ class VarDump
             foreach ($var as $key => $val) {
                 if (!in_array($key, $dumpedProperties, true)) {
                     $ctype = str_replace(' ', '-', gettype($val));
-                    $vtype = $ctype ==='object' ? get_class($val) : $ctype;
+                    $vtype = $ctype ==='object' ? $this->getClassName(get_class($val)) : $ctype;
                     $prop .= '<li class="nuc-' . $ctype . ($this->__can_has_child($val) ? ' nuc-close' : '') . '">';
                     $prop .= '<code class="nuc-key" title="public ' . $key . ':' . $vtype . '"><small class="nuc-modifier">+</small> ' . $key . '</code>: ';
                     $prop .= $this->__dump($val);
@@ -193,6 +196,15 @@ class VarDump
         $this->lvl--;
 
         return $dump;
+    }
+
+    private function getClassName($class)
+    {
+        if (preg_match('/^class@anonymous/', $class)) {
+            return 'class@anonymous';
+        }
+
+        return $class;
     }
 
     private function __can_has_child($var){

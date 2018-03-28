@@ -2,6 +2,7 @@
 
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
 use Neutrino\Optimizer\Composer;
 use Neutrino\PhpPreloader\Exceptions\DirConstantException;
@@ -23,20 +24,21 @@ class OptimizeTask extends Task
 
     private $compileTasks = [
         ConfigCacheTask::class,
-        DotconstCacheTask::class
+        DotconstCacheTask::class,
+        RouteCacheTask::class
     ];
 
     /**
-     * Optimize the autoloader.
+     * Runs all optimization
      *
-     * @description Optimize the autoloader.
+     * @description Runs all optimization.
      *
-     * @option      -m, --memory: Optimize memory.
+     * @option      -m, --memory: Generate a memory optimized autoloader.
      * @option      -f, --force: Force optimization.
      */
     public function mainAction()
     {
-        if(APP_DEBUG && !$this->hasOption('f', 'force')){
+        if (APP_DEBUG && !$this->hasOption('f', 'force')) {
             $this->info('Application is in debug mode.');
             $this->info('For optimize in debug please use the --force, -f option.');
 
@@ -50,15 +52,10 @@ class OptimizeTask extends Task
         ]);
 
         if ($this->hasOption('m', 'memory')) {
-            $res = $this->optimizeMemory();
+            $this->optimizeMemory();
         } else {
-            $res = $this->optimizeProcess();
+            $this->optimizeProcess();
         }
-        if ($res === false) {
-            $this->error('Autoloader generation has failed');
-        }
-
-        $this->info('Compiling common classes');
 
         $this->optimizeClass();
 
@@ -76,9 +73,17 @@ class OptimizeTask extends Task
      */
     protected function optimizeMemory()
     {
-        $this->info('Generating memory optimized auto-loader');
+        $this->output->write(Decorate::notice(str_pad('Generating memory optimized auto-loader', 40, ' ')), false);
 
-        return $this->optimizer->optimizeMemory();
+        $return = $this->optimizer->optimizeMemory();
+
+        if ($return) {
+            $this->info('Success');
+        } else {
+            $this->error('Error');
+        }
+
+        return $return;
     }
 
     /**
@@ -88,13 +93,23 @@ class OptimizeTask extends Task
      */
     protected function optimizeProcess()
     {
-        $this->info('Generating optimized auto-loader');
+        $this->output->write(Decorate::notice(str_pad('Generating optimized auto-loader', 40, ' ')), false);
 
-        return $this->optimizer->optimizeProcess();
+        $return = $this->optimizer->optimizeProcess();
+
+        if ($return) {
+            $this->info('Success');
+        } else {
+            $this->error('Error');
+        }
+
+        return $return;
     }
 
     protected function optimizeClass()
     {
+        $this->output->write(Decorate::notice(str_pad('Compiling common classes', 40, ' ')), false);
+
         $outputFile = BASE_PATH . '/bootstrap/compile/compile.php';
         $compileConfigFile = BASE_PATH . '/config/compile.php';
 
@@ -140,6 +155,12 @@ class OptimizeTask extends Task
             }
 
             fwrite($handle, $preloader->prettyPrint($parts) . PHP_EOL);
+
+            $this->info("Success");
+        } catch (\Exception $e) {
+            $this->error("Error");
+            $this->block([$e->getMessage()], 'error');
+
         } finally {
             if (isset($r) && is_resource($r)) {
                 fclose($r);

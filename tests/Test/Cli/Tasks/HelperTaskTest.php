@@ -87,9 +87,9 @@ class HelperTaskTest extends TestCase
                     [Helper::neutrinoVersion() . PHP_EOL, true],
                     ['Usage :', true],
                     ['Description :', true],
-                    ["\t" . 'Optimize the autoloader.', true],
+                    ["\t" . 'Runs all optimization.', true],
                     ['Options :', true],
-                    ["\t" . '-m, --memory: Optimize memory.', true],
+                    ["\t" . '-m, --memory: Generate a memory optimized autoloader.', true],
                     ["\t" . '-f, --force: Force optimization.', true],
                 ]]
             ]],

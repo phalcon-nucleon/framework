@@ -6,6 +6,7 @@
  - Own Preloader.  
  Improved class compilation, removing "use", converting the long syntax "array" to the short syntax.  
  Thanks to [nikic/php-parser](https://github.com/nikic/PHP-Parser).
+ - Kernel HTTP : Routes cache
 
 ### Changed 
  - Config::Cache : Aggregate now all config files into one file, and keep file content.

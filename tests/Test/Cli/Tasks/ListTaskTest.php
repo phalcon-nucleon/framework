@@ -55,9 +55,9 @@ class ListTaskTest extends TestCase
                  'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
              ], 'route:list', RouteListTask::class, 'mainAction'],
             [[
-                 'description' => 'Optimize the autoloader.',
+                 'description' => 'Runs all optimization.',
                  'cmd'         => Decorate::info('optimize'),
-                 'options'     => '-m, --memory: Optimize memory., -f, --force: Force optimization.',
+                 'options'     => '-m, --memory: Generate a memory optimized autoloader., -f, --force: Force optimization.',
              ], 'optimize', OptimizeTask::class, 'mainAction']
         ];
     }
@@ -98,9 +98,9 @@ class ListTaskTest extends TestCase
                  'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
              ], new Route('route:list', ['task' => RouteListTask::class])],
             [[
-                 'description' => 'Optimize the autoloader.',
+                 'description' => 'Runs all optimization.',
                  'cmd'         => Decorate::info('optimize'),
-                 'options'     => '-m, --memory: Optimize memory., -f, --force: Force optimization.',
+                 'options'     => '-m, --memory: Generate a memory optimized autoloader., -f, --force: Force optimization.',
              ], new Route('optimize', ['task' => OptimizeTask::class])]
         ];
     }
@@ -129,14 +129,14 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write'  => ['exactly' => 20, 'consecutive' => [
+            'write'  => ['exactly' => 21, 'consecutive' => [
                 //['Available Commands :'],
                 [Helper::neutrinoVersion() . PHP_EOL, true],
                 [' ' . Decorate::info('clear-compiled') . '         Clear compilation.                                    ', true],
                 [' ' . Decorate::info('help ( .*)*') . '                                                                  ', true],
                 [' ' . Decorate::info('list') . '                   List all commands available.                          ', true],
                 [' ' . Decorate::info('migrate') . '                Run the database migrations.                          ', true],
-                [' ' . Decorate::info('optimize') . '               Optimize the autoloader.                              ', true],
+                [' ' . Decorate::info('optimize') . '               Runs all optimization.                                ', true],
                 // assets
                 [' ' . Decorate::info('assets:js') . '              Compilation, Optimization, Minification of assets js. ', true],
                 [' ' . Decorate::info('assets:sass') . '            Compilation des assets sass.                          ', true],
@@ -153,6 +153,7 @@ class ListTaskTest extends TestCase
                 [' ' . Decorate::info('migrate:rollback') . '       Rollback the last database migration.                 ', true],
                 [' ' . Decorate::info('migrate:status') . '         Show the status of each migration.                    ', true],
                 //['route', true],
+                [' ' . Decorate::info('route:cache') . '            Generate a cache for http kernel\'s routes.            ', true],
                 [' ' . Decorate::info('route:list') . '             List all routes.                                      ', true],
                 //['server', true],
                 [' ' . Decorate::info('server:run') . '             Runs a local web server                               ', true],

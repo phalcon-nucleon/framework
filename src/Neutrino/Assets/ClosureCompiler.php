@@ -49,7 +49,6 @@ class ClosureCompiler implements AssetsCompilator
         $request = Factory::makeRequest();
         $request
             ->setMethod(Method::POST)
-            ->setHeader('Content-type', 'application/x-www-form-urlencoded')
             ->setUri('https://closure-compiler.appspot.com/compile')
             ->setParams($query)
             ->disableSsl();
@@ -57,7 +56,12 @@ class ClosureCompiler implements AssetsCompilator
         $response = $request->send();
 
         if (!$response->isOk()) {
-            throw new CompilatorException('Can\'t call closure compile api');
+            throw new CompilatorException(
+                "Can't call closure compile api.\n" .
+                "HTTP Status : {$response->getHeader()->get('Status')}\n" .
+                "HTTP Erreur : [{$response->getErrorCode()}]: {$response->getError()}\n" .
+                "HTTP Body   : {$response->getBody()}"
+            );
         }
 
         $content = $response->parse(JsonArray::class)->getData();

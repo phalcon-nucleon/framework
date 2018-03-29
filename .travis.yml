@@ -13,6 +13,7 @@ env:
   - PHALCON_VERSION="3.1.x"
   - PHALCON_VERSION="3.2.x"
   - PHALCON_VERSION="3.3.x"
+  - PHALCON_VERSION="3.4.x"
 
 matrix:
   exclude:

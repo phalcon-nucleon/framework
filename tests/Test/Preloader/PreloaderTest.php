@@ -47,7 +47,7 @@ class PreloaderTest extends TestCase
 
         fclose($output);
 
-        $this->assertEquals("<?php  declare(strict_types=1);\n", file_get_contents(__DIR__ . '/stub/newfile.php'));
+        $this->assertEquals("<?php declare(strict_types=1);\n", file_get_contents(__DIR__ . '/stub/newfile.php'));
     }
 
     public function testParseCode()

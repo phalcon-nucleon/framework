@@ -258,6 +258,7 @@ class ArrFuncTest extends \PHPUnit_Framework_TestCase
 
     public function testIsAssoc()
     {
+        $this->assertTrue(Arr::isAssoc([0 => 'a', 1 => 'b', 3 => 'c']));
         $this->assertTrue(Arr::isAssoc(['a' => 'a', 0 => 'b']));
         $this->assertTrue(Arr::isAssoc([1 => 'a', 0 => 'b']));
         $this->assertTrue(Arr::isAssoc([1 => 'a', 2 => 'b']));

@@ -93,7 +93,19 @@ class RouteCacheTask extends Task
         }
 
         foreach ($router->getRoutes() as $route) {
-            $str .= "\$router->add(" . var_export($route->getPattern(), true) . "," . var_export($route->getPaths(), true) . "," . var_export($route->getHttpMethods(), true) . ");\n";
+            $str .= "\$router->add("
+                . var_export($route->getCompiledPattern(), true) . ","
+                . var_export($route->getPaths(), true) . ","
+                . var_export($route->getHttpMethods(), true) . ")";
+
+            if (!empty($route->getName())) {
+                $str .= "->setName('" . $route->getName() . "')";
+            }
+            if (!empty($route->getHostname())) {
+                $str .= "->setHostname('" . $route->getHostname() . "')";
+            }
+
+            $str .= "\n;";
         }
 
         $preloader = (new Factory)->create();

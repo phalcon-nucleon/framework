@@ -41,9 +41,6 @@ class CsrfTest extends TestCase
         StubController::$registerMiddlewares = [];
     }
 
-    /**
-     * @expectedException \Neutrino\Exceptions\TokenMismatchException
-     */
     public function testCsrfFail_Get()
     {
         /** @var \PHPUnit_Framework_MockObject_MockObject $security */
@@ -60,14 +57,15 @@ class CsrfTest extends TestCase
         $session->expects($this->any())->method('get')->willReturn(false);
 
         $this->dispatch('/');
+
+        $this->assertEquals(403, $this->getDI()->get('response')->getStatusCode());
     }
 
-    /**
-     * @expectedException \Neutrino\Exceptions\TokenMismatchException
-     */
     public function testCsrfFail_Post()
     {
         $this->dispatch('/', 'POST');
+
+        $this->assertEquals(403, $this->getDI()->get('response')->getStatusCode());
     }
 
     public function testCsrfOk_Get()
@@ -81,7 +79,7 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/', 'GET', [$security->getTokenKey() => $security->getToken()]);
 
-        $this->assertTrue(true);
+        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
     }
 
     public function testCsrfOk_Post()
@@ -97,7 +95,7 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/', 'POST', [$security->getTokenKey() => $security->getToken()]);
 
-        $this->assertTrue(true);
+        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
     }
 
     public function testCsrfOk_Ajax()
@@ -114,12 +112,9 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/', 'POST', []);
 
-        $this->assertTrue(true);
+        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
     }
 
-    /**
-     * @expectedException \Neutrino\Exceptions\TokenMismatchException
-     */
     public function testCsrfFail_Ajax()
     {
         /** @var \PHPUnit_Framework_MockObject_MockObject $security */
@@ -139,6 +134,6 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/', 'POST', []);
 
-        $this->assertTrue(true);
+        $this->assertEquals(403, $this->getDI()->get('response')->getStatusCode());
     }
 }

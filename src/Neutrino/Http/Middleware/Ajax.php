@@ -1,18 +1,17 @@
 <?php
 
-namespace Neutrino\Auth\Middleware;
+namespace Neutrino\Http\Middleware;
 
-use Neutrino\Constants\Services;
-use Neutrino\Foundation\Middleware\Controller as ControllerMiddleware;
+use Neutrino\Foundation\Middleware\Controller;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Phalcon\Events\Event;
 
 /**
- * Class Authenticate
+ * Class Ajax
  *
- * @package Neutrino\Auth\Middleware
+ * @package Neutrino\Http\Middleware
  */
-class Authenticate extends ControllerMiddleware implements BeforeInterface
+class Ajax extends Controller implements BeforeInterface
 {
 
     /**
@@ -27,11 +26,11 @@ class Authenticate extends ControllerMiddleware implements BeforeInterface
      */
     public function before(Event $event, $source, $data = null)
     {
-        if ($this->{Services::AUTH}->check()) {
+        if (isset($_SERVER["HTTP_X_REQUESTED_WITH"]) && "xmlhttprequest" === strtolower($_SERVER["HTTP_X_REQUESTED_WITH"])) {
             return true;
         }
 
-        $this->response->setStatusCode(401, 'Unauthorized');
+        $this->response->setStatusCode(400, 'Bad Request');
 
         return false;
     }

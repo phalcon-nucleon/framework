@@ -341,7 +341,7 @@ class Arr
      *
      * @return bool
      */
-    public static function isAssoc(array $array)
+    public static function isAssoc($array)
     {
         return array_values($array) !== $array;
     }

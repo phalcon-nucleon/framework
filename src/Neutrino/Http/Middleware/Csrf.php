@@ -2,7 +2,6 @@
 
 namespace Neutrino\Http\Middleware;
 
-use Neutrino\Exceptions\TokenMismatchException;
 use Neutrino\Foundation\Middleware\Controller;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Phalcon\Events\Event;
@@ -53,7 +52,9 @@ class Csrf extends Controller implements BeforeInterface
         }
 
         if (!$tokenChecked) {
-            throw new TokenMismatchException;
+            $this->response->setStatusCode(403, 'Forbidden');
+
+            return false;
         }
 
         return true;

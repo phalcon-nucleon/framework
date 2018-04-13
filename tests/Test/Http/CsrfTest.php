@@ -5,8 +5,10 @@ namespace Test\Http;
 use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
 use Neutrino\Http\Middleware\Csrf;
+use Neutrino\Http\Standards\StatusCode;
 use Phalcon\Security;
 use Phalcon\Session\Adapter;
+use Phalcon\Version;
 use Test\TestCase\TestCase;
 
 class CsrfTest extends TestCase
@@ -41,6 +43,18 @@ class CsrfTest extends TestCase
         StubController::$registerMiddlewares = [];
     }
 
+    public function assertResponseStatusCode($expected)
+    {
+        $msg = StatusCode::message($expected);
+        if (Version::getPart(Version::VERSION_MEDIUM) >= 2) {
+            $status = $expected;
+        } else {
+            $status = $expected . ' ' . $msg;
+        }
+
+        $this->assertEquals($status, $this->getDI()->get('response')->getStatusCode());
+    }
+
     public function testCsrfFail_Get()
     {
         /** @var \PHPUnit_Framework_MockObject_MockObject $security */
@@ -58,14 +72,14 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/');
 
-        $this->assertEquals(403, $this->getDI()->get('response')->getStatusCode());
+        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
     }
 
     public function testCsrfFail_Post()
     {
         $this->dispatch('/', 'POST');
 
-        $this->assertEquals(403, $this->getDI()->get('response')->getStatusCode());
+        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
     }
 
     public function testCsrfOk_Get()
@@ -134,6 +148,6 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/', 'POST', []);
 
-        $this->assertEquals(403, $this->getDI()->get('response')->getStatusCode());
+        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
     }
 }

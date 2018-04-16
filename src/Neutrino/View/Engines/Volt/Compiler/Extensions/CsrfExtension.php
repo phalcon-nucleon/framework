@@ -15,13 +15,10 @@ class CsrfExtension extends ExtensionExtend
     public function compileFunction($name, $arguments, $funcArguments)
     {
         if ($name === 'csrf_field') {
-            return '$this->tag->hiddenField([$this->security->getTokenKey(), \'value\' => $this->security->getToken()])';
+            return '$this->tag->hiddenField(["_csrf_token", \'id\' => null, \'value\' => $this->security->getSessionToken() ?: $this->security->getToken()])';
         }
         if ($name === 'csrf_token') {
-            return '$this->security->getToken()';
-        }
-        if ($name === 'csrf_key') {
-            return '$this->security->getTokenKey()';
+            return '$this->security->getSessionToken() ?: $this->security->getToken()';
         }
 
         return null;

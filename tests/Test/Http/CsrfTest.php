@@ -91,7 +91,7 @@ class CsrfTest extends TestCase
 
         $session->expects($this->any())->method('get')->willReturn($security->getToken());
 
-        $this->dispatch('/', 'GET', [$security->getTokenKey() => $security->getToken()]);
+        $this->dispatch('/', 'GET', ['_csrf_token' => $security->getToken()]);
 
         $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
     }
@@ -103,11 +103,9 @@ class CsrfTest extends TestCase
         /** @var \PHPUnit_Framework_MockObject_MockObject $session */
         $session = $this->getDI()->getShared(Services::SESSION);
 
-        $session->expects($this->any())->method('get')
-            ->withAnyParameters()
-            ->willReturnOnConsecutiveCalls($security->getToken(), $security->getTokenKey(), $security->getToken());
+        $session->expects($this->any())->method('get')->willReturn($security->getToken());
 
-        $this->dispatch('/', 'POST', [$security->getTokenKey() => $security->getToken()]);
+        $this->dispatch('/', 'POST', ['_csrf_token' => $security->getToken()]);
 
         $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
     }
@@ -122,7 +120,7 @@ class CsrfTest extends TestCase
         $session->expects($this->any())->method('get')->willReturn($security->getToken());
 
         $_SERVER["HTTP_X_REQUESTED_WITH"]              = "XMLHttpRequest";
-        $_SERVER['HTTP_X_CSRF_' . strtoupper($security->getTokenKey())] = $security->getToken();
+        $_SERVER['HTTP_X_CSRF_TOKEN'] = $security->getToken();
 
         $this->dispatch('/', 'POST', []);
 

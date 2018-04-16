@@ -39,15 +39,15 @@ class Csrf extends Controller implements BeforeInterface
 
         if ($request->isAjax()) {
             $tokenChecked = $security->checkToken(
-                $security->getTokenKey(),
-                $request->getHeader('X_CSRF_' . strtoupper($security->getTokenKey()))
+                '_csrf_token',
+                $request->getHeader('X_CSRF_TOKEN')
             );
         } elseif ($request->isPost() || $request->isPut()) {
-            $tokenChecked = $security->checkToken();
+            $tokenChecked = $security->checkToken('_csrf_token');
         } elseif ($request->isGet() || $request->isDelete()) {
             $tokenChecked = $security->checkToken(
-                $security->getTokenKey(),
-                $request->getQuery($security->getTokenKey())
+                '_csrf_token',
+                $request->getQuery('_csrf_token')
             );
         }
 

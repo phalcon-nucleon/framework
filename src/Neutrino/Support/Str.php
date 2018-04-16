@@ -205,7 +205,7 @@ class Str
     }
 
     /**
-     * Parse a Class::method style callback into class and method.
+     * Parse a "Class@method" style callback into class and method.
      *
      * @param  string $callback
      * @param  string $default
@@ -501,21 +501,30 @@ class Str
         switch ($randFunc) {
             case 'random_bytes':
                 return random_bytes($size);
+            case '\Sodium\randombytes_buf':
+                return \Sodium\randombytes_buf($size);
             case 'openssl_random_pseudo_bytes':
                 return openssl_random_pseudo_bytes($size);
             case 'mcrypt_create_iv':
                 return mcrypt_create_iv($size, MCRYPT_DEV_URANDOM);
-            case '\Phalcon\Text':
-                return \Phalcon\Text::random(\Phalcon\Text::RANDOM_ALNUM, $size);
+            case '\Phalcon\Security\Random':
+                static $random;
+                if(!isset($random)){
+                    $random = new \Phalcon\Security\Random();
+                }
+
+                return $random->bytes($size);
             default:
                 if (function_exists('random_bytes')) {
                     $randFunc = 'random_bytes';
+                } elseif (function_exists('\Sodium\randombytes_buf')) {
+                    $randFunc = '\Sodium\randombytes_buf';
                 } elseif (function_exists('openssl_random_pseudo_bytes')) {
                     $randFunc = 'openssl_random_pseudo_bytes';
                 } elseif (function_exists('mcrypt_create_iv')) {
                     $randFunc = 'mcrypt_create_iv';
                 } else {
-                    $randFunc = '\Phalcon\Text';
+                    $randFunc = '\Phalcon\Security\Random';
                 }
 
                 return Str::callRandom($size);

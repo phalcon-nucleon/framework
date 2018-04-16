@@ -479,5 +479,8 @@ class ArrFuncTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(['string', ['string', ['string']]], $mapped);
 
+        $mapped = Arr::map('strtoupper', $arr, true);
+
+        $this->assertEquals(['ABC', ['DEF', ['GHI']]], $mapped);
     }
 }

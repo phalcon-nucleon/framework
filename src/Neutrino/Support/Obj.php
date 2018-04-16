@@ -19,6 +19,8 @@ class Obj
     }
 
     /**
+     * Get an item from an object.
+     *
      * @param      $object
      * @param      $property
      * @param null $default
@@ -39,6 +41,8 @@ class Obj
     }
 
     /**
+     * Get an item, no null, from an object.
+     *
      * @param      $object
      * @param      $property
      * @param null $default

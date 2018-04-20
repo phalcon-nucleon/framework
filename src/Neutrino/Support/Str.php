@@ -133,6 +133,8 @@ class Str
     }
 
     /**
+     * Sort a words list by their levenshtein distance of word.
+     *
      * @param string   $word
      * @param string[] $words
      * @param int      $order

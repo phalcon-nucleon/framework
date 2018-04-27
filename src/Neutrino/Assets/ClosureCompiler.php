@@ -109,7 +109,19 @@ class ClosureCompiler implements AssetsCompilator
     {
         $files = [];
 
-        foreach (glob($path . '/*') as $item) {
+        $paths = glob($path . '/*');
+
+        usort($paths, function ($a, $b) {
+            if (is_file($a)) {
+                return -1;
+            }
+            if (is_file($b)) {
+                return 1;
+            }
+            return 0;
+        });
+
+        foreach ($paths as $item) {
             if (is_dir($item)) {
                 $files = array_merge($files, $this->getDirFiles($item));
             } elseif (is_file($item)) {

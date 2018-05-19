@@ -27,7 +27,10 @@ class Url extends Provider
     {
         $url = new \Phalcon\Mvc\Url();
 
-        $url->setBaseUri($this->getDI()->getShared(Services::CONFIG)->app->base_uri);
+        $appConf = $this->getDI()->getShared(Services::CONFIG)->app;
+
+        $url->setBaseUri($appConf->base_uri);
+        $url->setStaticBaseUri(isset($appConf->static_base_uri) ? $appConf->static_base_uri : $appConf->base_uri);
 
         return $url;
     }

@@ -28,7 +28,6 @@ class ClosureCompiler implements AssetsCompilator
         $jsCode = $this->applyPrecompilation($jsCode, isset($options['precompilations']) ? $options['precompilations'] : []);
 
         $data = [
-          'js_code' => $jsCode,
           'compilation_level' => $options['compile']['level'],
           'output_format' => 'json',
           'output_info' => ['warnings', 'errors', 'statistics', 'compiled_code'],
@@ -43,8 +42,7 @@ class ClosureCompiler implements AssetsCompilator
             $data['js_externs'] = $this->extractJsCode($options['compile']['js_externs']);
         }
 
-        $query = http_build_query($data);
-        $query = preg_replace('/%5B[0-9]+%5D/simU', '', $query);
+        $query = http_build_query(['js_code' => $jsCode]) . '&' . preg_replace('/%5B[0-9]+%5D/simU', '', http_build_query($data));
 
         $request = Factory::makeRequest();
         $request

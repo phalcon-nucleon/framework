@@ -4,6 +4,7 @@ namespace Test\Optimizer;
 
 use Neutrino\Debug\Reflexion;
 use Neutrino\Optimizer\Composer;
+use Phalcon\Version;
 use Test\TestCase\TestCase;
 
 /**
@@ -60,13 +61,16 @@ class ComposerTest extends TestCase
         $cmd = [
             '<?php',
             '$loader = new Phalcon\Loader;',
+            (Version::getPart(Version::VERSION_MAJOR) >= 3 && Version::getPart(Version::VERSION_MEDIUM) >= 4)
+                ? '$loader->setFileCheckingCallback("stream_resolve_include_path");'
+                : '',
             '$loader->registerFiles(' . var_export(array_values($files), true) . ');',
             '$loader->registerDirs(' . var_export(array_values($directories), true) . ');',
             '$loader->registerNamespaces(' . var_export($namespaces, true) . ');',
             '$loader->registerClasses(' . var_export($classmap, true) . ');',
             '$loader->register();'
         ];
-        $this->assertEquals(implode("\n", $cmd) . "\n", $content);
+        $this->assertEquals(implode("\n", array_filter($cmd)) . "\n", $content);
     }
 
     public function testOptimizeMemory()
@@ -86,6 +90,9 @@ class ComposerTest extends TestCase
         $cmd = [
             '<?php',
             '$loader = new Phalcon\Loader;',
+            (Version::getPart(Version::VERSION_MAJOR) >= 3 && Version::getPart(Version::VERSION_MEDIUM) >= 4)
+                ? '$loader->setFileCheckingCallback("stream_resolve_include_path");'
+                : '',
             '$loader->registerFiles(' . var_export(array_values([
                 '123456' => $base . '/fixture/files_A.php',
                 '234567' => $base . '/fixture/files_B.php',
@@ -111,7 +118,7 @@ class ComposerTest extends TestCase
             ], true) . ');',
             '$loader->register();'
         ];
-        $this->assertEquals(implode("\n", $cmd) . "\n", $content);
+        $this->assertEquals(implode("\n", array_filter($cmd)) . "\n", $content);
     }
 
     public function testOptimizeProcess()
@@ -131,6 +138,9 @@ class ComposerTest extends TestCase
         $cmd = [
             '<?php',
             '$loader = new Phalcon\Loader;',
+            (Version::getPart(Version::VERSION_MAJOR) >= 3 && Version::getPart(Version::VERSION_MEDIUM) >= 4)
+                ? '$loader->setFileCheckingCallback("stream_resolve_include_path");'
+                : '',
             '$loader->registerFiles(' . var_export(array_values([
                 '123456' => $base . '/fixture/files_A.php',
                 '234567' => $base . '/fixture/files_B.php',
@@ -143,6 +153,6 @@ class ComposerTest extends TestCase
             ], true) . ');',
             '$loader->register();'
         ];
-        $this->assertEquals(implode("\n", $cmd) . "\n", $content);
+        $this->assertEquals(implode("\n", array_filter($cmd)) . "\n", $content);
     }
 }

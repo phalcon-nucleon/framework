@@ -23,19 +23,19 @@ class RouteFunctionTest extends TestCase
         });
 
         $this->assertEquals(
-            "<?= str_replace(['/#^', '$#u'], '', \$this->url->get(['for' => 'user'])) ?>",
+            "<?= \$this->url->get(['for' => 'user']) ?>",
             $c->compileString("{{ route('user') }}")
         );
         $this->assertEquals(
-            "<?= str_replace(['/#^', '$#u'], '', \$this->url->get(['for' => 'user', 'id' => 123])) ?>",
+            "<?= \$this->url->get(['for' => 'user', 'id' => 123]) ?>",
             $c->compileString("{{ route('user', ['id': 123]) }}")
         );
         $this->assertEquals(
-            "<?= str_replace(['/#^', '$#u'], '', \$this->url->get(['for' => 'user'], ['id' => 123])) ?>",
+            "<?= \$this->url->get(['for' => 'user'], ['id' => 123]) ?>",
             $c->compileString("{{ route('user', null, ['id': 123]) }}")
         );
         $this->assertEquals(
-            "<?= str_replace(['/#^', '$#u'], '', \$this->url->get(['for' => 'user', 'id' => 123], ['q' => 'abc'])) ?>",
+            "<?= \$this->url->get(['for' => 'user', 'id' => 123], ['q' => 'abc']) ?>",
             $c->compileString("{{ route('user', ['id': 123], ['q': 'abc']) }}")
         );
     }

@@ -40,6 +40,6 @@ class RouteFunction extends FunctionExtend
         }
         $url .= ')';
 
-        return "str_replace(['/#^', '$#u'], '', $url)";
+        return $url;
     }
 }

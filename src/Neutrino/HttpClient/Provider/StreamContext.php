@@ -102,7 +102,6 @@ class StreamContext extends Request
         stream_context_set_option($context, ['http' => array_merge([
             'follow_location' => 1,
             'max_redirects'   => 20,
-            'timeout'         => 30,
             'ignore_errors'   => true,
         ], $this->options, ['method' => $this->method])]);
     }

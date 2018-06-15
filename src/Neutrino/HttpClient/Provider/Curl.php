@@ -127,8 +127,6 @@ class Curl extends Request
                 CURLOPT_HEADER          => $this->fullResponse,
                 CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
                 CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
-                CURLOPT_CONNECTTIMEOUT  => 30,
-                CURLOPT_TIMEOUT         => 30,
                 CURLOPT_HEADERFUNCTION  => [$this, 'curlHeaderFunction'],
             ]);
 

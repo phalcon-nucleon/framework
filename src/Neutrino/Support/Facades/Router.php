@@ -9,7 +9,7 @@ use Neutrino\Constants\Services;
  *
  *  @package Neutrino\Support\Facades
  *
- * @method static \Phalcon\Cli\Router\RouteInterface addTask(string $pattern, mixed $paths, mixed $httpMethods = null, mixed $position = null) Adds a route to the router (CLI Only)
+ * @method static \Phalcon\Cli\Router\RouteInterface addTask(string $command, string $class, string|null $action = null, array $params = []) Adds a route to the router (CLI Only)
  *          
  * @method static string getRewriteUri() Get rewrite info. This info is read from $_GET['_url']. This returns '/' if the rewrite information cannot be read
  * @method static \Phalcon\Mvc\RouterInterface setUriSource(mixed $uriSource) Sets the URI source. One of the URI_SOURCE_constants

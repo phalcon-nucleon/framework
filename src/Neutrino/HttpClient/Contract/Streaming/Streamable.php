@@ -17,24 +17,24 @@ interface Streamable extends EventsAwareInterface
 
     /**
      * @param string $event
-     * @param $callback
+     * @param \Closure $callback
      *
-     * @return mixed
+     * @return $this
      */
     public function on($event, $callback);
 
     /**
-     * @param $event
-     * @param $callback
+     * @param string $event
+     * @param \Closure $callback
      *
-     * @return mixed
+     * @return $this
      */
     public function off($event, $callback);
 
     /**
      * @param int $size
      *
-     * @return mixed
+     * @return $this
      */
     public function setBufferSize($size);
 }

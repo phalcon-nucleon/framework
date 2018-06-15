@@ -208,7 +208,7 @@ abstract class Model extends \Phalcon\Mvc\Model
     }
 
     /**
-     *
+     * Add column type
      *
      * @param string $name
      * @param int    $type

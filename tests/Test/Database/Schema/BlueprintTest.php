@@ -3,10 +3,10 @@
 namespace Test\Database\Schema;
 
 use Neutrino\Database\Schema;
+use Neutrino\Database\Schema\Definition;
 use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema\Exception\UnknownCommandException;
 use Neutrino\Debug\Reflexion;
-use Neutrino\Support\Fluent;
 use Phalcon\Db\Column;
 use Phalcon\Db\Index;
 use Phalcon\Db\Reference;
@@ -28,19 +28,19 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['increments', 'col_increments', [],
-             new Fluent(['name' => 'col_increments', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
+             new Definition(['name' => 'col_increments', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
              new Column('col_increments', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true, 'primary' => true])],
             ['tinyIncrements', 'col_tinyIncrements', [],
-             new Fluent(['name' => 'col_tinyIncrements', 'type' => 'tinyInteger', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
+             new Definition(['name' => 'col_tinyIncrements', 'type' => 'tinyInteger', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
              new Column('col_tinyIncrements', ['type' => 'TINYINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true, 'primary' => true])],
             ['smallIncrements', 'col_smallIncrements', [],
-             new Fluent(['name' => 'col_smallIncrements', 'type' => 'smallInteger', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
+             new Definition(['name' => 'col_smallIncrements', 'type' => 'smallInteger', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
              new Column('col_smallIncrements', ['type' => 'SMALLINT', 'typeReference' => Column::TYPE_INTEGER,  'autoIncrement' => true, 'unsigned' => true, 'notNull' => true, 'primary' => true])],
             ['mediumIncrements', 'col_mediumIncrements', [],
-             new Fluent(['name' => 'col_mediumIncrements', 'type' => 'mediumInteger', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
+             new Definition(['name' => 'col_mediumIncrements', 'type' => 'mediumInteger', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
              new Column('col_mediumIncrements', ['type' => 'MEDIUMINT',  'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true, 'primary' => true])],
             ['bigIncrements', 'col_bigIncrements', [],
-             new Fluent(['name' => 'col_bigIncrements', 'type' => 'bigInteger', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
+             new Definition(['name' => 'col_bigIncrements', 'type' => 'bigInteger', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
              new Column('col_bigIncrements', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true, 'primary' => true])],
         ];
     }
@@ -52,25 +52,25 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['char', 'col_char', [],
-             new Fluent(['name' => 'col_char', 'type' => 'char', 'size' => 255]),
+             new Definition(['name' => 'col_char', 'type' => 'char', 'size' => 255]),
              new Column('col_char', ['type' => Column::TYPE_CHAR, 'size' => 255, 'notNull' => true])],
             ['char', 'col_char_4', [4],
-             new Fluent(['name' => 'col_char_4', 'type' => 'char', 'size' => 4]),
+             new Definition(['name' => 'col_char_4', 'type' => 'char', 'size' => 4]),
              new Column('col_char_4', ['type' => Column::TYPE_CHAR, 'size' => 4, 'notNull' => true])],
             ['string', 'col_string', [],
-             new Fluent(['name' => 'col_string', 'type' => 'string', 'size' => 255]),
+             new Definition(['name' => 'col_string', 'type' => 'string', 'size' => 255]),
              new Column('col_string', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true])],
             ['string', 'col_string', [128],
-             new Fluent(['name' => 'col_string', 'type' => 'string', 'size' => 128]),
+             new Definition(['name' => 'col_string', 'type' => 'string', 'size' => 128]),
              new Column('col_string', ['type' => Column::TYPE_VARCHAR, 'size' => 128, 'notNull' => true])],
             ['text', 'col_text', [],
-             new Fluent(['name' => 'col_text', 'type' => 'text',]),
+             new Definition(['name' => 'col_text', 'type' => 'text',]),
              new Column('col_text', ['type' => Column::TYPE_TEXT, 'notNull' => true])],
             ['mediumText', 'col_mediumText', [],
-             new Fluent(['name' => 'col_mediumText', 'type' => 'mediumText',]),
+             new Definition(['name' => 'col_mediumText', 'type' => 'mediumText',]),
              new Column('col_mediumText', ['type' => 'MEDIUMTEXT', 'typeReference' => Column::TYPE_TEXT, 'notNull' => true])],
             ['longText', 'col_longText', [],
-             new Fluent(['name' => 'col_longText', 'type' => 'longText',]),
+             new Definition(['name' => 'col_longText', 'type' => 'longText',]),
              new Column('col_longText', ['type' => 'LONGTEXT', 'typeReference' => Column::TYPE_TEXT, 'notNull' => true])],
         ];
     }
@@ -82,43 +82,43 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['integer', 'col_integer', [false, false],
-             new Fluent(['name' => 'col_integer', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => false]),
+             new Definition(['name' => 'col_integer', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => false]),
              new Column('col_integer', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
             ['integer', 'col_integer_inc', [true, false],
-             new Fluent(['name' => 'col_integer_inc', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => false, 'primary' => true]),
+             new Definition(['name' => 'col_integer_inc', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => false, 'primary' => true]),
              new Column('col_integer_inc', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => false, 'notNull' => true, 'primary' => true])],
             ['integer', 'col_integer_inc_uns', [true, true],
-             new Fluent(['name' => 'col_integer_inc_uns', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
+             new Definition(['name' => 'col_integer_inc_uns', 'type' => 'integer', 'autoIncrement' => true, 'unsigned' => true, 'primary' => true]),
              new Column('col_integer_inc_uns', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => true, 'unsigned' => true, 'notNull' => true, 'primary' => true])],
             ['integer', 'col_integer_2', [],
-             new Fluent(['name' => 'col_integer_2', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => false]),
+             new Definition(['name' => 'col_integer_2', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => false]),
              new Column('col_integer_2', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
             ['tinyInteger', 'col_tinyInteger', [],
-             new Fluent(['name' => 'col_tinyInteger', 'type' => 'tinyInteger', 'autoIncrement' => false, 'unsigned' => false]),
+             new Definition(['name' => 'col_tinyInteger', 'type' => 'tinyInteger', 'autoIncrement' => false, 'unsigned' => false]),
              new Column('col_tinyInteger', ['type' => 'TINYINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
             ['smallInteger', 'col_smallInteger', [],
-             new Fluent(['name' => 'col_smallInteger', 'type' => 'smallInteger', 'autoIncrement' => false, 'unsigned' => false]),
+             new Definition(['name' => 'col_smallInteger', 'type' => 'smallInteger', 'autoIncrement' => false, 'unsigned' => false]),
              new Column('col_smallInteger', ['type' => 'SMALLINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
             ['mediumInteger', 'col_mediumInteger', [],
-             new Fluent(['name' => 'col_mediumInteger', 'type' => 'mediumInteger', 'autoIncrement' => false, 'unsigned' => false]),
+             new Definition(['name' => 'col_mediumInteger', 'type' => 'mediumInteger', 'autoIncrement' => false, 'unsigned' => false]),
              new Column('col_mediumInteger', ['type' => 'MEDIUMINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
             ['bigInteger', 'col_bigInteger', [],
-             new Fluent(['name' => 'col_bigInteger', 'type' => 'bigInteger', 'autoIncrement' => false, 'unsigned' => false,]),
+             new Definition(['name' => 'col_bigInteger', 'type' => 'bigInteger', 'autoIncrement' => false, 'unsigned' => false,]),
              new Column('col_bigInteger', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => false, 'unsigned' => false, 'notNull' => true])],
             ['unsignedInteger', 'col_unsignedInteger', [],
-             new Fluent(['name' => 'col_unsignedInteger', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => true]),
+             new Definition(['name' => 'col_unsignedInteger', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => true]),
              new Column('col_unsignedInteger', ['type' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
             ['unsignedTinyInteger', 'col_unsignedTinyInteger', [],
-             new Fluent(['name' => 'col_unsignedTinyInteger', 'type' => 'tinyInteger', 'autoIncrement' => false, 'unsigned' => true]),
+             new Definition(['name' => 'col_unsignedTinyInteger', 'type' => 'tinyInteger', 'autoIncrement' => false, 'unsigned' => true]),
              new Column('col_unsignedTinyInteger', ['type' => 'TINYINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
             ['unsignedSmallInteger', 'col_unsignedSmallInteger', [],
-             new Fluent(['name' => 'col_unsignedSmallInteger', 'type' => 'smallInteger', 'autoIncrement' => false, 'unsigned' => true]),
+             new Definition(['name' => 'col_unsignedSmallInteger', 'type' => 'smallInteger', 'autoIncrement' => false, 'unsigned' => true]),
              new Column('col_unsignedSmallInteger', ['type' => 'SMALLINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
             ['unsignedMediumInteger', 'col_unsignedMediumInteger', [],
-             new Fluent(['name' => 'col_unsignedMediumInteger', 'type' => 'mediumInteger', 'autoIncrement' => false, 'unsigned' => true]),
+             new Definition(['name' => 'col_unsignedMediumInteger', 'type' => 'mediumInteger', 'autoIncrement' => false, 'unsigned' => true]),
              new Column('col_unsignedMediumInteger', ['type' => 'MEDIUMINT', 'typeReference' => Column::TYPE_INTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
             ['unsignedBigInteger', 'col_unsignedBigInteger', [],
-             new Fluent(['name' => 'col_unsignedBigInteger', 'type' => 'bigInteger', 'autoIncrement' => false, 'unsigned' => true]),
+             new Definition(['name' => 'col_unsignedBigInteger', 'type' => 'bigInteger', 'autoIncrement' => false, 'unsigned' => true]),
              new Column('col_unsignedBigInteger', ['type' => Column::TYPE_BIGINTEGER, 'autoIncrement' => false, 'unsigned' => true, 'notNull' => true])],
         ];
     }
@@ -130,13 +130,13 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['float', 'col_float', [],
-             new Fluent(['name' => 'col_float', 'type' => 'float',]),
+             new Definition(['name' => 'col_float', 'type' => 'float',]),
              new Column('col_float', ['type' => Column::TYPE_FLOAT, 'notNull' => true])],
             ['double', 'col_double', [],
-             new Fluent(['name' => 'col_double', 'type' => 'double',]),
+             new Definition(['name' => 'col_double', 'type' => 'double',]),
              new Column('col_double', ['type' => Column::TYPE_DOUBLE, 'notNull' => true])],
             ['decimal', 'col_decimal', [],
-             new Fluent(['name' => 'col_decimal', 'type' => 'decimal',]),
+             new Definition(['name' => 'col_decimal', 'type' => 'decimal',]),
              new Column('col_decimal', ['type' => Column::TYPE_DECIMAL, 'notNull' => true])],
         ];
     }
@@ -148,70 +148,70 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['boolean', 'col_boolean', [],
-             new Fluent(['name' => 'col_boolean', 'type' => 'boolean',]),
+             new Definition(['name' => 'col_boolean', 'type' => 'boolean',]),
              new Column('col_boolean', ['type' => Column::TYPE_BOOLEAN, 'notNull' => true])],
             ['enum', 'col_enum', [['a', 'b', 'c']],
-             new Fluent(['name' => 'col_enum', 'type' => 'enum', 'values' => ['a', 'b', 'c']]),
+             new Definition(['name' => 'col_enum', 'type' => 'enum', 'values' => ['a', 'b', 'c']]),
              new Column('col_enum', ['type' => 'ENUM', 'typeReference' => -1, 'typeValues' => ['a', 'b', 'c'], 'notNull' => true])],
             ['json', 'col_json', [],
-             new Fluent(['name' => 'col_json', 'type' => 'json',]),
+             new Definition(['name' => 'col_json', 'type' => 'json',]),
              new Column('col_json', ['type' => Column::TYPE_JSON, 'notNull' => true])],
             ['jsonb', 'col_jsonb', [],
-             new Fluent(['name' => 'col_jsonb', 'type' => 'jsonb',]),
+             new Definition(['name' => 'col_jsonb', 'type' => 'jsonb',]),
              new Column('col_jsonb', ['type' => Column::TYPE_JSONB, 'notNull' => true])],
             ['date', 'col_date', [],
-             new Fluent(['name' => 'col_date', 'type' => 'date',]),
+             new Definition(['name' => 'col_date', 'type' => 'date',]),
              new Column('col_date', ['type' => Column::TYPE_DATE, 'notNull' => true])],
             ['dateTime', 'col_dateTime', [],
-             new Fluent(['name' => 'col_dateTime', 'type' => 'dateTime', 'precision' => 0]),
+             new Definition(['name' => 'col_dateTime', 'type' => 'dateTime', 'precision' => 0]),
              new Column('col_dateTime', ['type' => Column::TYPE_DATETIME, 'notNull' => true])],
             ['dateTimeTz', 'col_dateTimeTz', [],
-             new Fluent(['name' => 'col_dateTimeTz', 'type' => 'dateTimeTz', 'precision' => 0]),
+             new Definition(['name' => 'col_dateTimeTz', 'type' => 'dateTimeTz', 'precision' => 0]),
              new Column('col_dateTimeTz', ['type' => Column::TYPE_DATETIME, 'notNull' => true])],
             ['time', 'col_time', [],
-             new Fluent(['name' => 'col_time', 'type' => 'time',]),
+             new Definition(['name' => 'col_time', 'type' => 'time',]),
              new Column('col_time', ['type' => 'TIME', 'typeReference' => Column::TYPE_DATETIME, 'notNull' => true,])],
             ['timeTz', 'col_timeTz', [],
-             new Fluent(['name' => 'col_timeTz', 'type' => 'timeTz',]),
+             new Definition(['name' => 'col_timeTz', 'type' => 'timeTz',]),
              new Column('col_timeTz', ['type' => 'TIME', 'typeReference' => Column::TYPE_DATETIME, 'notNull' => true,])],
             ['timestamp', 'col_timestamp', [],
-             new Fluent(['name' => 'col_timestamp', 'type' => 'timestamp', 'precision' => 0]),
+             new Definition(['name' => 'col_timestamp', 'type' => 'timestamp', 'precision' => 0]),
              new Column('col_timestamp', ['type' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => true])],
             ['timestampTz', 'col_timestampTz', [],
-             new Fluent(['name' => 'col_timestampTz', 'type' => 'timestampTz', 'precision' => 0]),
+             new Definition(['name' => 'col_timestampTz', 'type' => 'timestampTz', 'precision' => 0]),
              new Column('col_timestampTz', ['type' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => true])],
             ['softDeletes', 'deleted_at', [],
-             new Fluent(['name' => 'deleted_at', 'type' => 'timestamp', 'precision' => 0, 'nullable' => true]),
+             new Definition(['name' => 'deleted_at', 'type' => 'timestamp', 'precision' => 0, 'nullable' => true]),
              new Column('deleted_at', ['type' => Column::TYPE_TIMESTAMP, 'precision' => 0, 'notNull' => false])],
             ['softDeletesTz', 'deleted_at', [],
-             new Fluent(['name' => 'deleted_at', 'type' => 'timestampTz', 'precision' => 0, 'nullable' => true]),
+             new Definition(['name' => 'deleted_at', 'type' => 'timestampTz', 'precision' => 0, 'nullable' => true]),
              new Column('deleted_at', ['type' => Column::TYPE_TIMESTAMP,  'precision' => 0, 'notNull' => false])],
             ['binary', 'col_binary', [],
-             new Fluent(['name' => 'col_binary', 'type' => 'blob',]),
+             new Definition(['name' => 'col_binary', 'type' => 'blob',]),
              new Column('col_binary', ['type' => Column::TYPE_BLOB, 'notNull' => true,])],
             ['blob', 'col_blob', [],
-             new Fluent(['name' => 'col_blob', 'type' => 'blob',]),
+             new Definition(['name' => 'col_blob', 'type' => 'blob',]),
              new Column('col_blob', ['type' => Column::TYPE_BLOB, 'notNull' => true,])],
             ['tinyBlob', 'col_tinyBlob', [],
-             new Fluent(['name' => 'col_tinyBlob', 'type' => 'tinyBlob',]),
+             new Definition(['name' => 'col_tinyBlob', 'type' => 'tinyBlob',]),
              new Column('col_tinyBlob', ['type' => Column::TYPE_TINYBLOB, 'notNull' => true,])],
             ['mediumBlob', 'col_mediumBlob', [],
-             new Fluent(['name' => 'col_mediumBlob', 'type' => 'mediumBlob',]),
+             new Definition(['name' => 'col_mediumBlob', 'type' => 'mediumBlob',]),
              new Column('col_mediumBlob', ['type' => Column::TYPE_MEDIUMBLOB, 'notNull' => true,])],
             ['longBlob', 'col_longBlob', [],
-             new Fluent(['name' => 'col_longBlob', 'type' => 'longBlob',]),
+             new Definition(['name' => 'col_longBlob', 'type' => 'longBlob',]),
              new Column('col_longBlob', ['type' => Column::TYPE_LONGBLOB, 'notNull' => true,])],
             ['uuid', 'col_uuid', [],
-             new Fluent(['name' => 'col_uuid', 'type' => 'uuid']),
+             new Definition(['name' => 'col_uuid', 'type' => 'uuid']),
              new Column('col_uuid', ['type' => Column::TYPE_CHAR, 'size' => 36, 'notNull' => true])],
             ['ipAddress', 'col_ipAddress', [],
-             new Fluent(['name' => 'col_ipAddress', 'type' => 'ipAddress']),
+             new Definition(['name' => 'col_ipAddress', 'type' => 'ipAddress']),
              new Column('col_ipAddress', ['type' => Column::TYPE_VARCHAR, 'size' => 45, 'notNull' => true])],
             ['macAddress', 'col_macAddress', [],
-             new Fluent(['name' => 'col_macAddress', 'type' => 'macAddress']),
+             new Definition(['name' => 'col_macAddress', 'type' => 'macAddress']),
              new Column('col_macAddress', ['type' => Column::TYPE_VARCHAR, 'size' => 17, 'notNull' => true])],
             ['rememberToken', 'remember_token', [],
-             new Fluent(['name' => 'remember_token', 'type' => 'string', 'size' => 100, 'nullable' => true]),
+             new Definition(['name' => 'remember_token', 'type' => 'string', 'size' => 100, 'nullable' => true]),
              new Column('remember_token', ['type' => Column::TYPE_VARCHAR, 'size' => 100, 'notNull' => false])],
         ];
     }
@@ -279,20 +279,20 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['timestamps', [
-                'created_at' => new Fluent(['name' => 'created_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP']),
-                'updated_at' => new Fluent(['name' => 'updated_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP'])
+                'created_at' => new Definition(['name' => 'created_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP']),
+                'updated_at' => new Definition(['name' => 'updated_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP'])
             ]],
             ['timestampsTz', [
-                'created_at' => new Fluent(['name' => 'created_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP']),
-                'updated_at' => new Fluent(['name' => 'updated_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP'])
+                'created_at' => new Definition(['name' => 'created_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP']),
+                'updated_at' => new Definition(['name' => 'updated_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP'])
             ]],
             ['nullableTimestamps', [
-                'created_at' => new Fluent(['name' => 'created_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'nullable' => true]),
-                'updated_at' => new Fluent(['name' => 'updated_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP', 'nullable' => true])
+                'created_at' => new Definition(['name' => 'created_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'nullable' => true]),
+                'updated_at' => new Definition(['name' => 'updated_at', 'type' => 'timestamp', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP', 'nullable' => true])
             ]],
             ['nullableTimestampsTz', [
-                'created_at' => new Fluent(['name' => 'created_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'nullable' => true]),
-                'updated_at' => new Fluent(['name' => 'updated_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP', 'nullable' => true])
+                'created_at' => new Definition(['name' => 'created_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'nullable' => true]),
+                'updated_at' => new Definition(['name' => 'updated_at', 'type' => 'timestampTz', 'precision' => 0, 'default' => 'CURRENT_TIMESTAMP', 'onUpdate' =>  'CURRENT_TIMESTAMP', 'nullable' => true])
             ]],
         ];
     }
@@ -311,13 +311,13 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
     public function testMorphs()
     {
-        $morphsId   = new Fluent(['name' => 'morphs_id', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => true]);
-        $morphsType = new Fluent(['name' => 'morphs_type', 'type' => 'string', 'size' => 255]);
-        $morphsIndex = new Fluent(['name' => 'test_morphs_id_morphs_type_index', 'columns' => ['morphs_id', 'morphs_type'], 'type' => 'index']);
+        $morphsId   = new Definition(['name' => 'morphs_id', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => true]);
+        $morphsType = new Definition(['name' => 'morphs_type', 'type' => 'string', 'size' => 255]);
+        $morphsIndex = new Definition(['name' => 'test_morphs_id_morphs_type_index', 'columns' => ['morphs_id', 'morphs_type'], 'type' => 'index']);
 
-        $nullMorphsId = new Fluent(['name' => 'null_morphs_id', 'type' => 'integer', 'autoIncrement' => false,'unsigned' => true, 'nullable' => true]);
-        $nullMorphsType = new Fluent(['name' => 'null_morphs_type', 'type' => 'string', 'size' => 255, 'nullable' => true]);
-        $nullMorphsIndex = new Fluent(['name' => 'test_null_morphs_id_null_morphs_type_index', 'columns' => ['null_morphs_id', 'null_morphs_type'], 'type' => 'index']);
+        $nullMorphsId = new Definition(['name' => 'null_morphs_id', 'type' => 'integer', 'autoIncrement' => false,'unsigned' => true, 'nullable' => true]);
+        $nullMorphsType = new Definition(['name' => 'null_morphs_type', 'type' => 'string', 'size' => 255, 'nullable' => true]);
+        $nullMorphsIndex = new Definition(['name' => 'test_null_morphs_id_null_morphs_type_index', 'columns' => ['null_morphs_id', 'null_morphs_type'], 'type' => 'index']);
 
         $blueprint = new Blueprint('test');
 
@@ -371,14 +371,14 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             [
-                [new Fluent(['name' => 'column', 'type' => 'integer', 'index' => true])],
+                [new Definition(['name' => 'column', 'type' => 'integer', 'index' => true])],
                 [new Column('column', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
-                [new Fluent(['name' => 'test_column_index', 'type' => 'index', 'columns' => ['column']])]
+                [new Definition(['name' => 'test_column_index', 'type' => 'index', 'columns' => ['column']])]
             ],
             [
-                [new Fluent(['name' => 'column', 'type' => 'integer', 'unique' => true])],
+                [new Definition(['name' => 'column', 'type' => 'integer', 'unique' => true])],
                 [new Column('column', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
-                [new Fluent(['name' => 'test_column_unique', 'type' => 'unique', 'columns' => ['column']])]
+                [new Definition(['name' => 'test_column_unique', 'type' => 'unique', 'columns' => ['column']])]
             ],
         ];
     }
@@ -401,7 +401,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
 
     public function testFluentToColumnReferenced()
     {
-        $column = new Fluent([
+        $column = new Definition([
             'name'       => 'column',
             'type'       => 'integer',
             'foreign'    => true,
@@ -414,7 +414,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             'notNull' => true
         ]);
 
-        $expectedReference = new Fluent([
+        $expectedReference = new Definition([
             'name'       => null,
             'type'       => 'foreign',
             'columns'    => ['column'],
@@ -435,23 +435,23 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     public function dataFluentToIndex(){
         return [
             [
-                new Fluent(['name' => 'test_column_index', 'type' => 'index', 'columns' => ['column']]),
+                new Definition(['name' => 'test_column_index', 'type' => 'index', 'columns' => ['column']]),
                 new Index('test_column_index', ['column'], '')
             ], [
-                new Fluent(['name' => 'test_column_unique', 'type' => 'unique', 'columns' => ['column']]),
+                new Definition(['name' => 'test_column_unique', 'type' => 'unique', 'columns' => ['column']]),
                 new Index('test_column_unique', ['column'], 'unique')
             ], [
-                new Fluent(['name' => 'test_column_primary', 'type' => 'primary', 'columns' => ['column']]),
+                new Definition(['name' => 'test_column_primary', 'type' => 'primary', 'columns' => ['column']]),
                 new Index('test_column_primary', ['column'], 'primary')
             ],
             [
-                new Fluent(['name' => 'test_column_column_2_index', 'type' => 'index', 'columns' => ['column', 'column_2']]),
+                new Definition(['name' => 'test_column_column_2_index', 'type' => 'index', 'columns' => ['column', 'column_2']]),
                 new Index('test_column_column_2_index', ['column', 'column_2'], '')
             ], [
-                new Fluent(['name' => 'test_column_column_2_unique', 'type' => 'unique', 'columns' => ['column', 'column_2']]),
+                new Definition(['name' => 'test_column_column_2_unique', 'type' => 'unique', 'columns' => ['column', 'column_2']]),
                 new Index('test_column_column_2_unique', ['column', 'column_2'], 'unique')
             ], [
-                new Fluent(['name' => 'test_column_column_2_primary', 'type' => 'primary', 'columns' => ['column', 'column_2']]),
+                new Definition(['name' => 'test_column_column_2_primary', 'type' => 'primary', 'columns' => ['column', 'column_2']]),
                 new Index('test_column_column_2_primary', ['column', 'column_2'], 'primary')
             ],
         ];
@@ -473,7 +473,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             [
-                new Fluent(['name'       => null, 'type' => 'foreign', 'columns' => ['column'], 'on' => 'test_2',
+                new Definition(['name'       => null, 'type' => 'foreign', 'columns' => ['column'], 'on' => 'test_2',
                             'references' => ['column']]),
                 new Reference('test_column_foreign_test_2_column', [
                     'columns'           => ['column'],
@@ -481,7 +481,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                     'referencedColumns' => ['column'],
                 ])
             ], [
-                new Fluent(['name'       => 'test_column_foreign_test_2_column', 'type' => 'foreign', 'columns' => ['column'],
+                new Definition(['name'       => 'test_column_foreign_test_2_column', 'type' => 'foreign', 'columns' => ['column'],
                             'on'         => 'test_2',
                             'references' => ['column']]),
                 new Reference('test_column_foreign_test_2_column', [
@@ -490,7 +490,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                     'referencedColumns' => ['column'],
                 ])
             ], [
-                new Fluent(['name'       => null, 'type' => 'foreign', 'columns' => ['col_1', 'col_2'],
+                new Definition(['name'       => null, 'type' => 'foreign', 'columns' => ['col_1', 'col_2'],
                             'on'         => 'test_2',
                             'references' => ['col_a', 'col_b']]),
                 new Reference('test_col_1_col_2_foreign_test_2_col_a_col_b', [
@@ -732,37 +732,37 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['dropColumn', ['column'], [
-                new Fluent(['name' => 'dropColumn', 'column' => 'column'])]],
+                new Definition(['name' => 'dropColumn', 'column' => 'column'])]],
             ['dropColumns', [['column', 'col']], [
-                new Fluent(['name' => 'dropColumn', 'column' => 'column']),
-                new Fluent(['name' => 'dropColumn', 'column' => 'col'])]],
+                new Definition(['name' => 'dropColumn', 'column' => 'column']),
+                new Definition(['name' => 'dropColumn', 'column' => 'col'])]],
             ['dropIndex', ['index'], [
-                new Fluent(['name' => 'dropIndex', 'index' => 'index'])]],
+                new Definition(['name' => 'dropIndex', 'index' => 'index'])]],
             ['dropUnique', ['unique'], [
-                new Fluent(['name' => 'dropIndex', 'index' => 'unique'])]],
+                new Definition(['name' => 'dropIndex', 'index' => 'unique'])]],
             ['dropPrimary', [], [
-                new Fluent(['name' => 'dropPrimary'])]],
+                new Definition(['name' => 'dropPrimary'])]],
             ['dropForeign', ['fk'], [
-                new Fluent(['name' => 'dropForeign', 'reference' => 'fk'])]],
+                new Definition(['name' => 'dropForeign', 'reference' => 'fk'])]],
             ['rename', ['test_2'], [
-                new Fluent(['name' => 'rename', 'to' => 'test_2'])]],
+                new Definition(['name' => 'rename', 'to' => 'test_2'])]],
             ['renameColumn', ['column', 'col'], [
-                new Fluent(['name' => 'renameColumn', 'from' => 'column', 'to' => 'col'])]],
+                new Definition(['name' => 'renameColumn', 'from' => 'column', 'to' => 'col'])]],
 
             ['dropTimestamps', [], [
-                new Fluent(['name' => 'dropColumn', 'column' => 'created_at']),
-                new Fluent(['name' => 'dropColumn', 'column' => 'updated_at'])]],
+                new Definition(['name' => 'dropColumn', 'column' => 'created_at']),
+                new Definition(['name' => 'dropColumn', 'column' => 'updated_at'])]],
             ['dropTimestampsTz', [], [
-                new Fluent(['name' => 'dropColumn', 'column' => 'created_at']),
-                new Fluent(['name' => 'dropColumn', 'column' => 'updated_at'])]],
+                new Definition(['name' => 'dropColumn', 'column' => 'created_at']),
+                new Definition(['name' => 'dropColumn', 'column' => 'updated_at'])]],
 
             ['dropSoftDeletes', ['column'], [
-                new Fluent(['name' => 'dropColumn', 'column' => 'deleted_at'])]],
+                new Definition(['name' => 'dropColumn', 'column' => 'deleted_at'])]],
             ['dropSoftDeletesTz', ['column'], [
-                new Fluent(['name' => 'dropColumn', 'column' => 'deleted_at'])]],
+                new Definition(['name' => 'dropColumn', 'column' => 'deleted_at'])]],
 
             ['dropRememberToken', ['column'], [
-                new Fluent(['name' => 'dropColumn', 'column' => 'remember_token'])]],
+                new Definition(['name' => 'dropColumn', 'column' => 'remember_token'])]],
         ];
     }
 
@@ -808,7 +808,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
         $blueprint->string('name');
 
         $data[] = [$blueprint, [], [
-            new Fluent(['name' => 'addColumn', 'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255])])
+            new Definition(['name' => 'addColumn', 'column' => new Definition(['name' => 'name', 'type' => 'string', 'size' => 255])])
         ]];
 
         $blueprint = new Blueprint('test');
@@ -821,9 +821,9 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             [
                 new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
             ], [
-                new Fluent([
+                new Definition([
                     'name'   => 'modifyColumn',
-                    'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255]),
+                    'column' => new Definition(['name' => 'name', 'type' => 'string', 'size' => 255]),
                     'from'   => new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
                 ])
             ]
@@ -840,22 +840,22 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             [
                 new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
             ], [
-                new Fluent([
+                new Definition([
                     'name'   => 'modifyColumn',
-                    'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255]),
+                    'column' => new Definition(['name' => 'name', 'type' => 'string', 'size' => 255]),
                     'from'   => new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
                 ]),
-                new Fluent([
+                new Definition([
                     'name' => 'addColumn',
-                    'column' => new Fluent(['name' => 'test', 'type' => 'string', 'size' => 255])
+                    'column' => new Definition(['name' => 'test', 'type' => 'string', 'size' => 255])
                 ]),
-                new Fluent([
+                new Definition([
                     'name' => 'addIndex',
-                    'index' => new Fluent(['name' => 'test_name_unique', 'type' => 'unique', 'columns' => ['name']])
+                    'index' => new Definition(['name' => 'test_name_unique', 'type' => 'unique', 'columns' => ['name']])
                 ]),
-                new Fluent([
+                new Definition([
                     'name' => 'addIndex',
-                    'index' => new Fluent(['name' => 'test_test_index', 'type' => 'index', 'columns' => ['test']])
+                    'index' => new Definition(['name' => 'test_test_index', 'type' => 'index', 'columns' => ['test']])
                 ])
             ]
         ];
@@ -873,14 +873,14 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             [
                 new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
             ], [
-                new Fluent([
+                new Definition([
                     'name'   => 'modifyColumn',
-                    'column' => new Fluent(['name' => 'name', 'type' => 'string', 'size' => 255]),
+                    'column' => new Definition(['name' => 'name', 'type' => 'string', 'size' => 255]),
                     'from'   => new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
                 ]),
-                new Fluent(['name' => 'addColumn', 'column' => new Fluent(['name' => 'test', 'type' => 'string', 'size' => 255])]),
-                new Fluent(['name' => 'addIndex', 'index' => new Fluent(['name' => 'test_name_unique', 'columns' => ['name'], 'type' => 'unique'])]),
-                new Fluent(['name' => 'addIndex', 'index' => new Fluent(['name' => 'test_test_index', 'columns' => ['test'], 'type' => 'index'])]),
+                new Definition(['name' => 'addColumn', 'column' => new Definition(['name' => 'test', 'type' => 'string', 'size' => 255])]),
+                new Definition(['name' => 'addIndex', 'index' => new Definition(['name' => 'test_name_unique', 'columns' => ['name'], 'type' => 'unique'])]),
+                new Definition(['name' => 'addIndex', 'index' => new Definition(['name' => 'test_test_index', 'columns' => ['test'], 'type' => 'index'])]),
             ]
         ];
 
@@ -894,7 +894,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             [
                 new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
             ], [
-                new Fluent(['name' => 'addForeign', 'reference' => new Fluent([
+                new Definition(['name' => 'addForeign', 'reference' => new Definition([
                     'name'       => null,
                     'columns'    => ['test'],
                     'on'         => 'test_2',
@@ -927,13 +927,13 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             $blueprint = new Blueprint('test');
             $blueprint->update();
 
-            Reflexion::set($blueprint, 'commands', [new Fluent(['name' => 'unexist'])]);
+            Reflexion::set($blueprint, 'commands', [new Definition(['name' => 'unexist'])]);
 
             $db = $this->createMock(\Phalcon\Db\Adapter::class);
             $dbConfig = ['dbname' => 'schema'];
             $dialect = $this->createMock(MockDialect::class);
 
-            $blueprint->build($db, $dbConfig, $dialect);
+            $blueprint->build($db, $dialect);
         } catch (\Exception $e) {
             $this->assertInstanceOf(UnknownCommandException::class, $e);
             $this->assertRegExp(

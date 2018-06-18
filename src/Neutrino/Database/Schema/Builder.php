@@ -265,7 +265,7 @@ class Builder extends Injectable
      */
     protected function build(Blueprint $blueprint)
     {
-        $blueprint->build($this->db, $this->dbConfig, $this->grammar);
+        $blueprint->build($this->db, $this->grammar);
     }
 
     /**

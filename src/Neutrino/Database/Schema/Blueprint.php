@@ -4,7 +4,6 @@ namespace Neutrino\Database\Schema;
 
 use Neutrino\Database\Schema\Exception\CommandException;
 use Neutrino\Database\Schema\Exception\UnknownCommandException;
-use Neutrino\Support\Fluent;
 use Phalcon\Db\AdapterInterface as Db;
 use Phalcon\Db\Column;
 use Phalcon\Db\Index;
@@ -23,16 +22,16 @@ class Blueprint
     /** @var string FOR POSTGRESQL */
     protected $schema = null;
 
-    /** @var Fluent[] */
+    /** @var Definition[] */
     protected $columns = [];
 
-    /** @var Fluent[] */
+    /** @var Definition[] */
     protected $indexes = [];
 
-    /** @var Fluent[] */
+    /** @var Definition[] */
     protected $references = [];
 
-    /** @var Fluent[] */
+    /** @var Definition[] */
     protected $commands = [];
 
     /** @var array */
@@ -55,23 +54,22 @@ class Blueprint
      * Execute the blueprint against the database.
      *
      * @param \Phalcon\Db\AdapterInterface               $db
-     * @param array                                      $dbConfig
      * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return bool
      * @throws \Exception
      */
-    public function build(Db $db, array $dbConfig, DialectInterface $grammar)
+    public function build(Db $db, DialectInterface $grammar)
     {
         switch ($this->action) {
             case 'create':
-                return $this->buildCreate($db, $dbConfig, $grammar);
+                return $this->buildCreate($db, $grammar);
             case 'update':
-                return $this->buildUpdate($db, $dbConfig, $grammar);
+                return $this->buildUpdate($db, $grammar);
             case 'dropIfExists':
-                return $this->buildDrop($db, $dbConfig, $grammar, true);
+                return $this->buildDrop($db, true);
             case 'drop':
-                return $this->buildDrop($db, $dbConfig, $grammar, false);
+                return $this->buildDrop($db, false);
             default:
                 if (empty($this->action)) {
                     $message = "Blueprint must has action";
@@ -84,12 +82,11 @@ class Blueprint
 
     /**
      * @param \Phalcon\Db\AdapterInterface               $db
-     * @param array                                      $dbConfig
      * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return bool
      */
-    protected function buildCreate(Db $db, array $dbConfig, DialectInterface $grammar)
+    protected function buildCreate(Db $db, DialectInterface $grammar)
     {
         return $db->createTable($this->table, $this->schema, $this->buildTableDefinition($grammar));
     }
@@ -145,7 +142,7 @@ class Blueprint
         }
 
         foreach ($this->references as $reference) {
-            $definition['references'][] = $this->fluentToReference($reference, $grammar);
+            $definition['references'][] = $this->fluentToReference($reference);
         }
 
         foreach ($this->options as $name => $value) {
@@ -157,15 +154,14 @@ class Blueprint
 
     /**
      * @param \Phalcon\Db\AdapterInterface               $db
-     * @param array                                      $dbConfig
      * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return bool
      * @throws \Exception
      */
-    protected function buildUpdate(Db $db, array $dbConfig, DialectInterface $grammar)
+    protected function buildUpdate(Db $db, DialectInterface $grammar)
     {
-        $this->buildCommands($db, $dbConfig);
+        $this->buildCommands($db);
 
         $table = $this->table;
         $schema = $this->schema;
@@ -235,7 +231,7 @@ class Blueprint
                     $res = $db->addForeignKey(
                         $table,
                         $schema,
-                        $this->fluentToReference($command->get('reference'), $grammar)
+                        $this->fluentToReference($command->get('reference'))
                     );
                     break;
                 case 'dropColumn':
@@ -286,9 +282,8 @@ class Blueprint
      * Build all columns, indexes, references, to commands
      *
      * @param \Phalcon\Db\AdapterInterface $db
-     * @param array                        $dbConfig
      */
-    protected function buildCommands(Db $db, array $dbConfig)
+    protected function buildCommands(Db $db)
     {
         $columns = $db->describeColumns($this->table, $this->schema);
         foreach ($this->columns as $column) {
@@ -314,22 +309,20 @@ class Blueprint
     }
 
     /**
-     * @param \Phalcon\Db\AdapterInterface               $connection
-     * @param array                                      $dbConfig
-     * @param \Neutrino\Database\Schema\DialectInterface $grammar
-     * @param bool                                       $ifExist
+     * @param \Phalcon\Db\AdapterInterface $connection
+     * @param bool                         $ifExist
      *
      * @return bool
      */
-    protected function buildDrop(Db $connection, array $dbConfig, DialectInterface $grammar, $ifExist = false)
+    protected function buildDrop(Db $connection, $ifExist = false)
     {
         return $connection->dropTable($this->table, $this->schema, $ifExist);
     }
 
     /**
-     * @param \Neutrino\Support\Fluent $column
+     * @param \Neutrino\Database\Schema\Definition $column
      */
-    protected function buildIndexAndForeignFromFluentColumn(Fluent $column)
+    protected function buildIndexAndForeignFromFluentColumn(Definition $column)
     {
         $attributes = $column->getAttributes();
 
@@ -359,12 +352,12 @@ class Blueprint
     /**
      * Transform a Fluent(Column) to a \Phalcon\Db\Column
      *
-     * @param \Neutrino\Support\Fluent                   $column
+     * @param \Neutrino\Database\Schema\Definition       $column
      * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return \Phalcon\Db\Column
      */
-    protected function fluentToColumn(Fluent $column, DialectInterface $grammar)
+    protected function fluentToColumn(Definition $column, DialectInterface $grammar)
     {
         $attributes = $column->getAttributes();
 
@@ -394,12 +387,12 @@ class Blueprint
     /**
      * Transform a Fluent(Index) to a \Phalcon\Db\Index
      *
-     * @param \Neutrino\Support\Fluent                   $index
+     * @param \Neutrino\Database\Schema\Definition                   $index
      * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return \Phalcon\Db\Index
      */
-    protected function fluentToIndex(Fluent $index, DialectInterface $grammar)
+    protected function fluentToIndex(Definition $index, DialectInterface $grammar)
     {
         $name = $index->get('name') ?: $this->createIndexName($index->get('type'), $index->get('columns'));
 
@@ -409,12 +402,11 @@ class Blueprint
     /**
      * Transform a Fluent(Reference) to a \Phalcon\Db\Reference
      *
-     * @param \Neutrino\Support\Fluent                   $index
-     * @param \Neutrino\Database\Schema\DialectInterface $grammar
+     * @param \Neutrino\Database\Schema\Definition $index
      *
      * @return \Phalcon\Db\Reference
      */
-    protected function fluentToReference(Fluent $index, DialectInterface $grammar)
+    protected function fluentToReference(Definition $index)
     {
         $columns = (array)$index->get('columns');
         $references = (array)$index->get('references');
@@ -500,7 +492,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function dropColumn($column)
     {
@@ -525,7 +517,7 @@ class Blueprint
      * @param  string $from
      * @param  string $to
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function renameColumn($from, $to)
     {
@@ -535,7 +527,7 @@ class Blueprint
     /**
      * Indicate that the given primary key should be dropped.
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function dropPrimary()
     {
@@ -547,7 +539,7 @@ class Blueprint
      *
      * @param  string|array $index
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function dropUnique($index)
     {
@@ -559,7 +551,7 @@ class Blueprint
      *
      * @param  string|array $index
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function dropIndex($index)
     {
@@ -571,7 +563,7 @@ class Blueprint
      *
      * @param  string|array $reference
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function dropForeign($reference)
     {
@@ -647,7 +639,7 @@ class Blueprint
      *
      * @param  string $to
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function rename($to)
     {
@@ -660,7 +652,7 @@ class Blueprint
      * @param  string|array $columns
      * @param  string|null  $name
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function primary($columns, $name = null)
     {
@@ -673,7 +665,7 @@ class Blueprint
      * @param  string|array $columns
      * @param  string|null  $name
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function unique($columns, $name = null)
     {
@@ -687,7 +679,7 @@ class Blueprint
      * @param  string|null  $name
      * @param  string       $type Type of index
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function index($columns, $name = null, $type = __FUNCTION__)
     {
@@ -700,7 +692,7 @@ class Blueprint
      * @param  string|array $columns
      * @param  string|null  $name
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function foreign($columns, $name = null)
     {
@@ -712,7 +704,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function increments($column)
     {
@@ -724,7 +716,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function tinyIncrements($column)
     {
@@ -736,7 +728,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function smallIncrements($column)
     {
@@ -748,7 +740,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function mediumIncrements($column)
     {
@@ -760,7 +752,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function bigIncrements($column)
     {
@@ -773,7 +765,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $length
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function char($column, $length = null)
     {
@@ -786,7 +778,7 @@ class Blueprint
      * @param  string   $column
      * @param  int|null $length
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function string($column, $length = null)
     {
@@ -798,7 +790,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function text($column)
     {
@@ -810,7 +802,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function mediumText($column)
     {
@@ -822,13 +814,21 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function longText($column)
     {
         return $this->addColumn(__FUNCTION__, $column);
     }
 
+    /**
+     * @param string $type
+     * @param string $column
+     * @param bool   $autoIncrement
+     * @param bool   $unsigned
+     *
+     * @return \Neutrino\Database\Schema\Definition
+     */
     protected function addInteger($type, $column, $autoIncrement = false, $unsigned = false)
     {
         $column = $this->addColumn($type, $column, ['autoIncrement' => $autoIncrement, 'unsigned' => $unsigned]);
@@ -847,7 +847,7 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function integer($column, $autoIncrement = false, $unsigned = false)
     {
@@ -861,7 +861,7 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function tinyInteger($column, $autoIncrement = false, $unsigned = false)
     {
@@ -875,7 +875,7 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function smallInteger($column, $autoIncrement = false, $unsigned = false)
     {
@@ -889,7 +889,7 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function mediumInteger($column, $autoIncrement = false, $unsigned = false)
     {
@@ -903,7 +903,7 @@ class Blueprint
      * @param  bool   $autoIncrement
      * @param  bool   $unsigned
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function bigInteger($column, $autoIncrement = false, $unsigned = false)
     {
@@ -916,7 +916,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function unsignedInteger($column, $autoIncrement = false)
     {
@@ -929,7 +929,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function unsignedTinyInteger($column, $autoIncrement = false)
     {
@@ -942,7 +942,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function unsignedSmallInteger($column, $autoIncrement = false)
     {
@@ -955,7 +955,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function unsignedMediumInteger($column, $autoIncrement = false)
     {
@@ -968,7 +968,7 @@ class Blueprint
      * @param  string $column
      * @param  bool   $autoIncrement
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function unsignedBigInteger($column, $autoIncrement = false)
     {
@@ -981,7 +981,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $scale
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function float($column, $scale = null)
     {
@@ -994,7 +994,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $scale
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function double($column, $scale = null)
     {
@@ -1007,7 +1007,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $scale
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function decimal($column, $scale = null)
     {
@@ -1019,7 +1019,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function boolean($column)
     {
@@ -1032,7 +1032,7 @@ class Blueprint
      * @param  string $column
      * @param  array  $allowed
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function enum($column, array $allowed)
     {
@@ -1044,7 +1044,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function json($column)
     {
@@ -1056,7 +1056,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function jsonb($column)
     {
@@ -1068,7 +1068,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function date($column)
     {
@@ -1081,7 +1081,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function dateTime($column, $precision = 0)
     {
@@ -1095,7 +1095,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function dateTimeTz($column, $precision = 0)
     {
@@ -1107,7 +1107,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function time($column)
     {
@@ -1119,7 +1119,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function timeTz($column)
     {
@@ -1132,7 +1132,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function timestamp($column, $precision = 0)
     {
@@ -1145,7 +1145,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function timestampTz($column, $precision = 0)
     {
@@ -1216,7 +1216,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function softDeletes($column = 'deleted_at', $precision = 0)
     {
@@ -1229,7 +1229,7 @@ class Blueprint
      * @param  string $column
      * @param  int    $precision
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function softDeletesTz($column = 'deleted_at', $precision = 0)
     {
@@ -1241,7 +1241,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function binary($column)
     {
@@ -1253,7 +1253,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function blob($column)
     {
@@ -1265,7 +1265,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function tinyBlob($column)
     {
@@ -1277,7 +1277,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function mediumBlob($column)
     {
@@ -1289,7 +1289,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function longBlob($column)
     {
@@ -1301,7 +1301,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function uuid($column)
     {
@@ -1314,7 +1314,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function ipAddress($column)
     {
@@ -1327,7 +1327,7 @@ class Blueprint
      *
      * @param  string $column
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function macAddress($column)
     {
@@ -1372,7 +1372,7 @@ class Blueprint
     /**
      * Adds the `remember_token` column to the table.
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     public function rememberToken()
     {
@@ -1457,11 +1457,11 @@ class Blueprint
      * @param  string $name
      * @param  array  $parameters
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     protected function addColumn($type, $name, array $parameters = [])
     {
-        return $this->columns[$name] = new Fluent(array_merge([
+        return $this->columns[$name] = new Definition(array_merge([
             'name' => $name,
             "type" => $type,
         ], $parameters));
@@ -1473,7 +1473,7 @@ class Blueprint
      * @param  string $name
      * @param  array  $parameters
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     protected function addCommand($name, array $parameters = [])
     {
@@ -1488,11 +1488,11 @@ class Blueprint
      * @param  string $name
      * @param  array  $parameters
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     protected function createCommand($name, array $parameters = [])
     {
-        return new Fluent(array_merge(['name' => $name], $parameters));
+        return new Definition(array_merge(['name' => $name], $parameters));
     }
 
     /**
@@ -1502,7 +1502,7 @@ class Blueprint
      * @param  string|string[] $columns
      * @param  string|null     $name
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     protected function addIndex($type, $columns, $name = null)
     {
@@ -1513,7 +1513,7 @@ class Blueprint
         // index type, such as primary or index, which makes the index unique.
         $name = $name ?: $this->createIndexName($type, $columns);
 
-        return $this->indexes[] = new Fluent(['name' => $name, 'columns' => $columns, 'type' => $type]);
+        return $this->indexes[] = new Definition(['name' => $name, 'columns' => $columns, 'type' => $type]);
     }
 
     /**
@@ -1522,7 +1522,7 @@ class Blueprint
      * @param  string|string[] $columns
      * @param  string|null     $name
      *
-     * @return \Neutrino\Support\Fluent
+     * @return \Neutrino\Database\Schema\Definition
      */
     protected function addForeign($columns, $name = null)
     {
@@ -1532,7 +1532,7 @@ class Blueprint
         // convention of the table name, followed by the columns, followed by an
         // index type, such as primary or index, which makes the index unique.
 
-        return $this->references[] = new Fluent(['name' => $name, 'columns' => $columns, 'type' => 'foreign']);
+        return $this->references[] = new Definition(['name' => $name, 'columns' => $columns, 'type' => 'foreign']);
     }
 
     /**

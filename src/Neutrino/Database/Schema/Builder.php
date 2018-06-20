@@ -130,7 +130,7 @@ class Builder extends Injectable
      *
      * @param  string $table
      *
-     * @return array
+     * @return \Phalcon\Db\Column[]|\Phalcon\Db\ColumnInterface[]
      */
     public function getColumnListing($table)
     {
@@ -228,6 +228,8 @@ class Builder extends Injectable
     public function rename($from, $to)
     {
         $this->build(Func::tap($this->createBlueprint($from), function (Blueprint $blueprint) use ($to) {
+            $blueprint->update();
+
             $blueprint->rename($to);
         }));
     }

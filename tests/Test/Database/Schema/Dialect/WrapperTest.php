@@ -23,4 +23,12 @@ class WrapperTest extends TestCase
     {
         (new Wrapper($this->createMock(DialectInterface::class)))->disableForeignKeyConstraints();
     }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testRenameTable()
+    {
+        (new Wrapper($this->createMock(DialectInterface::class)))->renameTable('old_table', 'new_table');
+    }
 }

@@ -35,4 +35,18 @@ class Wrapper extends Db\Dialect implements Schema\DialectInterface
     {
         throw new \RuntimeException(self::class . ' doesn\'t support ' . __FUNCTION__);
     }
+
+    /**
+     * Generates SQL for rename table
+     *
+     * @param string      $from
+     * @param string      $to
+     * @param null|string $schema
+     *
+     * @return string
+     */
+    public function renameTable($from, $to, $schema = null)
+    {
+        throw new \RuntimeException(self::class . ' doesn\'t support ' . __FUNCTION__);
+    }
 }

@@ -519,4 +519,16 @@ class BuilderTest extends TestCase
 
         (new Builder)->dropIfExists('table');
     }
+
+    public function testRename()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->once())
+            ->method("execute")
+            ->with('RENAME TABLE `old_table` TO `new_table`', null)
+            ->willReturn(true);
+
+        (new Builder)->rename('old_table', 'new_table');
+    }
 }

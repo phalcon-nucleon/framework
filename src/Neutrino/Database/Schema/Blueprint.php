@@ -263,8 +263,7 @@ class Blueprint
                     $res = $db->dropPrimaryKey($table, $schema);
                     break;
                 case 'rename':
-                    /* TODO */
-                    $res = false;
+                    $res = $db->execute($grammar->renameTable($table, $command->get('to'), $schema));
                     break;
                 default:
                     throw new UnknownCommandException($command);

@@ -91,4 +91,12 @@ class MysqlTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('SET FOREIGN_KEY_CHECKS=0;', $dialect->disableForeignKeyConstraints());
     }
+
+    public function testRename()
+    {
+        $dialect = new Mysql(new \Phalcon\Db\Dialect\Mysql());
+
+        $this->assertEquals('RENAME TABLE `old_table` TO `new_table`', $dialect->renameTable('old_table', 'new_table'));
+        $this->assertEquals('RENAME TABLE `schema`.`old_table` TO `schema`.`new_table`', $dialect->renameTable('old_table', 'new_table', 'schema'));
+    }
 }

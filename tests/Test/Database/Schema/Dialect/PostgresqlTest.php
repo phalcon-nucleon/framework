@@ -93,4 +93,12 @@ class PostgresqlTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('SET CONSTRAINTS ALL DEFERRED;', $dialect->disableForeignKeyConstraints());
     }
+
+    public function testRename()
+    {
+        $dialect = new Postgresql(new \Phalcon\Db\Dialect\Postgresql());
+
+        $this->assertEquals('ALTER TABLE "old_table" RENAME TO "new_table"', $dialect->renameTable('old_table', 'new_table'));
+        $this->assertEquals('ALTER TABLE "schema"."old_table" RENAME TO "schema"."new_table"', $dialect->renameTable('old_table', 'new_table', 'schema'));
+    }
 }

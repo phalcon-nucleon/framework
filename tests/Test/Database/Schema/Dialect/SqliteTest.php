@@ -78,4 +78,12 @@ class SqliteTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('PRAGMA foreign_keys = OFF;', $dialect->disableForeignKeyConstraints());
     }
+
+    public function testRename()
+    {
+        $dialect = new Sqlite(new \Phalcon\Db\Dialect\Sqlite());
+
+        $this->assertEquals('ALTER TABLE "old_table" RENAME TO "new_table"', $dialect->renameTable('old_table', 'new_table'));
+        $this->assertEquals('ALTER TABLE "schema"."old_table" RENAME TO "schema"."new_table"', $dialect->renameTable('old_table', 'new_table', 'schema'));
+    }
 }

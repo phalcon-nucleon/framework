@@ -158,12 +158,13 @@ class Helper
             case 'resource (closed)':
                 return $type;
             case 'string':
-                if (constant('BASE_PATH') && $value !== BASE_PATH) {
-                    $value = str_replace(BASE_PATH, '', $value);
+                if (constant('BASE_PATH') && $value !== BASE_PATH . '\\') {
+                    $value = str_replace(BASE_PATH . '\\', '', $value);
                 }
                 if (strlen($value) > 20) {
-                    return "'" . substr($value, 0, 8) . '...\'[' . strlen($value) . ']';
+                    return "'" . substr($value, 0, 8) . '...' . substr($value, -8) . '\'[' . strlen($value) . ']';
                 }
+                return "'" . $value . "'";
             case 'boolean':
             case 'integer':
             case 'double':

@@ -153,7 +153,7 @@ namespace Neutrino\Debug {
          *
          * @return string
          */
-        function php_file_part_highlight($file, $line, $expands = 5)
+        function php_file_part_highlight($file, $line, $expands = 10)
         {
             $parts = explode("\n", file_get_contents($file));
 

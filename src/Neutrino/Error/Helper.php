@@ -93,12 +93,14 @@ class Helper
 
             if (isset($trace['file'])) {
                 $_trace['file'] = str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
+                $_trace['where'] = $_trace['file'];
 
                 if (isset($trace['line'])) {
-                    $_trace['file'] .= '(' . $trace['line'] . ')';
+                    $_trace['line'] = $trace['line'];
+                    $_trace['where'] .= '(' . $trace['line'] . ')';
                 }
             } else {
-                $_trace['file'] = '[internal function]';
+                $_trace['where'] = '[internal function]';
             }
 
             $traces[] = $_trace;

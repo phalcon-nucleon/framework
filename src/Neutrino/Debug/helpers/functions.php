@@ -82,7 +82,10 @@ namespace Neutrino\Debug {
         function sql_highlight($sql)
         {
             SQL::$style = SQL::STYLE_EXPAND;
-            return Highlighter::factory(SQL::class, Html::class)->highlight($sql);
+            return Highlighter::factory(SQL::class, Html::class)->highlight($sql, [
+                'noStyleTag' => true,
+                'styles' => ['pre' => '', 'function' => 'color:#fdd835;font-style:italic']
+            ]);
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\file_highlight')) {
@@ -126,21 +129,6 @@ namespace Neutrino\Debug {
         }
     }
 
-    if (!function_exists(__NAMESPACE__ . '\\php_highlight')) {
-        /**
-         * @internal
-         *
-         * Highlight php string
-         *
-         * @param string $str
-         *
-         * @return string
-         */
-        function php_highlight($str)
-        {
-            return Highlighter::factory(PHP::class, Html::class)->highlight($str);
-        }
-    }
     if (!function_exists(__NAMESPACE__ . '\\php_file_part_highlight')) {
         /**
          * @internal
@@ -155,22 +143,16 @@ namespace Neutrino\Debug {
          */
         function php_file_part_highlight($file, $line, $expands = 10)
         {
-            $parts = explode("\n", file_get_contents($file));
-
-            $start = max(0, $line - $expands - 1);
-            $parts = array_slice($parts, $start, $expands * 2 + 1);
-
-            $highlighted = php_highlight(implode("\n", $parts));
-
-            $parts = explode("\n", $highlighted);
-
-            foreach ($parts as $idx => $part) {
-                $parts[$idx] = '<code class="line-number">' . ($idx+$start+1) .'</code>' . $part;
-            }
-
-            $parts[$line - $start - 1] = '<code class="line-sel">' . $parts[$line - $start - 1] . '</code>';
-
-            return implode("\n", $parts);
+            return Highlighter::factory(PHP::class, Html::class)
+                ->highlight(
+                    file_get_contents($file),
+                    [
+                        'withLineNumber' => true,
+                        'lineOffset'     => $line - $expands - 1,
+                        'lineLimit'      => $expands * 2 + 1,
+                        'lineSelected'   => $line
+                    ]
+                );
         }
     }
 

@@ -30,7 +30,7 @@ class View implements Writable
         }
 
         foreach (ob_list_handlers() as $value) {
-            ob_get_clean();
+            ob_clean();
         }
 
         if (Debugger::isEnable()) {

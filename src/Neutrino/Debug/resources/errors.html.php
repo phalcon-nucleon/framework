@@ -11,7 +11,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style rel="stylesheet">
     pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important;margin:0}pre.sql .string{color:#a5d6a7 !important}pre.sql .table{color:#90caf9 !important}pre.sql .column{color:#ce93d8 !important}pre.sql .func{color:#fdd835 !important}pre.sql .keyw{color:#fb8c00 !important}
-    .php-error{padding:10px 15px;margin-bottom:10px}.php-error.debug{background-color:#4db6ac !important;color:#212121 !important}.php-error.info{background-color:#fff176 !important;color:#212121 !important}.php-error.notice{background-color:#ffd54f !important;color:#212121 !important}.php-error.warning{background-color:#ff8a65 !important;color:#212121 !important}.php-error.error{background-color:#b71c1c !important;color:#f5f5f5 !important}.php-error .type,.php-error .msg{font-family:monospace, monospace}.php-error .msg{margin:3px 0;word-break:break-all;white-space:pre-line}.php-error .file{font-size:80%}
+    .php-error{padding:10px 15px;margin-bottom:10px}.php-error.debug{background-color:#4db6ac !important;color:#212121 !important}.php-error.info{background-color:#fff176 !important;color:#212121 !important}.php-error.notice{background-color:#ffd54f !important;color:#212121 !important}.php-error.warning{background-color:#ff8a65 !important;color:#212121 !important}.php-error.error{background-color:#b71c1c !important;color:#f5f5f5 !important}.php-error .type,.php-error .msg{font-family:monospace, monospace}.php-error .msg{margin:3px 0;word-break:break-all;white-space:pre-line}.php-error .file{font-size:80%}pre.hl{font-size:12px;line-height:1.3;background-color: #2b2b2b}.collapsible{-webkit-box-shadow:none;box-shadow:none;border:none;margin:0}.collapsible-header,.collapsible-body{background:transparent;padding:.25rem 0;border:none;color:#424242}.collapsible-header:hover{text-decoration:underline}.collapsible-body pre{margin:0;color:#f7f7f7}.line-number{color:#999;padding:0 5px 0 2px;margin-right:5px;background-color:#444;border-bottom:1px solid #444;border-right:1px solid #555;}.line-sel{display:inline-block;background-color:#444;width:100%}
   </style>
 </head>
 <body class="grey darken-3 grey-text text-lighten-3">
@@ -55,10 +55,18 @@
               <span class="card-title red-text text-accent-4">
                 #<?= $index ?> <b><?= $exception['class'] ?></b>
                 <br/>
-                <small class="grey-text text-darken-4">
-                  <b>in : </b> <?= Neutrino\Debug\file_highlight(($exception['file'])) ?>
-                  (line: <?= $exception['line'] ?>)
-                </small>
+                <ul class="collapsible">
+                  <li>
+                    <div class="collapsible-header">
+                      <small class="grey-text text-darken-4">
+                        <b>in : </b> <?= Neutrino\Debug\file_highlight(($exception['file'])) ?>(line: <?= $exception['line'] ?>)
+                      </small>
+                    </div>
+                    <div class="collapsible-body">
+                      <pre class="hl"><?= Neutrino\Debug\php_file_part_highlight($exception['file'], $exception['line']); ?></pre>
+                    </div>
+                  </li>
+                </ul>
                 <pre style="
           word-break: break-all;
           max-width:  100%;
@@ -69,25 +77,30 @@
               </span>
               <div>
                 <ul class="collection">
-                    <?php foreach ($exception['traces'] as $trace) : ?>
-                      <li class="collection-item blue-grey lighten-3 white-text">
-                <span class="grey-text text-darken-3">
-                  <?= Neutrino\Debug\func_highlight($trace['func']) ?>
-                </span>
-                        <br/>
-                        <small class="grey-text text-darken-3">
-                          in :
-                            <?php if (isset($trace['file'])) : ?>
-                                <?= Neutrino\Debug\file_highlight($trace['file']) ?>
-                                <?php if (isset($trace['line'])) : ?>
-                                &nbsp;(line: <?= $trace['line'] ?>)
-                                <?php endif; ?>
-                            <?php else : ?>
-                              [internal function]
-                            <?php endif; ?>
-                        </small>
-                      </li>
-                    <?php endforeach; ?>
+                <?php foreach ($exception['traces'] as $trace) : ?>
+                  <li class="collection-item blue-grey lighten-3 white-text">
+                    <span class="grey-text text-darken-3">
+                      <?= Neutrino\Debug\func_highlight($trace['func']) ?>
+                    </span>
+                    <br/>
+                    <?php if (isset($trace['file'], $trace['line'])) : ?>
+                      <ul class="collapsible">
+                        <li>
+                          <div class="collapsible-header">
+                              <small class="grey-text text-darken-3">in : <?= Neutrino\Debug\file_highlight($trace['file']) ?>&nbsp;(line: <?= $trace['line'] ?>)</small>
+                          </div>
+                          <div class="collapsible-body">
+                              <pre class="hl"><?= Neutrino\Debug\php_file_part_highlight($trace['file'], $trace['line']); ?></pre>
+                          </div>
+                        </li>
+                      </ul>
+                    <?php elseif (isset($trace['file'])) : ?>
+                        <small class="grey-text text-darken-3">in : <?= Neutrino\Debug\file_highlight($trace['file']) ?></small>
+                    <?php else : ?>
+                        <small class="grey-text text-darken-3">[internal function]</small>
+                    <?php endif; ?>
+                  </li>
+                <?php endforeach; ?>
                 </ul>
               </div>
             </div>

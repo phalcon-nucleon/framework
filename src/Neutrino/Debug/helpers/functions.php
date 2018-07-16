@@ -4,8 +4,8 @@ namespace Neutrino\Debug {
 
     use Highlight\Highlighter;
     use Highlight\Renders\Html;
-    use Highlight\Tokenizer\PHP;
-    use Highlight\Tokenizer\SQL;
+    use Highlight\Languages\PHP;
+    use Highlight\Languages\SQL;
 
     if (!function_exists(__NAMESPACE__ . '\\human_mtime')) {
         /**
@@ -81,11 +81,11 @@ namespace Neutrino\Debug {
          */
         function sql_highlight($sql)
         {
-            SQL::$style = SQL::STYLE_EXPAND;
-            return Highlighter::factory(SQL::class, Html::class)->highlight($sql, [
-                'noStyleTag' => true,
+            return Highlighter::factory(SQL::class, Html::class, [
+                'format' => SQL::FORMAT_EXPAND,
+                'inlineStyle' => true,
                 'styles' => ['pre' => '', 'function' => 'color:#fdd835;font-style:italic']
-            ]);
+            ])->highlight($sql);
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\file_highlight')) {
@@ -143,15 +143,14 @@ namespace Neutrino\Debug {
          */
         function php_file_part_highlight($file, $line, $expands = 10)
         {
-            return Highlighter::factory(PHP::class, Html::class)
+            return Highlighter::factory(PHP::class, Html::class, [
+                    'withLineNumber' => true,
+                    'lineOffset'     => $line - $expands - 1,
+                    'lineLimit'      => $expands * 2 + 1,
+                    'lineSelected'   => $line
+                ])
                 ->highlight(
-                    file_get_contents($file),
-                    [
-                        'withLineNumber' => true,
-                        'lineOffset'     => $line - $expands - 1,
-                        'lineLimit'      => $expands * 2 + 1,
-                        'lineSelected'   => $line
-                    ]
+                    file_get_contents($file)
                 );
         }
     }

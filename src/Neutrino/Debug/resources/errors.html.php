@@ -58,7 +58,7 @@
                 <ul class="collapsible">
                   <li>
                     <div class="collapsible-header">
-                      <small class="grey-text text-darken-4">
+                      <small class="grey-text text-darken-4"  title="View code">
                         <b>in : </b> <?= Neutrino\Debug\file_highlight(($exception['file'])) ?>(line: <?= $exception['line'] ?>)
                       </small>
                     </div>
@@ -87,7 +87,7 @@
                       <ul class="collapsible">
                         <li>
                           <div class="collapsible-header">
-                              <small class="grey-text text-darken-3">in : <?= Neutrino\Debug\file_highlight($trace['file']) ?>&nbsp;(line: <?= $trace['line'] ?>)</small>
+                              <small class="grey-text text-darken-3" title="View code">in : <?= Neutrino\Debug\file_highlight($trace['file']) ?>&nbsp;(line: <?= $trace['line'] ?>)</small>
                           </div>
                           <div class="collapsible-body">
                               <?= Neutrino\Debug\php_file_part_highlight($trace['file'], $trace['line']); ?>
@@ -244,8 +244,7 @@
                   </td>
                   <td style="padding: 5px 10px;border-radius: 0">
                     <small style="white-space: nowrap;">
-                      <span class="blue-text text-lighten-3"><?= $event['space'] ?></span>:
-                      <span class="purple-text text-lighten-3"><?= $event['type'] ?></span>
+                      <span class="blue-text text-lighten-3"><?= $event['space'] ?></span>:<span class="purple-text text-lighten-3"><?= $event['type'] ?></span>
                     </small>
                   </td>
                   <td style="padding: 5px 10px;border-radius: 0">

@@ -3,9 +3,10 @@
 namespace Neutrino\Debug {
 
     use Highlight\Highlighter;
-    use Highlight\Renders\Html;
     use Highlight\Languages\PHP;
     use Highlight\Languages\SQL;
+    use Highlight\Renders\Html;
+    use Highlight\Token;
 
     if (!function_exists(__NAMESPACE__ . '\\human_mtime')) {
         /**
@@ -82,7 +83,7 @@ namespace Neutrino\Debug {
         function sql_highlight($sql)
         {
             return Highlighter::factory(SQL::class, Html::class, [
-                'format' => SQL::FORMAT_EXPAND,
+                'format' => SQL::FORMAT_NESTED,
                 'inlineStyle' => true,
                 'styles' => ['pre' => '', 'function' => 'color:#fdd835;font-style:italic']
             ])->highlight($sql);
@@ -121,11 +122,22 @@ namespace Neutrino\Debug {
          */
         function func_highlight($func)
         {
-            return preg_replace(
-                '!(.+)(->|::)(\w+)(?:(\(.+\)))?!',
-                '<span class="red-text text-darken-4">$1</span>$2<span class="red-text text-darken-2">$3</span><span class="grey-text text-darken-1">$4</span>',
-                $func
-            );
+            return Highlighter::factory(PHP::class, Html::class, [
+                'withLineNumber' => false,
+                'inlineStyle'    => true,
+                'noPre'          => true,
+                'context'        => 'php',
+                'styles'         => [
+                    Token::TOKEN_NAMESPACE => 'color:#880000',
+                    Token::TOKEN_FUNCTION  => 'color:#880000;font-weight:bold',
+                    Token::TOKEN_KEYWORD  => 'color:#bf360c;',
+                    Token::TOKEN_VARIABLE  => 'color:#880000',
+                    Token::TOKEN_STRING    => 'color:#2e7d32'
+                ]
+            ])
+                ->highlight(
+                    $func
+                );
         }
     }
 

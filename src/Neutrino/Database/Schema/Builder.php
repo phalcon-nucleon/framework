@@ -235,6 +235,22 @@ class Builder extends Injectable
     }
 
     /**
+     * Execute a raw SQL Command
+     *
+     * @param string $sql
+     *
+     * @return void
+     */
+    public function execute($sql)
+    {
+        $this->build(Func::tap($this->createBlueprint(null), function (Blueprint $blueprint) use ($sql) {
+            $blueprint->raw();
+
+            $blueprint->sql($sql);
+        }));
+    }
+
+    /**
      * Enable foreign key constraints.
      *
      * @return bool

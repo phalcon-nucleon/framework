@@ -70,6 +70,8 @@ class Blueprint
                 return $this->buildDrop($db, true);
             case 'drop':
                 return $this->buildDrop($db, false);
+            case 'raw':
+                return $this->buildRaw($db, $grammar);
             default:
                 if (empty($this->action)) {
                     $message = "Blueprint must has action";
@@ -85,10 +87,19 @@ class Blueprint
      * @param \Neutrino\Database\Schema\DialectInterface $grammar
      *
      * @return bool
+     * @throws \Neutrino\Database\Schema\Exception\CommandException
      */
     protected function buildCreate(Db $db, DialectInterface $grammar)
     {
-        return $db->createTable($this->table, $this->schema, $this->buildTableDefinition($grammar));
+        $res = $db->createTable($this->table, $this->schema, $this->buildTableDefinition($grammar));
+
+        if ($res === false) {
+            return false;
+        }
+
+        $this->runCommands($db, $grammar);
+
+        return true;
     }
 
     /**
@@ -162,6 +173,77 @@ class Blueprint
     protected function buildUpdate(Db $db, DialectInterface $grammar)
     {
         $this->buildCommands($db);
+
+        $this->runCommands($db, $grammar);
+
+        return true;
+    }
+
+    /**
+     * @param \Phalcon\Db\AdapterInterface               $db
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
+     *
+     * @return bool
+     * @throws \Exception
+     */
+    protected function buildRaw(Db $db, DialectInterface $grammar)
+    {
+        $this->runCommands($db, $grammar);
+
+        return true;
+    }
+
+    /**
+     * Build all columns, indexes, references, to commands
+     *
+     * @param \Phalcon\Db\AdapterInterface $db
+     */
+    protected function buildCommands(Db $db)
+    {
+        $columns = $db->describeColumns($this->table, $this->schema);
+        foreach ($this->columns as $column) {
+            $this->buildIndexAndForeignFromFluentColumn($column);
+
+            foreach ($columns as $c) {
+                if ($c->getName() === $column->get('name')) {
+                    $this->addCommand('modifyColumn', ['column' => $column, 'from' => $c]);
+                    continue 2;
+                }
+            }
+
+            $this->addCommand('addColumn', ['column' => $column]);
+        }
+
+        foreach ($this->indexes as $index) {
+            $this->addCommand('addIndex', ['index' => $index]);
+        }
+
+        foreach ($this->references as $reference) {
+            $this->addCommand('addForeign', ['reference' => $reference]);
+        }
+    }
+
+    /**
+     * @param \Phalcon\Db\AdapterInterface $connection
+     * @param bool                         $ifExist
+     *
+     * @return bool
+     */
+    protected function buildDrop(Db $connection, $ifExist = false)
+    {
+        return $connection->dropTable($this->table, $this->schema, $ifExist);
+    }
+
+    /**
+     * @param \Phalcon\Db\AdapterInterface               $db
+     * @param \Neutrino\Database\Schema\DialectInterface $grammar
+     *
+     * @throws \Neutrino\Database\Schema\Exception\CommandException
+     * @throws \Neutrino\Database\Schema\Exception\UnknownCommandException
+     */
+    protected function runCommands(Db $db, DialectInterface $grammar)
+    {
+        print_r($this->commands);
 
         $table = $this->table;
         $schema = $this->schema;
@@ -265,6 +347,9 @@ class Blueprint
                 case 'rename':
                     $res = $db->execute($grammar->renameTable($table, $command->get('to'), $schema));
                     break;
+                case 'sql':
+                    $res = $db->execute($command->get('sql'));
+                    break;
                 default:
                     throw new UnknownCommandException($command);
             }
@@ -273,49 +358,6 @@ class Blueprint
                 throw new CommandException($command);
             }
         }
-
-        return true;
-    }
-
-    /**
-     * Build all columns, indexes, references, to commands
-     *
-     * @param \Phalcon\Db\AdapterInterface $db
-     */
-    protected function buildCommands(Db $db)
-    {
-        $columns = $db->describeColumns($this->table, $this->schema);
-        foreach ($this->columns as $column) {
-            $this->buildIndexAndForeignFromFluentColumn($column);
-
-            foreach ($columns as $c) {
-                if ($c->getName() === $column->get('name')) {
-                    $this->addCommand('modifyColumn', ['column' => $column, 'from' => $c]);
-                    continue 2;
-                }
-            }
-
-            $this->addCommand('addColumn', ['column' => $column]);
-        }
-
-        foreach ($this->indexes as $index) {
-            $this->addCommand('addIndex', ['index' => $index]);
-        }
-
-        foreach ($this->references as $reference) {
-            $this->addCommand('addForeign', ['reference' => $reference]);
-        }
-    }
-
-    /**
-     * @param \Phalcon\Db\AdapterInterface $connection
-     * @param bool                         $ifExist
-     *
-     * @return bool
-     */
-    protected function buildDrop(Db $connection, $ifExist = false)
-    {
-        return $connection->dropTable($this->table, $this->schema, $ifExist);
     }
 
     /**
@@ -480,6 +522,18 @@ class Blueprint
      * @return $this
      */
     public function dropIfExists()
+    {
+        $this->action = __FUNCTION__;
+
+        return $this;
+    }
+
+    /**
+     * Indicate that blueprint run raw SQL
+     *
+     * @return $this
+     */
+    public function raw()
     {
         $this->action = __FUNCTION__;
 
@@ -1376,6 +1430,18 @@ class Blueprint
     public function rememberToken()
     {
         return $this->string('remember_token', 100)->nullable();
+    }
+
+    /**
+     * Add raw sql to execute
+     *
+     * @param string $sql
+     *
+     * @return \Neutrino\Database\Schema\Definition
+     */
+    public function sql($sql)
+    {
+        return $this->addCommand(__FUNCTION__, ['sql' => $sql]);
     }
 
     /**

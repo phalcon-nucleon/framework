@@ -103,11 +103,11 @@ namespace Neutrino\Debug {
         {
             $file = str_replace(BASE_PATH . DIRECTORY_SEPARATOR, '', str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $file));
 
-            if (preg_match('!(\w+\.[a-z]{2,4})(?:\((\d+)\))$!', $file)) {
-                return preg_replace('!(\w+\.[a-z]{2,4})(?:\((\d+)\))$!', '<b>$1</b> (line: $2)', $file);
+            if (preg_match('!(\w+\.[a-zA-Z0-9]{2,4})(?:\((\d+)\))$!', $file)) {
+                return preg_replace('!(\w+\.[a-zA-Z0-9]{2,4})(?:\((\d+)\))$!', '<b>$1</b> (line: $2)', $file);
             }
 
-            return preg_replace('!(\w+\.[a-z]{2,4})$!', '<b>$1</b>', $file);
+            return preg_replace('!(\w+\.[a-zA-Z0-9]{2,4})$!', '<b>$1</b>', $file);
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\func_highlight')) {
@@ -130,14 +130,11 @@ namespace Neutrino\Debug {
                 'styles'         => [
                     Token::TOKEN_NAMESPACE => 'color:#880000',
                     Token::TOKEN_FUNCTION  => 'color:#880000;font-weight:bold',
-                    Token::TOKEN_KEYWORD  => 'color:#bf360c;',
+                    Token::TOKEN_KEYWORD   => 'color:#bf360c;',
                     Token::TOKEN_VARIABLE  => 'color:#880000',
                     Token::TOKEN_STRING    => 'color:#2e7d32'
-                ]
-            ])
-                ->highlight(
-                    $func
-                );
+                ]])
+                ->highlight($func);
         }
     }
 
@@ -161,9 +158,7 @@ namespace Neutrino\Debug {
                     'lineLimit'      => $expands * 2 + 1,
                     'lineSelected'   => $line
                 ])
-                ->highlight(
-                    file_get_contents($file)
-                );
+                ->highlight(file_get_contents($file));
         }
     }
 

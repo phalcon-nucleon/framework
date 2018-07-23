@@ -151,19 +151,7 @@ class HelperFunctionTest extends TestCase
         $this->assertFunctionExist('func_highlight');
 
         $this->assertEquals(
-            'testFuncHighlight',
-            Debug\func_highlight(__FUNCTION__)
-        );
-        $this->assertEquals(
-            '<span class="red-text text-darken-4">Test\Debug\HelperFunctionTest</span>::<span class="red-text text-darken-2">testFuncHighlight</span><span class="grey-text text-darken-1"></span>',
-            Debug\func_highlight(__METHOD__)
-        );
-        $this->assertEquals(
-            '<span class="red-text text-darken-4">Test\Debug\HelperFunctionTest</span>-><span class="red-text text-darken-2">testFuncHighlight</span><span class="grey-text text-darken-1"></span>',
-            Debug\func_highlight(__CLASS__ . '->' . __FUNCTION__)
-        );
-        $this->assertEquals(
-            '<span class="red-text text-darken-4">Test\Debug\HelperFunctionTest</span>::<span class="red-text text-darken-2">testFuncHighlight</span><span class="grey-text text-darken-1">(...$args)</span>',
+            '<code style="color:#880000">Test\Debug\HelperFunctionTest</code><code>::</code><code style="color:#880000;font-weight:bold">testFuncHighlight</code><code>(</code><code>.</code><code>.</code><code>.</code><code style="color:#880000">$args</code><code>)</code>',
             Debug\func_highlight(__METHOD__.'(...$args)')
         );
     }

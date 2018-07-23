@@ -29,7 +29,8 @@ class MigrateTask extends BaseTask
         // we will use the path relative to the root of this installation folder
         // so that migrations may be run for any path within the applications.
         $this->migrator->run($this->getMigrationPaths(), [
-            'step' => $this->getOption('step'),
+            'step'    => (int)$this->getOption('step'),
+            'pretend' => $this->getOption('pretend') ?: false
         ]);
 
         // Once the migrator has run we will grab the note output and send it out to

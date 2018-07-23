@@ -313,11 +313,11 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
     {
         $morphsId   = new Definition(['name' => 'morphs_id', 'type' => 'integer', 'autoIncrement' => false, 'unsigned' => true]);
         $morphsType = new Definition(['name' => 'morphs_type', 'type' => 'string', 'size' => 255]);
-        $morphsIndex = new Definition(['name' => 'test_morphs_id_morphs_type_index', 'columns' => ['morphs_id', 'morphs_type'], 'type' => 'index']);
+        $morphsIndex = new Definition(['name' => 'test_morphs_id_morphs_type_index', 'columns' => ['morphs_id', 'morphs_type'], 'type' => 'INDEX']);
 
         $nullMorphsId = new Definition(['name' => 'null_morphs_id', 'type' => 'integer', 'autoIncrement' => false,'unsigned' => true, 'nullable' => true]);
         $nullMorphsType = new Definition(['name' => 'null_morphs_type', 'type' => 'string', 'size' => 255, 'nullable' => true]);
-        $nullMorphsIndex = new Definition(['name' => 'test_null_morphs_id_null_morphs_type_index', 'columns' => ['null_morphs_id', 'null_morphs_type'], 'type' => 'index']);
+        $nullMorphsIndex = new Definition(['name' => 'test_null_morphs_id_null_morphs_type_index', 'columns' => ['null_morphs_id', 'null_morphs_type'], 'type' => 'INDEX']);
 
         $blueprint = new Blueprint('test');
 
@@ -373,12 +373,12 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
             [
                 [new Definition(['name' => 'column', 'type' => 'integer', 'index' => true])],
                 [new Column('column', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
-                [new Definition(['name' => 'test_column_index', 'type' => 'index', 'columns' => ['column']])]
+                [new Definition(['name' => 'test_column_index', 'type' => 'INDEX', 'columns' => ['column']])]
             ],
             [
                 [new Definition(['name' => 'column', 'type' => 'integer', 'unique' => true])],
                 [new Column('column', ['type' => Column::TYPE_INTEGER, 'notNull' => true])],
-                [new Definition(['name' => 'test_column_unique', 'type' => 'unique', 'columns' => ['column']])]
+                [new Definition(['name' => 'test_column_unique', 'type' => 'UNIQUE', 'columns' => ['column']])]
             ],
         ];
     }
@@ -528,7 +528,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_email_unique', ['email'], 'unique')
+                new Index('test_email_unique', ['email'], 'UNIQUE')
             ],
         ]];
 
@@ -544,8 +544,8 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'primary'),
-                new Index('test_email_unique', ['email'], 'unique'),
+                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'PRIMARY'),
+                new Index('test_email_unique', ['email'], 'UNIQUE'),
             ],
         ]];
 
@@ -562,8 +562,8 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'primary'),
-                new Index('test_email_unique', ['email'], 'unique'),
+                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'PRIMARY'),
+                new Index('test_email_unique', ['email'], 'UNIQUE'),
             ],
         ]];
 
@@ -580,8 +580,8 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'primary'),
-                new Index('test_email_unique', ['email'], 'unique'),
+                new Index('test_firstname_lastname_primary', ['firstname', 'lastname'], 'PRIMARY'),
+                new Index('test_email_unique', ['email'], 'UNIQUE'),
             ],
         ]];
 
@@ -598,7 +598,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('email', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_email_unique', ['email'], 'unique')
+                new Index('test_email_unique', ['email'], 'UNIQUE')
             ],
         ]];
 
@@ -616,7 +616,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('sector', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_email_unique', ['email'], 'unique')
+                new Index('test_email_unique', ['email'], 'UNIQUE')
             ],
             'references' => [
                 new Reference('test_sector_foreign_sector_id', [
@@ -642,7 +642,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('sector', ['type' => Column::TYPE_VARCHAR, 'size' => 255, 'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_email_unique', ['email'], 'unique')
+                new Index('test_email_unique', ['email'], 'UNIQUE')
             ],
             'references' => [
                 new Reference('test_sector_foreign_sector_id', [
@@ -670,7 +670,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('department', ['type' => Column::TYPE_VARCHAR, 'size' => 255,  'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_email_unique', ['email'], 'unique')
+                new Index('test_email_unique', ['email'], 'UNIQUE')
             ],
             'references' => [
                 new Reference('test_sector_department_foreign_sector_id_department', [
@@ -700,7 +700,7 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 new Column('department', ['type' => Column::TYPE_VARCHAR, 'size' => 255,  'notNull' => true]),
             ],
             'indexes' => [
-                new Index('test_email_unique', ['email'], 'unique')
+                new Index('test_email_unique', ['email'], 'UNIQUE')
             ],
             'references' => [
                 new Reference('test_sector_department_foreign_sector_id_department', [
@@ -851,11 +851,11 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                 ]),
                 new Definition([
                     'name' => 'addIndex',
-                    'index' => new Definition(['name' => 'test_name_unique', 'type' => 'unique', 'columns' => ['name']])
+                    'index' => new Definition(['name' => 'test_name_unique', 'type' => 'UNIQUE', 'columns' => ['name']])
                 ]),
                 new Definition([
                     'name' => 'addIndex',
-                    'index' => new Definition(['name' => 'test_test_index', 'type' => 'index', 'columns' => ['test']])
+                    'index' => new Definition(['name' => 'test_test_index', 'type' => 'INDEX', 'columns' => ['test']])
                 ])
             ]
         ];
@@ -879,8 +879,8 @@ class BlueprintTest extends \PHPUnit_Framework_TestCase
                     'from'   => new Column('name', ['type' => Column::TYPE_VARCHAR, 'size' => 128])
                 ]),
                 new Definition(['name' => 'addColumn', 'column' => new Definition(['name' => 'test', 'type' => 'string', 'size' => 255])]),
-                new Definition(['name' => 'addIndex', 'index' => new Definition(['name' => 'test_name_unique', 'columns' => ['name'], 'type' => 'unique'])]),
-                new Definition(['name' => 'addIndex', 'index' => new Definition(['name' => 'test_test_index', 'columns' => ['test'], 'type' => 'index'])]),
+                new Definition(['name' => 'addIndex', 'index' => new Definition(['name' => 'test_name_unique', 'columns' => ['name'], 'type' => 'UNIQUE'])]),
+                new Definition(['name' => 'addIndex', 'index' => new Definition(['name' => 'test_test_index', 'columns' => ['test'], 'type' => 'INDEX'])]),
             ]
         ];
 

@@ -2,7 +2,6 @@
 
 namespace Neutrino\Database\Schema;
 
-use Neutrino\Database\Schema\Exception\CommandException;
 use Neutrino\Database\Schema\Exception\UnknownCommandException;
 use Phalcon\Db\AdapterInterface as Db;
 use Phalcon\Db\Column;
@@ -91,11 +90,7 @@ class Blueprint
      */
     protected function buildCreate(Db $db, DialectInterface $grammar)
     {
-        $res = $db->createTable($this->table, $this->schema, $this->buildTableDefinition($grammar));
-
-        if ($res === false) {
-            return false;
-        }
+        $db->createTable($this->table, $this->schema, $this->buildTableDefinition($grammar));
 
         $this->runCommands($db, $grammar);
 
@@ -116,7 +111,7 @@ class Blueprint
 
         // Extract defined primary index
         foreach ($this->indexes as $key => $index) {
-            if ($index->get('type') == 'primary') {
+            if ($index->get('type') == 'PRIMARY') {
                 foreach ($index->get('columns') as $column) {
                     $this->columns[$column]->primary();
                 }
@@ -243,15 +238,13 @@ class Blueprint
      */
     protected function runCommands(Db $db, DialectInterface $grammar)
     {
-        print_r($this->commands);
-
         $table = $this->table;
         $schema = $this->schema;
 
         foreach ($this->commands as $command) {
             switch ($command->get('name')) {
                 case 'addColumn':
-                    $res = $db->addColumn(
+                    $db->addColumn(
                         $table,
                         $schema,
                         $this->fluentToColumn($command->get('column'), $grammar)
@@ -292,10 +285,10 @@ class Blueprint
 
                     $to = new Column($command->get('to'), $definition);
 
-                    $res = $db->modifyColumn($table, $schema, $to, $from);
+                    $db->modifyColumn($table, $schema, $to, $from);
                     break;
                 case 'modifyColumn':
-                    $res = $db->modifyColumn(
+                    $db->modifyColumn(
                         $table,
                         $schema,
                         $this->fluentToColumn($command->get('column'), $grammar),
@@ -303,59 +296,47 @@ class Blueprint
                     );
                     break;
                 case 'addIndex':
-                    $res = $db->addIndex(
+                    $db->addIndex(
                         $table,
                         $schema,
                         $this->fluentToIndex($command->get('index'), $grammar)
                     );
                     break;
                 case 'addForeign':
-                    $res = $db->addForeignKey(
+                    $db->addForeignKey(
                         $table,
                         $schema,
                         $this->fluentToReference($command->get('reference'))
                     );
                     break;
                 case 'dropColumn':
-                    $res = $db->dropColumn(
+                    $db->dropColumn(
                         $table,
                         $schema,
                         $command->get('column')
                     );
                     break;
                 case 'dropForeign':
-                    $res = true;
                     foreach ((array)$command->get('reference') as $reference) {
-                        $res = $res && $db->dropForeignKey($table, $schema, $reference);
-                        if (!$res) {
-                            break;
-                        }
+                        $db->dropForeignKey($table, $schema, $reference);
                     }
                     break;
                 case 'dropIndex':
-                    $res = true;
                     foreach ((array)$command->get('index') as $index) {
-                        $res &= $db->dropIndex($table, $schema, $index);
-                        if (!$res) {
-                            break;
-                        }
+                        $db->dropIndex($table, $schema, $index);
                     }
                     break;
                 case 'dropPrimary':
-                    $res = $db->dropPrimaryKey($table, $schema);
+                    $db->dropPrimaryKey($table, $schema);
                     break;
                 case 'rename':
-                    $res = $db->execute($grammar->renameTable($table, $command->get('to'), $schema));
+                    $db->execute($grammar->renameTable($table, $command->get('to'), $schema));
                     break;
                 case 'sql':
-                    $res = $db->execute($command->get('sql'));
+                    $db->execute($command->get('sql'));
                     break;
                 default:
                     throw new UnknownCommandException($command);
-            }
-
-            if ($res === false) {
-                throw new CommandException($command);
             }
         }
     }
@@ -1578,7 +1559,7 @@ class Blueprint
         // index type, such as primary or index, which makes the index unique.
         $name = $name ?: $this->createIndexName($type, $columns);
 
-        return $this->indexes[] = new Definition(['name' => $name, 'columns' => $columns, 'type' => $type]);
+        return $this->indexes[] = new Definition(['name' => $name, 'columns' => $columns, 'type' => strtoupper($type)]);
     }
 
     /**

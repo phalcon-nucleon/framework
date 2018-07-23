@@ -304,7 +304,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("addIndex")
-            ->with('table', null, new Index('table_name_unique', ['name'], 'unique'));
+            ->with('table', null, new Index('table_name_unique', ['name'], 'UNIQUE'));
 
         (new Builder)->table('table', function (Blueprint $blueprint) {
             $blueprint->string('name', 256)->unique();

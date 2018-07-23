@@ -22,10 +22,10 @@ class RollbackTask extends BaseTask
             return;
         }
 
-        $this->migrator->rollback(
-            $this->getMigrationPaths(),
-            ['step' => (int)$this->getOption('step')]
-        );
+        $this->migrator->rollback($this->getMigrationPaths(), [
+            'step'    => (int)$this->getOption('step'),
+            'pretend' => $this->getOption('pretend') ?: false
+        ]);
 
         // Once the migrator has run we will grab the note output and send it out to
         // the console screen, since the migrator itself functions without having

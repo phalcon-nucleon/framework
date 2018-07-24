@@ -2,6 +2,7 @@
 
 namespace Neutrino\Error;
 
+use Neutrino\Support\Arr;
 use Phalcon\Logger;
 
 /**
@@ -134,15 +135,28 @@ class Helper
                         $found[$type] = true;
                     }
 
-                    if (count($value) < 4) {
+                    $cfound = count($found);
+                    $cvalue = count($value);
+
+                    if ($cfound === 1 && !is_scalar($item) && $cvalue < 3
+                        || $cfound === 1 && is_scalar($item) && $cvalue < 6
+                        || $cfound > 1 && $cvalue < 5) {
                         $str = [];
-                        foreach ($value as $item) {
-                            $str[] = self::verboseType($item, $lvl + 1);
+                        if (Arr::isAssoc($value)) {
+                            foreach ($value as $key => $item) {
+                                $str[] = var_export($key, true) . " => " . self::verboseType($item, $lvl + 1);
+                            }
+                        } else {
+                            foreach ($value as $item) {
+                                $str[] = self::verboseType($item, $lvl + 1);
+                            }
                         }
 
                         return 'array(' . implode(', ', $str) . ')';
-                    } elseif (count($found) === 1) {
-                        return 'arrayOf(' . $type . ')[' . count($value) . ']';
+                    }
+
+                    if (count($found) === 1) {
+                        return 'array.<' . $type . '>[' . count($value) . ']';
                     }
 
                     return 'array[' . count($value) . ']';

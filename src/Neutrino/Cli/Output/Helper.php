@@ -183,7 +183,7 @@ final class Helper
      */
     public static function neutrinoVersion()
     {
-        return Decorate::info('Neutrino framework') . ' ' . Decorate::notice('v' . Version::get() . ' ['. Version::getId().']');
+        return Decorate::info('Neutrino framework') . ' version ' . Decorate::notice('v' . Version::get() . ' ['. Version::getId().']');
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Test\Cli\Tasks;
 
 use Fake\Kernels\Cli\StubKernelCli;
+use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
@@ -17,20 +18,18 @@ use Test\TestCase\TestCase;
 
 class HelperTaskTest extends TestCase
 {
-    public function setUp()
+    public static function setUpBeforeClass()
     {
-        parent::setUp();
+        parent::setUpBeforeClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
     }
 
-    public function tearDown()
+    public static function tearDownAfterClass()
     {
-        parent::tearDown();
+        parent::tearDownAfterClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=');
+        Decorate::setColorSupport(null);
     }
 
     protected static function kernelClassInstance()
@@ -67,7 +66,7 @@ class HelperTaskTest extends TestCase
 
     public function dataMainAction()
     {
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
         return [
             [HelperTask::class, 'main', [
                 'info'  => ['exactly' => 1, 'consecutive' => [["\t" . 'help ( .*)*']]],

@@ -9,6 +9,20 @@ use Phalcon;
 
 class HelperTest extends \PHPUnit_Framework_TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        Decorate::setColorSupport(false);
+    }
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        Decorate::setColorSupport(null);
+    }
+
     public function dataRemoveDecoration()
     {
         return [

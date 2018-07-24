@@ -28,7 +28,7 @@ class ListTask extends Task
      */
     public function mainAction()
     {
-        $this->{Services::APP}->displayNeutrinoVersion();
+        $this->displayHeader();
 
         $routes = $this->router->getRoutes();
 
@@ -97,4 +97,20 @@ class ListTask extends Task
 
         $this->describes[] = $infos;
     }
+
+    protected function displayHeader()
+    {
+        $this->{Services::APP}->displayNeutrinoVersion();
+        $this->notice('Usage :');
+        $this->line('  command [options] [arguments]');
+        $this->line('');
+        $this->notice('Options :');
+        $this->info('  -h, --help                     Display this help message');
+        $this->info('  -q, --quiet                    Do not output any message');
+        $this->info('  -s, --stats                    Display timing and memory usage information');
+        $this->info('      --colors                   Force Colors output');
+        $this->info('      --no-colors                Disable Colors output');
+        $this->line('');
+    }
 }
+

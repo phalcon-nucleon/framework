@@ -3,6 +3,7 @@
 namespace Test\Cli\Tasks;
 
 use Fake\Kernels\Cli\StubKernelCli;
+use Neutrino\Cli\Output\Decorate;
 use Phalcon\Version;
 use Test\TestCase\TestCase;
 
@@ -12,16 +13,14 @@ class OptimizeTaskTest extends TestCase
     {
         parent::setUpBeforeClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
     }
 
     public static function tearDownAfterClass()
     {
         parent::tearDownAfterClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=');
+        Decorate::setColorSupport(null);
     }
 
     protected static function kernelClassInstance()

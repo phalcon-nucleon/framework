@@ -18,20 +18,18 @@ use Test\TestCase\TestCase;
 
 class ListTaskTest extends TestCase
 {
-    public function setUp()
+    public static function setUpBeforeClass()
     {
-        parent::setUp();
+        parent::setUpBeforeClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
     }
 
-    public function tearDown()
+    public static function tearDownAfterClass()
     {
-        parent::tearDown();
+        parent::tearDownAfterClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=');
+        Decorate::setColorSupport(null);
     }
 
     protected static function kernelClassInstance()
@@ -41,8 +39,7 @@ class ListTaskTest extends TestCase
 
     public function dataDescribe()
     {
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
 
         return [
             [[
@@ -84,8 +81,7 @@ class ListTaskTest extends TestCase
 
     public function dataDescribeRoute()
     {
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
 
         return [
             [[
@@ -129,9 +125,19 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write'  => ['exactly' => 21, 'consecutive' => [
-                //['Available Commands :'],
+            'write'  => ['exactly' => 24, 'consecutive' => [
                 [Helper::neutrinoVersion() . PHP_EOL, true],
+                //['Usage :'],
+                ['  command [options] [arguments]', true],
+                ['', true],
+                //['Options :'],
+                //['  -h, --help                     Display this help message'],
+                //['  -q, --quiet                    Do not output any message'],
+                //['  -s, --stats                    Display timing and memory usage information'],
+                //['      --colors                   Force Colors output'],
+                //['      --no-colors                Disable Colors output'],
+                ['', true],
+                //['Available Commands :'],
                 [' ' . Decorate::info('clear-compiled') . '         Clear compilation.                                    ', true],
                 [' ' . Decorate::info('help ( .*)*') . '                                                                  ', true],
                 [' ' . Decorate::info('list') . '                   List all commands available.                          ', true],
@@ -160,7 +166,9 @@ class ListTaskTest extends TestCase
                 //['view', true],
                 [' ' . Decorate::info('view:clear') . '             Clear all compiled view files.                        ', true],
             ]],
-            'notice' => ['exactly' => 8, 'consecutive' => [
+            'notice' => ['exactly' => 10, 'consecutive' => [
+                ['Usage :'],
+                ['Options :'],
                 ['Available Commands :'],
                 ['assets'],
                 ['config'],
@@ -169,6 +177,13 @@ class ListTaskTest extends TestCase
                 ['route'],
                 ['server'],
                 ['view'],
+            ]],
+            'info' => ['exactly' => 5, 'consecutive' => [
+                ['  -h, --help                     Display this help message'],
+                ['  -q, --quiet                    Do not output any message'],
+                ['  -s, --stats                    Display timing and memory usage information'],
+                ['      --colors                   Force Colors output'],
+                ['      --no-colors                Disable Colors output'],
             ]]
         ];
 

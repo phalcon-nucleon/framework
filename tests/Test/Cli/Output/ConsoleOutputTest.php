@@ -3,6 +3,7 @@
 namespace Test\Cli\Output;
 
 use Fake\Kernels\Cli\Output\StubOutput;
+use Neutrino\Cli\Output\Decorate;
 
 class ConsoleOutputTest extends \PHPUnit_Framework_TestCase
 {
@@ -15,14 +16,14 @@ class ConsoleOutputTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
     }
 
     public function tearDown()
     {
         parent::tearDown();
 
-        putenv('TERM=');
+        Decorate::setColorSupport(null);
     }
 
     public function dataColorisedFunctions()

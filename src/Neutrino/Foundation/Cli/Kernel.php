@@ -25,6 +25,7 @@ use Phalcon\Events\Manager as EventManager;
 abstract class Kernel extends Console implements Kernelable
 {
     use Kernelize {
+        boot as _boot;
         terminate as _terminate;
     }
 
@@ -120,6 +121,17 @@ abstract class Kernel extends Console implements Kernelable
             return $this->_arguments;
         } else {
             return explode(Route::getDelimiter(), $this->_arguments);
+        }
+    }
+
+    public function boot()
+    {
+        $this->_boot();
+
+        if (isset($this->_options['no-colors'])) {
+            Decorate::setColorSupport(false);
+        } elseif (isset($this->_options['colors'])) {
+            Decorate::setColorSupport(true);
         }
     }
 

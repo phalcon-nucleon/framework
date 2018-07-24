@@ -46,6 +46,8 @@ class Decorate
         'conceal'    => ['set' => 8, 'unset' => 28],
     ];
 
+    private static $hasColorSupport;
+
     /**
      * Check if console has color support
      *
@@ -53,15 +55,29 @@ class Decorate
      */
     private static function hasColorSupport()
     {
+        if (isset(self::$hasColorSupport)) {
+            return self::$hasColorSupport;
+        }
+
         if (DIRECTORY_SEPARATOR === '\\') {
-            return
-                '10.0.10586' === PHP_WINDOWS_VERSION_MAJOR . '.' . PHP_WINDOWS_VERSION_MINOR . '.' . PHP_WINDOWS_VERSION_BUILD
+            return self::$hasColorSupport =
+                (10 == PHP_WINDOWS_VERSION_MAJOR && PHP_WINDOWS_VERSION_BUILD >= 10586)
                 || false !== getenv('ANSICON')
                 || 'ON' === getenv('ConEmuANSI')
                 || 'xterm' === getenv('TERM');
         }
 
-        return function_exists('posix_isatty') && @posix_isatty(STDOUT);
+        return self::$hasColorSupport = function_exists('posix_isatty') && @posix_isatty(STDOUT);
+    }
+
+    /**
+     * Force color support.
+     *
+     * @param bool $support
+     */
+    public static function setColorSupport($support)
+    {
+        self::$hasColorSupport = $support;
     }
 
     /**

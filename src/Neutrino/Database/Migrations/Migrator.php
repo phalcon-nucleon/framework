@@ -2,9 +2,9 @@
 
 namespace Neutrino\Database\Migrations;
 
-//use Highlight\Highlighter;
-//use Highlight\Languages\SQL;
-//use Highlight\Renders\Shell;
+use Highlight\Highlighter;
+use Highlight\Languages\SQL;
+use Highlight\Renders\Shell;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Database\Migrations\Prefix\PrefixInterface;
 use Neutrino\Database\Migrations\Storage\StorageInterface;
@@ -370,11 +370,13 @@ class Migrator
             $this->runMigration($instance, $method);
         });
 
-        //$sql = Highlighter::factory(SQL::class, Shell::class);
+        $sql = Highlighter::factory(SQL::class, Shell::class);
 
         foreach ($queries as $query) {
-            $this->note($query /*$sql->highlight($query)*/);
+            $this->note($sql->highlight($query));
         }
+
+        $this->note('');
     }
 
     /**

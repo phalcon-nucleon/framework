@@ -15,6 +15,7 @@ class ResetTask extends BaseTask
      * @option      -f, --force : Force the operation to run when in production.
      * @option      --path : The path of migrations files to be executed.
      * @option      --step : The number of migrations to be reverted & re-run.
+     * @option      --pretend : Dump the SQL queries that would be run.
      */
     public function mainAction()
     {

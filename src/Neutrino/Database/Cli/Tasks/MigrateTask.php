@@ -16,6 +16,7 @@ class MigrateTask extends BaseTask
      * @option      --force : Force the operation to run when in production.
      * @option      --path= : The path of migrations files to be executed.
      * @option      --step : Force the migrations to be run so they can be rolled back individually.
+     * @option      --pretend : Dump the SQL queries that would be run.
      */
     public function mainAction()
     {

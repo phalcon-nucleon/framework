@@ -16,6 +16,7 @@ class FreshTask extends BaseTask
      *
      * @option -f, --force Force the operation to run when in production.
      * @option --path The path of migrations files to be executed.
+     * @option --pretend : Dump the SQL queries that would be run.
      */
     public function mainAction()
     {

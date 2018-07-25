@@ -73,7 +73,12 @@
           margin: 0;
           overflow: hidden;
           white-space: pre-line;
-    "><small class="grey-text text-darken-3"><?= (empty($exception['message']) ? ('no message') : ($exception['message'])) ?></small></pre>
+    "><small class="grey-text text-darken-3"><?=
+                        htmlspecialchars(
+                            empty($exception['message'])
+                                ? 'no message'
+                                : $exception['message']
+                        ) ?></small></pre>
               </span>
               <div>
                 <ul class="collection">
@@ -145,7 +150,7 @@
                     <?php endif; ?>
                 <div class="php-error <?= $color ?>">
                   <span class="type"><?= $error['typeStr'] ?></span> :
-                  <pre class="msg"><?= (empty($error['message']) ? ('no message') : ($error['message'])) ?></pre>
+                  <pre class="msg"><?= htmlspecialchars(empty($error['message']) ? 'no message' : $error['message']) ?></pre>
                   <span class="file"><b>in : </b><?= Neutrino\Debug\file_highlight(($error['file'])) ?> (line: <?= $error['line'] ?>)</span>
                 </div>
                 <?php endforeach; ?>

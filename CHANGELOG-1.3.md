@@ -21,6 +21,7 @@
  - Arr::isAssoc : Improve performance.
  - Arr::sortRecursive : Add $sort_flags
  - Middlewares : All middlewares define response insteadof throw Exception.
+ - Config::Session : Allow to describe multiple store for session
 
 ### Removed
  - classpreloader/classpreloader

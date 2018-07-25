@@ -12,6 +12,9 @@
     - Function route(name, arguments, query)
  - Middleware : Auth\Middleware\Authenticate
  - Config : app->static_base_uri : configure url->static_base_uri
+ - Console : Allow force enable / disable color.
+ - Debug : add syntax highlight with ark4ne/highlight.
+ - Migration : add pretend option Dump the SQL queries that would be run.
 
 ### Changed 
  - Config::Cache : Aggregate now all config files into one file, and keep file content.
@@ -22,6 +25,7 @@
  - Arr::sortRecursive : Add $sort_flags
  - Middlewares : All middlewares define response insteadof throw Exception.
  - Config::Session : Allow to describe multiple store for session
+ - Debug: Clean output before render error
 
 ### Removed
  - classpreloader/classpreloader

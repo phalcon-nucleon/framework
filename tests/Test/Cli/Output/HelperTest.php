@@ -13,7 +13,7 @@ class HelperTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUpBeforeClass();
 
-        Decorate::setColorSupport(false);
+        Decorate::setColorSupport(true);
     }
 
     public static function tearDownAfterClass()
@@ -122,6 +122,8 @@ class HelperTest extends \PHPUnit_Framework_TestCase
 
     public function dataDescribeRoutePattern()
     {
+        Decorate::setColorSupport(true);
+
         return [
             ['', new Phalcon\Cli\Router\Route('', [])],
             ['', new Phalcon\Mvc\Router\Route('', [])],

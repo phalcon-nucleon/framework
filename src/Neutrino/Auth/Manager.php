@@ -5,9 +5,9 @@ namespace Neutrino\Auth;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Auth\User;
 use Neutrino\Interfaces\Auth\Authenticable as AuthenticableInterface;
-use Phalcon\Di\Injectable;
 use Neutrino\Support\Arr;
 use Neutrino\Support\Str;
+use Phalcon\Di\Injectable;
 
 /**
  * Class Auth
@@ -58,17 +58,20 @@ class Manager extends Injectable
             $user = $this->retrieveUserByIdentifier($id);
         }
 
-        /** @var \Phalcon\Http\Response\Cookies $cookies */
-        $cookies = $this->{Services::COOKIES};
-        if (empty($user) && $cookies->has('remember_me')) {
-            $recaller = $cookies->get('remember_me');
-            list($identifier, $token) = explode('|', $recaller);
+        if (empty($user)) {
+            /** @var \Phalcon\Http\Response\Cookies $cookies */
+            $cookies = $this->{Services::COOKIES};
+            if ($cookies->has('remember_me')) {
+                $recaller = $cookies->get('remember_me')->getValue();
 
-            if ($identifier && $token) {
-                $user = $this->retrieveUserByToken($identifier, $token);
+                list($identifier, $token) = explode('|', $recaller);
 
-                if ($user) {
-                    $this->{Services::SESSION}->set($this->sessionKey(), $user->getAuthIdentifier());
+                if ($identifier && $token) {
+                    $user = $this->retrieveUserByToken($identifier, $token);
+
+                    if ($user) {
+                        $this->{Services::SESSION}->set($this->sessionKey(), $user->getAuthIdentifier());
+                    }
                 }
             }
         }
@@ -163,7 +166,7 @@ class Manager extends Injectable
 
             /** @var \Phalcon\Http\Response\Cookies|\Phalcon\Http\Response\CookiesInterface $cookies */
             $cookies = $this->{Services::COOKIES};
-            $cookies->set('remember_me', $user->getAuthIdentifier() . '|' . $rememberToken);
+            $cookies->set('remember_me', $user->getAuthIdentifier() . '|' . $rememberToken, time() + (100 * 365 * 24 * 60 * 60));
 
             $user->setRememberToken($rememberToken);
 

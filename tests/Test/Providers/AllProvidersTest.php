@@ -210,6 +210,10 @@ class AllProvidersTest extends TestCase
     public function setUp()
     {
         self::setConfig([
+            'app' => [
+                'key' => 'key',
+                'cipher' => null,
+            ],
             'cache' => [
                 'stores' => ['memory' => [
                     'driver' => \Phalcon\Cache\Backend\Memory::class,

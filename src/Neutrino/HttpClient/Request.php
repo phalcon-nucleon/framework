@@ -54,7 +54,7 @@ abstract class Request
      */
     public function __construct(Header $header = null)
     {
-        $this->header = new Header();
+        $this->header = $header ?: new Header();
     }
 
     /**
@@ -518,7 +518,7 @@ abstract class Request
      *
      * @return $this
      */
-    public function post($uri, array $params = [], array $options)
+    public function post($uri, array $params = [], array $options = [])
     {
         return $this->request(Method::POST, $uri, $params, $options);
     }
@@ -532,7 +532,7 @@ abstract class Request
      *
      * @return $this
      */
-    public function put($uri, array $params = [], $options)
+    public function put($uri, array $params = [], array $options = [])
     {
         return $this->request(Method::PUT, $uri, $params, $options);
     }
@@ -546,7 +546,7 @@ abstract class Request
      *
      * @return $this
      */
-    public function patch($uri, array $params = [], $options)
+    public function patch($uri, array $params = [], array $options = [])
     {
         return $this->request(Method::PATCH, $uri, $params, $options);
     }

@@ -131,6 +131,7 @@ class Manager extends Injectable
         $this->loggedOut = true;
 
         $this->{Services::SESSION}->destroy();
+        $this->{Services::COOKIES}->delete('remember_me');
     }
 
     /**

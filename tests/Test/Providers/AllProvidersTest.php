@@ -212,7 +212,7 @@ class AllProvidersTest extends TestCase
         self::setConfig([
             'app' => [
                 'key' => 'key',
-                'cipher' => null,
+                'cipher' => 'aes-256-cfb',
             ],
             'cache' => [
                 'stores' => ['memory' => [

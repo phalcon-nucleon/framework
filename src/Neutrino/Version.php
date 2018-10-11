@@ -14,7 +14,7 @@ class Version extends \Phalcon\Version
             3, // medium
             0, // minor
             2, // special
-            0  // number
+            2  // number
         ];
     }
 }

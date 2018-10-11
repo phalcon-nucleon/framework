@@ -49,7 +49,11 @@ class ListTask extends Task
         $datas = [];
 
         foreach ($this->describes as $describe) {
-            $datas[$describe['cmd']] = explode(PHP_EOL, $describe['description'], 2)[0];
+            if (isset($describe['__exception'])) {
+                $datas[$describe['cmd']] = Decorate::error(explode(PHP_EOL, $describe['__exception'], 2)[0]);
+            } else {
+                $datas[$describe['cmd']] = explode(PHP_EOL, $describe['description'], 2)[0];
+            }
         }
 
         $this->notice('Available Commands :');
@@ -93,7 +97,11 @@ class ListTask extends Task
             $infos['arguments'] = implode(', ', $infos['arguments']);
         }
 
-        $infos['cmd'] = Decorate::info($pattern);
+        if (isset($infos['__exception'])) {
+            $infos['cmd'] = Decorate::error($pattern);
+        } else {
+            $infos['cmd'] = Decorate::info($pattern);
+        }
 
         $this->describes[] = $infos;
     }

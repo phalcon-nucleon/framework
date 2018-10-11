@@ -139,9 +139,9 @@ final class Helper
         try {
             $method = $reflection->getMethod($methodName);
         } catch (\Exception $e) {
-
+            return ['__exception' => "Methods $class::$methodName not found."];
         }
-        $description = '';
+
         if (!empty($method)) {
             $docBlock = $method->getDocComment();
 

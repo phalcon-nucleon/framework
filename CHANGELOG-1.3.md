@@ -15,6 +15,11 @@
  - Console : Allow force enable / disable color.
  - Debug : add syntax highlight with ark4ne/highlight.
  - Migration : add pretend option Dump the SQL queries that would be run.
+ - Migration : implement rename table function.
+ - Crypt : Configurable cipher algorithm.
+ - Session : Multiple backend adapter configuration
+ - Improved debug tools (File highlight, improve exception/error format, improve variable verbose, ...)
+ - App : Allow to configure base_url & static_url.
 
 ### Changed 
  - Config::Cache : Aggregate now all config files into one file, and keep file content.
@@ -26,6 +31,10 @@
  - Middlewares : All middlewares define response insteadof throw Exception.
  - Config::Session : Allow to describe multiple store for session
  - Debug: Clean output before render error
+ - Auth: Fixed session remember, and remember cookie deletion on logout.
+ - HttpClient: Fixed methods arguments for post, put, patch.
+ - HttpClient: Remove default timeout.
+ - ListTask : Display an error if a command has a nonexistent method.
 
 ### Removed
  - classpreloader/classpreloader

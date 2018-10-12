@@ -80,26 +80,65 @@ class Process
     /**
      * Wait until process end or wait time
      *
-     * @param int|null $wait in ms
+     * @param int|null $timeout in ms
      * @param int $step in ms
      */
-    public function wait($wait = null, $step = 1000)
+    public function wait($timeout = null, $step = 1000)
     {
-        $withTimeout = false === is_null($wait);
+        $withTimeout = false === is_null($timeout);
 
         if ($withTimeout) {
             $start = microtime(true);
-            if ($wait < $step) {
-                $step = $wait;
+            if ($timeout < $step) {
+                $step = $timeout;
             }
         }
 
         while ($this->isRunning()) {
             usleep($step * 1000);
 
-            if ($withTimeout && ($start + $wait) > microtime(true)) {
+            if ($withTimeout && ($start + $timeout) > microtime(true)) {
                 return;
             }
+        }
+    }
+
+    /**
+     * @param \Closure $callback
+     * @param int|null $timeout in ms
+     * @param int      $step    in ms
+     */
+    public function watch(\Closure $callback, $timeout = null, $step = 1000)
+    {
+        $withTimeout = false === is_null($timeout);
+
+        if ($withTimeout) {
+            $start = microtime(true);
+            if ($timeout < $step) {
+                $step = $timeout;
+            }
+        }
+
+        while ($this->isRunning()) {
+            $output = $this->readOutput();
+            $error = $this->readError();
+
+            if (!empty($output) || !empty($error)) {
+                $callback($output, $error);
+            }
+
+            usleep($step * 1000);
+
+            if ($withTimeout && ($start + $timeout) > microtime(true)) {
+                break;
+            }
+        }
+
+        $output = $this->readOutput();
+        $error = $this->readError();
+
+        if (!empty($output) || !empty($error)) {
+            $callback($output, $error);
         }
     }
 
@@ -217,16 +256,24 @@ class Process
 
     private function readOutput()
     {
+        $readed = null;
+
         if (isset($this->pipes[1])) {
-            $this->content .= $this->read($this->pipes[1], strlen($this->content));
+            $this->content .= $readed = $this->read($this->pipes[1], strlen($this->content));
         }
+
+        return $readed;
     }
 
     private function readError()
     {
+        $readed = null;
+
         if (isset($this->pipes[2])) {
-            $this->error .= $this->read($this->pipes[2], strlen($this->error));
+            $this->error .= $readed = $this->read($this->pipes[2], strlen($this->error));
         }
+
+        return $readed;
     }
 
     private function read($pipe, $offset = 0)

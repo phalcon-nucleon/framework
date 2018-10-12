@@ -20,6 +20,7 @@
  - Session : Multiple backend adapter configuration
  - Improved debug tools (File highlight, improve exception/error format, improve variable verbose, ...)
  - App : Allow to configure base_url & static_url.
+ - ServerTask : Allow to configure host and ip, insteadof only ip.
 
 ### Changed 
  - Config::Cache : Aggregate now all config files into one file, and keep file content.

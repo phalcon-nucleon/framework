@@ -105,8 +105,8 @@ class ServerTask extends Task
         $this->block(['[OK] http://' . $host . ':' . $port], 'info');
 
         $this->proc->watch(function ($stdo, $stde) {
-            !empty($stdo) && $this->line($stdo);
-            !empty($stde) && $this->error($stde);
+            !empty($stdo) && $this->line(trim($stdo, "\n\r"));
+            !empty($stde) && $this->error(trim($stde, "\n\r"));
         });
 
         $this->block(['[ERR] server suddenly stopped'], 'error');

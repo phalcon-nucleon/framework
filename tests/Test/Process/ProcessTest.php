@@ -66,7 +66,7 @@ class ProcessTest extends TestCase
 
     public function testWatch()
     {
-        $process = new Process(PHP_BINARY . ' -r "ob_start();var_dump(123);ob_end_flush();sleep(1);ob_start();var_dump(456);ob_end_flush();sleep(1);ob_start();echo \'end\';ob_end_flush();"', __DIR__);
+        $process = new Process(PHP_BINARY . ' -r "ob_start();print_r(123);ob_end_flush();sleep(1);ob_start();print_r(456);ob_end_flush();sleep(1);ob_start();echo \'end\';ob_end_flush();"', __DIR__);
 
         try {
             $readed = [];
@@ -80,8 +80,8 @@ class ProcessTest extends TestCase
                 }, null, 1);
 
             $this->assertEquals([
-                'int(123)' . "\n",
-                'int(456)' . "\n",
+                '123',
+                '456',
                 'end',
             ], $readed);
             $this->assertEquals(['', '', ''], $errors);

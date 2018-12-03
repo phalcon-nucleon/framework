@@ -13,8 +13,8 @@ class Version extends \Phalcon\Version
             1, // major
             3, // medium
             0, // minor
-            2, // special
-            2  // number
+            3, // special
+            1  // number
         ];
     }
 }

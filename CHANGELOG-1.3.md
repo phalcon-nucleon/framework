@@ -37,6 +37,7 @@
  - HttpClient: Fixed methods arguments for post, put, patch.
  - HttpClient: Remove default timeout.
  - ListTask : Display an error if a command has a nonexistent method.
+ - Migration : Fixed addition primary key  to an existing table
 
 ### Removed
  - classpreloader/classpreloader

@@ -210,7 +210,11 @@ class Blueprint
         }
 
         foreach ($this->indexes as $index) {
-            $this->addCommand('addIndex', ['index' => $index]);
+            $command = $index->get('type') === 'PRIMARY'
+                ? 'addPrimary'
+                : 'addIndex';
+
+            $this->addCommand($command, ['index' => $index]);
         }
 
         foreach ($this->references as $reference) {
@@ -293,6 +297,13 @@ class Blueprint
                         $schema,
                         $this->fluentToColumn($command->get('column'), $grammar),
                         $command->get('from')
+                    );
+                    break;
+                case 'addPrimary':
+                    $db->addPrimaryKey(
+                        $table,
+                        $schema,
+                        $this->fluentToIndex($command->get('index'), $grammar)
                     );
                     break;
                 case 'addIndex':

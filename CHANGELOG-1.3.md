@@ -32,12 +32,13 @@
  - Arr::sortRecursive : Add $sort_flags
  - Middlewares : All middlewares define response insteadof throw Exception.
  - Config::Session : Allow to describe multiple store for session
- - Debug: Clean output before render error
- - Auth: Fixed session remember, and remember cookie deletion on logout.
- - HttpClient: Fixed methods arguments for post, put, patch.
- - HttpClient: Remove default timeout.
+ - Debug : Clean output before render error
+ - Auth : Fixed session remember, and remember cookie deletion on logout.
+ - HttpClient : Fixed methods arguments for post, put, patch.
+ - HttpClient : Remove default timeout.
  - ListTask : Display an error if a command has a nonexistent method.
  - Migration : Fixed addition primary key  to an existing table
+ - Error\Writer\Json : Return now : [code: http_status_code, status: http_status_msg [, debug: error]]
 
 ### Removed
  - classpreloader/classpreloader

@@ -5,7 +5,7 @@ namespace Neutrino\Error\Writer;
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Phalcon\Di;
-use Phalcon\Http\Response;
+use Phalcon\Http\ResponseInterface;
 
 /**
  * Class Json
@@ -24,20 +24,28 @@ class Json implements Writable
             return;
         }
 
+        $return = [
+            'code' => 500,
+            'status' => 'Internal Server Error',
+        ];
+
+        if (APP_DEBUG) {
+            $return['debug'] = $error;
+        }
+
         $di = Di::getDefault();
 
         if ($di
             && $di->has(Services::RESPONSE)
-            && ($response = $di->getShared(Services::RESPONSE)) instanceof Response
+            && ($response = $di->getShared(Services::RESPONSE)) instanceof ResponseInterface
             && !$response->isSent()
         ) {
-            /** @var \Phalcon\Http\Response $response */
             $response
                 ->setStatusCode(500, 'Internal Server Error')
-                ->setJsonContent(APP_DEBUG ? $error : '')
+                ->setJsonContent($return)
                 ->send();
         } else {
-            echo json_encode(APP_DEBUG ? $error : '');
+            echo json_encode($return);
         }
     }
 }

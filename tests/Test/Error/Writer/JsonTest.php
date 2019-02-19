@@ -49,7 +49,11 @@ class JsonTest extends TestCase
                 ->will($this->returnValue(false));
             $mock->expects($this->once())
                 ->method('setJsonContent')
-                ->with($error)
+                ->with([
+                    'code' => 500,
+                    'status' => 'Internal Server Error',
+                    'debug' => $error
+                ])
                 ->will($this->returnSelf());
             $mock->expects($this->once())
                 ->method('setStatusCode')
@@ -96,7 +100,11 @@ class JsonTest extends TestCase
             $mock->expects($this->never())
                 ->method('send');
 
-            $this->expectOutputString(json_encode($error));
+            $this->expectOutputString(json_encode([
+                'code' => 500,
+                'status' => 'Internal Server Error',
+                'debug' => $error
+            ]));
 
         } else {
             $mock->expects($this->never())

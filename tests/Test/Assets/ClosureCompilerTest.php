@@ -103,7 +103,6 @@ function jQuerySelectorSpeedhack(id) {
 JS;
 
         $data = [
-          'js_code' => $jsCode,
           'compilation_level' => 'ADVANCED_OPTIMIZATIONS',
           'output_format' => 'json',
           'output_info' => ['warnings', 'errors', 'statistics', 'compiled_code'],
@@ -113,8 +112,7 @@ JS;
           ]
         ];
 
-        $query = http_build_query($data);
-        $query = preg_replace('/%5B[0-9]+%5D/simU', '', $query);
+        $query = http_build_query(['js_code' => $jsCode]) . '&' . preg_replace('/%5B[0-9]+%5D/simU', '', http_build_query($data));
 
         Reflexion::set(Curl::class, 'isAvailable', true);
         $curl = $this->mockService(Curl::class, Curl::class, false);

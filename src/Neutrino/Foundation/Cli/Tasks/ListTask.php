@@ -28,7 +28,7 @@ class ListTask extends Task
      */
     public function mainAction()
     {
-        $this->{Services::APP}->displayNeutrinoVersion();
+        $this->displayHeader();
 
         $routes = $this->router->getRoutes();
 
@@ -49,7 +49,11 @@ class ListTask extends Task
         $datas = [];
 
         foreach ($this->describes as $describe) {
-            $datas[$describe['cmd']] = explode(PHP_EOL, $describe['description'], 2)[0];
+            if (isset($describe['__exception'])) {
+                $datas[$describe['cmd']] = Decorate::error(explode(PHP_EOL, $describe['__exception'], 2)[0]);
+            } else {
+                $datas[$describe['cmd']] = explode(PHP_EOL, $describe['description'], 2)[0];
+            }
         }
 
         $this->notice('Available Commands :');
@@ -93,8 +97,28 @@ class ListTask extends Task
             $infos['arguments'] = implode(', ', $infos['arguments']);
         }
 
-        $infos['cmd'] = Decorate::info($pattern);
+        if (isset($infos['__exception'])) {
+            $infos['cmd'] = Decorate::error($pattern);
+        } else {
+            $infos['cmd'] = Decorate::info($pattern);
+        }
 
         $this->describes[] = $infos;
     }
+
+    protected function displayHeader()
+    {
+        $this->{Services::APP}->displayNeutrinoVersion();
+        $this->notice('Usage :');
+        $this->line('  command [options] [arguments]');
+        $this->line('');
+        $this->notice('Options :');
+        $this->info('  -h, --help                     Display this help message');
+        $this->info('  -q, --quiet                    Do not output any message');
+        $this->info('  -s, --stats                    Display timing and memory usage information');
+        $this->info('      --colors                   Force Colors output');
+        $this->info('      --no-colors                Disable Colors output');
+        $this->line('');
+    }
 }
+

@@ -11,10 +11,10 @@ class Version extends \Phalcon\Version
     {
         return [
             1, // major
-            2, // medium
-            4, // minor
-            4, // special
-            0  // number
+            3, // medium
+            0, // minor
+            3, // special
+            2  // number
         ];
     }
 }

@@ -36,7 +36,7 @@ class FreshTaskTest extends DatabaseCliTestCase
         $this->migrator->expects($this->once())->method('getNotes')->willReturn([]);
         $this->migrator->expects($this->once())->method('run')->with(
             [BASE_PATH . '/migrations'],
-            ['step' => 0]
+            ['step' => 0, 'pretend' => false]
         );
 
         $this->dispatchCli('quark migrate:fresh');

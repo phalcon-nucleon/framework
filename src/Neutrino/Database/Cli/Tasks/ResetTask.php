@@ -15,6 +15,7 @@ class ResetTask extends BaseTask
      * @option      -f, --force : Force the operation to run when in production.
      * @option      --path : The path of migrations files to be executed.
      * @option      --step : The number of migrations to be reverted & re-run.
+     * @option      --pretend : Dump the SQL queries that would be run.
      */
     public function mainAction()
     {
@@ -31,7 +32,9 @@ class ResetTask extends BaseTask
             return;
         }
 
-        $this->migrator->reset($this->getMigrationPaths());
+        $this->migrator->reset($this->getMigrationPaths(), [
+            'pretend' => $this->getOption('pretend') ?: false
+        ]);
 
         // Once the migrator has run we will grab the note output and send it out to
         // the console screen, since the migrator itself functions without having

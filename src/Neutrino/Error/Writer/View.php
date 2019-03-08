@@ -29,6 +29,10 @@ class View implements Writable
             return;
         }
 
+        foreach (ob_list_handlers() as $value) {
+            ob_clean();
+        }
+
         if (Debugger::isEnable()) {
             $this->debugErrorView($error);
             return;

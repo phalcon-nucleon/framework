@@ -3,6 +3,7 @@
 namespace Test\Cli\Tasks;
 
 use Fake\Kernels\Cli\StubKernelCli;
+use Neutrino\Cli\Output\Decorate;
 use Test\TestCase\TestCase;
 
 /**
@@ -17,7 +18,7 @@ class ClearCompiledTaskTest extends TestCase
         parent::setUpBeforeClass();
 
         // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
     }
 
     public static function tearDownAfterClass()
@@ -25,7 +26,7 @@ class ClearCompiledTaskTest extends TestCase
         parent::tearDownAfterClass();
 
         // Force Enable Decoration for windows
-        putenv('TERM=');
+        Decorate::setColorSupport(null);
     }
 
     protected static function kernelClassInstance()

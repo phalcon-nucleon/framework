@@ -1,6 +1,13 @@
 <?php
 
 namespace Neutrino\Debug {
+
+    use Highlight\Highlighter;
+    use Highlight\Languages\PHP;
+    use Highlight\Languages\SQL;
+    use Highlight\Renders\Html;
+    use Highlight\Token;
+
     if (!function_exists(__NAMESPACE__ . '\\human_mtime')) {
         /**
          * @internal
@@ -75,370 +82,11 @@ namespace Neutrino\Debug {
          */
         function sql_highlight($sql)
         {
-            $func = implode('|', [
-              'ABS',
-              'ACOS',
-              'ADDDATE',
-              'ADDTIME',
-              'AES_DECRYPT',
-              'AES_ENCRYPT',
-              'AREA',
-              'ASBINARY',
-              'ASCII',
-              'ASIN',
-              'ASTEXT',
-              'ATAN',
-              'ATAN2',
-              'AVG',
-              'BDMPOLYFROMTEXT',
-              'BDMPOLYFROMWKB',
-              'BDPOLYFROMTEXT',
-              'BDPOLYFROMWKB',
-              'BENCHMARK',
-              'BIN',
-              'BIT_AND',
-              'BIT_COUNT',
-              'BIT_LENGTH',
-              'BIT_OR',
-              'BIT_XOR',
-              'BOUNDARY',
-              'BUFFER',
-              'CAST',
-              'CEIL',
-              'CEILING',
-              'CENTROID',
-              'CHAR',
-              'CHARACTER_LENGTH',
-              'CHARSET',
-              'CHAR_LENGTH',
-              'COALESCE',
-              'COERCIBILITY',
-              'COLLATION',
-              'COMPRESS',
-              'CONCAT',
-              'CONCAT_WS',
-              'CONNECTION_ID',
-              'CONTAINS',
-              'CONV',
-              'CONVERT',
-              'CONVERT_TZ',
-              'CONVEXHULL',
-              'COS',
-              'COT',
-              'COUNT',
-              'CRC32',
-              'CROSSES',
-              'CURDATE',
-              'CURRENT_DATE',
-              'CURRENT_TIME',
-              'CURRENT_TIMESTAMP',
-              'CURRENT_USER',
-              'CURTIME',
-              'DATABASE',
-              'DATE',
-              'DATEDIFF',
-              'DATE_ADD',
-              'DATE_DIFF',
-              'DATE_FORMAT',
-              'DATE_SUB',
-              'DAY',
-              'DAYNAME',
-              'DAYOFMONTH',
-              'DAYOFWEEK',
-              'DAYOFYEAR',
-              'DECODE',
-              'DEFAULT',
-              'DEGREES',
-              'DES_DECRYPT',
-              'DES_ENCRYPT',
-              'DIFFERENCE',
-              'DIMENSION',
-              'DISJOINT',
-              'DISTANCE',
-              'ELT',
-              'ENCODE',
-              'ENCRYPT',
-              'ENDPOINT',
-              'ENVELOPE',
-              'EQUALS',
-              'EXP',
-              'EXPORT_SET',
-              'EXTERIORRING',
-              'EXTRACT',
-              'EXTRACTVALUE',
-              'FIELD',
-              'FIND_IN_SET',
-              'FLOOR',
-              'FORMAT',
-              'FOUND_ROWS',
-              'FROM_DAYS',
-              'FROM_UNIXTIME',
-              'GEOMCOLLFROMTEXT',
-              'GEOMCOLLFROMWKB',
-              'GEOMETRYCOLLECTION',
-              'GEOMETRYCOLLECTIONFROMTEXT',
-              'GEOMETRYCOLLECTIONFROMWKB',
-              'GEOMETRYFROMTEXT',
-              'GEOMETRYFROMWKB',
-              'GEOMETRYN',
-              'GEOMETRYTYPE',
-              'GEOMFROMTEXT',
-              'GEOMFROMWKB',
-              'GET_FORMAT',
-              'GET_LOCK',
-              'GLENGTH',
-              'GREATEST',
-              'GROUP_CONCAT',
-              'GROUP_UNIQUE_USERS',
-              'HEX',
-              'HOUR',
-              'IF',
-              'IFNULL',
-              'INET_ATON',
-              'INET_NTOA',
-              'INSERT',
-              'INSTR',
-              'INTERIORRINGN',
-              'INTERSECTION',
-              'INTERSECTS',
-              'INTERVAL',
-              'ISCLOSED',
-              'ISEMPTY',
-              'ISNULL',
-              'ISRING',
-              'ISSIMPLE',
-              'IS_FREE_LOCK',
-              'IS_USED_LOCK',
-              'LAST_DAY',
-              'LAST_INSERT_ID',
-              'LCASE',
-              'LEAST',
-              'LEFT',
-              'LENGTH',
-              'LINEFROMTEXT',
-              'LINEFROMWKB',
-              'LINESTRING',
-              'LINESTRINGFROMTEXT',
-              'LINESTRINGFROMWKB',
-              'LN',
-              'LOAD_FILE',
-              'LOCALTIME',
-              'LOCALTIMESTAMP',
-              'LOCATE',
-              'LOG',
-              'LOG10',
-              'LOG2',
-              'LOWER',
-              'LPAD',
-              'LTRIM',
-              'MAKEDATE',
-              'MAKETIME',
-              'MAKE_SET',
-              'MASTER_POS_WAIT',
-              'MAX',
-              'MBRCONTAINS',
-              'MBRDISJOINT',
-              'MBREQUAL',
-              'MBRINTERSECTS',
-              'MBROVERLAPS',
-              'MBRTOUCHES',
-              'MBRWITHIN',
-              'MD5',
-              'MICROSECOND',
-              'MID',
-              'MIN',
-              'MINUTE',
-              'MLINEFROMTEXT',
-              'MLINEFROMWKB',
-              'MOD',
-              'MONTH',
-              'MONTHNAME',
-              'MPOINTFROMTEXT',
-              'MPOINTFROMWKB',
-              'MPOLYFROMTEXT',
-              'MPOLYFROMWKB',
-              'MULTILINESTRING',
-              'MULTILINESTRINGFROMTEXT',
-              'MULTILINESTRINGFROMWKB',
-              'MULTIPOINT',
-              'MULTIPOINTFROMTEXT',
-              'MULTIPOINTFROMWKB',
-              'MULTIPOLYGON',
-              'MULTIPOLYGONFROMTEXT',
-              'MULTIPOLYGONFROMWKB',
-              'NAME_CONST',
-              'NULLIF',
-              'NUMGEOMETRIES',
-              'NUMINTERIORRINGS',
-              'NUMPOINTS',
-              'OCT',
-              'OCTET_LENGTH',
-              'OLD_PASSWORD',
-              'ORD',
-              'OVERLAPS',
-              'PASSWORD',
-              'PERIOD_ADD',
-              'PERIOD_DIFF',
-              'PI',
-              'POINT',
-              'POINTFROMTEXT',
-              'POINTFROMWKB',
-              'POINTN',
-              'POINTONSURFACE',
-              'POLYFROMTEXT',
-              'POLYFROMWKB',
-              'POLYGON',
-              'POLYGONFROMTEXT',
-              'POLYGONFROMWKB',
-              'POSITION',
-              'POW',
-              'POWER',
-              'QUARTER',
-              'QUOTE',
-              'RADIANS',
-              'RAND',
-              'RELATED',
-              'RELEASE_LOCK',
-              'REPEAT',
-              'REPLACE',
-              'REVERSE',
-              'RIGHT',
-              'ROUND',
-              'ROW_COUNT',
-              'RPAD',
-              'RTRIM',
-              'SCHEMA',
-              'SECOND',
-              'SEC_TO_TIME',
-              'SESSION_USER',
-              'SHA',
-              'SHA1',
-              'SIGN',
-              'SIN',
-              'SLEEP',
-              'SOUNDEX',
-              'SPACE',
-              'SQRT',
-              'SRID',
-              'STARTPOINT',
-              'STD',
-              'STDDEV',
-              'STDDEV_POP',
-              'STDDEV_SAMP',
-              'STRCMP',
-              'STR_TO_DATE',
-              'SUBDATE',
-              'SUBSTR',
-              'SUBSTRING',
-              'SUBSTRING_INDEX',
-              'SUBTIME',
-              'SUM',
-              'SYMDIFFERENCE',
-              'SYSDATE',
-              'SYSTEM_USER',
-              'TAN',
-              'TIME',
-              'TIMEDIFF',
-              'TIMESTAMP',
-              'TIMESTAMPADD',
-              'TIMESTAMPDIFF',
-              'TIME_FORMAT',
-              'TIME_TO_SEC',
-              'TOUCHES',
-              'TO_DAYS',
-              'TRIM',
-              'TRUNCATE',
-              'UCASE',
-              'UNCOMPRESS',
-              'UNCOMPRESSED_LENGTH',
-              'UNHEX',
-              'UNIQUE_USERS',
-              'UNIX_TIMESTAMP',
-              'UPDATEXML',
-              'UPPER',
-              'USER',
-              'UTC_DATE',
-              'UTC_TIME',
-              'UTC_TIMESTAMP',
-              'UUID',
-              'VARIANCE',
-              'VAR_POP',
-              'VAR_SAMP',
-              'VERSION',
-              'WEEK',
-              'WEEKDAY',
-              'WEEKOFYEAR',
-              'WITHIN',
-              'YEAR',
-              'YEARWEEK',
-            ]);
-            $keyWordsLn = implode('|', [
-              'DATABASE',
-              'DELETE FROM',
-              'UNION ALL',
-              'UNION',
-              'EXCEPT',
-              'INTERSECT',
-              'SELECT',
-              'FROM',
-              'WHERE',
-              'LEFT OUTER JOIN',
-              'RIGHT OUTER JOIN',
-              'OUTER JOIN',
-              'LEFT JOIN',
-              'RIGHT JOIN',
-              'INNER JOIN',
-              'JOIN',
-              'ORDER BY',
-              'GROUP BY',
-              'HAVING',
-              'LIMIT',
-              'OFFSET',
-              'SET',
-              'VALUES',
-              'ON DUPLICATE',
-            ]);
-            $keyWords = implode('|', [
-              ' ON ',
-              ' AND ',
-              ' OR ',
-              ' IN ',
-              ' AS ',
-              'DELAYED',
-              'QUERY',
-              'WITH',
-              'EXPANSION',
-              'DISTINCT',
-              'EXPLAIN',
-              'TABLE',
-              'GLOBAL',
-              'OPTIMIZE',
-              'ANALYZE',
-              'UPDATE',
-              'INSERT',
-              'LOW_PRIORITY',
-              'INTO',
-              'DUPLICATE',
-              'KEY',
-              'NATURAL',
-              'MODE',
-              'LANGUAGE',
-              'BOOLEAN',
-              'BETWEEN',
-              ' DESC',
-              ' ASC',
-            ]);
-
-            $sql = preg_replace('/([\'"][\w_. -]+[\'"])/', '<span class="string">$1</span>', $sql);
-            $sql = preg_replace('/(FROM|JOIN|INTO|UPDATE|LOW_PRIORITY) (`[\w]+`)/', '$1 <span class="table">$2</span>', $sql);
-            $sql = preg_replace('/(`[\w]+`).(`[\w]+`)/', '<span class="table">$1</span>.<span class="column">$2</span>', $sql);
-            $sql = preg_replace('/([ ,\(])(`[\w]+`)([\) ,])/', '$1<span class="column">$2</span>$3', $sql);
-            $sql = preg_replace('/([ ,\(])(`[\w]+`)$/', '$1<span class="column">$2</span>', $sql);
-            $sql = trim(preg_replace('/(' . $keyWordsLn . ')/', PHP_EOL . '$1', $sql));
-            $sql = preg_replace('/(' . $keyWordsLn . '|' . $keyWords . ')/', '<span class="keyw">$1</span>', $sql);
-            $sql = preg_replace('/(' . $func . ')( ?\()/', '<i class="func">$1</i>$2', $sql);
-
-            return $sql;
+            return Highlighter::factory(SQL::class, Html::class, [
+                'format' => SQL::FORMAT_NESTED,
+                'inlineStyle' => true,
+                'styles' => ['pre' => '', 'function' => 'color:#fdd835;font-style:italic']
+            ])->highlight($sql);
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\file_highlight')) {
@@ -455,11 +103,11 @@ namespace Neutrino\Debug {
         {
             $file = str_replace(BASE_PATH . DIRECTORY_SEPARATOR, '', str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $file));
 
-            if (preg_match('!(\w+\.[a-z]{2,4})(?:\((\d+)\))$!', $file)) {
-                return preg_replace('!(\w+\.[a-z]{2,4})(?:\((\d+)\))$!', '<b>$1</b> (line: $2)', $file);
+            if (preg_match('!(\w+\.[a-zA-Z0-9]{2,4})(?:\((\d+)\))$!', $file)) {
+                return preg_replace('!(\w+\.[a-zA-Z0-9]{2,4})(?:\((\d+)\))$!', '<b>$1</b> (line: $2)', $file);
             }
 
-            return preg_replace('!(\w+\.[a-z]{2,4})$!', '<b>$1</b>', $file);
+            return preg_replace('!(\w+\.[a-zA-Z0-9]{2,4})$!', '<b>$1</b>', $file);
         }
     }
     if (!function_exists(__NAMESPACE__ . '\\func_highlight')) {
@@ -474,13 +122,46 @@ namespace Neutrino\Debug {
          */
         function func_highlight($func)
         {
-            return preg_replace(
-              '!(.+)(->|::)(\w+)(?:(\(.+\)))?!',
-              '<span class="red-text text-darken-4">$1</span>$2<span class="red-text text-darken-2">$3</span><span class="grey-text text-darken-1">$4</span>',
-              $func
-            );
+            return Highlighter::factory(PHP::class, Html::class, [
+                'withLineNumber' => false,
+                'inlineStyle'    => true,
+                'noPre'          => true,
+                'context'        => 'php',
+                'styles'         => [
+                    Token::TOKEN_NAMESPACE => 'color:#880000',
+                    Token::TOKEN_FUNCTION  => 'color:#880000;font-weight:bold',
+                    Token::TOKEN_KEYWORD   => 'color:#bf360c;',
+                    Token::TOKEN_VARIABLE  => 'color:#880000',
+                    Token::TOKEN_STRING    => 'color:#2e7d32'
+                ]])
+                ->highlight($func);
         }
     }
+
+    if (!function_exists(__NAMESPACE__ . '\\php_file_part_highlight')) {
+        /**
+         * @internal
+         *
+         * Highlight php file part
+         *
+         * @param     $file
+         * @param     $line
+         * @param int $expands
+         *
+         * @return string
+         */
+        function php_file_part_highlight($file, $line, $expands = 10)
+        {
+            return Highlighter::factory(PHP::class, Html::class, [
+                    'withLineNumber' => true,
+                    'lineOffset'     => $line - $expands - 1,
+                    'lineLimit'      => $expands * 2 + 1,
+                    'lineSelected'   => $line
+                ])
+                ->highlight(file_get_contents($file));
+        }
+    }
+
     if (!function_exists(__NAMESPACE__ . '\\length')) {
         /**
          * @internal

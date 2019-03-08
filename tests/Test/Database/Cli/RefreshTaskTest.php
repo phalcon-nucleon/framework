@@ -19,7 +19,7 @@ class RefreshTaskTest extends DatabaseCliTestCase
 
         $this->migrator->expects($this->once())->method('run')->with(
             [BASE_PATH . '/migrations'],
-            ['step' => 0]
+            ['step' => 0, 'pretend' => false]
         );
 
         $this->dispatchCli('quark migrate:refresh');
@@ -35,7 +35,7 @@ class RefreshTaskTest extends DatabaseCliTestCase
 
         $this->migrator->expects($this->once())->method('run')->with(
             [BASE_PATH . '/migrations'],
-            ['step' => 3]
+            ['step' => 3, 'pretend' => false]
         );
 
         $this->dispatchCli('quark migrate:refresh --step=3');

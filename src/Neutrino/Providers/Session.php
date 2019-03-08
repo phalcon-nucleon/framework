@@ -3,12 +3,12 @@
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
+use Neutrino\Interfaces\Providable;
 use Phalcon\Di\Injectable;
 use Phalcon\Session\Adapter\Files as FilesAdapter;
 use Phalcon\Session\Adapter\Libmemcached as LibmemcachedAdapter;
 use Phalcon\Session\Adapter\Memcache as MemcacheAdapter;
 use Phalcon\Session\Adapter\Redis as RedisAdapter;
-use Neutrino\Interfaces\Providable;
 use Phalcon\Session\Bag;
 
 /**
@@ -35,6 +35,15 @@ class Session extends Injectable implements Providable
             /** @var \Phalcon\DiInterface $this */
 
             $sessionConfig = $this->getShared(Services::CONFIG)->session;
+
+            if (!isset($sessionConfig->adapter)) {
+                if (!isset($sessionConfig->stores[$sessionConfig->default])) {
+                    throw new \RuntimeException("Session store {$sessionConfig->default} not found in stores");
+                }
+
+                $sessionConfig = $sessionConfig->stores[$sessionConfig->default];
+            }
+
             $adapter = $sessionConfig->adapter;
 
             switch ($adapter){

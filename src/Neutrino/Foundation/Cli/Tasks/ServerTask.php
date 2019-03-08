@@ -13,24 +13,22 @@ use Neutrino\Process\Process;
  */
 class ServerTask extends Task
 {
-    const IP_PATTERN = '/^(?:(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/';
-
     /** @var Process */
     private $proc;
 
     /**
      * Runs a local web server
      *
-     * @option --ip   : Define the ip to use. Default : 127.0.0.1.
+     * @option --host : Define the host or ip to use. Default : 127.0.0.1.
      * @option --port : Define the port to use. Default : 8000.
      */
     public function mainAction()
     {
         try {
-            $ip = $this->getIp();
-            $port = $this->getPort($ip);
+            $host = $this->getHost();
+            $port = $this->getPort($host);
 
-            $this->run($ip, $port);
+            $this->run($host, $port);
         } catch (\Exception $e) {
             $this->block([$e->getMessage()], 'error');
             return;
@@ -41,27 +39,37 @@ class ServerTask extends Task
      * @return null|string
      * @throws \Exception
      */
-    private function getIp()
+    private function getHost()
     {
-        $ip = $this->getOption('ip', '127.0.0.1');
+        $host = $this->getOption('host', '127.0.0.1');
 
-        if (empty($ip) || true === $ip) {
-            throw new \Exception('IP can\'t be empty');
+        if (empty($host) || true === $host) {
+            throw new \Exception('Host can\'t be empty');
         }
 
-        if(!preg_match(self::IP_PATTERN, $ip)){
-            throw new \Exception('['.$ip.'] is not a valid ip');
+        if (!(
+            // IP validation
+            filter_var($host, FILTER_VALIDATE_IP)
+            // Domain validation
+            || (PHP_VERSION_ID >= 70000 && filter_var($host, FILTER_VALIDATE_DOMAIN))
+            || (PHP_VERSION_ID < 70000
+                && preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $host) //valid chars check
+                && preg_match("/^.{1,253}$/", $host) //overall length check
+                && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $host))
+        )) {
+            throw new \Exception('Host [' . $host . '] is not valid.');
         }
 
-        return $ip;
+        return $host;
     }
 
     /**
-     * @param $ip
+     * @param $host
+     *
      * @return int|null|string
      * @throws \Exception
      */
-    private function getPort($ip)
+    private function getPort($host)
     {
         if ($this->hasOption('port')) {
             $port = $this->getOption('port');
@@ -69,33 +77,37 @@ class ServerTask extends Task
             if(empty($port) || true === $port){
                 throw new \Exception('Port can\'t be empty');
             }
-            if ($this->portIsOpen($ip, $port)) {
-                throw new \Exception('Port [' . $port . '] on ip [' . $ip . '] is already used.');
+            if ($this->portIsOpen($host, $port)) {
+                throw new \Exception('Port [' . $port . '] on host [' . $host . '] is already used.');
             }
         } else {
-            $port = $this->acquirePort($ip);
+            $port = $this->acquirePort($host);
         }
 
         return $port;
     }
 
     /**
-     * @param $ip
+     * @param $host
      * @param $port
+     *
      * @throws Exception
      */
-    private function run($ip, $port)
+    private function run($host, $port)
     {
-        $cmd = PHP_BINARY . ' -S ' . $ip . ':' . $port . ' app_dev.php';
+        $cmd = PHP_BINARY . ' -S ' . $host . ':' . $port . ' app_dev.php';
         $cwd = BASE_PATH . '/public';
 
         $this->proc = $this->getDI()->get(Process::class, [$cmd, $cwd]);
 
         $this->proc->start();
 
-        $this->block(['[OK] http://' . $ip . ':' . $port], 'info');
+        $this->block(['[OK] http://' . $host . ':' . $port], 'info');
 
-        $this->proc->wait();
+        $this->proc->watch(function ($stdo, $stde) {
+            !empty($stdo) && $this->line(trim($stdo, "\n\r"));
+            !empty($stde) && $this->error(trim($stde, "\n\r"));
+        });
 
         $this->block(['[ERR] server suddenly stopped'], 'error');
 

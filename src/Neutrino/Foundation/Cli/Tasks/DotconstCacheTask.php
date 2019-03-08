@@ -2,6 +2,7 @@
 
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
 use Neutrino\Dotconst;
 
@@ -22,9 +23,16 @@ class DotconstCacheTask extends Task
      */
     public function mainAction()
     {
-        $this->info('Generating dotconst cache');
+        $this->output->write(Decorate::notice(str_pad('Generating dotconst cache', 40, ' ')), false);
 
-        self::generateCache();
+        try {
+            self::generateCache();
+
+            $this->info("Success");
+        } catch (\Exception $e) {
+            $this->error("Error");
+            $this->block([$e->getMessage()], 'error');
+        }
     }
 
     public static function generateCache()

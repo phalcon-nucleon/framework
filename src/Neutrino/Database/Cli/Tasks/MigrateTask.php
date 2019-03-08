@@ -16,6 +16,7 @@ class MigrateTask extends BaseTask
      * @option      --force : Force the operation to run when in production.
      * @option      --path= : The path of migrations files to be executed.
      * @option      --step : Force the migrations to be run so they can be rolled back individually.
+     * @option      --pretend : Dump the SQL queries that would be run.
      */
     public function mainAction()
     {
@@ -29,7 +30,8 @@ class MigrateTask extends BaseTask
         // we will use the path relative to the root of this installation folder
         // so that migrations may be run for any path within the applications.
         $this->migrator->run($this->getMigrationPaths(), [
-            'step' => $this->getOption('step'),
+            'step'    => (int)$this->getOption('step'),
+            'pretend' => $this->getOption('pretend') ?: false
         ]);
 
         // Once the migrator has run we will grab the note output and send it out to

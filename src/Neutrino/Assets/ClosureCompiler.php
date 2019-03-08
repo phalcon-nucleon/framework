@@ -28,7 +28,6 @@ class ClosureCompiler implements AssetsCompilator
         $jsCode = $this->applyPrecompilation($jsCode, isset($options['precompilations']) ? $options['precompilations'] : []);
 
         $data = [
-          'js_code' => $jsCode,
           'compilation_level' => $options['compile']['level'],
           'output_format' => 'json',
           'output_info' => ['warnings', 'errors', 'statistics', 'compiled_code'],
@@ -43,8 +42,7 @@ class ClosureCompiler implements AssetsCompilator
             $data['js_externs'] = $this->extractJsCode($options['compile']['js_externs']);
         }
 
-        $query = http_build_query($data);
-        $query = preg_replace('/%5B[0-9]+%5D/simU', '', $query);
+        $query = http_build_query(['js_code' => $jsCode]) . '&' . preg_replace('/%5B[0-9]+%5D/simU', '', http_build_query($data));
 
         $request = Factory::makeRequest();
         $request
@@ -109,7 +107,19 @@ class ClosureCompiler implements AssetsCompilator
     {
         $files = [];
 
-        foreach (glob($path . '/*') as $item) {
+        $paths = glob($path . '/*');
+
+        usort($paths, function ($a, $b) {
+            if (is_file($a)) {
+                return -1;
+            }
+            if (is_file($b)) {
+                return 1;
+            }
+            return 0;
+        });
+
+        foreach ($paths as $item) {
             if (is_dir($item)) {
                 $files = array_merge($files, $this->getDirFiles($item));
             } elseif (is_file($item)) {

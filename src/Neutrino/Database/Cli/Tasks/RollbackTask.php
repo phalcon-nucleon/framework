@@ -15,6 +15,7 @@ class RollbackTask extends BaseTask
      * @option      -f, --force : Force the operation to run when in production.
      * @option      --path : The path of migrations files to be executed.
      * @option      --step : The number of migrations to be reverted & re-run.
+     * @option      --pretend : Dump the SQL queries that would be run.
      */
     public function mainAction()
     {
@@ -22,10 +23,10 @@ class RollbackTask extends BaseTask
             return;
         }
 
-        $this->migrator->rollback(
-            $this->getMigrationPaths(),
-            ['step' => (int)$this->getOption('step')]
-        );
+        $this->migrator->rollback($this->getMigrationPaths(), [
+            'step'    => (int)$this->getOption('step'),
+            'pretend' => $this->getOption('pretend') ?: false
+        ]);
 
         // Once the migrator has run we will grab the note output and send it out to
         // the console screen, since the migrator itself functions without having

@@ -18,31 +18,36 @@ class ServerTaskTest extends TestCase
         return StubKernelCli::class;
     }
 
-    public function testIp()
+    public function testHost()
     {
         $server = new ServerTask;
 
-        $this->assertEquals('127.0.0.1', Reflexion::invoke($server, 'getIp'));
+        $this->assertEquals('127.0.0.1', Reflexion::invoke($server, 'getHost'));
 
-        Reflexion::set($server, 'options', ['ip' => true]);
+        Reflexion::set($server, 'options', ['host' => 'localhost']);
+
+        $this->assertEquals('localhost', Reflexion::invoke($server, 'getHost'));
+
+        Reflexion::set($server, 'options', ['host' => true]);
 
         try{
-            Reflexion::invoke($server, 'getIp');
+            Reflexion::invoke($server, 'getHost');
         } catch (\Exception $e){}
 
         $this->assertTrue(isset($e));
         $this->assertInstanceOf(\Exception::class, $e);
-        $this->assertEquals('IP can\'t be empty', $e->getMessage());
+        $this->assertEquals('Host can\'t be empty', $e->getMessage());
+        $e = null;
 
-        Reflexion::set($server, 'options', ['ip' => '123456789']);
+        Reflexion::set($server, 'options', ['host' => '.example.com']);
 
         try{
-            Reflexion::invoke($server, 'getIp');
+            Reflexion::invoke($server, 'getHost');
         } catch (\Exception $e){}
 
         $this->assertTrue(isset($e));
         $this->assertInstanceOf(\Exception::class, $e);
-        $this->assertEquals('[123456789] is not a valid ip', $e->getMessage());
+        $this->assertEquals('Host [.example.com] is not valid.', $e->getMessage());
     }
 
     public function testPort()
@@ -64,7 +69,7 @@ class ServerTaskTest extends TestCase
             Reflexion::set($server, 'options', ['port' => true]);
 
             try{
-                Reflexion::invoke($server, 'getPort', '127.0.0.1');
+                Reflexion::invoke($server, 'getPort', 'localhost');
             } catch (\Exception $e){}
 
             $this->assertTrue(isset($e));
@@ -74,12 +79,12 @@ class ServerTaskTest extends TestCase
             Reflexion::set($server, 'options', ['port' => 8000]);
 
             try{
-                Reflexion::invoke($server, 'getPort', '127.0.0.1');
+                Reflexion::invoke($server, 'getPort', 'localhost');
             } catch (\Exception $e){}
 
             $this->assertTrue(isset($e));
             $this->assertInstanceOf(\Exception::class, $e);
-            $this->assertEquals('Port [8000] on ip [127.0.0.1] is already used.', $e->getMessage());
+            $this->assertEquals('Port [8000] on host [localhost] is already used.', $e->getMessage());
         } finally {
             $p1->close();
             $p2->close();

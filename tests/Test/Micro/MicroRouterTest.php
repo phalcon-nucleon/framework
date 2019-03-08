@@ -4,7 +4,6 @@ namespace Test\Micro;
 
 use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
-use Neutrino\Http\Middleware;
 use Neutrino\Interfaces\Middleware\AfterInterface;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Neutrino\Micro\Router;

@@ -14,7 +14,7 @@ class RollbackTaskTest extends DatabaseCliTestCase
         $this->migrator->expects($this->once())->method('paths')->willReturn([]);
         $this->migrator->expects($this->once())->method('rollback')->with(
             [BASE_PATH . '/migrations'],
-            ['step' => 0]
+            ['step' => 0, 'pretend' => false]
         );
         $this->migrator->expects($this->once())->method('getNotes')->willReturn([
             'this is a note'

@@ -17,16 +17,14 @@ class DecorateTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
     }
 
     public function tearDown()
     {
         parent::tearDown();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=');
+        Decorate::setColorSupport(null);
     }
 
     public function dataColorisedFunctions()

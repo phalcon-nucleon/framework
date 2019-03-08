@@ -21,6 +21,7 @@ use Neutrino\Foundation\Cli\Tasks\DefaultTask;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
 use Neutrino\Foundation\Cli\Tasks\ListTask;
 use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
+use Neutrino\Foundation\Cli\Tasks\RouteCacheTask;
 use Neutrino\Foundation\Cli\Tasks\RouteListTask;
 use Neutrino\Foundation\Cli\Tasks\ServerTask;
 use Neutrino\Foundation\Cli\Tasks\ViewClearTask;
@@ -59,6 +60,7 @@ class Router extends Provider
         $router->addTask('config:clear', ConfigClearTask::class);
 
         $router->addTask('route:list', RouteListTask::class);
+        $router->addTask('route:cache', RouteCacheTask::class);
 
         $router->addTask('view:clear', ViewClearTask::class);
 

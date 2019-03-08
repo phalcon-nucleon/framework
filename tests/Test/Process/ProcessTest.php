@@ -63,6 +63,36 @@ class ProcessTest extends TestCase
         $this->assertLessThan(1, $total);
     }
 
+
+    public function testWatch()
+    {
+        $process = new Process(PHP_BINARY . ' -r "ob_start();print_r(123);ob_end_flush();sleep(1);ob_start();print_r(456);ob_end_flush();sleep(1);ob_start();echo \'end\';ob_end_flush();"', __DIR__);
+
+        try {
+            $readed = [];
+            $errors = [];
+
+            $process
+                ->start()
+                ->watch(function ($read, $error) use (&$readed, &$errors) {
+                    $readed[] = $read;
+                    $errors[] = $error;
+                }, null, 1);
+
+            $this->assertEquals([
+                '123',
+                '456',
+                'end',
+            ], $readed);
+            $this->assertEquals(['', '', ''], $errors);
+
+            $this->assertFalse($process->isRunning());
+            $this->assertNotEmpty($process->pid());
+        } finally {
+            $process->close();
+        }
+    }
+
     /**
      * @expectedException \Neutrino\Process\Exception
      */

@@ -105,4 +105,18 @@ trait SqliteTrait
     {
         return $this->typeString($column);
     }
+
+    /**
+     * Generates SQL for rename table
+     *
+     * @param string      $from
+     * @param string      $to
+     * @param null|string $schema
+     *
+     * @return string
+     */
+    public function renameTable($from, $to, $schema = null)
+    {
+        return "ALTER TABLE " . $this->prepareTable($from, $schema) . " RENAME TO " . $this->prepareTable($to, $schema);
+    }
 }

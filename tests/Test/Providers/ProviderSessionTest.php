@@ -5,6 +5,7 @@ namespace Test\Providers;
 use Fake\Kernels\Http\StubKernelHttpEmpty;
 use Neutrino\Constants\Services;
 use Neutrino\Providers\Session;
+use Phalcon\Config;
 use Phalcon\Session\Adapter\Files;
 use Phalcon\Session\Bag;
 use Test\TestCase\TestCase;
@@ -23,8 +24,14 @@ class ProviderSessionTest extends TestCase
 
     public function testRegister()
     {
-        $this->app->config->session = new \stdClass();
-        $this->app->config->session->adapter = 'Files';
+        $this->app->config->session = new Config([
+            'default' => 'files',
+            'stores' => [
+                'files' => [
+                    'adapter' => 'Files',
+                ]
+            ]
+        ]);
 
         $provider = new Session();
 
@@ -52,10 +59,37 @@ class ProviderSessionTest extends TestCase
     /**
      * @expectedException \RuntimeException
      */
+    public function testWrongStore()
+    {
+        $this->app->config->session = new Config([
+            'default' => 'foo',
+            'stores' => [
+                'files' => [
+                    'adapter' => 'Files',
+                ]
+            ]
+        ]);
+
+        $provider = new Session();
+
+        $provider->registering();
+
+        $this->getDI()->getShared(Services::SESSION);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
     public function testFailRegister()
     {
-        $this->app->config->session = new \stdClass();
-        $this->app->config->session->adapter = 'NoValidClass';
+        $this->app->config->session = new Config([
+            'default' => 'my',
+            'stores' => [
+                'my' => [
+                    'adapter' => 'NoValidClass',
+                ]
+            ]
+        ]);
 
         $provider = new Session();
 

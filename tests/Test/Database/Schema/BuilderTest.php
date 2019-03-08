@@ -304,7 +304,7 @@ class BuilderTest extends TestCase
 
         $db->expects($this->once())
             ->method("addIndex")
-            ->with('table', null, new Index('table_name_unique', ['name'], 'unique'));
+            ->with('table', null, new Index('table_name_unique', ['name'], 'UNIQUE'));
 
         (new Builder)->table('table', function (Blueprint $blueprint) {
             $blueprint->string('name', 256)->unique();
@@ -518,5 +518,17 @@ class BuilderTest extends TestCase
             ->with('table', null, true);
 
         (new Builder)->dropIfExists('table');
+    }
+
+    public function testRename()
+    {
+        $db = $this->mockDb();
+
+        $db->expects($this->once())
+            ->method("execute")
+            ->with('RENAME TABLE `old_table` TO `new_table`', null)
+            ->willReturn(true);
+
+        (new Builder)->rename('old_table', 'new_table');
     }
 }

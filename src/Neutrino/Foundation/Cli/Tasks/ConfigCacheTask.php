@@ -2,8 +2,9 @@
 
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
-use Neutrino\Config\Loader;
+use Neutrino\Config\ConfigPreloader;
 
 /**
  * Class ConfigCacheTask
@@ -22,25 +23,17 @@ class ConfigCacheTask extends Task
      */
     public function mainAction()
     {
-        $this->info('Generating configuration cache');
+        $this->output->write(Decorate::notice(str_pad('Generating configuration cache', 40, ' ')), false);
 
-        self::generateCache();
-    }
+        $preloader = new ConfigPreloader();
 
-    public static function generateCache()
-    {
-        $config = Loader::raw(BASE_PATH, ['compile']);
+        try {
+            $preloader->compile();
 
-        $handle = fopen(BASE_PATH . '/bootstrap/compile/config.php', 'w');
-
-        if ($handle === false) {
-            throw new \Exception;
+            $this->info("Success");
+        } catch (\Exception $e) {
+            $this->error("Error");
+            $this->block([$e->getMessage()], 'error');
         }
-
-        fwrite($handle, '<?php' . PHP_EOL);
-
-        fwrite($handle, 'return ' . var_export($config, true) . ';' . PHP_EOL);
-
-        fclose($handle);
     }
 }

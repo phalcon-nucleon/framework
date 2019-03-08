@@ -3,6 +3,7 @@
 namespace Test\Cli\Output;
 
 use Fake\Kernels\Cli\Output\StubOutput;
+use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Group;
 use Neutrino\Cli\Output\Writer;
 use Neutrino\Debug\Reflexion;
@@ -19,16 +20,14 @@ class GroupTest extends TestCase
     {
         parent::setUpBeforeClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
     }
 
     public static function tearDownAfterClass()
     {
         parent::tearDownAfterClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=');
+        Decorate::setColorSupport(null);
     }
 
     /**

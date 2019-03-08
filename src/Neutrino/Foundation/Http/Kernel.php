@@ -75,7 +75,11 @@ abstract class Kernel extends Application implements Kernelable
      */
     public function registerRoutes()
     {
-        require BASE_PATH . '/routes/http.php';
+        if (file_exists(BASE_PATH . '/bootstrap/compile/http-routes.php')) {
+            require BASE_PATH . '/bootstrap/compile/http-routes.php';
+        } else {
+            require BASE_PATH . '/routes/http.php';
+        }
     }
 
     public function boot()

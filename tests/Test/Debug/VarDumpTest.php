@@ -35,103 +35,103 @@ class VarDumpTest extends TestCase
 
     public function testCanHasChild()
     {
-        $dump = $this->getVarDump();
+        $dump = $this->newVarDump();
 
-        $this->assertEquals(false, Reflexion::invoke($dump, '__can_has_child', null));
-        $this->assertEquals(false, Reflexion::invoke($dump, '__can_has_child', true));
-        $this->assertEquals(false, Reflexion::invoke($dump, '__can_has_child', 'abc'));
-        $this->assertEquals(false, Reflexion::invoke($dump, '__can_has_child', 123));
+        $this->assertEquals(false, Reflexion::invoke($dump, 'canHasChild', null));
+        $this->assertEquals(false, Reflexion::invoke($dump, 'canHasChild', true));
+        $this->assertEquals(false, Reflexion::invoke($dump, 'canHasChild', 'abc'));
+        $this->assertEquals(false, Reflexion::invoke($dump, 'canHasChild', 123));
 
-        $this->assertEquals(true, Reflexion::invoke($dump, '__can_has_child', []));
-        $this->assertEquals(true, Reflexion::invoke($dump, '__can_has_child', (object)[]));
+        $this->assertEquals(true, Reflexion::invoke($dump, 'canHasChild', []));
+        $this->assertEquals(true, Reflexion::invoke($dump, 'canHasChild', (object)[]));
         $r = fopen('php://memory', 'a');
-        $this->assertEquals(true, Reflexion::invoke($dump, '__can_has_child', $r));
+        $this->assertEquals(true, Reflexion::invoke($dump, 'canHasChild', $r));
         fclose($r);
     }
 
-    public function testArrIsComplex()
+    public function testCheckArrayRecursion()
     {
-        $dump = $this->getVarDump();
+        $dump = $this->newVarDump();
 
-        $this->assertEquals(false, Reflexion::invoke($dump, 'arrIsComplex', []));
+        $this->assertEquals(false, Reflexion::invoke($dump, 'checkArrayRecursion', []));
 
         $arr = [null, false, true, 123, 'abc', (object)['a'=>'a', 'b'=>'b']];
-        $this->assertEquals(false, Reflexion::invoke($dump, 'arrIsComplex', $arr));
+        $this->assertEquals(false, Reflexion::invoke($dump, 'checkArrayRecursion', $arr));
 
         $arr = [null, false, true, 123, 'abc', [null, false, true, 123, 'abc']];
-        $this->assertEquals(false, Reflexion::invoke($dump, 'arrIsComplex', $arr));
+        $this->assertEquals(false, Reflexion::invoke($dump, 'checkArrayRecursion', $arr));
 
         $arr = [null, false, true, 123, 'abc', (object)['a'=>'a', 'b'=>'b']];
         $arr[] = $arr;
-        $this->assertEquals(false, Reflexion::invoke($dump, 'arrIsComplex', $arr));
+        $this->assertEquals(false, Reflexion::invoke($dump, 'checkArrayRecursion', $arr));
 
         $arr = [null, false, true, 123, 'abc', (object)['a'=>'a', 'b'=>'b']];
         $arr[5]->arr = &$arr;
-        $this->assertEquals(true, Reflexion::invoke($dump, 'arrIsComplex', $arr));
+        $this->assertEquals(true, Reflexion::invoke($dump, 'checkArrayRecursion', $arr));
 
         $arr = [null, false, true, 123, 'abc', (object)['a'=>'a', 'b'=>'b']];
         $arr[] = &$arr;
-        $this->assertEquals(true, Reflexion::invoke($dump, 'arrIsComplex', $arr));
+        $this->assertEquals(true, Reflexion::invoke($dump, 'checkArrayRecursion', $arr));
     }
 
-    public function testArrHash()
+    public function testGenArrayHash()
     {
-        $dump = $this->getVarDump();
+        $dump = $this->newVarDump();
 
         $arr = [null, false, true, 123, 'abc'];
-        $this->assertEquals(json_encode($arr), Reflexion::invoke($dump, 'arrHash', $arr));
+        $this->assertEquals(json_encode($arr), Reflexion::invoke($dump, 'genArrayHash', $arr));
 
         $r = fopen('php://memory', 'a');
         $arr = [null, false, true, 123, 'abc', $r];
-        $this->assertEquals(json_encode([null, false, true, 123, 'abc', intval($r) . 'stream']), Reflexion::invoke($dump, 'arrHash', $arr));
+        $this->assertEquals(json_encode([null, false, true, 123, 'abc', intval($r) . 'stream']), Reflexion::invoke($dump, 'genArrayHash', $arr));
         fclose($r);
 
         $arr = [null, false, true, 123, 'abc', (object)['a'=>'a', 'b'=>'b']];
         $o = $arr[5];
-        $this->assertEquals(json_encode([null, false, true, 123, 'abc', spl_object_hash($o)]), Reflexion::invoke($dump, 'arrHash', $arr));
+        $this->assertEquals(json_encode([null, false, true, 123, 'abc', spl_object_hash($o)]), Reflexion::invoke($dump, 'genArrayHash', $arr));
 
         $arr = [null, false, true, 123, 'abc', (object)['a'=>'a', 'b'=>'b']];
         $arr[5]->arr = &$arr;
         $o = $arr[5];
-        $this->assertEquals(json_encode([null, false, true, 123, 'abc', spl_object_hash($o)]), Reflexion::invoke($dump, 'arrHash', $arr));
+        $this->assertEquals(json_encode([null, false, true, 123, 'abc', spl_object_hash($o)]), Reflexion::invoke($dump, 'genArrayHash', $arr));
 
         $arr = [null, false, true, 123, 'abc', ['a'=>'a', 'b'=>'b']];
-        $this->assertEquals(json_encode([null, false, true, 123, 'abc', json_encode(['a'=>'a', 'b'=>'b'])]), Reflexion::invoke($dump, 'arrHash', $arr));
+        $this->assertEquals(json_encode([null, false, true, 123, 'abc', json_encode(['a'=>'a', 'b'=>'b'])]), Reflexion::invoke($dump, 'genArrayHash', $arr));
         $arr = [null, false, true, 123, 'abc', ['a'=>'a', 'b'=>'b']];
         $arr[5]['arr'] = &$arr;
-        $this->assertEquals(json_encode([null, false, true, 123, 'abc', json_encode(['a'=>'a', 'b'=>'b', 'arr' => 'array recursion'])]), Reflexion::invoke($dump, 'arrHash', $arr));
+        $this->assertEquals(json_encode([null, false, true, 123, 'abc', json_encode(['a'=>'a', 'b'=>'b', 'arr' => 'array recursion'])]), Reflexion::invoke($dump, 'genArrayHash', $arr));
     }
 
-    public function testObjId()
+    public function testGetVarId()
     {
-        $dump = $this->getVarDump();
+        $dump = $this->newVarDump();
 
-        $this->assertEquals(null, Reflexion::invoke($dump, 'objId', null));
-        $this->assertEquals(null, Reflexion::invoke($dump, 'objId', false));
-        $this->assertEquals(null, Reflexion::invoke($dump, 'objId', true));
-        $this->assertEquals(null, Reflexion::invoke($dump, 'objId', 123));
-        $this->assertEquals(null, Reflexion::invoke($dump, 'objId', 123.456));
-        $this->assertEquals(null, Reflexion::invoke($dump, 'objId', 'abc'));
-        $this->assertEquals(null, Reflexion::invoke($dump, 'objId', []));
-        $this->assertEquals(null, Reflexion::invoke($dump, 'objId', []));
-        $this->assertEquals(1, Reflexion::invoke($dump, 'objId', $o1 = (object)[]));
-        $this->assertEquals(2, Reflexion::invoke($dump, 'objId', $o2 = (object)[]));
-        $this->assertEquals(1, Reflexion::invoke($dump, 'objId', $o1));
-        $this->assertEquals(2, Reflexion::invoke($dump, 'objId', $o2));
+        $this->assertEquals(null, Reflexion::invoke($dump, 'getVarId', null));
+        $this->assertEquals(null, Reflexion::invoke($dump, 'getVarId', false));
+        $this->assertEquals(null, Reflexion::invoke($dump, 'getVarId', true));
+        $this->assertEquals(null, Reflexion::invoke($dump, 'getVarId', 123));
+        $this->assertEquals(null, Reflexion::invoke($dump, 'getVarId', 123.456));
+        $this->assertEquals(null, Reflexion::invoke($dump, 'getVarId', 'abc'));
+        $this->assertEquals(null, Reflexion::invoke($dump, 'getVarId', []));
+        $this->assertEquals(null, Reflexion::invoke($dump, 'getVarId', []));
+        $this->assertEquals(1, Reflexion::invoke($dump, 'getVarId', $o1 = (object)[]));
+        $this->assertEquals(2, Reflexion::invoke($dump, 'getVarId', $o2 = (object)[]));
+        $this->assertEquals(1, Reflexion::invoke($dump, 'getVarId', $o1));
+        $this->assertEquals(2, Reflexion::invoke($dump, 'getVarId', $o2));
 
         $arr = [(object)['a'=>'a', 'b'=>'b']];
         $arr[1]->arr = &$arr;
-        $this->assertEquals(3, Reflexion::invoke($dump, 'objId', $arr));
-        $this->assertEquals(3, Reflexion::invoke($dump, 'objId', $arr));
+        $this->assertEquals(3, Reflexion::invoke($dump, 'getVarId', $arr));
+        $this->assertEquals(3, Reflexion::invoke($dump, 'getVarId', $arr));
 
         $arr = [null, false, true, 123, 'abc', ['a'=>'a', 'b'=>'b']];
         $arr[5]['arr'] = &$arr;
-        $this->assertEquals(4, Reflexion::invoke($dump, 'objId', $arr));
-        $this->assertEquals(4, Reflexion::invoke($dump, 'objId', $arr));
+        $this->assertEquals(4, Reflexion::invoke($dump, 'getVarId', $arr));
+        $this->assertEquals(4, Reflexion::invoke($dump, 'getVarId', $arr));
 
         $r = fopen('php://memory', 'a');
-        $this->assertEquals(5, Reflexion::invoke($dump, 'objId', $r));
-        $this->assertEquals(5, Reflexion::invoke($dump, 'objId', $r));
+        $this->assertEquals(5, Reflexion::invoke($dump, 'getVarId', $r));
+        $this->assertEquals(5, Reflexion::invoke($dump, 'getVarId', $r));
         fclose($r);
     }
 
@@ -143,27 +143,27 @@ class VarDumpTest extends TestCase
 
     public function testBasicInternalDump()
     {
-        $dump = $this->getVarDump();
+        $dump = $this->newVarDump();
 
-        $this->assertEquals('<code class="nuc-const">null</code>', Reflexion::invoke($dump, '__dump', null));
-        $this->assertEquals('<code class="nuc-const">false</code>', Reflexion::invoke($dump, '__dump', false));
-        $this->assertEquals('<code class="nuc-const">true</code>', Reflexion::invoke($dump, '__dump', true));
-        $this->assertEquals('<code class="nuc-integer">123</code>', Reflexion::invoke($dump, '__dump', 123));
-        $this->assertEquals('<code class="nuc-double">123.456</code>', Reflexion::invoke($dump, '__dump', 123.456));
+        $this->assertEquals('<code class="nuc-const">null</code>', Reflexion::invoke($dump, 'varDump', null));
+        $this->assertEquals('<code class="nuc-const">false</code>', Reflexion::invoke($dump, 'varDump', false));
+        $this->assertEquals('<code class="nuc-const">true</code>', Reflexion::invoke($dump, 'varDump', true));
+        $this->assertEquals('<code class="nuc-integer">123</code>', Reflexion::invoke($dump, 'varDump', 123));
+        $this->assertEquals('<code class="nuc-double">123.456</code>', Reflexion::invoke($dump, 'varDump', 123.456));
 
         $this->assertEquals(
             '<span class="nuc-sep">"</span><code class="nuc-string" title="3 characters">abc</code><span class="nuc-sep">"</span>',
-            Reflexion::invoke($dump, '__dump', 'abc')
+            Reflexion::invoke($dump, 'varDump', 'abc')
         );
 
         $this->assertEquals(
             '<code class="nuc-array">array:0</code> <span class="nuc-closure">[</span><span class="nuc-closure nuc-close">]</span>',
-            Reflexion::invoke($dump, '__dump', [])
+            Reflexion::invoke($dump, 'varDump', [])
         );
 
         $this->assertEquals(
             '<code class="nuc-object" title="stdClass">stdClass</code> <span class="nuc-closure">{</span><span class="nuc-closure">}</span>',
-            Reflexion::invoke($dump, '__dump', (object)[])
+            Reflexion::invoke($dump, 'varDump', (object)[])
         );
 
         if(PHP_VERSION_ID > 70200){
@@ -174,12 +174,12 @@ class VarDumpTest extends TestCase
 
         $r = fopen('php://memory', 'a');
         fclose($r);
-        $this->assertEquals('<code class="nuc-unknown">' . $type . '</code>', Reflexion::invoke($dump, '__dump', $r));
+        $this->assertEquals('<code class="nuc-unknown">' . $type . '</code>', Reflexion::invoke($dump, 'varDump', $r));
     }
 
     public function testArrInternalDump()
     {
-        $dump = $this->getVarDump();
+        $dump = $this->newVarDump();
 
         $arr = [null, 123, 'abc'];
         $arr[] = &$arr;
@@ -194,13 +194,13 @@ class VarDumpTest extends TestCase
             '<li class="nuc-array nuc-close"><code class="nuc-integer">3</code> <span class="nuc-sep">=></span> <code  class="nuc-array">array:4 </code> <span class="nuc-closure">[</span><span class="nuc-toggle nuc-toggle-array" data-target="nuc-ref-1">#1</span><span class="nuc-closure nuc-close">]</span></li>'.
             '</ul>'.
             '<span class="nuc-closure nuc-close">]</span>',
-            Reflexion::invoke($dump, '__dump', $arr)
+            Reflexion::invoke($dump, 'varDump', $arr)
         );
     }
 
     public function testResourceInternalDump()
     {
-        $dump = $this->getVarDump();
+        $dump = $this->newVarDump();
 
         $r = fopen('php://memory', 'a');
         $rid = intval($r);
@@ -222,14 +222,14 @@ class VarDumpTest extends TestCase
 
         $this->assertRegExp(
             '!^' . preg_quote($open, '!') . '.+' . preg_quote($close, '!') . '$!',
-            Reflexion::invoke($dump, '__dump', [$r, $r])
+            Reflexion::invoke($dump, 'varDump', [$r, $r])
         );
         fclose($r);
     }
 
     public function testObjInternalDump()
     {
-        $dump = $this->getVarDump();
+        $dump = $this->newVarDump();
 
         $o = new StubDump();
 
@@ -247,7 +247,7 @@ class VarDumpTest extends TestCase
             '<li class="nuc-NULL"><code class="nuc-key" title="public dyn:NULL"><small class="nuc-modifier">+</small> dyn</code>: <code class="nuc-const">null</code></li>'.
             '</ul>'.
             '<span class="nuc-closure">}</span>',
-            Reflexion::invoke($dump, '__dump', $o)
+            Reflexion::invoke($dump, 'varDump', $o)
         );
     }
 
@@ -277,7 +277,7 @@ class VarDumpTest extends TestCase
         return ob_get_clean();
     }
 
-    private function getVarDump()
+    private function newVarDump()
     {
         return Reflexion::getReflectionClass(VarDump::class)->newInstanceWithoutConstructor();
     }

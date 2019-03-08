@@ -130,7 +130,7 @@ class Builder extends Injectable
      *
      * @param  string $table
      *
-     * @return array
+     * @return \Phalcon\Db\Column[]|\Phalcon\Db\ColumnInterface[]
      */
     public function getColumnListing($table)
     {
@@ -228,7 +228,25 @@ class Builder extends Injectable
     public function rename($from, $to)
     {
         $this->build(Func::tap($this->createBlueprint($from), function (Blueprint $blueprint) use ($to) {
+            $blueprint->update();
+
             $blueprint->rename($to);
+        }));
+    }
+
+    /**
+     * Execute a raw SQL Command
+     *
+     * @param string $sql
+     *
+     * @return void
+     */
+    public function execute($sql)
+    {
+        $this->build(Func::tap($this->createBlueprint(null), function (Blueprint $blueprint) use ($sql) {
+            $blueprint->raw();
+
+            $blueprint->sql($sql);
         }));
     }
 
@@ -265,7 +283,7 @@ class Builder extends Injectable
      */
     protected function build(Blueprint $blueprint)
     {
-        $blueprint->build($this->db, $this->dbConfig, $this->grammar);
+        $blueprint->build($this->db, $this->grammar);
     }
 
     /**

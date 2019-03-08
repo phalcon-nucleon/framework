@@ -2,7 +2,11 @@
 
 namespace Neutrino\Support\Model;
 
-
+/**
+ * Trait Eachable
+ *
+ * @package Neutrino\Support\Model
+ */
 trait Eachable
 {
     /**
@@ -16,7 +20,7 @@ trait Eachable
      * @param null|int $end
      * @param int      $pad
      *
-     * @return \Generator|\Neutrino\Model[]|\Phalcon\Mvc\Model[]
+     * @return \Generator|\Neutrino\Model[]|\Phalcon\Mvc\Model[]|self[]
      */
     public static function each(array $criteria = null, $start = null, $end = null, $pad = 100)
     {

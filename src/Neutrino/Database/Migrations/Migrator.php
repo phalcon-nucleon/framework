@@ -2,11 +2,15 @@
 
 namespace Neutrino\Database\Migrations;
 
+use Highlight\Highlighter;
+use Highlight\Languages\SQL;
+use Highlight\Renders\Shell;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Database\Migrations\Prefix\PrefixInterface;
 use Neutrino\Database\Migrations\Storage\StorageInterface;
 use Neutrino\Database\Schema\Builder;
 use Neutrino\Support\Arr;
+use Neutrino\Support\Db;
 use Neutrino\Support\Str;
 
 /**
@@ -59,10 +63,11 @@ class Migrator
     /**
      * Run the pending migrations at a given path.
      *
-     * @param  array|string $paths
-     * @param  array        $options
+     * @param array|string $paths
+     * @param array        $options
      *
      * @return array
+     * @throws \Exception
      */
     public function run($paths = [], array $options = [])
     {
@@ -88,8 +93,8 @@ class Migrator
     /**
      * Get the migration files that have not yet run.
      *
-     * @param  array $files
-     * @param  array $ran
+     * @param array $files
+     * @param array $ran
      *
      * @return array
      */
@@ -109,10 +114,11 @@ class Migrator
     /**
      * Run an array of migrations.
      *
-     * @param  array $migrations
-     * @param  array $options
+     * @param array $migrations
+     * @param array $options
      *
      * @return void
+     * @throws \Exception
      */
     public function runPending(array $migrations, array $options = [])
     {
@@ -131,12 +137,13 @@ class Migrator
         $batch = $this->storage->getNextBatchNumber();
 
         $step = Arr::get($options, 'step', 0);
+        $pretend = Arr::get($options, 'pretend', false);
 
         // Once we have the array of migrations, we will spin through them and run the
         // migrations "up" so the changes are made to the databases. We'll then log
         // that the migration was run so we don't repeat it next time we execute.
         foreach ($migrations as $file) {
-            $this->runUp($file, $batch);
+            $this->runUp($file, $batch, $pretend);
 
             if ($step) {
                 $batch++;
@@ -147,12 +154,14 @@ class Migrator
     /**
      * Run "up" a migration instance.
      *
-     * @param  string $file
-     * @param  int    $batch
+     * @param string $file
+     * @param int    $batch
+     * @param bool   $pretend
      *
      * @return void
+     * @throws \Exception
      */
-    protected function runUp($file, $batch)
+    protected function runUp($file, $batch, $pretend = false)
     {
         // First we will resolve a "real" instance of the migration class from this
         // migration file name. Once we have the instances we can run the actual
@@ -160,6 +169,12 @@ class Migrator
         $migration = $this->resolve(
             $name = $this->getMigrationName($file)
         );
+
+        if ($pretend) {
+            $this->pretendToRun($name, $migration, 'up');
+
+            return;
+        }
 
         $this->note(Decorate::notice('Migrating:') . " {$name}");
 
@@ -176,10 +191,11 @@ class Migrator
     /**
      * Rollback the last migration operation.
      *
-     * @param  array|string $paths
-     * @param  array        $options
+     * @param array|string $paths
+     * @param array        $options
      *
      * @return array
+     * @throws \Exception
      */
     public function rollback($paths = [], array $options = [])
     {
@@ -195,7 +211,7 @@ class Migrator
 
             return [];
         } else {
-            return $this->rollbackMigrations($migrations, $paths);
+            return $this->rollbackMigrations($migrations, $paths, $options);
         }
     }
 
@@ -220,14 +236,18 @@ class Migrator
     /**
      * Rollback the given migrations.
      *
-     * @param  array        $migrations
-     * @param  array|string $paths
+     * @param array        $migrations
+     * @param array|string $paths
+     * @param array         $options
      *
      * @return array
+     * @throws \Exception
      */
-    protected function rollbackMigrations(array $migrations, $paths)
+    protected function rollbackMigrations(array $migrations, $paths, array $options)
     {
         $rolledBack = [];
+
+        $pretend = Arr::get($options, 'pretend', false);
 
         $this->requireFiles($files = $this->getMigrationFiles($paths));
 
@@ -243,7 +263,7 @@ class Migrator
 
             $rolledBack[] = $file;
 
-            $this->runDown($file, $migration);
+            $this->runDown($file, $migration, $pretend);
         }
 
         return $rolledBack;
@@ -252,11 +272,13 @@ class Migrator
     /**
      * Rolls all of the currently applied migrations back.
      *
-     * @param  array|string $paths
+     * @param array|string $paths
+     * @param array        $options
      *
      * @return array
+     * @throws \Exception
      */
-    public function reset($paths = [])
+    public function reset($paths = [], array $options = [])
     {
         $this->notes = [];
 
@@ -270,19 +292,21 @@ class Migrator
 
             return [];
         } else {
-            return $this->resetMigrations($migrations, $paths);
+            return $this->resetMigrations($migrations, $paths, $options);
         }
     }
 
     /**
      * Reset the given migrations.
      *
-     * @param  array $migrations
-     * @param  array $paths
+     * @param array $migrations
+     * @param array $paths
+     * @param array $options
      *
      * @return array
+     * @throws \Exception
      */
-    protected function resetMigrations(array $migrations, array $paths)
+    protected function resetMigrations(array $migrations, array $paths, array $options)
     {
         // Since the getRan method that retrieves the migration name just gives us the
         // migration name, we will format the names into objects with the name as a
@@ -291,20 +315,20 @@ class Migrator
             return (object)['migration' => $m];
         }, $migrations);
 
-        return $this->rollbackMigrations(
-            $migrations, $paths
-        );
+        return $this->rollbackMigrations($migrations, $paths, $options);
     }
 
     /**
      * Run "down" a migration instance.
      *
-     * @param  string $file
-     * @param  object $migration
+     * @param string $file
+     * @param object $migration
+     * @param bool   $pretend
      *
      * @return void
+     * @throws \Exception
      */
-    protected function runDown($file, $migration)
+    protected function runDown($file, $migration, $pretend = false)
     {
         // First we will get the file name of the migration so we can resolve out an
         // instance of the migration. Once we get an instance we can either run a
@@ -312,6 +336,12 @@ class Migrator
         $instance = $this->resolve(
             $name = $this->getMigrationName($file)
         );
+
+        if ($pretend) {
+            $this->pretendToRun($name, $instance, 'down');
+
+            return;
+        }
 
         $this->note(Decorate::notice('Rolling back:') . " {$name}");
 
@@ -323,6 +353,30 @@ class Migrator
         $this->storage->delete($migration->migration);
 
         $this->note(Decorate::info('Rolled back:') . " {$name}");
+    }
+
+    /**
+     * Pretend to run the migrations.
+     *
+     * @param $name
+     * @param $instance
+     * @param $method
+     */
+    protected function pretendToRun($name, $instance, $method)
+    {
+        $this->note(Decorate::info($name) . ': ');
+
+        $queries = Db::pretend(function () use ($instance, $method) {
+            $this->runMigration($instance, $method);
+        });
+
+        $sql = Highlighter::factory(SQL::class, Shell::class);
+
+        foreach ($queries as $query) {
+            $this->note($sql->highlight($query));
+        }
+
+        $this->note('');
     }
 
     /**

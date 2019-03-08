@@ -41,8 +41,8 @@ trait Streamize
     }
 
     /**
-     * @param $event
-     * @param $callback
+     * @param string $event
+     * @param \Closure $callback
      *
      * @return $this
      */
@@ -56,8 +56,8 @@ trait Streamize
     }
 
     /**
-     * @param $event
-     * @param $callback
+     * @param string $event
+     * @param \Closure $callback
      *
      * @return $this
      */
@@ -90,7 +90,6 @@ trait Streamize
         if ($event == Streamable::EVENT_START
             || $event == Streamable::EVENT_PROGRESS
             || $event == Streamable::EVENT_FINISH
-
         ) {
             return;
         }

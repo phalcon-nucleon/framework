@@ -5,8 +5,10 @@ namespace Test\Http;
 use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
 use Neutrino\Http\Middleware\Csrf;
+use Neutrino\Http\Standards\StatusCode;
 use Phalcon\Security;
 use Phalcon\Session\Adapter;
+use Phalcon\Version;
 use Test\TestCase\TestCase;
 
 class CsrfTest extends TestCase
@@ -41,9 +43,18 @@ class CsrfTest extends TestCase
         StubController::$registerMiddlewares = [];
     }
 
-    /**
-     * @expectedException \Neutrino\Exceptions\TokenMismatchException
-     */
+    public function assertResponseStatusCode($expected)
+    {
+        $msg = StatusCode::message($expected);
+        if (Version::getPart(Version::VERSION_MEDIUM) >= 2) {
+            $status = $expected;
+        } else {
+            $status = $expected . ' ' . $msg;
+        }
+
+        $this->assertEquals($status, $this->getDI()->get('response')->getStatusCode());
+    }
+
     public function testCsrfFail_Get()
     {
         /** @var \PHPUnit_Framework_MockObject_MockObject $security */
@@ -60,14 +71,15 @@ class CsrfTest extends TestCase
         $session->expects($this->any())->method('get')->willReturn(false);
 
         $this->dispatch('/');
+
+        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
     }
 
-    /**
-     * @expectedException \Neutrino\Exceptions\TokenMismatchException
-     */
     public function testCsrfFail_Post()
     {
         $this->dispatch('/', 'POST');
+
+        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
     }
 
     public function testCsrfOk_Get()
@@ -79,9 +91,9 @@ class CsrfTest extends TestCase
 
         $session->expects($this->any())->method('get')->willReturn($security->getToken());
 
-        $this->dispatch('/', 'GET', [$security->getTokenKey() => $security->getToken()]);
+        $this->dispatch('/', 'GET', ['_csrf_token' => $security->getToken()]);
 
-        $this->assertTrue(true);
+        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
     }
 
     public function testCsrfOk_Post()
@@ -91,13 +103,11 @@ class CsrfTest extends TestCase
         /** @var \PHPUnit_Framework_MockObject_MockObject $session */
         $session = $this->getDI()->getShared(Services::SESSION);
 
-        $session->expects($this->any())->method('get')
-            ->withAnyParameters()
-            ->willReturnOnConsecutiveCalls($security->getToken(), $security->getTokenKey(), $security->getToken());
+        $session->expects($this->any())->method('get')->willReturn($security->getToken());
 
-        $this->dispatch('/', 'POST', [$security->getTokenKey() => $security->getToken()]);
+        $this->dispatch('/', 'POST', ['_csrf_token' => $security->getToken()]);
 
-        $this->assertTrue(true);
+        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
     }
 
     public function testCsrfOk_Ajax()
@@ -110,16 +120,13 @@ class CsrfTest extends TestCase
         $session->expects($this->any())->method('get')->willReturn($security->getToken());
 
         $_SERVER["HTTP_X_REQUESTED_WITH"]              = "XMLHttpRequest";
-        $_SERVER['HTTP_X_CSRF_' . strtoupper($security->getTokenKey())] = $security->getToken();
+        $_SERVER['HTTP_X_CSRF_TOKEN'] = $security->getToken();
 
         $this->dispatch('/', 'POST', []);
 
-        $this->assertTrue(true);
+        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
     }
 
-    /**
-     * @expectedException \Neutrino\Exceptions\TokenMismatchException
-     */
     public function testCsrfFail_Ajax()
     {
         /** @var \PHPUnit_Framework_MockObject_MockObject $security */
@@ -139,6 +146,6 @@ class CsrfTest extends TestCase
 
         $this->dispatch('/', 'POST', []);
 
-        $this->assertTrue(true);
+        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
     }
 }

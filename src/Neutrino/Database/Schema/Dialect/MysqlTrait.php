@@ -130,4 +130,18 @@ trait MysqlTrait
 
         return $this->_typeTimestamp($column);
     }
+
+    /**
+     * Generates SQL for rename table
+     *
+     * @param string      $from
+     * @param string      $to
+     * @param null|string $schema
+     *
+     * @return string
+     */
+    public function renameTable($from, $to, $schema = null)
+    {
+        return "RENAME TABLE " . $this->prepareTable($from, $schema) . " TO " . $this->prepareTable($to, $schema);
+    }
 }

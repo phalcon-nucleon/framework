@@ -341,11 +341,9 @@ class Arr
      *
      * @return bool
      */
-    public static function isAssoc(array $array)
+    public static function isAssoc($array)
     {
-        $keys = array_keys($array);
-
-        return array_keys($keys) !== $keys;
+        return array_values($array) !== $array;
     }
 
     /**
@@ -473,10 +471,11 @@ class Arr
      * Recursively sort an array by keys and values.
      *
      * @param array $array
+     * @param null  $sort_flags : @see http://php.net/manual/en/function.sort.php
      *
      * @return array
      */
-    public static function sortRecursive($array)
+    public static function sortRecursive($array, $sort_flags = null)
     {
         foreach ($array as &$value) {
             if (is_array($value)) {
@@ -485,9 +484,9 @@ class Arr
         }
 
         if (self::isAssoc($array)) {
-            ksort($array);
+            ksort($array, $sort_flags);
         } else {
-            sort($array);
+            sort($array, $sort_flags);
         }
 
         return $array;

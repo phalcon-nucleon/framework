@@ -2,6 +2,7 @@
 
 namespace Neutrino\Error;
 
+use Neutrino\Support\Arr;
 use Phalcon\Logger;
 
 /**
@@ -93,12 +94,14 @@ class Helper
 
             if (isset($trace['file'])) {
                 $_trace['file'] = str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
+                $_trace['where'] = $_trace['file'];
 
                 if (isset($trace['line'])) {
-                    $_trace['file'] .= '(' . $trace['line'] . ')';
+                    $_trace['line'] = $trace['line'];
+                    $_trace['where'] .= '(' . $trace['line'] . ')';
                 }
             } else {
-                $_trace['file'] = '[internal function]';
+                $_trace['where'] = '[internal function]';
             }
 
             $traces[] = $_trace;
@@ -132,15 +135,28 @@ class Helper
                         $found[$type] = true;
                     }
 
-                    if (count($value) < 4) {
+                    $cfound = count($found);
+                    $cvalue = count($value);
+
+                    if ($cfound === 1 && !is_scalar($item) && $cvalue < 3
+                        || $cfound === 1 && is_scalar($item) && $cvalue < 6
+                        || $cfound > 1 && $cvalue < 5) {
                         $str = [];
-                        foreach ($value as $item) {
-                            $str[] = self::verboseType($item, $lvl + 1);
+                        if (Arr::isAssoc($value)) {
+                            foreach ($value as $key => $item) {
+                                $str[] = var_export($key, true) . " => " . self::verboseType($item, $lvl + 1);
+                            }
+                        } else {
+                            foreach ($value as $item) {
+                                $str[] = self::verboseType($item, $lvl + 1);
+                            }
                         }
 
                         return 'array(' . implode(', ', $str) . ')';
-                    } elseif (count($found) === 1) {
-                        return 'arrayOf(' . $type . ')[' . count($value) . ']';
+                    }
+
+                    if (count($found) === 1) {
+                        return 'array.<' . $type . '>[' . count($value) . ']';
                     }
 
                     return 'array[' . count($value) . ']';
@@ -158,9 +174,13 @@ class Helper
             case 'resource (closed)':
                 return $type;
             case 'string':
-                if (strlen($value) > 20) {
-                    return "'" . substr($value, 0, 8) . '...\'[' . strlen($value) . ']';
+                if (constant('BASE_PATH') && $value !== BASE_PATH . '\\') {
+                    $value = str_replace(BASE_PATH . '\\', '', $value);
                 }
+                if (strlen($value) > 20) {
+                    return "'" . substr($value, 0, 8) . '...' . substr($value, -8) . '\'[' . strlen($value) . ']';
+                }
+                return "'" . $value . "'";
             case 'boolean':
             case 'integer':
             case 'double':

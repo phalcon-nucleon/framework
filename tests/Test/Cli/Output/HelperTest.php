@@ -9,6 +9,20 @@ use Phalcon;
 
 class HelperTest extends \PHPUnit_Framework_TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        Decorate::setColorSupport(true);
+    }
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        Decorate::setColorSupport(null);
+    }
+
     public function dataRemoveDecoration()
     {
         return [
@@ -108,6 +122,8 @@ class HelperTest extends \PHPUnit_Framework_TestCase
 
     public function dataDescribeRoutePattern()
     {
+        Decorate::setColorSupport(true);
+
         return [
             ['', new Phalcon\Cli\Router\Route('', [])],
             ['', new Phalcon\Mvc\Router\Route('', [])],

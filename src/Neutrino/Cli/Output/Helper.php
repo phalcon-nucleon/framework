@@ -139,9 +139,9 @@ final class Helper
         try {
             $method = $reflection->getMethod($methodName);
         } catch (\Exception $e) {
-
+            return ['__exception' => "Methods $class::$methodName not found."];
         }
-        $description = '';
+
         if (!empty($method)) {
             $docBlock = $method->getDocComment();
 
@@ -183,7 +183,7 @@ final class Helper
      */
     public static function neutrinoVersion()
     {
-        return Decorate::info('Neutrino framework') . ' ' . Decorate::notice('v' . Version::get() . ' ['. Version::getId().']');
+        return Decorate::info('Neutrino framework') . ' version ' . Decorate::notice('v' . Version::get() . ' ['. Version::getId().']');
     }
 
     /**

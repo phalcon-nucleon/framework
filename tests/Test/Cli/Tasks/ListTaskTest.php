@@ -18,20 +18,18 @@ use Test\TestCase\TestCase;
 
 class ListTaskTest extends TestCase
 {
-    public function setUp()
+    public static function setUpBeforeClass()
     {
-        parent::setUp();
+        parent::setUpBeforeClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
     }
 
-    public function tearDown()
+    public static function tearDownAfterClass()
     {
-        parent::tearDown();
+        parent::tearDownAfterClass();
 
-        // Force Enable Decoration for windows
-        putenv('TERM=');
+        Decorate::setColorSupport(null);
     }
 
     protected static function kernelClassInstance()
@@ -41,8 +39,7 @@ class ListTaskTest extends TestCase
 
     public function dataDescribe()
     {
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
 
         return [
             [[
@@ -55,9 +52,9 @@ class ListTaskTest extends TestCase
                  'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
              ], 'route:list', RouteListTask::class, 'mainAction'],
             [[
-                 'description' => 'Optimize the autoloader.',
+                 'description' => 'Runs all optimization.',
                  'cmd'         => Decorate::info('optimize'),
-                 'options'     => '-m, --memory: Optimize memory., -f, --force: Force optimization.',
+                 'options'     => '-m, --memory: Generate a memory optimized autoloader., -f, --force: Force optimization.',
              ], 'optimize', OptimizeTask::class, 'mainAction']
         ];
     }
@@ -84,8 +81,7 @@ class ListTaskTest extends TestCase
 
     public function dataDescribeRoute()
     {
-        // Force Enable Decoration for windows
-        putenv('TERM=xterm');
+        Decorate::setColorSupport(true);
 
         return [
             [[
@@ -98,9 +94,9 @@ class ListTaskTest extends TestCase
                  'options'     => '--no-substitution: Doesn\'t replace matching group by params name',
              ], new Route('route:list', ['task' => RouteListTask::class])],
             [[
-                 'description' => 'Optimize the autoloader.',
+                 'description' => 'Runs all optimization.',
                  'cmd'         => Decorate::info('optimize'),
-                 'options'     => '-m, --memory: Optimize memory., -f, --force: Force optimization.',
+                 'options'     => '-m, --memory: Generate a memory optimized autoloader., -f, --force: Force optimization.',
              ], new Route('optimize', ['task' => OptimizeTask::class])]
         ];
     }
@@ -129,14 +125,24 @@ class ListTaskTest extends TestCase
     public function testMainAction()
     {
         $expected = [
-            'write'  => ['exactly' => 20, 'consecutive' => [
-                //['Available Commands :'],
+            'write'  => ['exactly' => 24, 'consecutive' => [
                 [Helper::neutrinoVersion() . PHP_EOL, true],
+                //['Usage :'],
+                ['  command [options] [arguments]', true],
+                ['', true],
+                //['Options :'],
+                //['  -h, --help                     Display this help message'],
+                //['  -q, --quiet                    Do not output any message'],
+                //['  -s, --stats                    Display timing and memory usage information'],
+                //['      --colors                   Force Colors output'],
+                //['      --no-colors                Disable Colors output'],
+                ['', true],
+                //['Available Commands :'],
                 [' ' . Decorate::info('clear-compiled') . '         Clear compilation.                                    ', true],
                 [' ' . Decorate::info('help ( .*)*') . '                                                                  ', true],
                 [' ' . Decorate::info('list') . '                   List all commands available.                          ', true],
                 [' ' . Decorate::info('migrate') . '                Run the database migrations.                          ', true],
-                [' ' . Decorate::info('optimize') . '               Optimize the autoloader.                              ', true],
+                [' ' . Decorate::info('optimize') . '               Runs all optimization.                                ', true],
                 // assets
                 [' ' . Decorate::info('assets:js') . '              Compilation, Optimization, Minification of assets js. ', true],
                 [' ' . Decorate::info('assets:sass') . '            Compilation des assets sass.                          ', true],
@@ -153,13 +159,16 @@ class ListTaskTest extends TestCase
                 [' ' . Decorate::info('migrate:rollback') . '       Rollback the last database migration.                 ', true],
                 [' ' . Decorate::info('migrate:status') . '         Show the status of each migration.                    ', true],
                 //['route', true],
+                [' ' . Decorate::info('route:cache') . '            Generate a cache for http kernel\'s routes.            ', true],
                 [' ' . Decorate::info('route:list') . '             List all routes.                                      ', true],
                 //['server', true],
                 [' ' . Decorate::info('server:run') . '             Runs a local web server                               ', true],
                 //['view', true],
                 [' ' . Decorate::info('view:clear') . '             Clear all compiled view files.                        ', true],
             ]],
-            'notice' => ['exactly' => 8, 'consecutive' => [
+            'notice' => ['exactly' => 10, 'consecutive' => [
+                ['Usage :'],
+                ['Options :'],
                 ['Available Commands :'],
                 ['assets'],
                 ['config'],
@@ -168,6 +177,13 @@ class ListTaskTest extends TestCase
                 ['route'],
                 ['server'],
                 ['view'],
+            ]],
+            'info' => ['exactly' => 5, 'consecutive' => [
+                ['  -h, --help                     Display this help message'],
+                ['  -q, --quiet                    Do not output any message'],
+                ['  -s, --stats                    Display timing and memory usage information'],
+                ['      --colors                   Force Colors output'],
+                ['      --no-colors                Disable Colors output'],
             ]]
         ];
 

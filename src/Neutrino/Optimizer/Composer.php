@@ -5,6 +5,7 @@ namespace Neutrino\Optimizer;
 use Neutrino\Support\Arr;
 use Neutrino\Support\Path;
 use Phalcon\Di\Injectable;
+use Phalcon\Version;
 
 /**
  * Class Composer
@@ -120,6 +121,10 @@ class Composer extends Injectable
         }
 
         fwrite($res, '$loader = new Phalcon\Loader;' . "\n");
+
+        if (Version::getPart(Version::VERSION_MAJOR) >= 3 && Version::getPart(Version::VERSION_MEDIUM) >= 4) {
+            fwrite($res, '$loader->setFileCheckingCallback("stream_resolve_include_path");' . "\n");
+        }
 
         if (!empty($files)) {
             fwrite($res, '$loader->registerFiles(' . $this->prepareOutput(array_values($files)) . ');' . "\n");

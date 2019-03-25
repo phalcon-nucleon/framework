@@ -63,14 +63,6 @@ abstract class Kernel extends Application implements Kernelable
     protected $eventsManagerClass = EventManager::class;
 
     /**
-     * Error Handler Outputs
-     *
-     * @var int
-     */
-    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Flash::class, Error\Writer\View::class];
-
-
-    /**
      * Register the routes of the application.
      */
     public function registerRoutes()

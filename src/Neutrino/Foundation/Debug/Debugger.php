@@ -1,10 +1,12 @@
 <?php
 
-namespace Neutrino\Debug;
+namespace Neutrino\Foundation\Debug;
 
 use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
-use Neutrino\Error\Handler;
+use Neutrino\Debug\Reflexion;
+use Neutrino\Foundation\Debug\Exceptions\ExceptionHandler;
+use Neutrino\Foundation\Debug\Exceptions\Reporters\DebugReporter;
 use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
@@ -33,7 +35,7 @@ class Debugger
     /** @var View\Simple */
     private static $view;
 
-    /** @var \Neutrino\Debug\DebugEventsManagerWrapper */
+    /** @var \Neutrino\Foundation\Debug\DebugEventsManagerWrapper */
     private $em;
 
     private function __construct()
@@ -46,7 +48,7 @@ class Debugger
             return;
         }
 
-        Handler::addWriter(DebugErrorLogger::class);
+        ExceptionHandler::attachReporter(DebugReporter::class);
 
         $this->registerGlobalEventManager();
 

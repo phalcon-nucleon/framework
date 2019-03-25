@@ -4,8 +4,8 @@ namespace Test\Debug;
 
 use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
-use Neutrino\Debug\Debugger;
-use Neutrino\Debug\DebugToolbar;
+use Neutrino\Foundation\Debug\Debugger;
+use Neutrino\Foundation\Debug\DebugToolbar;
 use Neutrino\Debug\Reflexion;
 use Phalcon\Events\Manager;
 use Phalcon\Http\Response;

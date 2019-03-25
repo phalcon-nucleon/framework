@@ -3,8 +3,8 @@
 namespace Test\Debug;
 
 use Neutrino\Constants\Services;
-use Neutrino\Debug\DebugEventsManagerWrapper;
-use Neutrino\Debug\Debugger;
+use Neutrino\Foundation\Debug\DebugEventsManagerWrapper;
+use Neutrino\Foundation\Debug\Debugger;
 use Neutrino\Debug\Reflexion;
 use Phalcon\Db\Adapter\Pdo;
 use Phalcon\Db\Profiler;

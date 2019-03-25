@@ -1,9 +1,10 @@
 <?php
 
-namespace Neutrino\Debug;
+namespace Neutrino\Foundation\Debug;
 
 use Neutrino\Constants\Events\Kernel;
 use Neutrino\Constants\Services;
+use Neutrino\Foundation\Debug\Exceptions\Reporters\DebugReporter;
 use Phalcon\Di;
 
 /**
@@ -27,7 +28,7 @@ class DebugToolbar
 
             $httpInfo = self::getHttpInfo();
             $buildInfo = Debugger::getBuildInfo();
-            $phpErrors = DebugErrorLogger::errors();
+            $phpErrors = DebugReporter::errors();
             $viewsProfiles = Debugger::getViewProfiles();
             $registeredProfilers = Debugger::getRegisteredProfilers();
 

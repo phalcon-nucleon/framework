@@ -1,8 +1,8 @@
 <?php
 
-namespace Neutrino\Debug;
+namespace Neutrino\Foundation\Debug;
 
-use Neutrino\Error\Helper;
+use Neutrino\Debug\Exceptions\Helper;
 use Phalcon\Events\Manager;
 use Phalcon\Events\ManagerInterface;
 
@@ -31,7 +31,7 @@ class DebugEventsManagerWrapper extends Manager implements ManagerInterface
     private function __verboseType($var){
         switch ($type = gettype($var)) {
             case 'array':
-                return Helper::verboseType($var);
+                return Helper::verboseVar($var);
             case 'object':
                 $class = explode('\\', get_class($var));
                 return 'object(' . array_pop($class) . ')';

@@ -3,11 +3,11 @@
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Constants\Services;
-use Neutrino\Debug\DebugErrorLogger;
-use Neutrino\Debug\DebugEventsManagerWrapper;
-use Neutrino\Debug\Debugger;
+use Neutrino\Foundation\Debug\DebugEventsManagerWrapper;
+use Neutrino\Foundation\Debug\Debugger;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
+use Neutrino\Foundation\Debug\Exceptions\Reporters\DebugReporter;
 use Neutrino\Support\Arr;
 use Phalcon\Di;
 use Phalcon\Http\Response;
@@ -105,7 +105,7 @@ class View implements Writable
           'error' => $error,
           'isException' => $isException,
           'exceptions' => $exceptions,
-          'php_errors' => DebugErrorLogger::errors(),
+          'php_errors' => DebugReporter::errors(),
           'events'     => DebugEventsManagerWrapper::getEvents(),
           'profilers'  => Debugger::getRegisteredProfilers(),
           'build'      => Debugger::getBuildInfo()

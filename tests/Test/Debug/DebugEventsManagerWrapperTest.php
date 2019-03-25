@@ -2,7 +2,7 @@
 
 namespace Test\Debug;
 
-use Neutrino\Debug\DebugEventsManagerWrapper;
+use Neutrino\Foundation\Debug\DebugEventsManagerWrapper;
 use Neutrino\Debug\Reflexion;
 use Phalcon\Events\ManagerInterface;
 use PHPUnit\Framework\TestCase;

@@ -54,13 +54,6 @@ abstract class Kernel extends MicroKernel implements Kernelable
     protected $eventsManagerClass = null;
 
     /**
-     * Error Handler Outputs
-     *
-     * @var int
-     */
-    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Json::class];
-
-    /**
      * This methods registers the middlewares to be used by the application
      */
     public function registerMiddlewares()

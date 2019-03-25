@@ -3,7 +3,7 @@
 namespace Neutrino\Foundation;
 
 use Neutrino\Constants\Env;
-use Neutrino\Debug\Debugger;
+use Neutrino\Foundation\Debug\Debugger;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Config;
 use Phalcon\Http\Response;

@@ -10,7 +10,6 @@ use Neutrino\Foundation\Debug\Exceptions\Renders\ConsoleRender;
 use Neutrino\Foundation\Debug\Exceptions\Renders\WebRender;
 use Neutrino\Foundation\Debug\Exceptions\Reporters\FlashReporter;
 use Neutrino\Foundation\Debug\Exceptions\Reporters\LoggerReporter;
-use Phalcon\Di\Injectable;
 use Throwable;
 use Phalcon\Http\Response;
 
@@ -134,7 +133,7 @@ abstract class ExceptionHandler implements ExceptionHandlerInterface
      *
      * @return \Phalcon\Http\ResponseInterface
      */
-    public function render($throwable, $request)
+    public function render($throwable, $request = null)
     {
         return (new WebRender)->render($throwable, self::$container);
     }

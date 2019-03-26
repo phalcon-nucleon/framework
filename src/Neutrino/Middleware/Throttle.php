@@ -3,6 +3,7 @@
 namespace Neutrino\Middleware;
 
 use Neutrino\Constants\Services;
+use Neutrino\Exceptions\ThrottledException;
 use Neutrino\Foundation\Middleware\Controller as ControllerMiddleware;
 use Neutrino\Http\Standards\StatusCode;
 use Neutrino\Interfaces\Middleware\AfterInterface;
@@ -83,7 +84,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
         if ($limiter->tooManyAttempts($signature, $this->max, $this->decay)) {
             $this->addHeader($signature, true);
 
-            return false;
+            throw new ThrottledException;
         }
 
         $limiter->hit($signature, $this->decay);

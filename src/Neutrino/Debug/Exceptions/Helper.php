@@ -4,6 +4,7 @@ namespace Neutrino\Debug\Exceptions;
 
 use Exception;
 use ErrorException;
+use Neutrino\Debug\Reflexion;
 use Neutrino\Support\Arr;
 use Neutrino\Debug\Exceptions\Errors\CustomErrorException;
 use Neutrino\Debug\Exceptions\Errors\DeprecatedErrorException;
@@ -326,11 +327,11 @@ class Helper
     }
 
     /**
-     * @param \Exception $exception
+     * @param Exception|Throwable $exception
      *
      * @return array
      */
-    private static function extractTracesToArray($exception)
+    public static function extractTracesToArray($exception)
     {
         $traces = [];
 
@@ -340,19 +341,37 @@ class Helper
             $_trace['id'] = $idx;
 
             $_trace['func'] = '';
-            if (isset($trace['class'])) {
-                $_trace['func'] = $trace['class'] . '->';
-            }
-            if (isset($trace['function'])) {
-                $_trace['func'] .= $trace['function'];
+
+            if (isset($trace['class'], $trace['function'])) {
+                if (strpos($trace['function'], '{closure}') !== false) {
+                    $_trace['func'] = $trace['class'] . '::' . $trace['function'];
+                } else {
+                    $sep = '->';
+
+                    try {
+                        $method = Reflexion::getReflectionMethod($trace['class'], $trace['function']);
+                        if ($method->isStatic()) {
+                            $sep = '::';
+                        }
+                    } catch (\ReflectionException $e) {
+                    }
+
+                    $_trace['func'] = $trace['class'] . $sep . $trace['function'];
+                }
+            } elseif (isset($trace['function'])) {
+                $_trace['func'] = $trace['function'];
+            } elseif (isset($trace['class'])) {
+                $_trace['func'] = $trace['class'];
             }
 
-            $args = [];
+            $_trace['func'] .= '(';
             if (isset($trace['args'])) {
-                $args = self::verboseArgs((array) $trace['args']);
+                $_trace['func'] .= implode(', ', self::verboseArgs((array)$trace['args']));
             }
-            $_trace['func'] .= '(' . implode(', ', $args) . ')';
+            $_trace['func'] .= ')';
 
+            $_trace['file'] = null;
+            $_trace['line'] = null;
             if (isset($trace['file'])) {
                 $_trace['file'] = str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
                 $_trace['where'] = $_trace['file'];

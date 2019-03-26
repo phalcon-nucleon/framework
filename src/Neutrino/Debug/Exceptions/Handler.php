@@ -23,7 +23,7 @@ class Handler
 
         set_error_handler(function ($errno, $errstr, $errfile, $errline) {
             if ($errno & error_reporting()) {
-                throw Helper::errorToThrowable($errno, $errstr, $errfile, $errline);
+                self::handle(Helper::errorToThrowable($errno, $errstr, $errfile, $errline));
             }
         });
         set_exception_handler(function ($e) {

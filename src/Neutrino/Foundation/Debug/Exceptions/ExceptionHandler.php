@@ -14,7 +14,7 @@ use Phalcon\Di\Injectable;
 use Throwable;
 use Phalcon\Http\Response;
 
-abstract class ExceptionHandler extends Injectable implements ExceptionHandlerInterface
+abstract class ExceptionHandler implements ExceptionHandlerInterface
 {
     /** @var \Phalcon\DiInterface */
     private static $container;

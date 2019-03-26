@@ -5,15 +5,20 @@ namespace Neutrino\Debug\Exceptions;
 use Exception;
 use ErrorException;
 use Neutrino\Support\Arr;
-use Phalcon\Logger;
-use Throwable;
 use Neutrino\Debug\Exceptions\Errors\CustomErrorException;
 use Neutrino\Debug\Exceptions\Errors\DeprecatedErrorException;
 use Neutrino\Debug\Exceptions\Errors\FatalErrorException;
 use Neutrino\Debug\Exceptions\Errors\NoticeErrorException;
 use Neutrino\Debug\Exceptions\Errors\StrictErrorException;
 use Neutrino\Debug\Exceptions\Errors\WarningErrorException;
+use Phalcon\Logger;
+use Throwable;
 
+/**
+ * Class Helper
+ *
+ * @package Neutrino\Debug\Exceptions
+ */
 class Helper
 {
     /**
@@ -52,38 +57,19 @@ class Helper
     {
         return $throwable instanceof FatalErrorException
             || !($throwable instanceof ErrorException)
-            || (
-                ($types = FatalErrorException::TYPES)
-                && isset($types[$throwable->getSeverity()])
-            );
+            || self::isFatefulErrorSeverity($throwable->getSeverity());
     }
 
     /**
-     * @param Throwable|Exception $throwable
+     * @param int $code
      *
-     * @return string
+     * @return bool
      */
-    public static function verboseType($throwable)
+    public static function isFatefulErrorSeverity($code)
     {
-        if ($throwable instanceof FatalErrorException) {
-            return 'Fatal Error';
-        } elseif ($throwable instanceof WarningErrorException) {
-            return 'Warning Error';
-        } elseif ($throwable instanceof NoticeErrorException) {
-            return 'Notice Error';
-        } elseif ($throwable instanceof DeprecatedErrorException) {
-            return 'Deprecated Error';
-        } elseif ($throwable instanceof StrictErrorException) {
-            return 'Strict Error';
-        } elseif ($throwable instanceof CustomErrorException) {
-            return 'Custom Error';
-        } elseif ($throwable instanceof ErrorException) {
-            return self::verboseType(self::errorToThrowable($throwable->getSeverity(), '', '', 0));
-        } elseif (!($throwable instanceof Exception)) {
-            return get_class($throwable);
-        }
+        $types = FatalErrorException::TYPES;
 
-        return 'Uncaught ' . get_class($throwable);
+        return isset($types[$code]);
     }
 
     /**
@@ -95,16 +81,13 @@ class Helper
      */
     public static function logLevel($throwable)
     {
-        if ($throwable instanceof FatalErrorException ||
-            $throwable instanceof CustomErrorException) {
+        if ($throwable instanceof FatalErrorException || $throwable instanceof CustomErrorException) {
             return Logger::ERROR;
         } elseif ($throwable instanceof WarningErrorException) {
             return Logger::WARNING;
         } elseif ($throwable instanceof NoticeErrorException) {
             return Logger::NOTICE;
-        } elseif (
-            $throwable instanceof DeprecatedErrorException ||
-            $throwable instanceof StrictErrorException) {
+        } elseif ($throwable instanceof DeprecatedErrorException || $throwable instanceof StrictErrorException) {
             return Logger::INFO;
         } elseif ($throwable instanceof ErrorException) {
             return self::logLevel(self::errorToThrowable($throwable->getSeverity(), '', '', 0));
@@ -113,10 +96,174 @@ class Helper
         return Logger::ERROR;
     }
 
-
+    /**
+     * @param Throwable|Exception $throwable
+     *
+     * @return string
+     */
     public static function verbose($throwable)
     {
         return implode("\n", self::verboseThrowable($throwable));
+    }
+
+    /**
+     * @param array $args
+     *
+     * @return array
+     */
+    public static function verboseArgs(array $args)
+    {
+        $arguments = [];
+
+        foreach ($args as $key => $arg) {
+            $arguments[$key] = self::verboseVar($arg);
+        }
+
+        return $arguments;
+    }
+
+    /**
+     * Maps error code to a string.
+     *
+     * @param int|string $code
+     *
+     * @return string
+     */
+    public static function verboseSeverity($code)
+    {
+        switch ($code) {
+            case E_ERROR:
+                return 'E_ERROR';
+            case E_WARNING:
+                return 'E_WARNING';
+            case E_PARSE:
+                return 'E_PARSE';
+            case E_NOTICE:
+                return 'E_NOTICE';
+            case E_CORE_ERROR:
+                return 'E_CORE_ERROR';
+            case E_CORE_WARNING:
+                return 'E_CORE_WARNING';
+            case E_COMPILE_ERROR:
+                return 'E_COMPILE_ERROR';
+            case E_COMPILE_WARNING:
+                return 'E_COMPILE_WARNING';
+            case E_USER_ERROR:
+                return 'E_USER_ERROR';
+            case E_USER_WARNING:
+                return 'E_USER_WARNING';
+            case E_USER_NOTICE:
+                return 'E_USER_NOTICE';
+            case E_STRICT:
+                return 'E_STRICT';
+            case E_RECOVERABLE_ERROR:
+                return 'E_RECOVERABLE_ERROR';
+            case E_DEPRECATED:
+                return 'E_DEPRECATED';
+            case E_USER_DEPRECATED:
+                return 'E_USER_DEPRECATED';
+        }
+
+        return "(unknown error bit $code)";
+    }
+
+    /**
+     * @param Throwable|Exception $throwable
+     *
+     * @return string
+     */
+    public static function verboseType($throwable)
+    {
+        if ($throwable instanceof FatalErrorException) {
+            return 'Fatal error [' . self::verboseSeverity($throwable->getSeverity()) . ']';
+        } elseif ($throwable instanceof WarningErrorException) {
+            return 'Warning [' . self::verboseSeverity($throwable->getSeverity()) . ']';
+        } elseif ($throwable instanceof NoticeErrorException) {
+            return 'Notice [' . self::verboseSeverity($throwable->getSeverity()) . ']';
+        } elseif ($throwable instanceof DeprecatedErrorException || $throwable instanceof StrictErrorException) {
+            return 'Info [' . self::verboseSeverity($throwable->getSeverity()) . ']';
+        } elseif ($throwable instanceof CustomErrorException) {
+            return 'Custom error [' . $throwable->getSeverity() . ']';
+        } elseif ($throwable instanceof ErrorException) {
+            return self::verboseType(self::errorToThrowable($throwable->getSeverity(), '', '', 0));
+        }
+
+        return 'Uncaught ' . get_class($throwable);
+    }
+
+    /**
+     * @param mixed $value
+     * @param int $lvl
+     *
+     * @return mixed|string
+     */
+    public static function verboseVar($value, $lvl = 0)
+    {
+        switch ($type = gettype($value)) {
+            case 'array':
+                if (!empty($value) && $lvl === 0) {
+                    $found = [];
+                    foreach ($value as $item) {
+                        $type = gettype($item);
+                        if ($type == 'object') {
+                            $type = get_class($item);
+                        }
+                        $found[$type] = true;
+                    }
+
+                    $cfound = count($found);
+                    $cvalue = count($value);
+
+                    if ($cfound === 1 && !is_scalar($item) && $cvalue < 3
+                        || $cfound === 1 && is_scalar($item) && $cvalue < 6
+                        || $cfound > 1 && $cvalue < 5) {
+                        $str = [];
+                        if (Arr::isAssoc($value)) {
+                            foreach ($value as $key => $item) {
+                                $str[] = var_export($key, true) . " => " . self::verboseVar($item, $lvl + 1);
+                            }
+                        } else {
+                            foreach ($value as $item) {
+                                $str[] = self::verboseVar($item, $lvl + 1);
+                            }
+                        }
+
+                        return 'array(' . implode(', ', $str) . ')';
+                    }
+
+                    if (count($found) === 1) {
+                        return 'array.<' . $type . '>[' . count($value) . ']';
+                    }
+
+                    return 'array[' . count($value) . ']';
+                }
+
+                return 'array';
+            case 'object':
+                $class = explode('\\', get_class($value));
+                return 'object(' . array_pop($class) . ')';
+            case 'null':
+            case 'NULL':
+                return 'null';
+            case 'unknown type':
+                return '?';
+            case 'resource':
+            case 'resource (closed)':
+                return $type;
+            case 'string':
+                if (defined('BASE_PATH') && $value !== BASE_PATH . '\\') {
+                    $value = str_replace(BASE_PATH . '\\', '', $value);
+                }
+                if (strlen($value) > 20) {
+                    return "'" . substr($value, 0, 8) . '...' . substr($value, -8) . '\'[' . strlen($value) . ']';
+                }
+                return "'" . $value . "'";
+            case 'boolean':
+            case 'integer':
+            case 'double':
+            default:
+                return var_export($value, true);
+        }
     }
 
     /**
@@ -223,130 +370,4 @@ class Helper
 
         return $traces;
     }
-
-    public static function verboseArgs(array $args)
-    {
-        $arguments = [];
-
-        foreach ($args as $key => $arg) {
-            $arguments[$key] = self::verboseVar($arg);
-        }
-
-        return $arguments;
-    }
-
-    public static function verboseVar($value, $lvl = 0)
-    {
-        switch ($type = gettype($value)) {
-            case 'array':
-                if (!empty($value) && $lvl === 0) {
-                    $found = [];
-                    foreach ($value as $item) {
-                        $type = gettype($item);
-                        if ($type == 'object') {
-                            $type = get_class($item);
-                        }
-                        $found[$type] = true;
-                    }
-
-                    $cfound = count($found);
-                    $cvalue = count($value);
-
-                    if ($cfound === 1 && !is_scalar($item) && $cvalue < 3
-                        || $cfound === 1 && is_scalar($item) && $cvalue < 6
-                        || $cfound > 1 && $cvalue < 5) {
-                        $str = [];
-                        if (Arr::isAssoc($value)) {
-                            foreach ($value as $key => $item) {
-                                $str[] = var_export($key, true) . " => " . self::verboseVar($item, $lvl + 1);
-                            }
-                        } else {
-                            foreach ($value as $item) {
-                                $str[] = self::verboseVar($item, $lvl + 1);
-                            }
-                        }
-
-                        return 'array(' . implode(', ', $str) . ')';
-                    }
-
-                    if (count($found) === 1) {
-                        return 'array.<' . $type . '>[' . count($value) . ']';
-                    }
-
-                    return 'array[' . count($value) . ']';
-                }
-
-                return 'array';
-            case 'object':
-                $class = explode('\\', get_class($value));
-                return 'object(' . array_pop($class) . ')';
-            case 'null':
-            case 'NULL':
-                return 'null';
-            case 'unknown type':
-                return '?';
-            case 'resource':
-            case 'resource (closed)':
-            return $type;
-            case 'string':
-                if (defined('BASE_PATH') && $value !== BASE_PATH . '\\') {
-                    $value = str_replace(BASE_PATH . '\\', '', $value);
-                }
-                if (strlen($value) > 20) {
-                    return "'" . substr($value, 0, 8) . '...' . substr($value, -8) . '\'[' . strlen($value) . ']';
-                }
-                return "'" . $value . "'";
-            case 'boolean':
-            case 'integer':
-            case 'double':
-            default:
-                return var_export($value, true);
-        }
-    }
-
-    /**
-     * Maps error code to a string.
-     *
-     * @param int|string $code
-     *
-     * @return string
-     */
-    public static function verboseSeverity($code)
-    {
-        switch ($code) {
-            case E_ERROR:
-                return 'E_ERROR';
-            case E_WARNING:
-                return 'E_WARNING';
-            case E_PARSE:
-                return 'E_PARSE';
-            case E_NOTICE:
-                return 'E_NOTICE';
-            case E_CORE_ERROR:
-                return 'E_CORE_ERROR';
-            case E_CORE_WARNING:
-                return 'E_CORE_WARNING';
-            case E_COMPILE_ERROR:
-                return 'E_COMPILE_ERROR';
-            case E_COMPILE_WARNING:
-                return 'E_COMPILE_WARNING';
-            case E_USER_ERROR:
-                return 'E_USER_ERROR';
-            case E_USER_WARNING:
-                return 'E_USER_WARNING';
-            case E_USER_NOTICE:
-                return 'E_USER_NOTICE';
-            case E_STRICT:
-                return 'E_STRICT';
-            case E_RECOVERABLE_ERROR:
-                return 'E_RECOVERABLE_ERROR';
-            case E_DEPRECATED:
-                return 'E_DEPRECATED';
-            case E_USER_DEPRECATED:
-                return 'E_USER_DEPRECATED';
-        }
-
-        return "(unknown error bit $code)";
-    }
-
 }

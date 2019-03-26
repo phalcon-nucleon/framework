@@ -292,7 +292,7 @@ class Debugger
     public static function internalRender($file, array $params = [])
     {
         if(!isset(self::$view)){
-            include __DIR__ . '/helpers/functions.php';
+            include __DIR__ . '/resources/helpers.php';
             $view = new View\Simple();
             $view->setDI(new Di());
             $view->setViewsDir(__DIR__ . '/resources/');

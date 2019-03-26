@@ -3,10 +3,9 @@
 namespace Neutrino\Debug\Exceptions;
 
 use Exception;
-use ErrorException;
 use Throwable;
 
-class Register
+class Handler
 {
     /** @var string */
     private static $handlerClass;
@@ -16,7 +15,7 @@ class Register
      */
     final public static function register($handlerClass)
     {
-        if (isset($handlerClass)) {
+        if (isset(self::$handlerClass)) {
             throw new \RuntimeException(__CLASS__ . ' already registered');
         }
 
@@ -34,7 +33,12 @@ class Register
             // Handle Fatal error
             $error = error_get_last();
             if (isset($error['type']) && $error['type'] === E_ERROR) {
-                self::handle(new ErrorException($error['type'], $error['message'], $error['file'], $error['line']));
+                self::handle(Helper::errorToThrowable(
+                    $error['type'],
+                    $error['message'],
+                    $error['file'],
+                    $error['line']
+                ));
             }
         });
     }

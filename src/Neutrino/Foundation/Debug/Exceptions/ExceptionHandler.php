@@ -79,6 +79,10 @@ abstract class ExceptionHandler implements ExceptionHandlerInterface
      */
     private function renderWeb($throwable)
     {
+        if (!Helper::isFateful($throwable)) {
+            return;
+        }
+
         $request = null;
         $container = self::$container;
 

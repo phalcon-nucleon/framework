@@ -23,6 +23,10 @@ class WebRender implements RenderInterface
      */
     public function render($throwable, $container = null)
     {
+        if (Debugger::isEnable()) {
+            return $this->makeResponse(Debugger::renderThrowable($throwable));
+        }
+
         if ($container && $container->has(Services::REQUEST)) {
             if ($this->exceptJson($container->get(Services::REQUEST))) {
                 return $this->renderJson($throwable);
@@ -42,10 +46,6 @@ class WebRender implements RenderInterface
      */
     private function renderHtml($throwable, DiInterface $container = null)
     {
-        if (Debugger::isEnable()) {
-            return $this->makeResponse(Debugger::throwableHandler($throwable));
-        }
-
         $content = 'Whoops. Something went wrong.';
 
         if (!is_null($container)) {

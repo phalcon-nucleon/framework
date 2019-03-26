@@ -1,8 +1,8 @@
 <?php
 
-
 namespace Neutrino\Foundation\Debug\Exceptions\Reporters;
 
+use Neutrino\Debug\Exceptions\Helper;
 use Neutrino\Foundation\Debug\Exceptions\ReporterInterface;
 
 /**
@@ -30,6 +30,8 @@ class DebugReporter implements ReporterInterface
      */
     public function report($throwable, $container = null)
     {
-        self::$errors[] = $throwable;
+        if (!Helper::isFateful($throwable)) {
+            self::$errors[] = $throwable;
+        }
     }
 }

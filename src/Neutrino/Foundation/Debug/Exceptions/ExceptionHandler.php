@@ -6,6 +6,7 @@ use Exception;
 use InvalidArgumentException;
 use Neutrino\Constants\Services;
 use Neutrino\Debug\Exceptions\ExceptionHandlerInterface;
+use Neutrino\Debug\Exceptions\Helper;
 use Neutrino\Foundation\Debug\Exceptions\Renders\ConsoleRender;
 use Neutrino\Foundation\Debug\Exceptions\Renders\WebRender;
 use Neutrino\Foundation\Debug\Exceptions\Reporters\FlashReporter;
@@ -20,8 +21,8 @@ abstract class ExceptionHandler implements ExceptionHandlerInterface
 
     /** @var string[]|\Neutrino\Foundation\Debug\Exceptions\ReporterInterface[] */
     private static $reporters = [
-        LoggerReporter::class,
-        FlashReporter::class,
+        LoggerReporter::class => LoggerReporter::class,
+        FlashReporter::class => FlashReporter::class,
     ];
 
     private $ignores;
@@ -87,8 +88,14 @@ abstract class ExceptionHandler implements ExceptionHandlerInterface
 
         $response = $this->render($throwable, $request);
 
-        if (!($response instanceof Response) || !$response->isSent()) {
+        foreach (ob_list_handlers() as $obListHandler) {
+            ob_clean();
+        }
+
+        if (!headers_sent()) {
             $response->send();
+        } else {
+            echo $response->getContent();
         }
     }
 
@@ -121,8 +128,12 @@ abstract class ExceptionHandler implements ExceptionHandlerInterface
     public function report($throwable)
     {
         foreach (self::$reporters as $class => $reporter) {
+            if (is_string($reporter)) {
+                self::$reporters[$class] = $reporter = new $reporter;
+            }
+
             $this->safe($class, function () use ($reporter, $throwable) {
-                $reporter->report($throwable);
+                $reporter->report($throwable, self::$container);
             });
         }
     }

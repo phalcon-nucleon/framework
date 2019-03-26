@@ -8,15 +8,30 @@ use Phalcon\Logger;
 /**
  * Class Helper
  *
+ * @deprecated
+ *
  * @package     Neutrino\Error
  */
 class Helper
 {
+    /**
+     * @deprecated
+     * @param Error $error
+     *
+     * @return string
+     */
     public static function format(Error $error)
     {
         return implode("\n", self::formatLines($error));
     }
 
+    /**
+     * @deprecated
+     * @param Error $error
+     * @param int   $pass
+     *
+     * @return array
+     */
     private static function formatLines(Error $error, $pass = 0)
     {
         $pass++;
@@ -65,6 +80,7 @@ class Helper
     }
 
     /**
+     * @deprecated
      * @param \Exception $exception
      *
      * @return array
@@ -110,6 +126,12 @@ class Helper
         return $traces;
     }
 
+    /**
+     * @deprecated
+     * @param array $args
+     *
+     * @return array
+     */
     public static function verboseArgs(array $args)
     {
         $arguments = [];
@@ -121,6 +143,13 @@ class Helper
         return $arguments;
     }
 
+    /**
+     * @deprecated
+     * @param     $value
+     * @param int $lvl
+     *
+     * @return mixed|string
+     */
     public static function verboseType($value, $lvl = 0)
     {
         switch ($type = gettype($value)) {
@@ -190,6 +219,7 @@ class Helper
     }
 
     /**
+     * @deprecated
      * Maps error code to a string.
      *
      * @param int|string $code
@@ -236,6 +266,12 @@ class Helper
         return "(unknown error bit $code)";
     }
 
+    /**
+     * @deprecated
+     * @param $code
+     *
+     * @return string
+     */
     public static function verboseErrorType($code)
     {
         switch ($code) {
@@ -266,6 +302,7 @@ class Helper
     }
 
     /**
+     * @deprecated
      * Maps error code to a log type.
      *
      * @param  integer $code

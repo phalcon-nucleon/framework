@@ -25,6 +25,8 @@ use Neutrino\Support\Arr;
 /**
  * Class Error
  *
+ * @deprecated
+ *
  * @package Phalcon\Error
  *
  * @property-read int        type
@@ -45,6 +47,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     protected $attributes;
 
     /**
+     * @deprecated
      * Class constructor sets the attributes.
      *
      * @param array $options
@@ -73,6 +76,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * @param \Exception|\Error|\Throwable $e
      *
      * @return \Neutrino\Error\Error
@@ -90,6 +94,15 @@ class Error implements \ArrayAccess, \JsonSerializable
         ]);
     }
 
+    /**
+     * @deprecated
+     * @param $errno
+     * @param $errstr
+     * @param $errfile
+     * @param $errline
+     *
+     * @return Error
+     */
     public static function fromError($errno, $errstr, $errfile, $errline)
     {
         return new static([
@@ -102,6 +115,10 @@ class Error implements \ArrayAccess, \JsonSerializable
         ]);
     }
 
+    /**
+     * @deprecated
+     * @return bool
+     */
     public function isFateful()
     {
         $type = $this->type;
@@ -114,13 +131,6 @@ class Error implements \ArrayAccess, \JsonSerializable
             $type == E_RECOVERABLE_ERROR;
     }
 
-    /**
-     * Magic method to retrieve the attributes.
-     *
-     * @param  string $name
-     *
-     * @return mixed
-     */
     public function __get($name)
     {
         return isset($this->attributes[$name]) ? $this->attributes[$name] : null;

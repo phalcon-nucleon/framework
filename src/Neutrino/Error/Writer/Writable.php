@@ -7,6 +7,8 @@ use Neutrino\Error\Error;
 /**
  * Interface Writable
  *
+ * @deprecated
+ *
  * @package Neutrino\Error\Writer
  */
 interface Writable

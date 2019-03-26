@@ -8,6 +8,8 @@ use Neutrino\Error\Helper;
 /**
  * Class Phplog
  *
+ * @deprecated
+ *
  * @package Neutrino\Error\Writer
  */
 class Phplog implements Writable

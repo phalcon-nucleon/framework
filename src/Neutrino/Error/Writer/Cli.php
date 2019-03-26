@@ -12,6 +12,8 @@ use Phalcon\Logger as PhalconLogger;
 /**
  * Class Cli
  *
+ * @deprecated
+ *
  * @package     Neutrino\Error\Writer
  */
 class Cli implements Writable

@@ -13,6 +13,8 @@ use Phalcon\Logger\Formatter\Line as FormatterLine;
 /**
  * Class Logger
  *
+ * @deprecated
+ *
  * @package     Neutrino\Error\Writer
  */
 class Logger implements Writable

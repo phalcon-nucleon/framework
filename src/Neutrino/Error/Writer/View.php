@@ -15,6 +15,8 @@ use Phalcon\Http\Response;
 /**
  * Class View
  *
+ * @deprecated
+ *
  * @package     Neutrino\Error\Writer
  */
 class View implements Writable

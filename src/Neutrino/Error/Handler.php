@@ -26,6 +26,8 @@ use Neutrino\Error\Writer\Writable;
 /**
  * Class Handler
  *
+ * @deprecated
+ *
  * @package Phalcon\Error
  */
 class Handler

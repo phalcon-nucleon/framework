@@ -11,6 +11,8 @@ use Phalcon\Logger as Phogger;
 /**
  * Class Flash
  *
+ * @deprecated
+ *
  * @package     Neutrino\Error\Writer
  */
 class Flash implements Writable

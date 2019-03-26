@@ -4,6 +4,7 @@ namespace Neutrino\Foundation;
 
 use Neutrino\Constants\Services;
 use Neutrino\Events\Listener;
+use Neutrino\Foundation\Debug\Exceptions\ExceptionHandler;
 use Neutrino\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Di;
@@ -113,6 +114,8 @@ trait Kernelize
             // Global Register Di
             Di::setDefault($di);
         }
+
+        ExceptionHandler::attachContainer($di);
 
         // Register Di on Application
         $this->setDI($di);

@@ -131,17 +131,30 @@ class Error implements \ArrayAccess, \JsonSerializable
             $type == E_RECOVERABLE_ERROR;
     }
 
+    /**
+     * @deprecated
+     * @param $name
+     *
+     * @return mixed|null
+     */
     public function __get($name)
     {
         return isset($this->attributes[$name]) ? $this->attributes[$name] : null;
     }
 
+    /**
+     * @deprecated
+     * @param $name
+     *
+     * @return bool
+     */
     public function __isset($name)
     {
         return isset($this->attributes[$name]);
     }
 
     /**
+     * @deprecated
      * Whether a offset exists
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetexists.php
@@ -162,6 +175,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * Offset to retrieve
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetget.php
@@ -179,6 +193,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * Offset to set
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetset.php
@@ -199,6 +214,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * Offset to unset
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetunset.php
@@ -218,6 +234,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * Specify data which should be serialized to JSON
      *
      * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php

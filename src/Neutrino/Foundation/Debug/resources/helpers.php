@@ -1,6 +1,6 @@
 <?php
 
-namespace Neutrino\Debug {
+namespace Neutrino\Foundation\Debug {
 
     use Highlight\Highlighter;
     use Highlight\Languages\PHP;

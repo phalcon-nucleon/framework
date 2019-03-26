@@ -7,16 +7,16 @@ if (!isset($macro['renderFileInfo'])) {
             <li>
               <div class="collapsible-header">
                 <small class="grey-text text-darken-3" title="View code">in
-                  : <?= Neutrino\Debug\file_highlight($elem['file']) ?>&nbsp;(line: <?= $elem['line'] ?>)
+                  : <?= Neutrino\Foundation\Debug\file_highlight($elem['file']) ?>&nbsp;(line: <?= $elem['line'] ?>)
                 </small>
               </div>
               <div class="collapsible-body">
-                  <?= Neutrino\Debug\php_file_part_highlight($elem['file'], $elem['line']); ?>
+                  <?= Neutrino\Foundation\Debug\php_file_part_highlight($elem['file'], $elem['line']); ?>
               </div>
             </li>
           </ul>
         <?php elseif (isset($elem['file'])) : ?>
-          <small class="grey-text text-darken-3">in : <?= Neutrino\Debug\file_highlight($elem['file']) ?></small>
+          <small class="grey-text text-darken-3">in : <?= Neutrino\Foundation\Debug\file_highlight($elem['file']) ?></small>
         <?php else : ?>
           <small class="grey-text text-darken-3">[internal function]</small>
         <?php endif;
@@ -31,7 +31,7 @@ if (!isset($macro['renderTrace'])) {
       <ul class="collection">
           <?php foreach ($exception['traces'] as $trace) : ?>
             <li class="collection-item blue-grey lighten-3 white-text">
-              <span class="grey-text text-darken-3"><?= Neutrino\Debug\func_highlight($trace['func']) ?></span>
+              <span class="grey-text text-darken-3"><?= Neutrino\Foundation\Debug\func_highlight($trace['func']) ?></span>
               <br/>
                 <?= $macro['renderFileInfo']($trace) ?>
             </li>
@@ -64,26 +64,26 @@ if (!isset($macro['renderTrace'])) {
       <li class="tab col s3">
         <a class="active" href="#error">
             <?php if ($isException) : ?>
-              Exception<?= (Neutrino\Debug\length($exceptions) > 1 ? 's' : '') ?>
-              <span class="chip"><?= Neutrino\Debug\length($exceptions) ?></span>
+              Exception<?= (Neutrino\Foundation\Debug\length($exceptions) > 1 ? 's' : '') ?>
+              <span class="chip"><?= Neutrino\Foundation\Debug\length($exceptions) ?></span>
             <?php else : ?>
               Fatal error
             <?php endif; ?>
         </a>
       </li>
         <?php if (isset($php_errors)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($php_errors)) ? 'disabled' : '') ?>">
-            <a href="#php-errors">Errors <span class="chip"><?= Neutrino\Debug\length($php_errors) ?></span></a>
+          <li class="tab col s3 <?= (empty(Neutrino\Foundation\Debug\length($php_errors)) ? 'disabled' : '') ?>">
+            <a href="#php-errors">Errors <span class="chip"><?= Neutrino\Foundation\Debug\length($php_errors) ?></span></a>
           </li>
         <?php endif; ?>
         <?php if (!empty($profilers)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($profilers)) ? 'disabled' : '') ?>">
-            <a href="#profilers">Profilers <span class="chip"><?= Neutrino\Debug\length($profilers) ?></span></a>
+          <li class="tab col s3 <?= (empty(Neutrino\Foundation\Debug\length($profilers)) ? 'disabled' : '') ?>">
+            <a href="#profilers">Profilers <span class="chip"><?= Neutrino\Foundation\Debug\length($profilers) ?></span></a>
           </li>
         <?php endif; ?>
         <?php if (isset($events)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($events)) ? 'disabled' : '') ?>">
-            <a href="#events">Events <span class="chip"><?= Neutrino\Debug\length($events) ?></span></a>
+          <li class="tab col s3 <?= (empty(Neutrino\Foundation\Debug\length($events)) ? 'disabled' : '') ?>">
+            <a href="#events">Events <span class="chip"><?= Neutrino\Foundation\Debug\length($events) ?></span></a>
           </li>
         <?php endif; ?>
     </ul>
@@ -163,7 +163,7 @@ if (!isset($macro['renderTrace'])) {
                     <?php $profiler = $elements['profiler']; ?>
                     <?php $profiles = (empty($profiler->getProfiles()) ? ([]) : ($profiler->getProfiles())); ?>
                   <li class="tab col s3">
-                    <a href="#profilers-<?= $name ?>"><?= $name ?> <span class="chip"><?= Neutrino\Debug\length($profiles) ?></span> </a>
+                    <a href="#profilers-<?= $name ?>"><?= $name ?> <span class="chip"><?= Neutrino\Foundation\Debug\length($profiles) ?></span> </a>
                   </li>
                 <?php endforeach; ?>
             </ul>
@@ -184,10 +184,10 @@ if (!isset($macro['renderTrace'])) {
                   <?php foreach ($profiles as $profile) : ?>
                     <tr class="grey darken-4">
                       <td style="padding: 5px 10px;border-radius: 0">
-                        <small style="white-space: nowrap;"><?= Neutrino\Debug\human_mtime($profile->getTotalElapsedSeconds()) ?></small>
+                        <small style="white-space: nowrap;"><?= Neutrino\Foundation\Debug\human_mtime($profile->getTotalElapsedSeconds()) ?></small>
                       </td>
                       <td style="padding: 5px 10px;border-radius: 0">
-                        <pre class="sql"><?= Neutrino\Debug\sql_highlight($profile->getSqlStatement()) ?></pre>
+                        <pre class="sql"><?= Neutrino\Foundation\Debug\sql_highlight($profile->getSqlStatement()) ?></pre>
                       </td>
                       <td style="padding: 5px 10px;border-radius: 0">
                           <?php $vars = $profile->getSqlVariables(); ?>
@@ -240,7 +240,7 @@ if (!isset($macro['renderTrace'])) {
               <?php foreach ((empty($events) ? ([]) : ($events)) as $event) : ?>
                 <tr class="grey darken-4" style="padding: 5px 10px">
                   <td style="padding: 5px 10px;border-radius: 0">
-                    <small style="white-space: nowrap;"><?= Neutrino\Debug\human_mtime(($event['mt'] - $mt_start)) ?></small>
+                    <small style="white-space: nowrap;"><?= Neutrino\Foundation\Debug\human_mtime(($event['mt'] - $mt_start)) ?></small>
                   </td>
                   <td style="padding: 5px 10px;border-radius: 0">
                     <small style="white-space: nowrap;">

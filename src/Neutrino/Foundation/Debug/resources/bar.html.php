@@ -44,15 +44,15 @@
         </li>
         <li class="<?= ($render_time > 0.6 ? 'slow-request' : '') ?>">
           <span>
-            <?= Neutrino\Debug\human_mtime($render_time) ?>
+            <?= Neutrino\Foundation\Debug\human_mtime($render_time) ?>
           </span>
         </li>
         <li>
           <span>
-            <?= Neutrino\Debug\human_bytes($mem_peak) ?>
+            <?= Neutrino\Foundation\Debug\human_bytes($mem_peak) ?>
           </span>
         </li>
-        <li class="<?= (Neutrino\Debug\length($php_errors) > 0 ? 'with-errors' : 'no-errors') ?>">
+        <li class="<?= (Neutrino\Foundation\Debug\length($php_errors) > 0 ? 'with-errors' : 'no-errors') ?>">
           <table style="margin: 0;padding: 0;white-space: nowrap;" class="dropup-content bordered">
               <?php $phpdeprecated = 0; ?>
               <?php $phpnotice = 0; ?>
@@ -90,7 +90,7 @@
           </table>
           <span>
             <i class="nuc bug"></i>
-            <span class="bag nuc-hide-on-med"><?= Neutrino\Debug\length($php_errors) ?></span>
+            <span class="bag nuc-hide-on-med"><?= Neutrino\Foundation\Debug\length($php_errors) ?></span>
           </span>
         </li>
         <li class="">
@@ -98,21 +98,21 @@
             <tbody>
             <tr>
               <td>Views</td>
-              <td><?= Neutrino\Debug\length((empty($viewProfiles['renderViews']) ? ([]) : ($viewProfiles['renderViews']))) ?></td>
+              <td><?= Neutrino\Foundation\Debug\length((empty($viewProfiles['renderViews']) ? ([]) : ($viewProfiles['renderViews']))) ?></td>
             </tr>
             <tr>
               <td>View not found</td>
-              <td><?= Neutrino\Debug\length((empty($viewProfiles['notFoundView']) ? ([]) : ($viewProfiles['notFoundView']))) ?></td>
+              <td><?= Neutrino\Foundation\Debug\length((empty($viewProfiles['notFoundView']) ? ([]) : ($viewProfiles['notFoundView']))) ?></td>
             </tr>
             <tr>
               <td>Render</td>
-              <td><?= Neutrino\Debug\length($viewProfiles['render']) ?> in <?= Neutrino\Debug\human_mtime($viewProfiles['render'][0]['elapsedTime']) ?></td>
+              <td><?= Neutrino\Foundation\Debug\length($viewProfiles['render']) ?> in <?= Neutrino\Foundation\Debug\human_mtime($viewProfiles['render'][0]['elapsedTime']) ?></td>
             </tr>
             </tbody>
           </table>
           <span>
             <i class="nuc view"></i>
-            <span class="info nuc-hide-on-med"><?= Neutrino\Debug\human_mtime($viewProfiles['render'][0]['elapsedTime']) ?></span>
+            <span class="info nuc-hide-on-med"><?= Neutrino\Foundation\Debug\human_mtime($viewProfiles['render'][0]['elapsedTime']) ?></span>
           </span>
         </li>
           <?php foreach ((empty($profilers) ? ([]) : ($profilers)) as $name => $elements) : ?>
@@ -133,10 +133,10 @@
                       <?php foreach ((empty($profiles) ? ([]) : ($profiles)) as $profile) : ?>
                         <tr>
                           <td>
-                            <small style="white-space: nowrap;"><?= Neutrino\Debug\human_mtime($profile->getTotalElapsedSeconds()) ?></small>
+                            <small style="white-space: nowrap;"><?= Neutrino\Foundation\Debug\human_mtime($profile->getTotalElapsedSeconds()) ?></small>
                           </td>
                           <td>
-                            <pre class="sql"><?= Neutrino\Debug\sql_highlight($profile->getSqlStatement()) ?></pre>
+                            <pre class="sql"><?= Neutrino\Foundation\Debug\sql_highlight($profile->getSqlStatement()) ?></pre>
                           </td>
                           <td style="padding: 5px 10px;border-radius: 0">
                               <?php $vars = $profile->getSqlVariables(); ?>
@@ -160,13 +160,13 @@
               <?php else : ?>
                 <?= $elements['icon'] ?>
               <?php endif; ?>
-                <span class="info nuc-hide-on-med"><?= Neutrino\Debug\length($profiles) ?>
+                <span class="info nuc-hide-on-med"><?= Neutrino\Foundation\Debug\length($profiles) ?>
                   <?php if (!empty($profiles)) : ?>
                     <?php $totalTime = 0; ?>
                     <?php foreach ($profiles as $profile) : ?>
                       <?php $totalTime = $totalTime + ((empty($profile->getTotalElapsedSeconds()) ? (0) : ($profile->getTotalElapsedSeconds()))); ?>
                     <?php endforeach; ?>
-                    in <?= Neutrino\Debug\human_mtime($totalTime) ?>
+                    in <?= Neutrino\Foundation\Debug\human_mtime($totalTime) ?>
                   <?php endif; ?>
                 </span>
               </span>
@@ -202,7 +202,7 @@
               <?php foreach ((empty($events) ? ([]) : ($events)) as $event) : ?>
                 <tr>
                   <td style="white-space:nowrap">
-                    <small><?= Neutrino\Debug\human_mtime(($event['mt'] - $mt_start)) ?></small>
+                    <small><?= Neutrino\Foundation\Debug\human_mtime(($event['mt'] - $mt_start)) ?></small>
                   </td>
                   <td style="white-space:nowrap">
                     <small class="event">
@@ -222,7 +222,7 @@
           </div>
           <span>
             <i class="nuc events"></i>
-            <span class="bag nuc-hide-on-med" data-badge-caption><?= Neutrino\Debug\length($events) ?></span>
+            <span class="bag nuc-hide-on-med" data-badge-caption><?= Neutrino\Foundation\Debug\length($events) ?></span>
           </span>
         </li>
       </ul>
@@ -321,7 +321,7 @@
         <?php endif; ?>
     <?php endforeach; ?>
     <?php foreach ($phperrors as $type => $errors) : ?>
-      <?php if (Neutrino\Debug\length($errors) > 0) : ?>
+      <?php if (Neutrino\Foundation\Debug\length($errors) > 0) : ?>
         <div class="debug-modal" id="debug-phperrors-<?= $type ?>">
           <div class="debug-modal-content">
             <div style="margin: 0;padding: 0;">
@@ -329,9 +329,9 @@
                 <div class="php-error <?= $type ?>">
                   <span class="type"><?= $error['typeStr'] ?></span> :
                   <pre class="msg"><?= (empty($error['message']) ? ('no message') : ($error['message'])) ?></pre>
-                  <span class="file" title="View code">in : <?= Neutrino\Debug\file_highlight($error['file']) ?> &nbsp;(line: <?= $error['line'] ?>)</span>
+                  <span class="file" title="View code">in : <?= Neutrino\Foundation\Debug\file_highlight($error['file']) ?> &nbsp;(line: <?= $error['line'] ?>)</span>
                   <div class="phpfilepart">
-                      <?= Neutrino\Debug\php_file_part_highlight($error['file'], $error['line']); ?>
+                      <?= Neutrino\Foundation\Debug\php_file_part_highlight($error['file'], $error['line']); ?>
                   </div>
                 </div>
               <?php endforeach; ?>

@@ -28,42 +28,16 @@ class DebugEventsManagerWrapper extends Manager implements ManagerInterface
         $this->manager = $manager;
     }
 
-    private function __verboseType($var){
-        switch ($type = gettype($var)) {
-            case 'array':
-                return Helper::verboseVar($var);
-            case 'object':
-                $class = explode('\\', get_class($var));
-                return 'object(' . array_pop($class) . ')';
-            case 'NULL':
-                return 'null';
-            case 'unknown type':
-                return '?';
-            case 'resource':
-            case 'resource (closed)':
-                return $type;
-            case 'string':
-                if (strlen($var) > 40) {
-                    return "'" . substr($var, 0, 30) . '...\'[' . strlen($var) . ']';
-                }
-            case 'boolean':
-            case 'integer':
-            case 'double':
-            default:
-                return var_export($var, true);
-        }
-    }
-
     public function fire($eventType, $source, $data = null, $cancelable = true, ...$args)
     {
         $eventParts = explode(':', $eventType, 2);
         self::$events[] = [
-          'space' => $eventParts[0],
-          'type' => $eventParts[1],
-          'src' => $this->__verboseType($source),
-          'data' => !is_null($data) ? $this->__verboseType($data) : null,
-          'raw_data' => $data,
-          'mt' => microtime(true),
+            'space' => $eventParts[0],
+            'type' => $eventParts[1],
+            'src' => Helper::verboseVar($source),
+            'data' => !is_null($data) ? Helper::verboseVar($data) : null,
+            'raw_data' => $data,
+            'mt' => microtime(true),
         ];
 
         return $this->manager->fire($eventType, $source, $data, $cancelable, ...$args);

@@ -3,6 +3,7 @@
 namespace Neutrino\Debug\Exceptions;
 
 use Exception;
+use RuntimeException;
 use Throwable;
 
 class Handler
@@ -16,7 +17,7 @@ class Handler
     final public static function register($handlerClass)
     {
         if (isset(self::$handlerClass)) {
-            throw new \RuntimeException(__CLASS__ . ' already registered');
+            throw new RuntimeException(__CLASS__ . ' already registered');
         }
 
         self::$handlerClass = $handlerClass;
@@ -59,6 +60,7 @@ class Handler
             $handler->handle($throwable);
         } catch (Exception $e) {
         } catch (Throwable $e) {
+            error_log(Helper::verbose($e));
         }
     }
 }

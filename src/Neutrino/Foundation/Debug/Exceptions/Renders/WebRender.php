@@ -86,7 +86,7 @@ class WebRender implements RenderInterface
 
                 $content = $view->getContent();
             }
-}
+        }
 
         return $this->makeResponse($content, false);
     }

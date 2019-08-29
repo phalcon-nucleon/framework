@@ -12,7 +12,6 @@ use Neutrino\Foundation\Debug\Exceptions\Renders\WebRender;
 use Neutrino\Foundation\Debug\Exceptions\Reporters\FlashReporter;
 use Neutrino\Foundation\Debug\Exceptions\Reporters\LoggerReporter;
 use Throwable;
-use Phalcon\Http\Response;
 
 abstract class ExceptionHandler implements ExceptionHandlerInterface
 {
@@ -92,7 +91,7 @@ abstract class ExceptionHandler implements ExceptionHandlerInterface
 
         $response = $this->render($throwable, $request);
 
-        foreach (ob_list_handlers() as $obListHandler) {
+        foreach (ob_list_handlers() as $ob_handler) {
             ob_clean();
         }
 

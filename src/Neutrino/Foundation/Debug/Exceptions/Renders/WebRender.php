@@ -65,10 +65,12 @@ class WebRender implements RenderInterface
                 ) {
                     /* @var \Phalcon\Mvc\Dispatcher $dispatcher */
                     $dispatcher = $container->getShared(Services::DISPATCHER);
-                    $dispatcher->setNamespaceName($config['error']['dispatcher']['namespace']);
-                    $dispatcher->setControllerName($config['error']['dispatcher']['controller']);
-                    $dispatcher->setActionName($config['error']['dispatcher']['action']);
-                    $dispatcher->setParams(['thrown' => $throwable]);
+                    $dispatcher->forward([
+                      'namespace' => $config['error']['dispatcher']['namespace'],
+                      'controller' => $config['error']['dispatcher']['controller'],
+                      'action' => $config['error']['dispatcher']['action'],
+                      'params' => ['thrown' => $throwable],
+                    ]);
                     $dispatcher->dispatch();
                 } elseif (
                     isset($config['error']['view']['path']) &&

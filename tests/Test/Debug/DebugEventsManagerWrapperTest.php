@@ -71,6 +71,7 @@ class DebugEventsManagerWrapperTest extends TestCase
         }
     }
 
+    /*
     public function testVerboseType(){
 
         $debug = new DebugEventsManagerWrapper(new StubEventsManager());
@@ -94,6 +95,7 @@ class DebugEventsManagerWrapperTest extends TestCase
             $this->assertEquals('?', Reflexion::invoke($debug, '__verboseType', $r));
         }
     }
+    */
 }
 
 class StubEventsManager implements ManagerInterface

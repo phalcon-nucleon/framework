@@ -4,6 +4,7 @@ namespace Test\Http;
 
 use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
+use Neutrino\Exceptions\TokenMismatchException;
 use Neutrino\Http\Middleware\Csrf;
 use Neutrino\Http\Standards\StatusCode;
 use Phalcon\Security;
@@ -70,16 +71,16 @@ class CsrfTest extends TestCase
 
         $session->expects($this->any())->method('get')->willReturn(false);
 
-        $this->dispatch('/');
+        $this->expectException(TokenMismatchException::class);
 
-        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
+        $this->dispatch('/');
     }
 
     public function testCsrfFail_Post()
     {
-        $this->dispatch('/', 'POST');
+        $this->expectException(TokenMismatchException::class);
 
-        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
+        $this->dispatch('/', 'POST');
     }
 
     public function testCsrfOk_Get()
@@ -144,8 +145,8 @@ class CsrfTest extends TestCase
 
         $_SERVER["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest";
 
-        $this->dispatch('/', 'POST', []);
+        $this->expectException(TokenMismatchException::class);
 
-        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
+        $this->dispatch('/', 'POST', []);
     }
 }

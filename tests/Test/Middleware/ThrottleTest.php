@@ -3,6 +3,7 @@ namespace Test\Middleware;
 
 use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
+use Neutrino\Exceptions\ThrottledException;
 use Neutrino\Http\Middleware\ThrottleRequest;
 use Neutrino\Http\Standards\StatusCode;
 use Neutrino\Middleware\Throttle;
@@ -37,16 +38,27 @@ class ThrottleTest extends TestCase
         }
         for ($i = 1; $i <= 11; $i++) {
             // WHEN
-            $this->dispatch('/');
-            $response = $this->app->response;
-            $headers  = $response->getHeaders();
             if ($i <= 10) {
+                $this->dispatch('/');
+                $response = $this->app->response;
+                $headers  = $response->getHeaders();
                 $this->assertNotEquals($status, $response->getStatusCode(), "status:$i");
                 $this->assertNotEquals($msg, $response->getContent(), "content:$i");
                 $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
                 $this->assertEquals(10 - $i, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
                 $this->assertEquals(null, $headers->get('Retry-After'), "Retry-After:$i");
             } else {
+                try {
+                    $throttled = null;
+                    $this->dispatch('/');
+                } catch (ThrottledException $throttled) {
+                }
+
+                $this->assertInstanceOf(ThrottledException::class, $throttled);
+
+                $response = $throttled->createResponse();
+                $headers  = $response->getHeaders();
+
                 $this->assertEquals($status, $response->getStatusCode(), "status:$i");
                 $this->assertEquals($msg, $response->getContent(), "content:$i");
                 $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
@@ -56,9 +68,15 @@ class ThrottleTest extends TestCase
         }
 
         sleep(1);
-        $this->dispatch('/');
+        try {
+            $throttled = null;
+            $this->dispatch('/');
+        } catch (ThrottledException $throttled) {
+        }
 
-        $response = $this->app->response;
+        $this->assertInstanceOf(ThrottledException::class, $throttled);
+
+        $response = $throttled->createResponse();
 
         $this->assertEquals($status, $response->getStatusCode());
         $this->assertEquals($msg, $response->getContent());
@@ -133,9 +151,15 @@ class ThrottleTest extends TestCase
             return $response;
         });
 
-        $this->dispatch('/');
+        try {
+            $throttled = null;
+            $this->dispatch('/');
+        } catch (ThrottledException $throttled) {
+        }
 
-        $response = $this->app->getDI()->getShared(Services::RESPONSE);
+        $this->assertInstanceOf(ThrottledException::class, $throttled);
+
+        $response = $throttled->createResponse();
 
         $this->assertEquals($status, $response->getStatusCode());
         $this->assertEquals($msg, $response->getContent());
@@ -165,17 +189,28 @@ class ThrottleTest extends TestCase
         }
         for ($i = 1; $i <= 11; $i++) {
             // WHEN
-            $this->dispatch('/route-throttled');
-
-            $response = $this->app->response;
-            $headers  = $response->getHeaders();
             if ($i <= 10) {
+                $this->dispatch('/route-throttled');
+
+                $response = $this->app->response;
+                $headers  = $response->getHeaders();
                 $this->assertNotEquals($status, $response->getStatusCode(), "status:$i");
                 $this->assertNotEquals($msg, $response->getContent(), "content:$i");
                 $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
                 $this->assertEquals(10 - $i, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
                 $this->assertEquals(null, $headers->get('Retry-After'), "Retry-After:$i");
             } else {
+                try {
+                    $throttled = null;
+                    $this->dispatch('/route-throttled');
+                } catch (ThrottledException $throttled) {
+                }
+
+                $this->assertInstanceOf(ThrottledException::class, $throttled);
+
+                $response = $throttled->createResponse();
+                $headers  = $response->getHeaders();
+
                 $this->assertEquals($status, $response->getStatusCode(), "status:$i");
                 $this->assertEquals($msg, $response->getContent(), "content:$i");
                 $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
@@ -185,9 +220,16 @@ class ThrottleTest extends TestCase
         }
 
         usleep(1000000);
-        $this->dispatch('/route-throttled');
 
-        $response = $this->app->response;
+        try {
+            $throttled = null;
+            $this->dispatch('/route-throttled');
+        } catch (ThrottledException $throttled) {
+        }
+
+        $this->assertInstanceOf(ThrottledException::class, $throttled);
+
+        $response = $throttled->createResponse();
 
         $this->assertEquals($status, $response->getStatusCode());
         $this->assertEquals($msg, $response->getContent());

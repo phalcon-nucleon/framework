@@ -17,7 +17,7 @@
         <whitelist processUncoveredFilesFromWhitelist="true" addUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./src</directory>
             <exclude>
-                <directory suffix=".php">./src/Neutrino/Debug/resources</directory>
+                <directory suffix=".php">./src/Neutrino/Foundation/Debug/resources</directory>
             </exclude>
         </whitelist>
     </filter>

@@ -2,6 +2,7 @@
 
 namespace Neutrino\Auth\Middleware;
 
+use Neutrino\Auth\Exceptions\AuthenticationException;
 use Neutrino\Constants\Services;
 use Neutrino\Foundation\Middleware\Controller as ControllerMiddleware;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
@@ -31,8 +32,6 @@ class Authenticate extends ControllerMiddleware implements BeforeInterface
             return true;
         }
 
-        $this->response->setStatusCode(401, 'Unauthorized');
-
-        return false;
+        throw new AuthenticationException;
     }
 }

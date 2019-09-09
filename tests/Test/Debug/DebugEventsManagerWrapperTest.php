@@ -2,7 +2,7 @@
 
 namespace Test\Debug;
 
-use Neutrino\Debug\DebugEventsManagerWrapper;
+use Neutrino\Foundation\Debug\DebugEventsManagerWrapper;
 use Neutrino\Debug\Reflexion;
 use Phalcon\Events\ManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -71,6 +71,7 @@ class DebugEventsManagerWrapperTest extends TestCase
         }
     }
 
+    /*
     public function testVerboseType(){
 
         $debug = new DebugEventsManagerWrapper(new StubEventsManager());
@@ -94,6 +95,7 @@ class DebugEventsManagerWrapperTest extends TestCase
             $this->assertEquals('?', Reflexion::invoke($debug, '__verboseType', $r));
         }
     }
+    */
 }
 
 class StubEventsManager implements ManagerInterface

@@ -3,7 +3,7 @@
 namespace Neutrino\Database\Schema\Exception;
 
 use Exception;
-use Neutrino\Error\Helper;
+use Neutrino\Debug\Exceptions\Helper;
 use Neutrino\Support\Fluent;
 use Throwable;
 
@@ -39,7 +39,7 @@ class CommandException extends Exception
         $str .= "Command Properties : " . PHP_EOL;
 
         foreach ($this->command as $key => $value) {
-            $str .= "  - $key : " . Helper::verboseType($value) . PHP_EOL;
+            $str .= "  - $key : " . Helper::verboseVar($value) . PHP_EOL;
         }
 
         return $str . PHP_EOL . parent::__toString();

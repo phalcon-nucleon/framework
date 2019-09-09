@@ -26,6 +26,8 @@ use Neutrino\Error\Writer\Writable;
 /**
  * Class Handler
  *
+ * @deprecated
+ *
  * @package Phalcon\Error
  */
 class Handler
@@ -34,6 +36,7 @@ class Handler
     private static $writers = [Phplog::class => null];
 
     /**
+     * @deprecated
      * @param string $writer
      */
     public static function addWriter($writer)
@@ -42,6 +45,7 @@ class Handler
     }
 
     /**
+     * @deprecated
      * @param array $writers
      */
     public static function setWriters(array $writers)
@@ -50,6 +54,7 @@ class Handler
     }
 
     /**
+     * @deprecated
      * Registers itself as error and exception handler.
      *
      * @return void
@@ -72,6 +77,7 @@ class Handler
     }
 
     /**
+     * @deprecated
      * Handle an php Error
      *
      * @param int    $errno
@@ -89,6 +95,7 @@ class Handler
     }
 
     /**
+     * @deprecated
      * Handle an Exception non catched
      *
      * @param \Error|\Exception|\Throwable $e
@@ -99,6 +106,7 @@ class Handler
     }
 
     /**
+     * @deprecated
      * Logs the error and dispatches an error controller.
      *
      * @param  \Neutrino\Error\Error $error
@@ -109,6 +117,7 @@ class Handler
             if (is_null($writer)) {
                 self::$writers[$class] = $writer = new $class();
             }
+
             $writer->handle($error);
         }
     }

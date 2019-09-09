@@ -1,39 +1,49 @@
 <?php
+
+use Neutrino\Debug\Exceptions\Errors\FatalErrorException;
+use function Neutrino\Foundation\Debug\length;
+use function Neutrino\Foundation\Debug\human_mtime;
+use function Neutrino\Foundation\Debug\file_highlight;
+use function Neutrino\Foundation\Debug\func_highlight;
+use function Neutrino\Foundation\Debug\php_file_part_highlight;
+use function Neutrino\Foundation\Debug\sql_highlight;
+
 $macro = [];
 if (!isset($macro['renderFileInfo'])) {
-    $macro['renderFileInfo'] = function ($elem) use (&$macro) {
-        if (isset($elem['file'], $elem['line'])) : ?>
+    $macro['renderFileInfo'] = function ($file = null, $line = null) use (&$macro) {
+        if (isset($file, $line)) : ?>
           <ul class="collapsible">
             <li>
               <div class="collapsible-header">
                 <small class="grey-text text-darken-3" title="View code">in
-                  : <?= Neutrino\Debug\file_highlight($elem['file']) ?>&nbsp;(line: <?= $elem['line'] ?>)
+                  : <?= file_highlight($file) ?>&nbsp;(line: <?= $line ?>)
                 </small>
               </div>
               <div class="collapsible-body">
-                  <?= Neutrino\Debug\php_file_part_highlight($elem['file'], $elem['line']); ?>
+                  <?= php_file_part_highlight($file, $line); ?>
               </div>
             </li>
           </ul>
-        <?php elseif (isset($elem['file'])) : ?>
-          <small class="grey-text text-darken-3">in : <?= Neutrino\Debug\file_highlight($elem['file']) ?></small>
+        <?php elseif (isset($file)) : ?>
+          <small class="grey-text text-darken-3">in : <?= file_highlight($file) ?></small>
         <?php else : ?>
           <small class="grey-text text-darken-3">[internal function]</small>
         <?php endif;
     };
 }
 if (!isset($macro['renderTrace'])) {
-    $macro['renderTrace'] = function ($exception) use (&$macro) {
-        if (empty($exception['traces'])) {
+    $macro['renderTrace'] = function (Exception $exception) use (&$macro) {
+        $traces = \Neutrino\Debug\Exceptions\Helper::extractTracesToArray($exception);
+        if (empty($traces)) {
             return;
         }
         ?>
       <ul class="collection">
-          <?php foreach ($exception['traces'] as $trace) : ?>
+          <?php foreach ($traces as $trace) : ?>
             <li class="collection-item blue-grey lighten-3 white-text">
-              <span class="grey-text text-darken-3"><?= Neutrino\Debug\func_highlight($trace['func']) ?></span>
+              <span class="grey-text text-darken-3"><?= func_highlight($trace['func']) ?></span>
               <br/>
-                <?= $macro['renderFileInfo']($trace) ?>
+              <?= $macro['renderFileInfo']($trace['file'], $trace['line']) ?>
             </li>
           <?php endforeach; ?>
       </ul>
@@ -63,68 +73,48 @@ if (!isset($macro['renderTrace'])) {
     <ul class="tabs grey darken-4">
       <li class="tab col s3">
         <a class="active" href="#error">
-            <?php if ($isException) : ?>
-              Exception<?= (Neutrino\Debug\length($exceptions) > 1 ? 's' : '') ?>
-              <span class="chip"><?= Neutrino\Debug\length($exceptions) ?></span>
-            <?php else : ?>
+            <?php if ($thrown instanceof FatalErrorException) : ?>
               Fatal error
+            <?php else : ?>
+              Exception<?= (length($exceptions) > 1 ? 's' : '') ?>
+              <span class="chip"><?= length($exceptions) ?></span>
             <?php endif; ?>
         </a>
       </li>
         <?php if (isset($php_errors)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($php_errors)) ? 'disabled' : '') ?>">
-            <a href="#php-errors">Errors <span class="chip"><?= Neutrino\Debug\length($php_errors) ?></span></a>
+          <li class="tab col s3 <?= (empty(length($php_errors)) ? 'disabled' : '') ?>">
+            <a href="#php-errors">Errors <span class="chip"><?= length($php_errors) ?></span></a>
           </li>
         <?php endif; ?>
         <?php if (!empty($profilers)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($profilers)) ? 'disabled' : '') ?>">
-            <a href="#profilers">Profilers <span class="chip"><?= Neutrino\Debug\length($profilers) ?></span></a>
+          <li class="tab col s3 <?= (empty(length($profilers)) ? 'disabled' : '') ?>">
+            <a href="#profilers">Profilers <span class="chip"><?= length($profilers) ?></span></a>
           </li>
         <?php endif; ?>
         <?php if (isset($events)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($events)) ? 'disabled' : '') ?>">
-            <a href="#events">Events <span class="chip"><?= Neutrino\Debug\length($events) ?></span></a>
+          <li class="tab col s3 <?= (empty(length($events)) ? 'disabled' : '') ?>">
+            <a href="#events">Events <span class="chip"><?= length($events) ?></span></a>
           </li>
         <?php endif; ?>
     </ul>
   </div>
   <div id="error" class="col s12">
-      <?php if ($error['isException']) : ?>
-          <?php $index = 0 ?>
-          <?php foreach ($exceptions as $exception) : $index++; ?>
-          <div class="card grey lighten-3">
-            <div class="card-content">
-              <span class="card-title red-text text-accent-4">
-                #<?= $index ?> <span title="Exception code [<?= $exception['code'] ?>]"><b><?= $exception['class'] ?></b> <code class="small">[<?= $exception['code'] ?>]</code></span>
-                <br/>
-                <?= $macro['renderFileInfo']($exception) ?>
-                <pre class="pre-block grey-text text-darken-3 small"><?=
-                    htmlspecialchars(empty($error['message']) ? 'no message' : $error['message'])
-                    ?></pre>
-              </span>
-              <div>
-                  <?= $macro['renderTrace']($exception) ?>
-              </div>
-            </div>
-          </div>
-      <?php endforeach; ?>
-      <?php else : ?>
-        <div class="card grey lighten-3">
-          <div class="card-content">
-            <span class="card-title red-text text-accent-4">
-                <span title="Error code [<?= $error['code'] ?>]"><b><?= $error['typeStr'] ?></b> <code class="small">[<?= $error['code'] ?>]</code></span>
-              <br/>
-              <?= $macro['renderFileInfo']($exception) ?>
-              <pre class="pre-block grey-text text-darken-3 small"><?=
-                  htmlspecialchars(empty($error['message']) ? 'no message' : $error['message'])
-                  ?></pre>
-            </span>
-            <div>
-                <?= $macro['renderTrace']($error) ?>
-            </div>
-          </div>
+    <?php $index = 0 ?>
+    <?php foreach ($exceptions as $exception) : $index++; ?>
+    <div class="card grey lighten-3">
+      <div class="card-content">
+        <span class="card-title red-text text-accent-4">
+          #<?= $index ?> <span title="code [<?= $exception->getCode() ?>]"><b><?= get_class($exception) ?></b> <code class="small">[<?= $exception->getCode() ?>]</code></span>
+          <br/>
+          <?= $macro['renderFileInfo']($exception->getFile(), $exception->getLine()) ?>
+          <pre class="pre-block grey-text text-darken-3 small"><?= htmlspecialchars($exception->getMessage() ?: 'no message') ?></pre>
+        </span>
+        <div>
+            <?= $macro['renderTrace']($exception) ?>
         </div>
-      <?php endif; ?>
+      </div>
+    </div>
+    <?php endforeach; ?>
   </div>
     <?php if (isset($php_errors)) : ?>
       <div id="php-errors" class="col s12">
@@ -132,21 +122,22 @@ if (!isset($macro['renderTrace'])) {
           <div class="card-content">
             <div style="margin: 0;padding: 0;">
                 <?php foreach ($php_errors as $error) : ?>
-                    <?php if ($error['logLvl'] === \Phalcon\Logger::DEBUG) : ?>
+                    <?php $logLevel = Neutrino\Debug\Exceptions\Helper::logLevel($error); ?>
+                    <?php if ($logLevel === \Phalcon\Logger::DEBUG) : ?>
                         <?php $color = 'debug'; ?>
-                    <?php elseif ($error['logLvl'] === \Phalcon\Logger::INFO) : ?>
+                    <?php elseif ($logLevel === \Phalcon\Logger::INFO) : ?>
                         <?php $color = 'info'; ?>
-                    <?php elseif ($error['logLvl'] === \Phalcon\Logger::NOTICE) : ?>
+                    <?php elseif ($logLevel === \Phalcon\Logger::NOTICE) : ?>
                         <?php $color = 'notice'; ?>
-                    <?php elseif ($error['logLvl'] === \Phalcon\Logger::WARNING) : ?>
+                    <?php elseif ($logLevel === \Phalcon\Logger::WARNING) : ?>
                         <?php $color = 'warning'; ?>
                     <?php else : ?>
                         <?php $color = 'error'; ?>
                     <?php endif; ?>
                   <div class="php-error <?= $color ?>">
-                    <span class="type"><?= $error['typeStr'] ?></span> :
-                    <pre class="pre-block"><?= htmlspecialchars(empty($error['message']) ? 'no message' : $error['message']) ?></pre>
-                    <?= $macro['renderFileInfo']($error) ?>
+                    <span class="type"><?= \Neutrino\Debug\Exceptions\Helper::verboseType($error) ?></span> :
+                    <pre class="pre-block"><?= htmlspecialchars($error->getMessage() ?: 'no message') ?></pre>
+                      <?= $macro['renderFileInfo']($error->getFile(), $error->getLine()) ?>
                   </div>
                 <?php endforeach; ?>
             </div>
@@ -163,7 +154,7 @@ if (!isset($macro['renderTrace'])) {
                     <?php $profiler = $elements['profiler']; ?>
                     <?php $profiles = (empty($profiler->getProfiles()) ? ([]) : ($profiler->getProfiles())); ?>
                   <li class="tab col s3">
-                    <a href="#profilers-<?= $name ?>"><?= $name ?> <span class="chip"><?= Neutrino\Debug\length($profiles) ?></span> </a>
+                    <a href="#profilers-<?= $name ?>"><?= $name ?> <span class="chip"><?= length($profiles) ?></span> </a>
                   </li>
                 <?php endforeach; ?>
             </ul>
@@ -184,10 +175,10 @@ if (!isset($macro['renderTrace'])) {
                   <?php foreach ($profiles as $profile) : ?>
                     <tr class="grey darken-4">
                       <td style="padding: 5px 10px;border-radius: 0">
-                        <small style="white-space: nowrap;"><?= Neutrino\Debug\human_mtime($profile->getTotalElapsedSeconds()) ?></small>
+                        <small style="white-space: nowrap;"><?= human_mtime($profile->getTotalElapsedSeconds()) ?></small>
                       </td>
                       <td style="padding: 5px 10px;border-radius: 0">
-                        <pre class="sql"><?= Neutrino\Debug\sql_highlight($profile->getSqlStatement()) ?></pre>
+                        <pre class="sql"><?= sql_highlight($profile->getSqlStatement()) ?></pre>
                       </td>
                       <td style="padding: 5px 10px;border-radius: 0">
                           <?php $vars = $profile->getSqlVariables(); ?>
@@ -240,7 +231,7 @@ if (!isset($macro['renderTrace'])) {
               <?php foreach ((empty($events) ? ([]) : ($events)) as $event) : ?>
                 <tr class="grey darken-4" style="padding: 5px 10px">
                   <td style="padding: 5px 10px;border-radius: 0">
-                    <small style="white-space: nowrap;"><?= Neutrino\Debug\human_mtime(($event['mt'] - $mt_start)) ?></small>
+                    <small style="white-space: nowrap;"><?= human_mtime(($event['mt'] - $mt_start)) ?></small>
                   </td>
                   <td style="padding: 5px 10px;border-radius: 0">
                     <small style="white-space: nowrap;">

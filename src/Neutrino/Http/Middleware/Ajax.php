@@ -2,6 +2,7 @@
 
 namespace Neutrino\Http\Middleware;
 
+use Neutrino\Exceptions\AjaxMismatchException;
 use Neutrino\Foundation\Middleware\Controller;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Phalcon\Events\Event;
@@ -30,8 +31,6 @@ class Ajax extends Controller implements BeforeInterface
             return true;
         }
 
-        $this->response->setStatusCode(400, 'Bad Request');
-
-        return false;
+        throw new AjaxMismatchException;
     }
 }

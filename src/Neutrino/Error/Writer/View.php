@@ -3,17 +3,16 @@
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Constants\Services;
-use Neutrino\Debug\DebugErrorLogger;
-use Neutrino\Debug\DebugEventsManagerWrapper;
-use Neutrino\Debug\Debugger;
+use Neutrino\Foundation\Debug\Debugger;
 use Neutrino\Error\Error;
-use Neutrino\Error\Helper;
 use Neutrino\Support\Arr;
 use Phalcon\Di;
 use Phalcon\Http\Response;
 
 /**
  * Class View
+ *
+ * @deprecated
  *
  * @package     Neutrino\Error\Writer
  */
@@ -22,6 +21,7 @@ class View implements Writable
 
     /**
      * @inheritdoc
+     * @deprecated
      */
     public function handle(Error $error)
     {
@@ -84,32 +84,18 @@ class View implements Writable
 
     private function debugErrorView(Error $error)
     {
-        $exceptions = [];
-
-        if ($isException = $error->isException) {
-            $exception = $error->exception;
-
-            do {
-                $exceptions[] = [
-                  'class' => get_class($exception),
-                  'code' => $exception->getCode(),
-                  'message' => $exception->getMessage(),
-                  'file' => $exception->getFile(),
-                  'line' => $exception->getLine(),
-                  'traces' => Helper::formatExceptionTrace($exception),
-                ];
-            } while ($exception = $exception->getPrevious());
+        if ($error->isException) {
+            $throwable = $error->exception;
+        } else {
+            $throwable = \Neutrino\Debug\Exceptions\Helper::errorToThrowable(
+                $error->code,
+                $error->message,
+                $error->file,
+                $error->line
+            );
         }
 
-        $this->send(Debugger::internalRender('errors', [
-          'error' => $error,
-          'isException' => $isException,
-          'exceptions' => $exceptions,
-          'php_errors' => DebugErrorLogger::errors(),
-          'events'     => DebugEventsManagerWrapper::getEvents(),
-          'profilers'  => Debugger::getRegisteredProfilers(),
-          'build'      => Debugger::getBuildInfo()
-        ]));
+        $this->send(Debugger::renderThrowable($throwable));
     }
 
     private function send($content)

@@ -1,10 +1,12 @@
 <?php
 
-namespace Neutrino\Debug;
+namespace Neutrino\Foundation\Debug;
 
 use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
-use Neutrino\Error\Handler;
+use Neutrino\Debug\Reflexion;
+use Neutrino\Foundation\Debug\Exceptions\ExceptionHandler;
+use Neutrino\Foundation\Debug\Exceptions\Reporters\DebugReporter;
 use Phalcon\Cli\Console;
 use Phalcon\Db\Adapter;
 use Phalcon\Db\Profiler;
@@ -33,7 +35,7 @@ class Debugger
     /** @var View\Simple */
     private static $view;
 
-    /** @var \Neutrino\Debug\DebugEventsManagerWrapper */
+    /** @var \Neutrino\Foundation\Debug\DebugEventsManagerWrapper */
     private $em;
 
     private function __construct()
@@ -46,7 +48,7 @@ class Debugger
             return;
         }
 
-        Handler::addWriter(DebugErrorLogger::class);
+        ExceptionHandler::attachReporter(DebugReporter::class);
 
         $this->registerGlobalEventManager();
 
@@ -132,7 +134,7 @@ class Debugger
     private function tryAttachEventsManager($service)
     {
         if ($service instanceof EventsAwareInterface
-          || (method_exists($service, 'getEventsManager') && method_exists($service, 'setEventsManager'))) {
+            || (method_exists($service, 'getEventsManager') && method_exists($service, 'setEventsManager'))) {
             $this->attachEventsManager($service);
         }
     }
@@ -160,22 +162,22 @@ class Debugger
         $profiler = self::registerProfiler('db', '<i class="nuc db"></i>');
 
         $this->em->attach(
-          Events::DB,
-          function (Event $event, Adapter\Pdo $connection) use ($profiler) {
-              $eventType = $event->getType();
-              if ($eventType === 'beforeQuery') {
-                  // Start a profile with the active connection
-                  $profiler->startProfile(
-                    $connection->getSQLStatement(),
-                    $connection->getSqlVariables(),
-                    $connection->getSQLBindTypes()
-                  );
-              }
-              if ($eventType === 'afterQuery') {
-                  // Stop the active profile
-                  $profiler->stopProfile();
-              }
-          }
+            Events::DB,
+            function (Event $event, Adapter\Pdo $connection) use ($profiler) {
+                $eventType = $event->getType();
+                if ($eventType === 'beforeQuery') {
+                    // Start a profile with the active connection
+                    $profiler->startProfile(
+                        $connection->getSQLStatement(),
+                        $connection->getSqlVariables(),
+                        $connection->getSQLBindTypes()
+                    );
+                }
+                if ($eventType === 'afterQuery') {
+                    // Stop the active profile
+                    $profiler->stopProfile();
+                }
+            }
         );
     }
 
@@ -185,34 +187,34 @@ class Debugger
     private function viewProfilerRegister()
     {
         $this->em->attach(
-          Events::VIEW,
-          function (Event $event, $src, $data) {
-              $eventType = $event->getType();
-              if ($eventType === 'beforeRender') {
-                  self::$viewProfiles['render'][] = self::$viewProfiles['__render'][] = [
-                    'initialTime' => microtime(true)
-                  ];
-              } elseif ($eventType === 'beforeRenderView') {
-                  self::$viewProfiles['__renderViews'][] = self::$viewProfiles['renderViews'][] = [
-                    'file' => $data,
-                    'initialTime' => microtime(true)
-                  ];
-              } elseif ($eventType === 'afterRenderView') {
-                  $profile = array_pop(self::$viewProfiles['__renderViews']);
-                  $profile['finalTime'] = microtime(true);
-                  $profile['elapsedTime'] = $profile['finalTime'] - $profile['initialTime'];
+            Events::VIEW,
+            function (Event $event, $src, $data) {
+                $eventType = $event->getType();
+                if ($eventType === 'beforeRender') {
+                    self::$viewProfiles['render'][] = self::$viewProfiles['__render'][] = [
+                        'initialTime' => microtime(true),
+                    ];
+                } elseif ($eventType === 'beforeRenderView') {
+                    self::$viewProfiles['__renderViews'][] = self::$viewProfiles['renderViews'][] = [
+                        'file' => $data,
+                        'initialTime' => microtime(true),
+                    ];
+                } elseif ($eventType === 'afterRenderView') {
+                    $profile = array_pop(self::$viewProfiles['__renderViews']);
+                    $profile['finalTime'] = microtime(true);
+                    $profile['elapsedTime'] = $profile['finalTime'] - $profile['initialTime'];
 
-                  self::$viewProfiles['renderViews'][count(self::$viewProfiles['__renderViews'])] = $profile;
-              } elseif ($eventType === 'notFoundView') {
-                  self::$viewProfiles['notFoundView'][] = $data;
-              } elseif ($eventType === 'afterRender') {
-                  $profile = array_pop(self::$viewProfiles['__render']);
-                  $profile['finalTime'] = microtime(true);
-                  $profile['elapsedTime'] = $profile['finalTime'] - $profile['initialTime'];
+                    self::$viewProfiles['renderViews'][count(self::$viewProfiles['__renderViews'])] = $profile;
+                } elseif ($eventType === 'notFoundView') {
+                    self::$viewProfiles['notFoundView'][] = $data;
+                } elseif ($eventType === 'afterRender') {
+                    $profile = array_pop(self::$viewProfiles['__render']);
+                    $profile['finalTime'] = microtime(true);
+                    $profile['elapsedTime'] = $profile['finalTime'] - $profile['initialTime'];
 
-                  self::$viewProfiles['render'][count(self::$viewProfiles['__render'])] = $profile;
-              }
-          }
+                    self::$viewProfiles['render'][count(self::$viewProfiles['__render'])] = $profile;
+                }
+            }
         );
     }
 
@@ -242,18 +244,18 @@ class Debugger
     public static function getBuildInfo()
     {
         $build = [
-          'php' => [
-            'version' => PHP_VERSION,
-          ],
-          'zend' => [
-            'version' => zend_version(),
-          ],
-          'phalcon' => [
-            'version' => \Phalcon\Version::get(),
-          ],
-          'neutrino' => [
-            'version' => \Neutrino\Version::get(),
-          ],
+            'php' => [
+                'version' => PHP_VERSION,
+            ],
+            'zend' => [
+                'version' => zend_version(),
+            ],
+            'phalcon' => [
+                'version' => \Phalcon\Version::get(),
+            ],
+            'neutrino' => [
+                'version' => \Neutrino\Version::get(),
+            ],
         ];
 
         foreach (get_loaded_extensions(true) as $extension) {
@@ -283,14 +285,14 @@ class Debugger
 
     /**
      * @param string $file
-     * @param array $params
+     * @param array  $params
      *
      * @return string|null
      */
     public static function internalRender($file, array $params = [])
     {
-        if(!isset(self::$view)){
-            include __DIR__ . '/helpers/functions.php';
+        if (!isset(self::$view)) {
+            include __DIR__ . '/resources/helpers.php';
             $view = new View\Simple();
             $view->setDI(new Di());
             $view->setViewsDir(__DIR__ . '/resources/');
@@ -302,7 +304,7 @@ class Debugger
     }
 
     /**
-     * @param string $name
+     * @param string      $name
      * @param string|null $icon
      *
      * @return \Phalcon\Db\Profiler
@@ -314,10 +316,35 @@ class Debugger
         }
 
         self::$profilers[$name] = [
-          'icon' => $icon,
-          'profiler' => $profiler = new Profiler()
+            'icon' => $icon,
+            'profiler' => $profiler = new Profiler(),
         ];
 
         return $profiler;
+    }
+
+    /**
+     * @param \Exception|\Throwable|\Neutrino\Error\Error $throwable
+     *
+     * @return string|null
+     */
+    public static function renderThrowable($throwable)
+    {
+        $thrown = $throwable;
+
+        $throwables = [];
+
+        do {
+            $throwables[] = $throwable;
+        } while ($throwable = $throwable->getPrevious());
+
+        return Debugger::internalRender('errors', [
+            'thrown' => $thrown,
+            'exceptions' => $throwables,
+            'php_errors' => DebugReporter::errors(),
+            'events' => DebugEventsManagerWrapper::getEvents(),
+            'profilers' => Debugger::getRegisteredProfilers(),
+            'build' => Debugger::getBuildInfo(),
+        ]);
     }
 }

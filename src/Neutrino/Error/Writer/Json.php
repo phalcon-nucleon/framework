@@ -10,6 +10,8 @@ use Phalcon\Http\ResponseInterface;
 /**
  * Class Json
  *
+ * @deprecated
+ *
  * @package     Neutrino\Error\Writer
  */
 class Json implements Writable

@@ -3,8 +3,8 @@
 namespace Neutrino\Foundation;
 
 use Neutrino\Constants\Services;
-use Neutrino\Error\Handler;
 use Neutrino\Events\Listener;
+use Neutrino\Foundation\Debug\Exceptions\ExceptionHandler;
 use Neutrino\Support\Facades\Facade;
 use Phalcon\Config;
 use Phalcon\Di;
@@ -101,8 +101,6 @@ trait Kernelize
     public function bootstrap(Config $config)
     {
         /** @var \Phalcon\Application $this */
-        Handler::setWriters($this->errorHandlerLvl);
-
         $diClass = $this->dependencyInjection;
 
         if (empty($diClass)) {
@@ -116,6 +114,8 @@ trait Kernelize
             // Global Register Di
             Di::setDefault($di);
         }
+
+        ExceptionHandler::attachContainer($di);
 
         // Register Di on Application
         $this->setDI($di);

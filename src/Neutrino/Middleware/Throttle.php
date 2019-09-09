@@ -3,6 +3,7 @@
 namespace Neutrino\Middleware;
 
 use Neutrino\Constants\Services;
+use Neutrino\Exceptions\ThrottledException;
 use Neutrino\Foundation\Middleware\Controller as ControllerMiddleware;
 use Neutrino\Http\Standards\StatusCode;
 use Neutrino\Interfaces\Middleware\AfterInterface;
@@ -81,14 +82,12 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
         $limiter = $this->getLimiter();
 
         if ($limiter->tooManyAttempts($signature, $this->max, $this->decay)) {
-            $this->addHeader($signature, true);
-
-            return false;
+            throw new ThrottledException($this->max, $limiter->availableIn($signature, $this->decay));
         }
 
         $limiter->hit($signature, $this->decay);
 
-        $this->addHeader($this->resolveRequestSignature(), false);
+        $this->addHeader($this->resolveRequestSignature());
 
         return true;
     }
@@ -105,7 +104,7 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
      */
     public function after(Event $event, $source, $data = null)
     {
-        $this->addHeader($this->resolveRequestSignature(), false);
+        $this->addHeader($this->resolveRequestSignature());
 
         return true;
     }
@@ -138,33 +137,20 @@ abstract class Throttle extends ControllerMiddleware implements BeforeInterface,
      * Add the limit header information to the response.
      *
      * @param string $signature
-     * @param bool   $tooManyAttempts Bind specific values when there are too many attempts
      */
-    protected function addHeader($signature, $tooManyAttempts = false)
+    protected function addHeader($signature)
     {
         /** @var \Phalcon\Http\Response $response */
         $response = $this->getDI()->getShared(Services::RESPONSE);
 
         $limiter = $this->getLimiter();
 
-        $response->setHeader('X-RateLimit-Limit', $this->max);
-        if ($tooManyAttempts) {
-            $msg = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-
-            $response
-                ->setContent($msg)
-                ->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg)
-                ->setHeader('X-RateLimit-Remaining', 0)
-                ->setHeader(
-                'Retry-After',
-                $limiter->availableIn($signature, $this->decay)
-            );
-        } else {
-            $response->setHeader(
-                'X-RateLimit-Remaining',
-                $limiter->retriesLeft($signature, $this->max, $this->decay)
-            );
-        }
+        $response
+          ->setHeader('X-RateLimit-Limit', $this->max)
+          ->setHeader(
+            'X-RateLimit-Remaining',
+            $limiter->retriesLeft($signature, $this->max, $this->decay)
+          );
     }
 
     /**

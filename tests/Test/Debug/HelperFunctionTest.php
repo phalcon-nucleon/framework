@@ -2,7 +2,7 @@
 
 namespace Test\Debug;
 
-use Neutrino\Debug;
+use Neutrino\Foundation\Debug;
 use PHPUnit\Framework\TestCase;
 
 class HelperFunctionTest extends TestCase
@@ -11,12 +11,12 @@ class HelperFunctionTest extends TestCase
     {
         parent::setUpBeforeClass();
 
-        require __DIR__ . '/../../../src/Neutrino/Debug/helpers/functions.php';
+        require __DIR__ . '/../../../src/Neutrino/Foundation/Debug/resources/helpers.php';
     }
 
     private function assertFunctionExist($function)
     {
-        $this->assertTrue(function_exists('Neutrino\Debug\\' . $function));
+        $this->assertTrue(function_exists('Neutrino\Foundation\Debug\\' . $function));
     }
 
     public function testMtime()

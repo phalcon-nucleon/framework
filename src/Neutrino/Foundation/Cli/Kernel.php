@@ -72,13 +72,6 @@ abstract class Kernel extends Console implements Kernelable
     protected $eventsManagerClass = EventManager::class;
 
     /**
-     * Error Handler Outputs
-     *
-     * @var int
-     */
-    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Cli::class];
-
-    /**
      * Application constructor.
      */
     public function __construct()

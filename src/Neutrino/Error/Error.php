@@ -25,6 +25,8 @@ use Neutrino\Support\Arr;
 /**
  * Class Error
  *
+ * @deprecated
+ *
  * @package Phalcon\Error
  *
  * @property-read int        type
@@ -45,6 +47,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     protected $attributes;
 
     /**
+     * @deprecated
      * Class constructor sets the attributes.
      *
      * @param array $options
@@ -73,6 +76,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * @param \Exception|\Error|\Throwable $e
      *
      * @return \Neutrino\Error\Error
@@ -90,6 +94,15 @@ class Error implements \ArrayAccess, \JsonSerializable
         ]);
     }
 
+    /**
+     * @deprecated
+     * @param $errno
+     * @param $errstr
+     * @param $errfile
+     * @param $errline
+     *
+     * @return Error
+     */
     public static function fromError($errno, $errstr, $errfile, $errline)
     {
         return new static([
@@ -102,6 +115,10 @@ class Error implements \ArrayAccess, \JsonSerializable
         ]);
     }
 
+    /**
+     * @deprecated
+     * @return bool
+     */
     public function isFateful()
     {
         $type = $this->type;
@@ -115,23 +132,29 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
-     * Magic method to retrieve the attributes.
+     * @deprecated
+     * @param $name
      *
-     * @param  string $name
-     *
-     * @return mixed
+     * @return mixed|null
      */
     public function __get($name)
     {
         return isset($this->attributes[$name]) ? $this->attributes[$name] : null;
     }
 
+    /**
+     * @deprecated
+     * @param $name
+     *
+     * @return bool
+     */
     public function __isset($name)
     {
         return isset($this->attributes[$name]);
     }
 
     /**
+     * @deprecated
      * Whether a offset exists
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetexists.php
@@ -152,6 +175,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * Offset to retrieve
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetget.php
@@ -169,6 +193,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * Offset to set
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetset.php
@@ -189,6 +214,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * Offset to unset
      *
      * @link  http://php.net/manual/en/arrayaccess.offsetunset.php
@@ -208,6 +234,7 @@ class Error implements \ArrayAccess, \JsonSerializable
     }
 
     /**
+     * @deprecated
      * Specify data which should be serialized to JSON
      *
      * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php

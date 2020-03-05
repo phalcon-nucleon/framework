@@ -7,25 +7,41 @@ php:
   - 7.0
   - 7.1
   - 7.2
+  - 7.3
 
 env:
-  - PHALCON_VERSION="3.0.x"
-  - PHALCON_VERSION="3.1.x"
-  - PHALCON_VERSION="3.2.x"
-  - PHALCON_VERSION="3.3.x"
-  - PHALCON_VERSION="3.4.x"
+  - PHALCON_VERSION="v3.0.4"
+  - PHALCON_VERSION="v3.1.2"
+  - PHALCON_VERSION="v3.2.4"
+  - PHALCON_VERSION="v3.3.2"
+  - PHALCON_VERSION="v3.4.5"
 
 matrix:
   exclude:
   - php: 7.1
-    env: PHALCON_VERSION="3.0.x"
+    env: PHALCON_VERSION="v3.0.4"
   - php: 7.2
-    env: PHALCON_VERSION="3.0.x"
+    env: PHALCON_VERSION="v3.0.4"
+  - php: 7.3
+    env: PHALCON_VERSION="v3.0.4"
+  - php: 7.3
+    env: PHALCON_VERSION="v3.1.2"
+  - php: 7.3
+    env: PHALCON_VERSION="v3.2.4"
+  - php: 7.3
+    env: PHALCON_VERSION="v3.3.2"
+
+before_install:
+  - sudo ln -s /home/travis/.phpenv/versions/$(phpenv version-name)/bin/phpize /usr/bin/
+  - sudo ln -s /home/travis/.phpenv/versions/$(phpenv version-name)/bin/php-config /usr/bin/
+  - git clone --depth=1 -q --branch=${PHALCON_VERSION} https://github.com/phalcon/cphalcon.git
+  - cd cphalcon/build
+  - bash install
+  - phpenv config-add ../tests/_ci/phalcon.ini
+  - cd ../../
 
 install:
-  - composer self-update
-  - git clone --depth=1 -q --branch=${PHALCON_VERSION} https://github.com/phalcon/cphalcon.git
-  - '(cd cphalcon/build; bash install && phpenv config-add ../tests/_ci/phalcon.ini && cd ../..;)'
+  - php -v
   - php -r 'echo \Phalcon\Version::get() . PHP_EOL;'
   - php -m
   - travis_retry composer install --no-interaction --prefer-source --dev

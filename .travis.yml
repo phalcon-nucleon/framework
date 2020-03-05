@@ -8,7 +8,6 @@ php:
   - 7.1
   - 7.2
   - 7.3
-  - 7.4
 
 env:
   - PHALCON_VERSION="v3.0.4"
@@ -20,13 +19,17 @@ env:
 matrix:
   exclude:
   - php: 7.1
-    env: PHALCON_VERSION="3.0.x"
+    env: PHALCON_VERSION="v3.0.4"
   - php: 7.2
-    env: PHALCON_VERSION="3.0.x"
+    env: PHALCON_VERSION="v3.0.4"
   - php: 7.3
-    env: PHALCON_VERSION="3.0.x"
-  - php: 7.4
-    env: PHALCON_VERSION="3.0.x"
+    env: PHALCON_VERSION="v3.0.4"
+  - php: 7.3
+    env: PHALCON_VERSION="v3.1.2"
+  - php: 7.3
+    env: PHALCON_VERSION="v3.2.4"
+  - php: 7.3
+    env: PHALCON_VERSION="v3.3.2"
 
 before_install:
   - sudo ln -s /home/travis/.phpenv/versions/$(phpenv version-name)/bin/phpize /usr/bin/

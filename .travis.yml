@@ -11,11 +11,11 @@ php:
   - 7.4
 
 env:
-  - PHALCON_VERSION="3.0.4"
-  - PHALCON_VERSION="3.1.2"
-  - PHALCON_VERSION="3.2.4"
-  - PHALCON_VERSION="3.3.2"
-  - PHALCON_VERSION="3.4.5"
+  - PHALCON_VERSION="v3.0.4"
+  - PHALCON_VERSION="v3.1.2"
+  - PHALCON_VERSION="v3.2.4"
+  - PHALCON_VERSION="v3.3.2"
+  - PHALCON_VERSION="v3.4.5"
 
 matrix:
   exclude:

@@ -29,22 +29,15 @@ matrix:
     env: PHALCON_VERSION="3.0.x"
 
 before_install:
-  - export PHP_MAJOR="$(echo $TRAVIS_PHP_VERSION | cut -d '.' -f 1,2)"
   - sudo ln -s /home/travis/.phpenv/versions/$(phpenv version-name)/bin/phpize /usr/bin/
   - sudo ln -s /home/travis/.phpenv/versions/$(phpenv version-name)/bin/php-config /usr/bin/
-  - phpenv config-rm xdebug.ini || true
-  - if [ -n "$GH_TOKEN" ]; then composer config github-oauth.github.com ${GH_TOKEN}; fi;
-  - travis_retry composer install --prefer-dist --no-interaction --ignore-platform-reqs
-  - travis_retry composer require --dev "phalcon/zephir:0.9.11" --ignore-platform-reqs
-  - ( bash tests/.ci/install_zephir.sh )
-  - bash tests/.ci/install_prereqs_$PHP_MAJOR.sh
+  - git clone --depth=1 -q --branch=${PHALCON_VERSION} https://github.com/phalcon/cphalcon.git
+  - cd cphalcon/build
+  - bash install
+  - phpenv config-add ../tests/_ci/phalcon.ini
 
 install:
-  - composer self-update
-  - git clone --depth=1 -q --branch=${PHALCON_VERSION} https://github.com/phalcon/cphalcon.git
-  - '( cd cphalcon; zephir fullclean && zephir generate $ZEND_BACKEND )'
-  - (cd cphalcon/ext; export CFLAGS="-g3 -O1 -std=gnu90 -Wall -DZEPHIR_RELEASE=1"; /usr/bin/phpize && ./configure --enable-phalcon && make -j2 && make install)
-  - phpenv config-add cphalcon/tests/_ci/phalcon.ini
+  - php -v
   - php -r 'echo \Phalcon\Version::get() . PHP_EOL;'
   - php -m
   - travis_retry composer install --no-interaction --prefer-source --dev

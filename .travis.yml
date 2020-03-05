@@ -35,6 +35,7 @@ before_install:
   - cd cphalcon/build
   - bash install
   - phpenv config-add ../tests/_ci/phalcon.ini
+  - cd ../../
 
 install:
   - php -v

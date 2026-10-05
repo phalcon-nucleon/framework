@@ -17,7 +17,6 @@ parameters:
         # Files with errors PHPStan cannot baseline (classes or signatures
         # incompatible with Phalcon 5). Each epic removes its files from this
         # list once ported. Do not add new entries.
-        - src/Neutrino/Cache/CacheStrategy.php                       # E7
         - src/Neutrino/Database/DatabaseStrategy.php                 # E10
         - src/Neutrino/Database/Schema/Dialect/*                     # E11
         - src/Neutrino/Debug/DebugEventsManagerWrapper.php           # E12

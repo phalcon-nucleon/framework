@@ -10,6 +10,7 @@
  * Must stay compatible with PHP 7.3: the same file measures Nucleon 1.3.
  */
 
+use Bench\Kernels\CacheKernel;
 use Bench\Kernels\CliKernel;
 use Bench\Kernels\HttpKernel;
 use Bench\Kernels\MicroKernel;
@@ -100,6 +101,23 @@ switch ($scenario) {
         $kernel->boot();
         $start = hrtime(true);
         $kernel->getDI()->getShared('url');
+        break;
+
+    case 'cache':
+    case 'cache-100':
+        // Resolution of the cache service, then set + get on its default `memory` store (1.3: save + get).
+        $kernel = $bootstrap->make(CacheKernel::class);
+        $kernel->boot();
+        $start = hrtime(true);
+        $cache = $kernel->getDI()->getShared('cache');
+        $set = method_exists($cache, 'set') ? 'set' : 'save';
+        for ($i = 0, $n = $scenario === 'cache' ? 1 : 100; $i < $n; $i++) {
+            $cache->$set('key' . $i, ['value' => $i]);
+            if ($cache->get('key' . $i) !== ['value' => $i]) {
+                fwrite(STDERR, "Unexpected cache value\n");
+                exit(1);
+            }
+        }
         break;
 
     default:

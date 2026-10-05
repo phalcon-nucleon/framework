@@ -14,6 +14,10 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - CLI: `ide-helper` and `dotconst:cache` commands; task documentation attributes (`Neutrino\Cli\Attribute`); `ProvidesTasks`; `NO_COLOR`.
  - Micro handlers `'Controller::action'` and `[Controller::class, 'action']`; `Micro\MiddlewarePosition`.
  - `StatusCode`: 102, 103, 421, 425 and 451; `UNAUTHORIZED`, `UPGRADE_REQUIRED`, `BANDWIDTH_LIMIT_EXCEEDED`.
+ - Cache stores `rediscluster` and `weak`, serializer `msgpack`, custom adapters; `Providers\Cache::makeStore()`.
+ - Logger: several adapters (`log.adapters`), `log.level`, `line` or `json` formatter.
+ - Session: `noop` adapter and any `\SessionHandlerInterface`; session name per store.
+ - `app.crypt_signing`; `annotations.adapter` (`memory`, `apcu`, `stream`).
  - Event constants for the Phalcon 5 events: router, di, `db:connectionLost`, dispatcher binding and action calls, micro binding and exceptions, model `prepareSave` and `validation`, view compilation.
 
 ### Changed
@@ -21,6 +25,9 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Dotconst compiles constants with `const` (faster than `define()`).
  - `Foundation\Middleware\Disptacher` renamed `Dispatcher`.
  - The `Str` helpers use the PHP 8 string functions; `Str::slug` is 6 times faster.
+ - Cache: PSR-16 API (`Phalcon\Cache\CacheInterface`), stores configured with `adapter`, `serializer` and `options`.
+ - Session: `Phalcon\Session\Manager` on an adapter; `sessionBag` takes a name.
+ - `crypt`, `security`, `filter` and `escaper` are `Encryption\Crypt`, `Encryption\Security`, `Filter\Filter` and `Html\Escaper`; `crypt` signs by default.
 
 ### Fixed
  - `Facade::swap()` and `shouldReceive()` replace a service already resolved by the container.
@@ -32,6 +39,7 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Micro: a Before middleware returning `false` stops the request (Phalcon 5 ignores the returned value).
  - `Micro\Router::add()` returns the route; the controller of a Micro route is built once per request.
  - CLI: `help <command>` and `help` alone; task options no longer break actions without parameters; a task run twice in a process reads its current options; `route:list` and `route:cache` no longer replace the console router; output blocks honour their padding.
+ - Session provider: the construction error kept the previous exception as its code.
  - `route:cache`: route names and hostnames are escaped; routes that cannot be cached are rejected instead of being lost.
 
 ### Removed
@@ -39,3 +47,5 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - `Str::{length, lower, upper, substr, title, quickRandom, normalizePath}`, `Arr::where`.
  - Collection (ODM) and Volt event constants, `Model::NOT_SAVE(D)`.
  - `Micro\Router` methods that threw an exception, `Micro\Middleware::ON_*` constants.
+ - Cache: output cache (`start`/`stop`), `queryKeys`, `save`/`exists`; backends `Memcache`, `Mongo`, `Database`, `Aerospike`, `Wincache`, `Xcache`; frontend `Output`.
+ - Logger adapters `Firelogger`, `Udplogger`, `Multiple`; session adapters `Files` (now `stream`) and `Memcache`.

@@ -7,32 +7,20 @@ namespace Neutrino\Support\Facades;
 use Neutrino\Constants\Services;
 
 /**
- * Class Cache Facade of Neutrino\Cache\Strategy
+ * The `cache` service ({@see \Neutrino\Cache\CacheStrategy}).
  *
- *  @package Neutrino\Support\Facades
- *
- * @method static object uses() uses(string $uses = null)
- * @method static mixed start() start(int|string $keyName, int $lifetime = null)
- * @method static void stop() stop(bool $stopBuffer = true)
- * @method static mixed getFrontend() getFrontend()
- * @method static array<mixed> getOptions() getOptions()
- * @method static bool isFresh() isFresh()
- * @method static bool isStarted() isStarted()
- * @method static string setLastKey() setLastKey($lastKey)
- * @method static string getLastKey() getLastKey()
- * @method static mixed|null get() get(string $keyName, int $lifetime = null)
- * @method static bool save() save(int|string $keyName = null, string $content = null, int $lifetime = null, boolean $stopBuffer = true)
- * @method static bool delete() delete(int|string $keyName)
- * @method static array<mixed> queryKeys() queryKeys(string $prefix = null)
- * @method static bool exists() exists(string $keyName = null, int $lifetime = null)
+ * @method static \Phalcon\Cache\CacheInterface uses(?string $use = null) Switches to a store, and returns it
+ * @method static mixed get(string $key, mixed $defaultValue = null)
+ * @method static bool set(string $key, mixed $value, \DateInterval|int|null $ttl = null)
+ * @method static bool has(string $key)
+ * @method static bool delete(string $key)
+ * @method static bool clear()
+ * @method static iterable<string, mixed> getMultiple(iterable<string> $keys, mixed $defaultValue = null)
+ * @method static bool setMultiple(iterable<string, mixed> $values, \DateInterval|int|null $ttl = null)
+ * @method static bool deleteMultiple(iterable<string> $keys)
  */
 class Cache extends Facade
 {
-    /**
-     * Get the registered name of the component.
-     *
-     * @return string
-     */
     protected static function getFacadeAccessor(): string
     {
         return Services::CACHE;

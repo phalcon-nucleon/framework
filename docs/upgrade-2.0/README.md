@@ -46,6 +46,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | Conteneur | On reste sur `Phalcon\Di\Di` : `Phalcon\Container` n'implémente pas `Di\DiInterface`, qu'exige toute la pile MVC. | E2 |
 | Config | `Neutrino\Config\Config extends Phalcon\Config\Config`, lectures directes du tableau interne : 7 à 9 fois plus rapide en lecture que la config de Phalcon 5, qui l'est jusqu'à 18 fois moins que celle de Phalcon 3. | E2 |
 | Handlers Micro | Closure Nucleon conservée (middlewares de controller) ; la `Collection` paresseuse de Phalcon ne gagne qu'environ 1 µs par route. | E5 |
+| Données chiffrées par la 1.3 | Lisibles par Phalcon 5 avec `app.crypt_signing = false` (la 1.3 ne signait pas) ; la signature reste activée par défaut. Procédure de migration dans `UPGRADING-2.0.md`. | E7 |
 | Dotconst compilé | `const NAME = ...;` plutôt que `define()` (légèrement plus rapide), sauf `@php/env`. | E2 |
 
 ## Points à trancher (portés par les epics)
@@ -55,7 +56,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | Debug | Remplacement de notre barre de debug par `phalcon/debugbar` (en `suggest`, sans dépendance de production), à confirmer par l'étude E12-S1. On garde notre page d'erreur et `VarDump`. | E12 |
 | Auth | Adoption de `Phalcon\Auth` (disponible depuis la 5.14), à confirmer par l'étude E8-S1 (remember-me haché et révoqué, coût de construction, présence dans Phalcon 6). Sinon, portage de notre `Manager` avec les corrections de sécurité. | E8 |
 | Performance de la requête HTTP | En production (`optimize`), la requête complète est 19 % plus lente que la 1.3 (+45 µs), le boot 11 % plus rapide, la mémoire 34 % plus basse. L'écart vient de Phalcon 5 (`dispatch()` et premier `Router::handle()` plus lents à froid). Accepter, ou chercher à contourner le dispatcher ? Voir E4. | E4 |
-| Compatibilité des données chiffrées | Phalcon 5 déchiffre-t-il les données chiffrées par la 1.3 ? À vérifier par un test, avec une procédure de migration si ce n'est pas le cas. | E7 |
+| Performance du cache | Résolution + 1 set/get sur `memory` : +26 µs (+30 %) ; chaque set + get suivant : +3,5 µs ; mémoire −35 %. L'écart vient de Phalcon 5 (`Phalcon\Cache` 4 à 5 fois plus lent que le backend de Phalcon 3). Accepter, ou fournir un store `memory` en PHP pur ? Voir E7. | E7 |
 
 ## Epics
 
@@ -68,7 +69,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | E4 | [HTTP](epics/E04-http.md) | Terminé | E3 |
 | E5 | [Micro](epics/E05-micro.md) | Terminé | E3, E4-S4 |
 | E6 | [CLI](epics/E06-cli.md) | Terminé | E3 |
-| E7 | [Services d'infrastructure](epics/E07-services-infrastructure.md) | Rédigé | E3 |
+| E7 | [Services d'infrastructure](epics/E07-services-infrastructure.md) | Terminé | E3 |
 | E8 | [Auth & sécurité](epics/E08-auth-securite.md) | Rédigé | E4, E7 |
 | E9 | [Vues & Volt](epics/E09-vues.md) | Rédigé | E4 |
 | E10 | [Données](epics/E10-donnees.md) | Rédigé | E7 |

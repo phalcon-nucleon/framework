@@ -1,6 +1,6 @@
 # E7 — Services d'infrastructure
 
-**Statut** : Rédigé · **Dépend de** : E3 · **Bloque** : E8, E10
+**Statut** : Terminé · **Dépend de** : E3 · **Bloque** : E8, E10
 
 ## Objectif
 
@@ -146,3 +146,35 @@ Porter sur Phalcon 5 les services transverses (cache, logger, session, flash, ch
 - Les suites `Cache` et `Providers` (hors providers de base de données et de vues) sont activées et passent, y compris sur le job Phalcon 6. Les adapters qui dépendent d'une extension absente sur Phalcon 6 sont ignorés explicitement.
 - Aucun service n'est instancié au boot : test qui démarre le kernel et vérifie qu'aucun store de cache, la session et le logger ne sont résolus.
 - Mesures : la résolution du service `cache` et un `get`/`set` sur le store `memory` ne sont pas moins bons que ceux de la 1.3.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Cache | Fait | `CacheStrategy` : `Phalcon\Cache\CacheInterface` + `uses()`, `final`, appels inconnus transmis au store (`getAdapter()`). Le provider lit les noms des stores au boot et ne construit rien ; chaque `cache.<store>` est un `Phalcon\Cache\Cache` construit à la première utilisation (`Providers\Cache::makeStore()`, public). Les adapters Phalcon sont construits directement, sans `Cache\AdapterFactory` (plus coûteuse que l'adapter lui-même) ; une seule `SerializerFactory` par provider. Noms d'adapters insensibles à la casse (`Memory`, `Redis` de la 1.3 passent) ; `File` et `Apc` donnent le nouveau nom dans l'erreur. Tests : `memory`, `stream` (3 serializers), `apcu`, `redis` (service CI), TTL, multi-clés, adapter personnalisé, anciennes clés, registration sans construction. |
+| S2 · Logger | Fait | `Phalcon\Logger\Logger` sur `log.adapters` (`stream`, `syslog`, `noop`, classe), `log.level`, formatter global ou par adapter (`line`, `json`, classe, ou tableau `format`/`date_format`). Forme 1.3 à un adapter convertie (sans `log.adapter`, un fichier sur `log.path`, comme en 1.3) ; `options` n'est plus obligatoire. Alias `Phalcon\Logger\Logger`. Les niveaux sont lus sur `Logger\Enum` (les constantes de `Logger` n'existent pas en Phalcon 6). |
+| S3 · Session | Fait | `Session\Manager` + adapter (`stream`, `redis`, `libmemcached`, `noop`, `\SessionHandlerInterface`), stores multiples ou store unique, noms de classe 1.3 `Phalcon\Session\Adapter\Redis` et `Libmemcached` acceptés (construits avec leur fabrique), `name` par store, démarrage à la première résolution. Alias `Phalcon\Session\Manager`. `sessionBag` : fabrique qui reçoit le nom. Bug de la 1.3 corrigé (exception précédente passée comme code). Le démarrage réel est testé dans un processus séparé (PHPUnit a déjà envoyé sa sortie). |
+| S4 · Flash | Fait | `Direct` (non partagé, `setImplicitFlush(false)`) et `Session` (partagé) reçoivent l'escaper du conteneur ; `flashSession` ne lit la session qu'au premier message (testé). |
+| S5 · Chiffrement et sécurité | Fait | `Encryption\Crypt` avec `app.cipher` (défaut `aes-256-cfb`), `app.key`, `app.crypt_signing` (défaut `true`). Compatibilité vérifiée sur des valeurs chiffrées par Phalcon 3.4 (`tests/Test/Providers/fixtures/crypt-1.3.php`, généré avec l'image `legacy`) : lisibles avec la signature désactivée, refusées (« Hash does not match ») sinon. La 1.3 ne signait pas : procédure dans `UPGRADING-2.0.md`. `Encryption\Security` en `SimpleProvider` : Phalcon lit la session dans le conteneur seulement pour les jetons CSRF, le hachage ne la démarre pas (testé). Jeton CSRF généré et vérifié (processus séparé). |
+| S6 · Filter, Escaper, Annotations | Fait | `FilterFactory::newInstance()`, `Html\Escaper`, annotations `memory`/`apcu`/`stream`/classe (alias `Annotations\Adapter\AdapterInterface`, la classe concrète dépendant de la config). Les closures de service déclarent leur type de retour : les IDE helpers documentent `cache`, `cache.<store>`, `session` et `sessionBag` sans les construire (testé). |
+
+Suites `Cache` et `Providers` activées (`ProvideDatabaseTest` sorti dans la suite `ProvidersDatabase`, E10). Les anciens tests de providers sont remplacés : `AllProvidersTest` couvrait aussi Auth, les modèles et les vues, que leurs epics (E8, E9, E10) testeront. Le provider de cache factice de l'app de test, inutilisé, est supprimé. 577 tests au total, verts sur Phalcon 5.22 et sur Phalcon 6 (APCu et Redis ignorés explicitement quand l'extension manque). Baseline PHPStan : 60 entrées en moins ; `RateLimiter` (E8) a deux entrées nouvelles, car il appelle encore `save()`/`exists()`.
+
+### Comportements de Phalcon 5 à connaître
+
+- **Interpolation du logger** : le contexte utilise les délimiteurs du format (`%name%`), plus `{name}` comme en Phalcon 3.
+- **Session en CLI** : `Manager::start()` renvoie `false` sans erreur si des en-têtes sont déjà partis, et `get()`/`set()` ne font alors rien.
+- **Clés de cache** : `{}()/\@:` sont refusés (PSR-16). E8 doit en tenir compte pour les clés du `RateLimiter`.
+- **Phalcon 6** : `getMultiple()` est typé `: mixed` (signature reprise par `CacheStrategy`).
+
+### Mesures (`bench/compare.sh --optimize`, 200 itérations)
+
+| Scénario | 1.3 | 2.0 | Δ temps | Δ mémoire |
+|---|---|---|---|---|
+| `cache` : résolution du service + 1 set + 1 get sur `memory` | 86 µs | 112 µs | +26 µs (+30 %) | −35 % |
+| `cache-100` : résolution + 100 set + get | 179 µs | 547 µs | +368 µs (+205 %) | −33 % |
+
+**Critère non atteint, à cause de Phalcon 5.** Mesuré sans Nucleon : le premier objet de chaque classe Zephir coûte 25 à 35 µs (`SerializerFactory`, adapter `Memory`), puis un `set` + `get` sur `Phalcon\Cache\Cache` coûte environ 4,5 µs contre 0,9 µs avec le backend `Memory` de Phalcon 3 ; l'adapter seul, sans sérialisation, en coûte encore 2,7 µs. La couche Nucleon (`CacheStrategy`, Facade) ajoute environ 0,1 µs par appel (mesuré : 0,15 à 0,35 µs par set + get). Sur un store réseau (Redis, Memcached), l'aller-retour (plusieurs dizaines de µs) domine cet écart.
+
+**À trancher** : accepter l'écart, ou fournir un store `memory` en PHP pur (tableau, TTL, copie par sérialisation) qui serait plus rapide que la 1.3, au prix d'un adapter maison qui n'est pas un adapter Phalcon (`getAdapter()` ne renverrait plus un `Phalcon\Cache\Adapter\Memory`).
+

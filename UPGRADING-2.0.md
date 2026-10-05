@@ -140,6 +140,104 @@ public function mainAction() {}
 - `Writer::write(string $message, bool $newline): void` and the other output methods are typed: an output subclass overriding `write()` must follow.
 - The `help` route is `help( .*)*`.
 
+## Cache
+
+The `cache` service implements `Phalcon\Cache\CacheInterface` (PSR-16 style). There is no compatibility layer with the 1.3 API.
+
+| 1.3 | 2.0 |
+|---|---|
+| `save($key, $content, $lifetime)` | `set($key, $value, $ttl = null)` (`int` seconds or `DateInterval`; `0` or less deletes the item) |
+| `get($key, $lifetime)` | `get($key, $default = null)`: the lifetime is set when writing |
+| `exists($key)` | `has($key)` |
+| `delete($key)` | `delete($key)` |
+| `queryKeys($prefix)` | removed. `Cache::uses()->getAdapter()->getKeys($prefix)` reads the keys of a Phalcon adapter |
+| `start()` / `stop()` (output cache) | removed |
+| | `clear()`, `getMultiple()`, `setMultiple()`, `deleteMultiple()` |
+
+Keys follow PSR-16: `{}()/\@:` are invalid (`Phalcon\Cache\Exception\InvalidArgumentException`).
+
+The stores are configured with an adapter and a serializer:
+
+```php
+// 1.3
+'stores' => [
+    'file' => ['driver' => 'File', 'adapter' => 'Data', 'options' => ['cacheDir' => BASE_PATH . '/storage/cache/']],
+],
+
+// 2.0
+'stores' => [
+    'file'  => ['adapter' => 'stream', 'serializer' => 'php', 'options' => ['storageDir' => BASE_PATH . '/storage/cache/']],
+    'redis' => ['adapter' => 'redis', 'options' => ['host' => '127.0.0.1', 'port' => 6379, 'lifetime' => 3600]],
+],
+```
+
+- Adapters (1.3 backends): `File` → `stream` (`cacheDir` → `storageDir`), `Memory` → `memory`, `Apc` → `apcu`, `Libmemcached` → `libmemcached`, `Redis` → `redis`; new: `rediscluster`, `weak`. `Memcache`, `Mongo`, `Database`, `Aerospike`, `Wincache` and `Xcache` are removed. A custom adapter is a class implementing `Phalcon\Cache\Adapter\AdapterInterface`, built with `new $class(SerializerFactory $factory, array $options)`.
+- Serializers (1.3 frontends): `Data` → `php` (default), `Json` → `json`, `Igbinary` → `igbinary`, `Base64` → `base64`, `None` → `none`; new: `msgpack`. `Output` is removed.
+- A store with the 1.3 keys `driver`, `backend` or `frontend` is rejected with an explicit message.
+- `cache.<store>` services are `Phalcon\Cache\Cache` instances; `Cache::uses($store)` returns one.
+
+## Logger
+
+The `logger` service is a `Phalcon\Logger\Logger`, which writes to several adapters:
+
+```php
+// 1.3
+'log' => ['adapter' => 'File', 'path' => BASE_PATH . '/storage/logs/app.log', 'options' => []],
+
+// 2.0
+'log' => [
+    'level'     => 'info',                    // optional
+    'formatter' => 'line',                    // line (default), json, a class, or ['formatter' => 'line', 'format' => …, 'date_format' => …]
+    'adapters'  => [
+        'main'   => ['adapter' => 'stream', 'path' => BASE_PATH . '/storage/logs/app.log'],
+        'syslog' => ['adapter' => 'syslog', 'name' => 'app', 'formatter' => 'json'],
+    ],
+],
+```
+
+- The 1.3 single adapter form (`log.adapter`, `log.path` or `log.name`, `log.options`) still works: `File` (or no `log.adapter`) and `Stream` become `stream`, `Syslog` stays `syslog`. `options` is no longer required.
+- `Firelogger`, `Udplogger` and `Multiple` are removed (several adapters replace `Multiple`).
+- Context placeholders use the format delimiters: `%name%`, no longer `{name}`. In a line format, `%type%` becomes `%level%`.
+- The log methods take `(string $message, array $context = [])`; `log($level, $message, $context)`.
+
+## Session
+
+The `session` service is a `Phalcon\Session\Manager` (also registered as `Phalcon\Session\Manager::class`), on the adapter of the default store. It is still started on its first use.
+
+```php
+// 1.3
+'stores' => ['files' => ['adapter' => 'Files', 'options' => ['uniqueId' => 'app']]],
+
+// 2.0
+'stores' => ['files' => ['adapter' => 'stream', 'name' => 'APPSESSID', 'options' => ['savePath' => BASE_PATH . '/storage/sessions', 'uniqueId' => 'app']]],
+```
+
+- Adapters: `Files` → `stream`, `Redis` → `redis`, `Libmemcached` → `libmemcached`, plus `noop`. `Memcache` is removed. The incubator adapters (Database, Mongo, Aerospike, HandlerSocket) are replaced by a class implementing `\SessionHandlerInterface`, built with `new $class($options)`.
+- `sessionBag` needs a name: `$di->get(Services::SESSION_BAG, ['cart'])`.
+- The Manager reads and writes only once the session is started; `destroy()` takes no argument.
+
+## Encryption, security, filter, escaper, annotations
+
+| 1.3 service class (and DI alias) | 2.0 |
+|---|---|
+| `Phalcon\Crypt` | `Phalcon\Encryption\Crypt` |
+| `Phalcon\Security` | `Phalcon\Encryption\Security` |
+| `Phalcon\Filter` | `Phalcon\Filter\Filter` |
+| `Phalcon\Escaper` | `Phalcon\Html\Escaper` |
+| `Phalcon\Annotations\Adapter\Memory` | `Phalcon\Annotations\Adapter\AdapterInterface` (alias) |
+
+**Encrypted data.** `crypt` signs its messages by default (`app.crypt_signing`, default `true`, as in Phalcon 5). Nucleon 1.3 did not sign: data it encrypted (encrypted cookies, stored values) fails to decrypt with "Hash does not match" once signing is on. Phalcon 5 reads it with signing off (tested on values encrypted by Phalcon 3.4, `aes-256-cfb`, `aes-256-cbc` and `aes-128-ctr`). To migrate:
+
+1. deploy with `'crypt_signing' => false` in `config/app.php`: 1.3 data stays readable;
+2. re-encrypt what is stored (or wait for the encrypted cookies to expire);
+3. remove `crypt_signing` to sign again. Data written during step 1 is unsigned: re-encrypt it too.
+
+`security` reads the session only for CSRF tokens: hashing a password does not start the session.
+
+`annotations.adapter` selects the annotations adapter: `memory` (default), `apcu` or `stream` (recommended in production), with `annotations.options`.
+
+`flash` and `flashSession` use the container's `escaper`; `flashSession` reads the session when a message is stored or output.
+
 ## Tests (`Neutrino\Test`)
 
 PHPUnit 11 is required: `setUp(): void`, `tearDown(): void`, `setUpBeforeClass(): void`, attributes instead of annotations.

@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
-
 use Neutrino\Support\Provider;
-use Phalcon\Flash\Direct as PhalconFlashDirect;
+use Phalcon\Flash\Direct;
+use Phalcon\Html\Escaper\EscaperInterface;
 
 /**
- * Class Flash
- *
- * @package Neutrino\Foundation\Bootstrap
+ * The `flash` service: messages returned instead of printed (`setImplicitFlush(false)`), a new instance each time.
  */
 class Flash extends Provider
 {
@@ -18,15 +18,15 @@ class Flash extends Provider
 
     protected bool $shared = false;
 
-    protected array $aliases = [PhalconFlashDirect::class];
+    protected array $aliases = [Direct::class];
 
-    /**
-     * @return \Phalcon\Flash\Direct
-     */
-    protected function register()
+    protected function register(): Direct
     {
-        $flash = new PhalconFlashDirect();
+        $di = $this->getDI();
+        /** @var EscaperInterface|null $escaper */
+        $escaper = $di->has(Services::ESCAPER) ? $di->getShared(Services::ESCAPER) : null;
 
+        $flash = new Direct($escaper);
         $flash->setImplicitFlush(false);
 
         return $flash;

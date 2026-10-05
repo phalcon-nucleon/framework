@@ -1,6 +1,7 @@
 # Test suites (as named in phpunit.xml) already ported to Nucleon 2.0.
 # Only these suites run in CI. Each epic adds its suites here once they pass.
 Assert
+Cache
 Cli
 Config
 Design
@@ -13,4 +14,5 @@ Http
 Micro
 Middleware
 Optimize
+Providers
 Support

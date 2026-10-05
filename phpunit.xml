@@ -85,6 +85,10 @@
         </testsuite>
         <testsuite name="Providers">
             <directory>tests/Test/Providers</directory>
+            <exclude>tests/Test/Providers/ProvideDatabaseTest.php</exclude><!-- E10 -->
+        </testsuite>
+        <testsuite name="ProvidersDatabase">
+            <file>tests/Test/Providers/ProvideDatabaseTest.php</file>
         </testsuite>
         <testsuite name="Repositories">
             <directory>tests/Test/Repositories</directory>

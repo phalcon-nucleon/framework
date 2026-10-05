@@ -4615,144 +4615,6 @@ parameters:
 			path: src/Neutrino/Process/Process.php
 
 		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Binary operation "\." between ''cache\.'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Cannot access property \$adapter on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Cannot access property \$backend on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Cannot access property \$cache on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Cannot access property \$driver on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Cannot access property \$frontend on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Cannot access property \$options on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Cannot access property \$stores on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Cannot call method toArray\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Class Phalcon\\Cache\\BackendInterface not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Class Phalcon\\Cache\\FrontendInterface not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Class Phalcon\\Cache\\Frontend\\None not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Parameter \#1 \$class of function class_exists expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Parameter \#1 \$string of function ucfirst expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Part \$adapter \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 3
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Part \$driver \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Providers/Cache.php
-
-		-
-			message: '#^Access to an undefined property Phalcon\\Config\\Config\:\:\$app\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Neutrino/Providers/Crypt.php
-
-		-
-			message: '#^Call to method setKey\(\) on an unknown class Phalcon\\Crypt\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Crypt.php
-
-		-
-			message: '#^Cannot access property \$cipher on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Crypt.php
-
-		-
-			message: '#^Cannot access property \$key on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Crypt.php
-
-		-
-			message: '#^Class Phalcon\\Crypt not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Providers/Crypt.php
-
-		-
-			message: '#^Instantiated class Phalcon\\Crypt not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Crypt.php
-
-		-
 			message: '#^Binary operation "\." between ''db\.'' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -4795,90 +4657,6 @@ parameters:
 			path: src/Neutrino/Providers/Database.php
 
 		-
-			message: '#^Class Phalcon\\Escaper not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Providers/Escaper.php
-
-		-
-			message: '#^Class Phalcon\\Filter not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Providers/Filter.php
-
-		-
-			message: '#^Access to property \$adapter on an unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Access to property \$name on an unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 4
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Access to property \$options on an unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Access to property \$path on an unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 4
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Cannot access property \$log on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Class Phalcon\\Logger\\Adapter\\File not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Method Neutrino\\Providers\\Logger\:\:register\(\) has invalid return type Phalcon\\Logger\\AdapterInterface\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Method Neutrino\\Providers\\Logger\:\:register\(\) should return Phalcon\\Logger\\AdapterInterface but returns object\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$config contains unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Parameter \#1 \$class of function class_exists expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Parameter \#1 \$string of function ucfirst expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Providers/Logger.php
-
-		-
-			message: '#^Part \$adapter \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Providers/Logger.php
-
-		-
 			message: '#^Call to an undefined method Phalcon\\Di\\DiInterface\:\:setRaw\(\)\.$#'
 			identifier: method.notFound
 			count: 6
@@ -4907,144 +4685,6 @@ parameters:
 			identifier: class.nameCase
 			count: 3
 			path: src/Neutrino/Providers/ModelsMetaData.php
-
-		-
-			message: '#^Class Phalcon\\Security not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Providers/Security.php
-
-		-
-			message: '#^Access to an undefined property object\:\:\$default\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Binary operation "\." between ''Phalcon\\\\Session…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Call to method getShared\(\) on an unknown class Phalcon\\DiInterface\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Call to method start\(\) on an unknown class Phalcon\\Session\\Adapter\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Call to method start\(\) on an unknown class Phalcon\\Session\\AdapterInterface\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Cannot access offset mixed on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Cannot access property \$adapter on mixed\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Cannot access property \$default on mixed\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Cannot access property \$options on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Cannot access property \$session on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Cannot access property \$stores on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Cannot call method toArray\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Class Phalcon\\Session\\Adapter\\Files not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Class Phalcon\\Session\\Adapter\\Memcache not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$session contains unknown class Phalcon\\Session\\Adapter\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$session contains unknown class Phalcon\\Session\\AdapterInterface\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$this contains unknown class Phalcon\\DiInterface\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^PHPDoc tag @var with type Phalcon\\DiInterface is not subtype of native type \$this\(Neutrino\\Providers\\Session\)\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Parameter \#1 \$class of function class_exists expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Parameter \#2 \$code of class RuntimeException constructor expects int, Throwable given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Part \$class \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 2
-			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Part \$sessionConfig\-\>default \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Providers/Session.php
 
 		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
@@ -5563,6 +5203,18 @@ parameters:
 			path: src/Neutrino/Security/RateLimiter.php
 
 		-
+			message: '#^Call to an undefined method Neutrino\\Cache\\CacheStrategy\:\:exists\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Neutrino/Security/RateLimiter.php
+
+		-
+			message: '#^Call to an undefined method Neutrino\\Cache\\CacheStrategy\:\:save\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Neutrino/Security/RateLimiter.php
+
+		-
 			message: '#^Cannot call method delete\(\) on mixed\.$#'
 			identifier: method.nonObject
 			count: 2
@@ -5584,12 +5236,6 @@ parameters:
 			message: '#^Method Neutrino\\Security\\RateLimiter\:\:retriesLeft\(\) has parameter \$decaySeconds with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
-			path: src/Neutrino/Security/RateLimiter.php
-
-		-
-			message: '#^Parameter \#2 \$content of method Neutrino\\Cache\\CacheStrategy\:\:save\(\) expects string\|null, int given\.$#'
-			identifier: argument.type
-			count: 3
 			path: src/Neutrino/Security/RateLimiter.php
 
 		-

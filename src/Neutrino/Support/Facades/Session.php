@@ -1,41 +1,26 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: xlzi590
- * Date: 18/10/2016
- * Time: 11:27
- */
+
+declare(strict_types=1);
 
 namespace Neutrino\Support\Facades;
-
 
 use Neutrino\Constants\Services;
 
 /**
- * Class Session
- *  @package Neutrino\Support\Facades
+ * The `session` service ({@see \Phalcon\Session\Manager}).
  *
- * @method static start() Starts session, optionally using an adapter
- * @method static setOptions(array<mixed> $options) Sets session options
- * @method static array<mixed> getOptions() Get internal options
- * @method static mixed get(string $index, $defaultValue = null) Gets a session variable from an application context
- * @method static set(string $index, $value) Sets a session variable in an application context
- * @method static bool has(string $index) Check whether a session variable is set in an application context
- * @method static remove(string $index) Removes a session variable from an application context
- * @method static string getId() Returns active session id
- * @method static bool isStarted() Check whether the session has been started
- * @method static bool destroy(bool $removeData = false) Destroys the active session
- * @method static \Phalcon\Session\ManagerInterface regenerateId(bool $deleteOldSession = true) Regenerate session's id
- * @method static setName(string $name) Set session name
- * @method static string getName() Get session name
+ * @method static mixed get(string $key, mixed $defaultValue = null, bool $remove = false)
+ * @method static void set(string $key, mixed $value)
+ * @method static bool has(string $key)
+ * @method static void remove(string $key)
+ * @method static string getId()
+ * @method static string getName()
+ * @method static bool exists() Whether the session is started
+ * @method static void destroy()
+ * @method static \Phalcon\Session\ManagerInterface regenerateId(bool $deleteOldSession = true)
  */
 class Session extends Facade
 {
-    /**
-     * Get the registered name of the component.
-     *
-     * @return string
-     */
     protected static function getFacadeAccessor(): string
     {
         return Services::SESSION;

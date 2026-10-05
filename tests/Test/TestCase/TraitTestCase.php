@@ -20,10 +20,9 @@ trait TraitTestCase
     {
         parent::setUpBeforeClass();
 
-        // The cache stores are registered, not built: their format is ported with the cache (E7).
         self::setConfig([
             'cache' => [
-                'stores'  => ['memory' => ['driver' => 'Memory', 'adapter' => 'None']],
+                'stores'  => ['memory' => ['adapter' => 'memory']],
                 'default' => 'memory',
             ],
             'app'   => ['base_uri' => '/'],

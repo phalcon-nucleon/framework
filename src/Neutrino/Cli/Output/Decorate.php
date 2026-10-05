@@ -1,183 +1,127 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Output;
 
 /**
- * Class Decorate
+ * ANSI colors and styles of the console output.
  *
- * @package Neutrino\Cli\Output
- *
- * @author  Fabien Potencier <fabien@symfony.com>
- * @see     https://github.com/symfony/console/blob/3.0/Formatter/OutputFormatterStyle.php
- *
- * Transformed from symfony/console.
+ * Colors are used when STDOUT is a terminal and `NO_COLOR` is not set (https://no-color.org);
+ * the `--colors` / `--no-colors` options (setColorSupport()) take precedence.
  */
-class Decorate
+final class Decorate
 {
-    private static $availableForegroundColors = [
-        'black'   => ['set' => 30, 'unset' => 39],
-        'red'     => ['set' => 31, 'unset' => 39],
-        'green'   => ['set' => 32, 'unset' => 39],
-        'yellow'  => ['set' => 33, 'unset' => 39],
-        'blue'    => ['set' => 34, 'unset' => 39],
-        'magenta' => ['set' => 35, 'unset' => 39],
-        'cyan'    => ['set' => 36, 'unset' => 39],
-        'white'   => ['set' => 37, 'unset' => 39],
-        'default' => ['set' => 39, 'unset' => 39],
+    private const array FOREGROUND = [
+        'black'   => [30, 39],
+        'red'     => [31, 39],
+        'green'   => [32, 39],
+        'yellow'  => [33, 39],
+        'blue'    => [34, 39],
+        'magenta' => [35, 39],
+        'cyan'    => [36, 39],
+        'white'   => [37, 39],
+        'default' => [39, 39],
     ];
 
-    private static $availableBackgroundColors = [
-        'black'   => ['set' => 40, 'unset' => 49],
-        'red'     => ['set' => 41, 'unset' => 49],
-        'green'   => ['set' => 42, 'unset' => 49],
-        'yellow'  => ['set' => 43, 'unset' => 49],
-        'blue'    => ['set' => 44, 'unset' => 49],
-        'magenta' => ['set' => 45, 'unset' => 49],
-        'cyan'    => ['set' => 46, 'unset' => 49],
-        'white'   => ['set' => 47, 'unset' => 49],
-        'default' => ['set' => 49, 'unset' => 49],
+    private const array BACKGROUND = [
+        'black'   => [40, 49],
+        'red'     => [41, 49],
+        'green'   => [42, 49],
+        'yellow'  => [43, 49],
+        'blue'    => [44, 49],
+        'magenta' => [45, 49],
+        'cyan'    => [46, 49],
+        'white'   => [47, 49],
+        'default' => [49, 49],
     ];
 
-    private static $availableOptions = [
-        'bold'       => ['set' => 1, 'unset' => 22],
-        'underscore' => ['set' => 4, 'unset' => 24],
-        'blink'      => ['set' => 5, 'unset' => 25],
-        'reverse'    => ['set' => 7, 'unset' => 27],
-        'conceal'    => ['set' => 8, 'unset' => 28],
+    private const array OPTIONS = [
+        'bold'       => [1, 22],
+        'underscore' => [4, 24],
+        'blink'      => [5, 25],
+        'reverse'    => [7, 27],
+        'conceal'    => [8, 28],
     ];
 
-    private static $hasColorSupport;
+    private static ?bool $hasColorSupport = null;
 
-    /**
-     * Check if console has color support
-     *
-     * @return bool
-     */
-    private static function hasColorSupport()
-    {
-        if (isset(self::$hasColorSupport)) {
-            return self::$hasColorSupport;
-        }
-
-        if (DIRECTORY_SEPARATOR === '\\') {
-            return self::$hasColorSupport =
-                (10 == PHP_WINDOWS_VERSION_MAJOR && PHP_WINDOWS_VERSION_BUILD >= 10586)
-                || false !== getenv('ANSICON')
-                || 'ON' === getenv('ConEmuANSI')
-                || 'xterm' === getenv('TERM');
-        }
-
-        return self::$hasColorSupport = function_exists('posix_isatty') && @posix_isatty(STDOUT);
-    }
-
-    /**
-     * Force color support.
-     *
-     * @param bool $support
-     */
-    public static function setColorSupport($support)
+    public static function setColorSupport(?bool $support): void
     {
         self::$hasColorSupport = $support;
     }
 
+    public static function hasColorSupport(): bool
+    {
+        return self::$hasColorSupport ??= self::detectColorSupport();
+    }
+
     /**
-     * Applies the style to a given text.
-     *
-     * @param string $text The text to style=
-     * @param null   $foreground
-     * @param null   $background
-     * @param array  $options
-     *
-     * @return string
+     * @param list<string> $options bold, underscore, blink, reverse, conceal
      */
-    public static function apply($text, $foreground = null, $background = null, array $options = [])
+    public static function apply(string $text, ?string $foreground = null, ?string $background = null, array $options = []): string
     {
         if (!self::hasColorSupport()) {
             return $text;
         }
 
-        $setCodes   = [];
-        $unsetCodes = [];
-
-        if (null !== $foreground) {
-            $setCodes[]   = self::$availableForegroundColors[$foreground]['set'];
-            $unsetCodes[] = self::$availableForegroundColors[$foreground]['unset'];
+        $codes = [];
+        if ($foreground !== null) {
+            $codes[] = self::FOREGROUND[$foreground];
         }
-        if (null !== $background) {
-            $setCodes[]   = self::$availableBackgroundColors[$background]['set'];
-            $unsetCodes[] = self::$availableBackgroundColors[$background]['unset'];
+        if ($background !== null) {
+            $codes[] = self::BACKGROUND[$background];
         }
-        if (!empty($options)) {
-            foreach ($options as $option) {
-                $setCodes[]   = self::$availableOptions[$option]['set'];
-                $unsetCodes[] = self::$availableOptions[$option]['unset'];
-            }
+        foreach ($options as $option) {
+            $codes[] = self::OPTIONS[$option];
         }
 
-        if (0 === count($setCodes)) {
+        if ($codes === []) {
             return $text;
         }
 
-        return sprintf("\033[%sm%s\033[%sm", implode(';', $setCodes), $text, implode(';', $unsetCodes));
+        return sprintf("\033[%sm%s\033[%sm", implode(';', array_column($codes, 0)), $text, implode(';', array_column($codes, 1)));
     }
 
-    /**
-     * Decorate a string as information output.
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    public static function info($str)
+    public static function info(string $str): string
     {
         return self::apply($str, 'green');
     }
 
-    /**
-     * Decorate a string as notice output.
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    public static function notice($str)
+    public static function notice(string $str): string
     {
         return self::apply($str, 'yellow');
     }
 
-    /**
-     * Decorate a string as warning output.
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    public static function warn($str)
+    public static function warn(string $str): string
     {
         return self::apply($str, 'yellow', null, ['reverse']);
     }
 
-    /**
-     * Decorate a string as error output.
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    public static function error($str)
+    public static function error(string $str): string
     {
         return self::apply($str, 'black', 'red');
     }
 
-    /**
-     * Decorate a string as question output.
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    public static function question($str)
+    public static function question(string $str): string
     {
         return self::apply($str, 'black', 'cyan');
+    }
+
+    private static function detectColorSupport(): bool
+    {
+        $noColor = getenv('NO_COLOR');
+        if ($noColor !== false && $noColor !== '') {
+            return false;
+        }
+
+        if (DIRECTORY_SEPARATOR === '\\') {
+            return (function_exists('sapi_windows_vt100_support') && @sapi_windows_vt100_support(STDOUT))
+                || getenv('ANSICON') !== false
+                || getenv('ConEmuANSI') === 'ON'
+                || getenv('TERM') === 'xterm';
+        }
+
+        return @stream_isatty(STDOUT);
     }
 }

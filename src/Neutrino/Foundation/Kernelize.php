@@ -23,6 +23,16 @@ use RuntimeException;
  */
 trait Kernelize
 {
+    /**
+     * The providers of the kernel, as declared.
+     *
+     * @return array<int|string, string>
+     */
+    public function getProviders(): array
+    {
+        return $this->providers;
+    }
+
     public function registerServices(): void
     {
         ProviderRegistrar::register($this->getDI(), $this->providers);

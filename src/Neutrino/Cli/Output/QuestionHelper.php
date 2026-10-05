@@ -1,155 +1,110 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Output;
 
 use Neutrino\Cli\Question\ChoiceQuestion;
 use Neutrino\Cli\Question\ConfirmationQuestion;
 use Neutrino\Cli\Question\Question;
+use RuntimeException;
 
 /**
- * Class QuestionHelper
- *
- * @package Neutrino\Cli\Output
+ * Asks questions on the console.
  */
 final class QuestionHelper
 {
     /**
-     * Do the ask of an question
-     *
-     * @param \Neutrino\Cli\Output\Writer     $output
-     * @param resource                        $input
-     * @param \Neutrino\Cli\Question\Question $question
-     *
-     * @return null|string
+     * @param resource|null $input Stream the answer is read from (STDIN by default)
      */
-    public static function ask(Writer $output, $input, Question $question)
+    public static function ask(Writer $output, mixed $input, Question $question): mixed
     {
-        if (!isset($input)) {
-            $input = STDIN;
-        }
+        $input ??= STDIN;
 
         $output->line('');
 
-        $response = self::prompt($output, $input, $question);
+        $response = match (true) {
+            $question instanceof ChoiceQuestion => self::promptChoiceQuestion($output, $input, $question),
+            default                             => self::promptQuestion($output, $input, $question),
+        };
 
-        if (is_null($response) || $response === '') {
-            return $question->getDefault();
-        }
-
-        return $response;
+        return $response === null || $response === '' ? $question->getDefault() : $response;
     }
 
-    private static function outputQuestion(Writer $output, Question $question)
+    private static function outputQuestion(Writer $output, Question $question): void
     {
         $questionStr = Decorate::info($question->getQuestion());
 
         if ($question instanceof ConfirmationQuestion) {
             $questionStr .= Decorate::info(' (yes, no)');
             $questionStr .= ' [' . Decorate::notice($question->getDefault() ? 'yes' : 'no') . ']';
-        } elseif (!is_null($default = $question->getDefault())) {
-            $questionStr .= ' [' . Decorate::notice($default) . ']';
+        } elseif (($default = $question->getDefault()) !== null) {
+            $questionStr .= ' [' . Decorate::notice(is_scalar($default) ? (string) $default : get_debug_type($default)) . ']';
         }
 
         $output->line(' ' . $questionStr . ':');
     }
 
-    private static function prompt(Writer $output, $input, Question $question)
-    {
-        $response = null;
-
-        switch (true) {
-            case $question instanceof ConfirmationQuestion:
-                $response = self::promptConfirmationQuestion($output, $input, $question);
-                break;
-            case $question instanceof ChoiceQuestion:
-                $response = self::promptChoiceQuestion($output, $input, $question);
-                break;
-            case $question instanceof Question:
-            default:
-                $response = self::promptQuestion($output, $input, $question);
-                break;
-        }
-
-        return $response;
-    }
-
-    private static function doAsk(Writer $output, $input, Question $question)
+    /**
+     * @param resource $input
+     */
+    private static function doAsk(Writer $output, mixed $input, Question $question): mixed
     {
         $output->write(' > ', false);
 
         $response = fgets($input, 4096);
-        if (false === $response) {
-            throw new \RuntimeException('Aborted');
+        if ($response === false) {
+            throw new RuntimeException('Aborted');
         }
         $response = trim($response);
 
         $output->line($response);
         $output->line('');
 
-        $response = $question->normalize($response);
-
-        return $response;
+        return $question->normalize($response);
     }
 
-    private static function promptQuestion(Writer $output, $input, Question $question)
+    /**
+     * @param resource $input
+     */
+    private static function promptQuestion(Writer $output, mixed $input, Question $question): mixed
     {
         self::outputQuestion($output, $question);
 
-        $response = self::doAsk($output, $input, $question);
-
-        if (is_null($response) || $response === '') {
-            $response = $question->getDefault();
-        }
-
-        return $response;
+        return self::doAsk($output, $input, $question);
     }
 
-    private static function promptConfirmationQuestion(Writer $output, $input, ConfirmationQuestion $question)
+    /**
+     * @param resource $input
+     */
+    private static function promptChoiceQuestion(Writer $output, mixed $input, ChoiceQuestion $question): mixed
     {
-        self::outputQuestion($output, $question);
-
-        $response = self::doAsk($output, $input, $question);
-
-        if (is_null($response) || $response === '') {
-            $response = $question->getDefault();
-        }
-
-        return $response;
-    }
-
-    private static function promptChoiceQuestion(Writer $output, $input, ChoiceQuestion $question)
-    {
-        $maxAttemps = $question->getMaxAttempts();
-        $attemps = 0;
+        $maxAttempts = $question->getMaxAttempts();
+        $attempts = 0;
         $response = null;
 
-        while (is_null($maxAttemps) || ($attemps++ < $maxAttemps)) {
+        while ($maxAttempts === null || $attempts++ < $maxAttempts) {
             self::outputQuestion($output, $question);
 
-            foreach ($question->getChoices() as $key => $choice) {
-                $output->line('  [' . Decorate::notice($key) . '] ' . $choice);
+            $choices = $question->getChoices();
+            foreach ($choices as $key => $choice) {
+                $output->line('  [' . Decorate::notice((string) $key) . '] ' . $choice);
             }
 
             $response = self::doAsk($output, $input, $question);
 
-            $choices = $question->getChoices();
-
-            if (in_array($response, $choices)) {
+            if (in_array($response, $choices, true)) {
                 return $response;
             }
-            if (isset($choices[$response])) {
+            if ((is_string($response) || is_int($response)) && isset($choices[$response])) {
                 return $choices[$response];
             }
 
-            if ((is_null($maxAttemps) || $attemps === $maxAttemps) && (is_null($response) || $response === '')) {
+            if (($maxAttempts === null || $attempts === $maxAttempts) && ($response === null || $response === '')) {
                 break;
             }
 
-            (new Block($output, 'error'))->draw(['[ERROR] value "' . $response . '" is invalid']);
-        }
-
-        if (is_null($response) || $response === '') {
-            $response = $question->getDefault();
+            (new Block($output, 'error'))->draw(['[ERROR] value "' . (is_scalar($response) ? (string) $response : '') . '" is invalid']);
         }
 
         return $response;

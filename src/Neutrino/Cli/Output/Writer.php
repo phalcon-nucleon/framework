@@ -1,116 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Output;
 
-use Neutrino\Constants\Services;
+use RuntimeException;
 
 /**
- * Class ConsoleOutput
- *
- * @package Neutrino\Cli\Output
+ * Console output. In quiet mode, nothing is written and the output buffer swallows any echo.
  */
 class Writer
 {
-    /**
-     * @var bool
-     */
-    protected $quiet;
+    private bool $buffering = false;
 
-    /**
-     * ConsoleOutput constructor.
-     *
-     * @param bool $quiet
-     */
-    public function __construct($quiet = false)
+    public function __construct(protected bool $quiet = false)
     {
-        $this->quiet = $quiet;
-
         if ($this->quiet) {
-            ob_start();
+            $this->buffering = ob_start();
         }
     }
 
-    /**
-     * Write a string.
-     *
-     * @param string $str
-     */
-    public function line($str)
+    public function line(string $str): void
     {
         $this->write($str, true);
     }
 
-
-    /**
-     * Write a string as information output.
-     *
-     * @param string $str
-     */
-    public function info($str)
+    public function info(string $str): void
     {
         $this->write(Decorate::info($str), true);
     }
 
-    /**
-     * Write a string as notice output.
-     *
-     * @param string $str
-     */
-    public function notice($str)
+    public function notice(string $str): void
     {
         $this->write(Decorate::notice($str), true);
     }
 
-    /**
-     * Write a string as warning output.
-     *
-     * @param string $str
-     */
-    public function warn($str)
+    public function warn(string $str): void
     {
         $this->write(Decorate::warn($str), true);
     }
 
-    /**
-     * Write a string as error output.
-     *
-     * @param string $str
-     */
-    public function error($str)
+    public function error(string $str): void
     {
         $this->write(Decorate::error($str), true);
     }
 
-    /**
-     * Write a string as question output.
-     *
-     * @param string $str
-     */
-    public function question($str)
+    public function question(string $str): void
     {
         $this->write(Decorate::question($str), true);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function write($message, $newline)
+    public function write(string $message, bool $newline): void
     {
         if ($this->quiet) {
             return;
         }
 
-        if (false === @fwrite(STDOUT, $message) || ($newline && (false === @fwrite(STDOUT, PHP_EOL)))) {
-            // should never happen
-            throw new \RuntimeException('Unable to write output.');
+        if (@fwrite(STDOUT, $message . ($newline ? PHP_EOL : '')) === false) {
+            throw new RuntimeException('Unable to write output.');
         }
 
         fflush(STDOUT);
     }
 
-    public function clean()
+    /**
+     * Ends the quiet mode buffer (once).
+     */
+    public function clean(): void
     {
-        if ($this->quiet) {
+        if ($this->buffering) {
+            $this->buffering = false;
             ob_end_clean();
         }
     }

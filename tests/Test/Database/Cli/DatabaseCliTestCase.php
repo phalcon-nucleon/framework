@@ -18,7 +18,7 @@ use Test\TestCase\TestCase;
  */
 class DatabaseCliTestCase extends TestCase
 {
-    protected static function kernelClassInstance()
+    protected static function kernelClassInstance(): string
     {
         return StubKernelCli::class;
     }

@@ -115,6 +115,31 @@ public function bindOn(): MiddlewarePosition { return MiddlewarePosition::Before
 
 - Phalcon 5 passes route parameters as named arguments: a closure handler must declare them (`fn (string $id) => …`).
 
+## CLI
+
+- Document the tasks with attributes: docblocks are still read, but they are deprecated (removed in 3.0) and disappear with `opcache.save_comments=0`.
+
+```php
+// 1.3
+/**
+ * @description Import the users.
+ * @option -f, --force: Overwrite.
+ */
+public function mainAction() {}
+
+// 2.0
+#[Description('Import the users.')]
+#[Option('-f, --force', 'Overwrite.')]
+public function mainAction() {}
+```
+
+- A provider declares its commands by implementing `Neutrino\Cli\ProvidesTasks` (`public static function tasks(): array`). The migration commands are no longer registered by the console router: declare the migrations provider in the console kernel (E11).
+- Task actions receive the route parameters only (Phalcon 5 would also pass the options as named arguments); read the options with `getOption()` / `hasOption()`.
+- Tasks read the kernel arguments and options through `getArguments()`, `isQuiet()`, etc. (`$_arguments` and `$_options` no longer exist). `Task::$options`, `$arguments` are typed arrays; `getArg()`, `getOption()`, `hasOption(string ...)` are typed.
+- `Decorate` no longer needs the posix extension; `NO_COLOR` disables the colors (`--colors` still forces them).
+- `Writer::write(string $message, bool $newline): void` and the other output methods are typed: an output subclass overriding `write()` must follow.
+- The `help` route is `help( .*)*`.
+
 ## Tests (`Neutrino\Test`)
 
 PHPUnit 11 is required: `setUp(): void`, `tearDown(): void`, `setUpBeforeClass(): void`, attributes instead of annotations.

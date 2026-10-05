@@ -99,8 +99,16 @@ abstract class Kernel extends Console implements Kernelable
         return parent::handle();
     }
 
+    /**
+     * Handles the command line (`$_SERVER['argv']`), unless arguments were already set with setArgument().
+     */
     public function handleIncoming(): mixed
     {
+        if ($this->arguments === [] || $this->arguments === '') {
+            $argv = $_SERVER['argv'] ?? [];
+            $this->setArgument(is_array($argv) ? array_values(array_map(static fn(mixed $arg): string => is_scalar($arg) ? (string) $arg : '', $argv)) : []);
+        }
+
         return $this->handle();
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Cli\Question;
 
 use Neutrino\Cli\Output\QuestionHelper;
@@ -16,7 +18,7 @@ class QuestionHelperTest extends TestCase
 
     protected $stdin;
 
-    public function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         $this->closeStdIn();
@@ -24,7 +26,7 @@ class QuestionHelperTest extends TestCase
         @unlink(self::$file);
     }
 
-    public function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -53,7 +55,7 @@ class QuestionHelperTest extends TestCase
         file_put_contents(self::$file, $mock);
     }
 
-    public function testDoAsk()
+    public function testDoAsk(): void
     {
         $output = $this->createStub(Writer::class);
         $question = new Question('test');
@@ -62,14 +64,14 @@ class QuestionHelperTest extends TestCase
 
         $this->assertEquals(
             'test',
-            Reflexion::invoke(QuestionHelper::class, 'doAsk', $output, $this->getStdIn(), $question)
+            Reflexion::invoke(QuestionHelper::class, 'doAsk', $output, $this->getStdIn(), $question),
         );
     }
 
     /**
      * @return array
      */
-    public function dataAskQuestion()
+    public static function dataAskQuestion(): array
     {
         return [
             ['', "\n", new Question('test')],
@@ -84,10 +86,8 @@ class QuestionHelperTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataAskQuestion
-     */
-    public function testAskQuestion($expected, $mock, $question)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataAskQuestion')]
+    public function testAskQuestion($expected, $mock, $question): void
     {
         $output = $this->createStub(Writer::class);
 
@@ -98,7 +98,7 @@ class QuestionHelperTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
-    public function testAskChoiceQuestionMultiAttemps()
+    public function testAskChoiceQuestionMultiAttemps(): void
     {
         $output = $this->createStub(Writer::class);
 

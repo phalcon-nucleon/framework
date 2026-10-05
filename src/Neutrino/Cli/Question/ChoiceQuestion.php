@@ -1,74 +1,59 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Question;
 
+use InvalidArgumentException;
+
 /**
- * Class ChoiceQuestion
- *
- * @package Neutrino\Cli\Question
+ * Question with a list of choices, answered by value or by key.
  */
 class ChoiceQuestion extends Question
 {
-    /** @var array */
-    private $choices;
+    /** @var array<int|string, string> */
+    private array $choices = [];
 
-    /** @var int */
-    private $maxAttempts;
+    private ?int $maxAttempts = null;
 
     /**
-     * Question constructor.
-     *
-     * @param string      $question
-     * @param array       $choices
-     * @param null|string $default
-     * @param null|int    $maxAttempts
+     * @param array<int|string, string> $choices
+     * @param int|null                  $maxAttempts `null`: until a valid answer
      */
-    public function __construct($question, array $choices, $default = null, $maxAttempts = null)
+    public function __construct(string $question, array $choices, mixed $default = null, ?int $maxAttempts = null)
     {
         parent::__construct($question, $default);
 
-        $this
-            ->setChoices($choices)
-            ->setMaxAttempts($maxAttempts);
+        $this->setChoices($choices)->setMaxAttempts($maxAttempts);
     }
 
     /**
-     * @return array
+     * @return array<int|string, string>
      */
-    public function getChoices()
+    public function getChoices(): array
     {
         return $this->choices;
     }
 
-    /**
-     * @return int
-     */
-    public function getMaxAttempts()
+    public function getMaxAttempts(): ?int
     {
         return $this->maxAttempts;
     }
 
     /**
-     * @param array $choices
-     *
-     * @return $this
+     * @param array<int|string, string> $choices
      */
-    public function setChoices($choices)
+    public function setChoices(array $choices): static
     {
         $this->choices = $choices;
 
         return $this;
     }
 
-    /**
-     * @param int $maxAttempts
-     *
-     * @return $this
-     */
-    public function setMaxAttempts($maxAttempts)
+    public function setMaxAttempts(?int $maxAttempts): static
     {
-        if (null !== $maxAttempts && $maxAttempts < 1) {
-            throw new \InvalidArgumentException('Maximum number of attempts must be a positive value.');
+        if ($maxAttempts !== null && $maxAttempts < 1) {
+            throw new InvalidArgumentException('Maximum number of attempts must be a positive value.');
         }
 
         $this->maxAttempts = $maxAttempts;

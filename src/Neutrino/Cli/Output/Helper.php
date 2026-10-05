@@ -1,202 +1,205 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Output;
 
-use Neutrino\Support\Str;
+use Neutrino\Cli\Attribute\Argument;
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
 use Neutrino\Version;
+use Phalcon\Cli\Router\RouteInterface as CliRouteInterface;
+use Phalcon\Mvc\Router\RouteInterface as MvcRouteInterface;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 
 /**
- * Class Helper
- *
- * @package Neutrino\Cli\Output
+ * Console helpers: decoration-aware string width and padding, route patterns, task documentation.
  */
 final class Helper
 {
-    private static $reflections = [];
+    /** @var array<class-string, ReflectionClass<object>> */
+    private static array $reflections = [];
 
-    /**
-     * Remove the decoration of a string
-     *
-     * @param $string
-     *
-     * @return mixed
-     */
-    public static function removeDecoration($string)
+    /** @var array<string, true> Tasks already reported as documented by docblocks */
+    private static array $deprecations = [];
+
+    public static function removeDecoration(string $string): string
     {
-        return preg_replace("/\033\\[[^m]*m/", '', $string);
+        return (string) preg_replace("/\033\\[[^m]*m/", '', $string);
     }
 
-    /**
-     * Return the real len of a string (without decoration)
-     *
-     * @param $string
-     *
-     * @return int
-     */
-    public static function strlenWithoutDecoration($string)
+    public static function strlenWithoutDecoration(string $string): int
     {
         return self::strlen(self::removeDecoration($string));
     }
 
-    /**
-     * Return the len of a string
-     *
-     * @param $string
-     *
-     * @return int
-     */
-    public static function strlen($string)
+    public static function strlen(string $string): int
     {
-        if (false === $encoding = mb_detect_encoding($string, null, true)) {
-            return strlen($string);
-        }
+        $encoding = mb_detect_encoding($string, null, true);
 
-        return mb_strwidth($string, $encoding);
+        return $encoding === false ? strlen($string) : mb_strwidth($string, $encoding);
     }
 
     /**
-     * Correct Str::pad wrong output when str is decorate
-     *
-     * @param string $str
-     * @param int    $size
-     * @param string $pad
-     * @param int    $type
-     *
-     * @return string
+     * str_pad() that ignores the ANSI decorations.
      */
-    public static function strPad($str, $size, $pad, $type = STR_PAD_RIGHT)
+    public static function strPad(string $str, int $size, string $pad, int $type = STR_PAD_RIGHT): string
     {
-        $washLen = self::strlenWithoutDecoration($str);
+        $missing = max(0, $size - self::strlenWithoutDecoration($str));
 
-        switch ($type) {
-            case STR_PAD_BOTH:
-                $m = $size - $washLen;
-
-                return str_repeat($pad, floor($m / 2)) . $str . str_repeat($pad, ceil($m / 2));
-            case STR_PAD_LEFT:
-                return str_repeat($pad, $size - $washLen) . $str;
-            case STR_PAD_RIGHT:
-            default:
-                return $str . str_repeat($pad, $size - $washLen);
-        }
+        return match ($type) {
+            STR_PAD_BOTH => str_repeat($pad, intdiv($missing, 2)) . $str . str_repeat($pad, $missing - intdiv($missing, 2)),
+            STR_PAD_LEFT => str_repeat($pad, $missing) . $str,
+            default      => $str . str_repeat($pad, $missing),
+        };
     }
 
     /**
-     * @param \Phalcon\Cli\Router\Route|\Phalcon\Mvc\Router\Route $route
-     * @param bool                                                $decorate
-     *
-     * @return string
+     * Readable form of a route pattern: `make:migration {name}`, `/users/{id}`.
      */
-    public static function describeRoutePattern($route, $decorate = false)
+    public static function describeRoutePattern(CliRouteInterface|MvcRouteInterface $route, bool $decorate = false): string
     {
         $paths = $route->getPaths();
-
         $compiled = $route->getCompiledPattern();
         $pattern = $route->getPattern();
-        if ($compiled !== $pattern) {
-            preg_match_all('/(:[\w_]+|\([^?][^\/\)]+\))/', $pattern, $matches);
 
-            foreach ($matches[1] as $idx => $match) {
-                if (Str::startsWith($match, ':') && in_array($match, [':controller', ':module', ':action', ':namespace'])) {
-                    $match = '{' . str_replace(':', '', $match) . '}';
-                    if($decorate){
-                        $match = Decorate::notice($match);
-                    }
-                    $compiled = preg_replace('/\([^?][^\/\)]+\)/', $match, $compiled, 1);
-                }
-            }
-
-            foreach ($paths as $key => $value) {
-                if (in_array($key, ['controller', 'task', 'action', 'middleware'])) {
-                    continue;
-                }
-                if (is_int($value)) {
-                    $key = '{' . $key . '}';
-                    if($decorate){
-                        $key = Decorate::notice($key);
-                    }
-                    $compiled = preg_replace('/\([^?][^\/\)]+\)/', $key, $compiled, 1);
-                }
-            }
-            preg_match('/\^(.+)\$/', $compiled, $matchs);
-            $compiled = $matchs[1];
+        if ($compiled === $pattern) {
+            return $compiled;
         }
 
-        return $compiled;
+        preg_match_all('/(:[\w_]+|\([^?][^\/\)]+\))/', $pattern, $matches);
+
+        foreach ($matches[1] as $match) {
+            if (in_array($match, [':controller', ':module', ':action', ':namespace'], true)) {
+                $name = '{' . substr($match, 1) . '}';
+                $compiled = (string) preg_replace('/\([^?][^\/\)]+\)/', $decorate ? Decorate::notice($name) : $name, $compiled, 1);
+            }
+        }
+
+        foreach ($paths as $key => $value) {
+            if (is_int($value) && !in_array($key, ['controller', 'task', 'action', 'middleware'], true)) {
+                $name = '{' . $key . '}';
+                $compiled = (string) preg_replace('/\([^?][^\/\)]+\)/', $decorate ? Decorate::notice($name) : $name, $compiled, 1);
+            }
+        }
+
+        return preg_match('/\^(.+)\$/', $compiled, $found) === 1 ? $found[1] : $compiled;
     }
 
     /**
-     * @param $class
-     * @param $methodName
+     * Documentation of a task action: `#[Description]`, `#[Argument]` and `#[Option]` attributes.
      *
-     * @return array
+     * Docblocks (`@description`, `@argument`, `@option`, or the text of the docblock) are read when the action has
+     * no attribute: deprecated, they disappear with `opcache.save_comments=0` and will no longer be read in 3.0.
+     *
+     * @return array{description: string, arguments?: list<string>, options?: list<string>}|array{__exception: string}
      */
-    public static function getTaskInfos($class, $methodName)
+    public static function getTaskInfos(string $class, string $methodName): array
     {
-        $infos = [];
-        $reflection = self::getReflection($class);
-
         try {
-            $method = $reflection->getMethod($methodName);
-        } catch (\Exception $e) {
+            $method = self::getReflection($class)->getMethod($methodName);
+        } catch (ReflectionException) {
             return ['__exception' => "Methods $class::$methodName not found."];
         }
 
-        if (!empty($method)) {
-            $docBlock = $method->getDocComment();
+        $infos = self::fromAttributes($method);
 
-            preg_match_all('/\*\s*@(\w+)(.*)/', $docBlock, $annotations);
-            $docBlock = preg_replace('/\*\s*@(\w+)(.*)/', '', $docBlock);
+        if ($infos !== null) {
+            return $infos;
+        }
 
-            foreach ($annotations[1] as $k => $annotation) {
-                switch ($annotation) {
-                    case 'description':
-                        $infos['description'] = trim($annotations[2][$k]);
-                        break;
-                    case 'argument':
-                    case 'option':
-                        $infos[$annotation . 's'][] = trim($annotations[2][$k]);
-                        break;
-                }
-            }
+        $infos = self::fromDocBlock($method);
 
-            if (empty($infos['description'])) {
-                preg_match_all('/\*([^\n\r]+)/', $docBlock, $lines);
+        if ($infos['description'] !== '' && !isset(self::$deprecations[$class . '::' . $methodName])) {
+            self::$deprecations[$class . '::' . $methodName] = true;
+            @trigger_error(
+                "Documenting the task $class::$methodName with a docblock is deprecated: use the attributes of Neutrino\\Cli\\Attribute.",
+                E_USER_DEPRECATED,
+            );
+        }
 
-                $rows = [];
-                foreach ($lines[1] as $line) {
-                    if ($line == '*' || $line == '/') {
-                        continue;
-                    }
-                    $rows[] = preg_replace('/^ /', '', rtrim($line));
-                }
+        return $infos;
+    }
 
-                $infos['description'] = implode(PHP_EOL, $rows);
-            }
+    public static function neutrinoVersion(): string
+    {
+        return Decorate::info('Neutrino framework') . ' version ' . Decorate::notice('v' . Version::get() . ' [' . Version::getId() . ']');
+    }
+
+    /**
+     * @return array{description: string, arguments?: list<string>, options?: list<string>}|null
+     */
+    private static function fromAttributes(ReflectionMethod $method): ?array
+    {
+        $description = $method->getAttributes(Description::class);
+        $arguments = $method->getAttributes(Argument::class);
+        $options = $method->getAttributes(Option::class);
+
+        if ($description === [] && $arguments === [] && $options === []) {
+            return null;
+        }
+
+        $infos = ['description' => $description === [] ? '' : $description[0]->newInstance()->text];
+
+        foreach ($arguments as $argument) {
+            $infos['arguments'][] = (string) $argument->newInstance();
+        }
+        foreach ($options as $option) {
+            $infos['options'][] = (string) $option->newInstance();
         }
 
         return $infos;
     }
 
     /**
-     * @return string
+     * @return array{description: string, arguments?: list<string>, options?: list<string>}
      */
-    public static function neutrinoVersion()
+    private static function fromDocBlock(ReflectionMethod $method): array
     {
-        return Decorate::info('Neutrino framework') . ' version ' . Decorate::notice('v' . Version::get() . ' ['. Version::getId().']');
+        $docBlock = (string) $method->getDocComment();
+        $infos = ['description' => ''];
+
+        preg_match_all('/\*\s*@(\w+)(.*)/', $docBlock, $annotations);
+        $text = (string) preg_replace('/\*\s*@(\w+)(.*)/', '', $docBlock);
+
+        foreach ($annotations[1] as $k => $annotation) {
+            $value = trim($annotations[2][$k]);
+
+            match ($annotation) {
+                'description' => $infos['description'] = $value,
+                'argument'    => $infos['arguments'][] = $value,
+                'option'      => $infos['options'][] = $value,
+                default       => null,
+            };
+        }
+
+        if ($infos['description'] === '') {
+            preg_match_all('/\*([^\n\r]+)/', $text, $lines);
+
+            $rows = [];
+            foreach ($lines[1] as $line) {
+                if ($line !== '*' && $line !== '/') {
+                    $rows[] = (string) preg_replace('/^ /', '', rtrim($line));
+                }
+            }
+
+            $infos['description'] = trim(implode(PHP_EOL, $rows));
+        }
+
+        return $infos;
     }
 
     /**
-     * @param string $class
-     *
-     * @return \ReflectionClass
+     * @return ReflectionClass<object>
      */
-    private static function getReflection($class)
+    private static function getReflection(string $class): ReflectionClass
     {
-        if (!isset(self::$reflections[$class])) {
-            self::$reflections[$class] = new \ReflectionClass($class);
+        if (!class_exists($class)) {
+            throw new ReflectionException("Class $class does not exist.");
         }
 
-        return self::$reflections[$class];
+        return self::$reflections[$class] ??= new ReflectionClass($class);
     }
 }

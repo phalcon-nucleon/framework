@@ -1,58 +1,67 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
+use Neutrino\Constants\Services;
 use Phalcon\Cli\Router\Route;
+use Phalcon\Cli\Router\RouteInterface;
 
 /**
- * Class DefaultTask
- *
- * @package     Neutrino\Foundation\Cli\Tasks
+ * Runs when no command matches: lists the commands, or suggests the closest ones.
  */
-class DefaultTask extends Task
+final class DefaultTask extends Task
 {
-
-    public function mainAction()
+    #[Description('List the commands, or suggest the closest ones to an unknown command.')]
+    public function mainAction(): void
     {
-        $arguments = array_filter($this->application->getArguments());
+        /** @var \Neutrino\Foundation\Cli\Kernel $application */
+        $application = $this->getDI()->getShared(Services::APP);
+        $arguments = array_values(array_filter(array_map(static fn(mixed $a): string => is_scalar($a) ? (string) $a : '', (array) $application->getArguments())));
 
-        if (empty($arguments)) {
-            $this->application->handle(['task' => ListTask::class]);
+        if ($arguments === []) {
+            $application->handle(['task' => ListTask::class]);
 
             return;
         }
 
-        $lines[] = 'Command "' . implode(Route::getDelimiter(), $arguments) . '" not found.';
+        $lines = ['Command "' . implode(Route::getDelimiter(), $arguments) . '" not found.'];
 
-        foreach ($this->router->getRoutes() as $route) {
-            $routes[explode(Route::getDelimiter(), $route->getPattern())[0]] = $route;
+        /** @var \Neutrino\Cli\Router $router */
+        $router = $this->getDI()->getShared(Services::ROUTER);
+
+        $routes = [];
+        /** @var RouteInterface $route */
+        foreach ($router->getRoutes() as $route) {
+            $routes[explode(Route::getDelimiter() ?: ' ', $route->getPattern())[0]] = $route;
         }
 
-        if (!empty($routes) && !empty($alternatives = $this->findAlternatives($arguments[0], array_keys($routes)))) {
+        $alternatives = self::findAlternatives($arguments[0], array_keys($routes));
+
+        if ($alternatives !== []) {
             $lines[] = 'Did you mean ' . (count($alternatives) > 1 ? 'one of theses' : 'this') . ' ?';
-            $lines = array_merge($lines, array_map(function ($value) use ($routes) {
-                return '  ' . Helper::describeRoutePattern($routes[$value]);
-            }, $alternatives));
+            foreach ($alternatives as $alternative) {
+                $lines[] = '  ' . Helper::describeRoutePattern($routes[$alternative]);
+            }
         }
 
         $this->block($lines, 'error');
     }
 
     /**
-     * (c) Fabien Potencier <fabien@symfony.com>
+     * Commands close to `$name` (levenshtein distance on each `:`-separated part), from Symfony Console.
      *
-     * @see https://github.com/symfony/console/blob/60d0efcb8470bf5cfbea84bff99cf1af0ccfdf00/Application.php#L921
+     * @param list<string> $collection
      *
-     * @param string $name
-     * @param array  $collection
-     *
-     * @return array
+     * @return list<string>
      */
-    protected function findAlternatives($name, array $collection)
+    private static function findAlternatives(string $name, array $collection): array
     {
-        $threshold    = 1e3;
+        $threshold = 1e3;
         $alternatives = [];
 
         $collectionParts = [];
@@ -63,15 +72,15 @@ class DefaultTask extends Task
         foreach (explode(':', $name) as $i => $subname) {
             foreach ($collectionParts as $collectionName => $parts) {
                 $exists = isset($alternatives[$collectionName]);
-                if (!isset($parts[$i]) && $exists) {
-                    $alternatives[$collectionName] += $threshold;
-                    continue;
-                } elseif (!isset($parts[$i])) {
+                if (!isset($parts[$i])) {
+                    if ($exists) {
+                        $alternatives[$collectionName] += $threshold;
+                    }
                     continue;
                 }
 
                 $lev = levenshtein($subname, $parts[$i]);
-                if ($lev <= strlen($subname) / 3 || '' !== $subname && false !== strpos($parts[$i], $subname)) {
+                if ($lev <= strlen($subname) / 3 || ($subname !== '' && str_contains($parts[$i], $subname))) {
                     $alternatives[$collectionName] = $exists ? $alternatives[$collectionName] + $lev : $lev;
                 } elseif ($exists) {
                     $alternatives[$collectionName] += $threshold;
@@ -81,16 +90,14 @@ class DefaultTask extends Task
 
         foreach ($collection as $item) {
             $lev = levenshtein($name, $item);
-            if ($lev <= strlen($name) / 3 || false !== strpos($item, $name)) {
+            if ($lev <= strlen($name) / 3 || str_contains($item, $name)) {
                 $alternatives[$item] = isset($alternatives[$item]) ? $alternatives[$item] - $lev : $lev;
             }
         }
 
-        $alternatives = array_filter($alternatives, function ($lev) use ($threshold) {
-            return $lev < 2 * $threshold;
-        });
+        $alternatives = array_filter($alternatives, static fn(float|int $lev): bool => $lev < 2 * $threshold);
         ksort($alternatives, SORT_NATURAL | SORT_FLAG_CASE);
 
-        return array_keys($alternatives);
+        return array_map('strval', array_keys($alternatives));
     }
 }

@@ -1,118 +1,74 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Output;
 
-use Neutrino\Support\Arr;
-
 /**
- * Class Table
- *
- * @package Neutrino\Cli\Output
+ * Text table.
  */
 class Table
 {
-    const NO_STYLE = 1;
+    public const int NO_STYLE = 1;
 
-    const NO_HEADER = 2;
+    public const int NO_HEADER = 2;
 
-    const STYLE_DEFAULT = 4;
-
-    protected $output;
-
-    protected $datas;
-
-    protected $columns = [];
-
-    protected $style;
+    public const int STYLE_DEFAULT = 4;
 
     /**
-     * Table constructor.
+     * Columns, with their width.
      *
-     * @param Writer $output
-     * @param array  $datas
-     * @param array  $headers
-     * @param int    $style
+     * @var array<int|string, array{size?: int}>
+     */
+    protected array $columns = [];
+
+    /**
+     * @param array<array<int|string, scalar|null>> $datas
+     * @param list<string>                          $headers
      */
     public function __construct(
-        Writer $output,
-        array $datas = [],
+        protected Writer $output,
+        protected array $datas = [],
         array $headers = [],
-        $style = self::STYLE_DEFAULT
-    )
-    {
-        $this->output = $output;
-        $this->datas = $datas;
-        $this->style = $style;
-
+        protected int $style = self::STYLE_DEFAULT,
+    ) {
         foreach ($headers as $header) {
             $this->columns[$header] = [];
         }
     }
 
     /**
-     * @param array $datas
-     *
-     * @return $this
+     * @param array<array<int|string, scalar|null>> $datas
      */
-    public function setDatas(array $datas)
+    public function setDatas(array $datas): static
     {
         $this->datas = $datas;
 
         return $this;
     }
 
-    public function generateColumns()
+    public function generateColumns(): static
     {
         foreach ($this->datas as $data) {
             foreach ($data as $column => $value) {
-                if (empty($this->columns[$column]) || empty($this->columns[$column]['size'])) {
-                    $this->columns[$column] = [
-                        'size' => max(Helper::strlenWithoutDecoration($column), Helper::strlenWithoutDecoration($value))
-                    ];
-                    continue;
-                }
+                $size = Helper::strlenWithoutDecoration((string) $value);
 
-                $this->columns[$column]['size'] =
-                    max($this->columns[$column]['size'], Helper::strlenWithoutDecoration($value));
+                $this->columns[$column] = ['size' => max(
+                    $this->columns[$column]['size'] ?? Helper::strlenWithoutDecoration((string) $column),
+                    $size,
+                )];
             }
         }
 
         return $this;
     }
 
-    protected function separator()
-    {
-        if (!$this->withStyle()) {
-            return;
-        }
-        $line = '+';
-        foreach ($this->columns as $column => $opts) {
-            $line .= '-' . Helper::strPad('-', $opts['size'], '-') . '-+';
-        }
-        $this->output->write($line, true);
-    }
-
-    protected function header()
-    {
-        if (!$this->withHeader()) {
-            return;
-        }
-
-        $closure = $this->withStyle() ? '|' : '';
-        $line = $closure;
-        foreach ($this->columns as $column => $opts) {
-            $line .= ' ' . Helper::strPad(mb_strtoupper($column), $opts['size'], ' ') . ' ' . $closure;
-        }
-        $this->output->write($line, true);
-    }
-
-    public function display()
+    public function display(): void
     {
         $this->generateColumns();
 
         if ($this->withHeader()) {
             $this->separator();
-
             $this->header();
         }
 
@@ -122,7 +78,7 @@ class Table
         foreach ($this->datas as $data) {
             $line = $closure;
             foreach ($this->columns as $column => $opts) {
-                $line .= ' ' . Helper::strPad(Arr::fetch($data, $column, ''), $opts['size'], ' ') . ' ' . $closure;
+                $line .= ' ' . Helper::strPad((string) ($data[$column] ?? ''), $opts['size'] ?? 0, ' ') . ' ' . $closure;
             }
             $this->output->write($line, true);
         }
@@ -130,12 +86,35 @@ class Table
         $this->separator();
     }
 
-    protected function withHeader()
+    protected function separator(): void
+    {
+        if (!$this->withStyle()) {
+            return;
+        }
+
+        $line = '+';
+        foreach ($this->columns as $opts) {
+            $line .= '-' . str_repeat('-', $opts['size'] ?? 0) . '-+';
+        }
+        $this->output->write($line, true);
+    }
+
+    protected function header(): void
+    {
+        $closure = $this->withStyle() ? '|' : '';
+        $line = $closure;
+        foreach ($this->columns as $column => $opts) {
+            $line .= ' ' . Helper::strPad(mb_strtoupper((string) $column), $opts['size'] ?? 0, ' ') . ' ' . $closure;
+        }
+        $this->output->write($line, true);
+    }
+
+    protected function withHeader(): bool
     {
         return !($this->style & self::NO_HEADER);
     }
 
-    protected function withStyle()
+    protected function withStyle(): bool
     {
         return !($this->style & self::NO_STYLE);
     }

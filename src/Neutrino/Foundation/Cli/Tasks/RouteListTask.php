@@ -1,149 +1,80 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Output\Table;
 use Neutrino\Cli\Task;
-use Neutrino\Constants\Services;
-use Neutrino\Support\Arr;
-use Neutrino\Support\Facades\Router;
 use Neutrino\Support\Str;
+use Phalcon\Mvc\Router\RouteInterface;
 
-/**
- * Class RouteListTask
- *
- * @package Neutrino\Foundation\Cli
- */
-class RouteListTask extends Task
+final class RouteListTask extends Task
 {
-    /**
-     * List all routes.
-     *
-     * @description List all routes.
-     *
-     * @option      --no-substitution: Doesn't replace matching group by params name
-     */
-    public function mainAction()
+    #[Description('List the HTTP routes.')]
+    #[Option('--no-substitution', 'Show the raw patterns, without replacing the placeholders.')]
+    public function mainAction(): void
     {
-        $infos = $this->getHttpRoutesInfos();
+        $http = HttpRoutes::load($this->getDI());
+        $defaults = $http->router->getDefaults();
+        $controllerSuffix = $http->dispatcher->getHandlerSuffix();
+        $actionSuffix = $http->dispatcher->getActionSuffix();
 
         $datas = [];
-        foreach ($infos['routes'] as $route) {
-            /** @var \Phalcon\Mvc\Router\Route $route */
+
+        /** @var RouteInterface $route */
+        foreach ($http->router->getRoutes() as $route) {
             $paths = $route->getPaths();
 
-            if (!$this->hasOption('no-substitution')) {
-                $compiled = Helper::describeRoutePattern($route, true);
-            } else {
-                $compiled = $route->getPattern();
-            }
-
             $httpMethods = $route->getHttpMethods();
-
             if (is_array($httpMethods)) {
                 $httpMethods = implode('|', $httpMethods);
             }
-            $middlewares = Arr::fetch($paths, 'middleware');
-            if (is_array($middlewares)) {
-                $_middlewares = [];
-                foreach ($middlewares as $key => $middleware) {
-                    if (is_int($key)) {
-                        $_middlewares[] = $middleware;
-                    } else {
-                        $_middlewares[] = $key;
-                    }
-                }
-                $middleware = implode('|', $_middlewares);
-            } else {
-                $middleware = $middlewares;
-            }
 
-            if (Arr::has($paths, 'controller')) {
-                $controller = Str::capitalize($paths['controller']);
-            } else {
-                $controller = Decorate::notice('{controller}');
-            }
+            $controller = isset($paths['controller']) && is_string($paths['controller'])
+                ? Str::capitalize($paths['controller'])
+                : Decorate::notice('{controller}');
+            $action = isset($paths['action']) && is_string($paths['action']) ? $paths['action'] : Decorate::notice('{action}');
 
-            $controller .= Arr::fetch($infos, 'controllerSuffix', '');
-
-            if (Arr::has($paths, 'action')) {
-                $action = $paths['action'];
-            } else {
-                $action = Decorate::notice('{action}');
-            }
-
-            $action .= Arr::fetch($infos, 'actionSuffix', '');
-
-            $module = Arr::get($paths, 'module');
-            $namespace = Arr::fetch($paths, 'namespace', Arr::fetch($infos['defaults'], 'namespace'));
+            $module = $paths['module'] ?? '';
+            $namespace = $paths['namespace'] ?? $defaults['namespace'] ?? '';
+            $module = is_string($module) ? $module : '';
+            $namespace = is_string($namespace) ? $namespace : '';
 
             $datas[$module . '::' . $namespace][] = [
-                'domain'     => $route->getHostname(),
-                'name'       => $route->getName(),
-                'method'     => $httpMethods,
-                'pattern'    => $compiled,
-                'action'     => $controller . '::' . $action,
-                'middleware' => $middleware
+                'domain'     => (string) $route->getHostname(),
+                'name'       => (string) $route->getName(),
+                'method'     => (string) $httpMethods,
+                'pattern'    => $this->hasOption('no-substitution') ? $route->getPattern() : Helper::describeRoutePattern($route, true),
+                'action'     => $controller . $controllerSuffix . '::' . $action . $actionSuffix,
+                'middleware' => self::middlewares($paths['middleware'] ?? null),
             ];
         }
 
         foreach ($datas as $key => $data) {
-            $parts = explode('::', $key, 2);
+            [$module, $namespace] = explode('::', $key, 2);
 
-            $this->table([['MODULE    : '.$parts[0]],['NAMESPACE : ' . $parts[1]]], [], Table::NO_HEADER);
-
+            $this->table([['MODULE    : ' . $module], ['NAMESPACE : ' . $namespace]], [], Table::NO_HEADER);
             $this->table($data);
-
             $this->line('');
         }
     }
 
-    /**
-     * List the Http Routes
-     *
-     * @return array
-     */
-    protected function getHttpRoutesInfos()
+    private static function middlewares(mixed $middlewares): string
     {
-        Router::clearResolvedInstances();
+        if (!is_array($middlewares)) {
+            return is_string($middlewares) ? $middlewares : '';
+        }
 
-        $cliRouter = $this->router;
-        $cliDispatcher = $this->dispatcher;
+        $names = [];
+        foreach ($middlewares as $key => $middleware) {
+            $names[] = is_int($key) ? (is_string($middleware) ? $middleware : '') : $key;
+        }
 
-        $this->di->remove(Services::ROUTER);
-        $this->di->remove(Services::DISPATCHER);
-
-        $httpRouterProvider = new \Neutrino\Providers\Http\Router;
-        $httpRouterProvider->registering();
-        $httpDispatcherProvider = new \Neutrino\Providers\Http\Dispatcher;
-        $httpDispatcherProvider->registering();
-
-        require BASE_PATH . '/routes/http.php';
-        /** @var \Phalcon\Mvc\Dispatcher $httpDispatcher */
-        $httpDispatcher = $this->di->get(Services::DISPATCHER);
-        $reflexionProperty = (new \ReflectionClass(get_class($httpDispatcher)))->getProperty('_handlerSuffix');
-        $reflexionProperty->setAccessible(true);
-
-        $routes = Router::getRoutes();
-        $defaults = Router::getDefaults();
-        $actionSuffix = $httpDispatcher->getActionSuffix();
-        $controllerSuffix = $reflexionProperty->getValue($httpDispatcher);
-
-        Router::clearResolvedInstances();
-
-        $this->di->remove(Services::ROUTER);
-        $this->di->remove(Services::DISPATCHER);
-
-        $this->di->setShared(Services::ROUTER, $cliRouter);
-        $this->di->setShared(Services::DISPATCHER, $cliDispatcher);
-
-        return [
-            'routes'           => $routes,
-            'defaults'         => $defaults,
-            'actionSuffix'     => $actionSuffix,
-            'controllerSuffix' => $controllerSuffix,
-        ];
+        return implode('|', $names);
     }
 }

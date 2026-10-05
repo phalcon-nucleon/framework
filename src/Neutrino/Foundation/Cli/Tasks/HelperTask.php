@@ -1,65 +1,89 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
-use Neutrino\Support\Arr;
-use Phalcon\Cli\Router\Route;
+use Phalcon\Cli\Router\RouteInterface;
 
 /**
- * Class HelperTask
- *
- * @package Neutrino\Foundation\Cli
+ * Help of a command: `help <command>`, or `<command> --help`.
  */
-class HelperTask extends Task
+final class HelperTask extends Task
 {
-    public function mainAction()
+    #[Description('Display the help of a command.')]
+    public function mainAction(): void
     {
-        $this->{Services::APP}->displayNeutrinoVersion();
+        /** @var \Neutrino\Foundation\Cli\Kernel $application */
+        $application = $this->getDI()->getShared(Services::APP);
+        /** @var \Neutrino\Cli\Router $router */
+        $router = $this->getDI()->getShared(Services::ROUTER);
+        /** @var \Phalcon\Cli\Dispatcher $dispatcher */
+        $dispatcher = $this->getDI()->getShared(Services::DISPATCHER);
+        $suffix = $dispatcher->getActionSuffix();
 
-        if ($this->hasArg('arguments')) {
-            $this->router->handle($this->getArg('arguments'));
+        $application->displayNeutrinoVersion();
 
-            if (!$this->router->wasMatched()) {
-                if (is_null($route = $this->tryHandle($this->getArg('arguments')))) {
-                    throw new \Exception('route not found');
-                }
-                $task   = Arr::fetch($route, 'task');
-                $action = Arr::fetch($route, 'action', 'main') . $this->dispatcher->getActionSuffix();
-            } else {
-                $task   = $this->router->getTaskName();
-                $action = ($this->router->getActionName() ?: 'main') . $this->dispatcher->getActionSuffix();
-            }
+        // `<command> --help` gives the command line in `arguments`; `help <command>` leaves it in the kernel arguments.
+        $arguments = $this->hasArg('arguments') ? $this->getArg('arguments') : $application->getArguments(true);
 
-        } else {
-            $task   = $this->getArg('task');
-            $action = $this->getArg('action') . $this->dispatcher->getActionSuffix();
+        // A task called directly (handle(['task' => …, 'action' => …, '--help'])).
+        if (is_array($arguments) && isset($arguments['task']) && is_string($arguments['task'])) {
+            $this->arguments['task'] = $arguments['task'];
+            $this->arguments['action'] = $arguments['action'] ?? 'main';
+            $arguments = '';
         }
 
-        $infos = Helper::getTaskInfos(
-            $task,
-            $action
-        );
+        $command = self::command($arguments);
+
+        if ($command === '' && !$this->hasArg('task')) {
+            $task = self::class;
+            $action = 'main' . $suffix;
+        } elseif ($command !== '') {
+            $router->handle($command);
+
+            if ($router->wasMatched()) {
+                $task = $router->getTaskName();
+                $action = ($router->getActionName() ?: 'main') . $suffix;
+            } else {
+                $paths = $this->tryHandle($command);
+
+                if ($paths === null) {
+                    $this->block(["Command \"$command\" not found."], 'error');
+
+                    return;
+                }
+
+                $task = self::string($paths['task'] ?? '');
+                $action = (self::string($paths['action'] ?? null) ?: 'main') . $suffix;
+            }
+        } else {
+            $task = self::string($this->getArg('task'));
+            $action = (self::string($this->getArg('action')) ?: 'main') . $suffix;
+        }
+
+        $infos = Helper::getTaskInfos($task, $action);
 
         $route = $this->resolveRoute($task, $action);
-
-        if (!empty($route)) {
+        if ($route !== null) {
             $this->line('Usage :');
             $this->info("\t" . Helper::describeRoutePattern($route, true));
         }
 
         $this->line('Description :');
-        $this->line("\t" . preg_replace('/' . PHP_EOL . '/', PHP_EOL . "\t", $infos['description']));
+        $this->line("\t" . str_replace(PHP_EOL, PHP_EOL . "\t", (string) ($infos['description'] ?? $infos['__exception'] ?? '')));
 
-        if (Arr::has($infos, 'arguments')) {
+        if (!empty($infos['arguments'])) {
             $this->line('Arguments :');
             foreach ($infos['arguments'] as $argument) {
                 $this->line("\t" . $argument);
             }
         }
-        if (Arr::has($infos, 'options')) {
+        if (!empty($infos['options'])) {
             $this->line('Options :');
             foreach ($infos['options'] as $option) {
                 $this->line("\t" . $option);
@@ -67,55 +91,70 @@ class HelperTask extends Task
         }
     }
 
-    /**
-     * @param $class
-     * @param $action
-     *
-     * @return null|Route
-     */
-    private function resolveRoute($class, $action)
+    private static function string(mixed $value): string
     {
-        $routes = $this->router->getRoutes();
+        return is_scalar($value) ? (string) $value : '';
+    }
 
-        $findedRoute = null;
-        foreach ($routes as $route) {
-            /** @var Route $route */
+    /**
+     * The command line the help is asked for: without the leading `help` command.
+     */
+    private static function command(mixed $arguments): string
+    {
+        $parts = is_array($arguments) ? array_values($arguments) : explode(' ', is_scalar($arguments) ? (string) $arguments : '');
+        $parts = array_values(array_filter(
+            array_map(static fn(mixed $p): string => is_scalar($p) ? trim((string) $p) : '', $parts),
+            static fn(string $p): bool => $p !== '',
+        ));
 
-            $paths = $route->getPaths();
-
-            if ($paths['task'] == $class) {
-                if (Arr::fetch($paths, 'action', 'main') . $this->dispatcher->getActionSuffix() == $action) {
-                    $findedRoute = $route;
-                    break;
-                }
-            }
+        if (($parts[0] ?? null) === 'help') {
+            array_shift($parts);
         }
 
-        if (!empty($findedRoute)) {
-            return $findedRoute;
+        return implode(' ', $parts);
+    }
+
+    private function resolveRoute(string $class, string $action): ?RouteInterface
+    {
+        /** @var \Neutrino\Cli\Router $router */
+        $router = $this->getDI()->getShared(Services::ROUTER);
+        /** @var \Phalcon\Cli\Dispatcher $dispatcher */
+        $dispatcher = $this->getDI()->getShared(Services::DISPATCHER);
+
+        /** @var RouteInterface $route */
+        foreach ($router->getRoutes() as $route) {
+            $paths = $route->getPaths();
+
+            if (($paths['task'] ?? null) === $class && ($paths['action'] ?? 'main') . $dispatcher->getActionSuffix() === $action) {
+                return $route;
+            }
         }
 
         return null;
     }
 
-    private function tryHandle($arg)
+    /**
+     * Finds the route of a command given with its arguments, by ignoring the parameters of the patterns.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function tryHandle(string $command): ?array
     {
-        $routes = $this->router->getRoutes();
+        /** @var \Neutrino\Cli\Router $router */
+        $router = $this->getDI()->getShared(Services::ROUTER);
 
-        $findedRoute = null;
-        foreach ($routes as $route) {
-            /** @var Route $route */
+        /** @var RouteInterface $route */
+        foreach ($router->getRoutes() as $route) {
             $pattern = $route->getCompiledPattern();
 
             do {
-                $old     = $pattern;
-                $pattern = preg_replace('/\([^\(\)]*\)(?:[+*]|\{[\d,]\})?/', '', $pattern);
-            } while ($pattern !== $old);
+                $previous = $pattern;
+                $pattern = (string) preg_replace('/\([^\(\)]*\)(?:[+*]|\{[\d,]\})?/', '', $pattern);
+            } while ($pattern !== $previous);
 
-            $pattern = trim(preg_replace('/ /', '\s*', $pattern));
+            $pattern = trim(str_replace(' ', '\s*', $pattern));
 
-            if (preg_match($pattern, trim($arg))) {
-
+            if (@preg_match($pattern, $command) === 1) {
                 return $route->getPaths();
             }
         }

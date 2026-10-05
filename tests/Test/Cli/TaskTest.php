@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Cli;
 
 use Fake\Kernels\Cli\StubKernelCli;
@@ -14,7 +16,7 @@ use Test\TestCase\TestCase;
 
 class TaskTest extends TestCase
 {
-    protected static function kernelClassInstance()
+    protected static function kernelClassInstance(): string
     {
         return StubKernelCli::class;
     }
@@ -27,7 +29,7 @@ class TaskTest extends TestCase
         return new StubTask();
     }
 
-    public function data()
+    public static function data(): array
     {
         return [
             ['h', true, 's', ['h' => true]],
@@ -37,10 +39,8 @@ class TaskTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider data
-     */
-    public function testOptions($shouldHave, $value, $shouldNotHave, $options)
+    #[\PHPUnit\Framework\Attributes\DataProvider('data')]
+    public function testOptions($shouldHave, $value, $shouldNotHave, $options): void
     {
         $this->mockService(Services::DISPATCHER, Dispatcher::class, true)
             ->expects($this->any())
@@ -57,10 +57,8 @@ class TaskTest extends TestCase
         $this->assertEquals($options, Reflexion::invoke($task, 'getOptions'));
     }
 
-    /**
-     * @dataProvider data
-     */
-    public function testArgs($shouldHave, $value, $shouldNotHave, $options)
+    #[\PHPUnit\Framework\Attributes\DataProvider('data')]
+    public function testArgs($shouldHave, $value, $shouldNotHave, $options): void
     {
         $this->mockService(Services::DISPATCHER, Dispatcher::class, true)
             ->expects($this->any())
@@ -77,7 +75,7 @@ class TaskTest extends TestCase
         $this->assertEquals($options, Reflexion::invoke($task, 'getArgs'));
     }
 
-    public function dataOutput()
+    public static function dataOutput(): array
     {
         return [
             ['info', 'test'],
@@ -88,10 +86,8 @@ class TaskTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataOutput
-     */
-    public function testOutput($func, $str)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataOutput')]
+    public function testOutput($func, $str): void
     {
         $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
@@ -104,7 +100,7 @@ class TaskTest extends TestCase
         $task->$func($str);
     }
 
-    public function testLine()
+    public function testLine(): void
     {
         $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
 
@@ -117,7 +113,7 @@ class TaskTest extends TestCase
         $task->line('test');
     }
 
-    public function testCallTask()
+    public function testCallTask(): void
     {
         $mock = $this->createMock(Kernel::class);
         $mock->expects($this->once())
@@ -127,11 +123,11 @@ class TaskTest extends TestCase
                 'action' => 'act',
                 'arg',
                 '-tOpt',
-                '--strOpt=val'
+                '--strOpt=val',
             ]);
 
+        $this->mockService(Services::APP, $mock);
         $task = $this->stubTask();
-        $task->application = $mock;
 
         $task->callTask('test', 'act', ['arg'], ['tOpt' => true, 'strOpt' => 'val']);
     }

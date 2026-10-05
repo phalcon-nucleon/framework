@@ -1,116 +1,96 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Cli\Tasks;
 
-use Fake\Kernels\Cli\StubKernelCli;
-use Neutrino\Cli\Output\Writer;
-use Neutrino\Constants\Services;
-use Neutrino\Debug\Reflexion;
-use Neutrino\Foundation\Cli\Tasks\ServerTask;
-use Neutrino\Process\Exception;
 use Neutrino\Process\Process;
-use Test\TestCase\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Test\Cli\CliTestCase;
 
-class ServerTaskTest extends TestCase
+final class ServerTaskTest extends CliTestCase
 {
-    protected static function kernelClassInstance()
+    private FakeProcess $process;
+
+    protected function setUp(): void
     {
-        return StubKernelCli::class;
+        parent::setUp();
+
+        $this->process = new FakeProcess();
+        $this->mockService(Process::class, $this->process);
     }
 
-    public function testHost()
+    public function testServerOnTheFirstFreePort(): void
     {
-        $server = new ServerTask;
+        $output = $this->runCommand('server:run');
 
-        $this->assertEquals('127.0.0.1', Reflexion::invoke($server, 'getHost'));
-
-        Reflexion::set($server, 'options', ['host' => 'localhost']);
-
-        $this->assertEquals('localhost', Reflexion::invoke($server, 'getHost'));
-
-        Reflexion::set($server, 'options', ['host' => true]);
-
-        try{
-            Reflexion::invoke($server, 'getHost');
-        } catch (\Exception $e){}
-
-        $this->assertTrue(isset($e));
-        $this->assertInstanceOf(\Exception::class, $e);
-        $this->assertEquals('Host can\'t be empty', $e->getMessage());
-        $e = null;
-
-        Reflexion::set($server, 'options', ['host' => '.example.com']);
-
-        try{
-            Reflexion::invoke($server, 'getHost');
-        } catch (\Exception $e){}
-
-        $this->assertTrue(isset($e));
-        $this->assertInstanceOf(\Exception::class, $e);
-        $this->assertEquals('Host [.example.com] is not valid.', $e->getMessage());
+        $this->assertMatchesRegularExpression('#\[OK\] http://127\.0\.0\.1:80\d\d#', $output);
+        $this->assertStringContainsString('started', $output);
+        $this->assertStringContainsString('[ERR] server suddenly stopped', $output);
+        $this->assertSame(['start', 'watch', 'close'], $this->process->calls);
     }
 
-    public function testPort()
+    public function testServerOnAGivenHostAndPort(): void
     {
+        $output = $this->runCommand('server:run --host=localhost --port=8765');
+
+        $this->assertStringContainsString('[OK] http://localhost:8765', $output);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function invalidOptions(): iterable
+    {
+        yield 'empty host' => ['--host', 'Host can\'t be empty'];
+        yield 'invalid host' => ['--host=.example.com', 'Host [.example.com] is not valid.'];
+        yield 'empty port' => ['--port', 'Port can\'t be empty'];
+    }
+
+    #[DataProvider('invalidOptions')]
+    public function testInvalidOptions(string $options, string $message): void
+    {
+        $this->assertStringContainsString($message, $this->runCommand('server:run ' . $options));
+        $this->assertSame([], $this->process->calls);
+    }
+
+    public function testPortAlreadyUsed(): void
+    {
+        $server = stream_socket_server('tcp://127.0.0.1:0');
+        $this->assertIsResource($server);
+        $port = (int) substr((string) strrchr((string) stream_socket_get_name($server, false), ':'), 1);
+
         try {
-            $p1 = new Process(PHP_BINARY . ' -S 127.0.0.1:8000');
-            $p2 = new Process(PHP_BINARY . ' -S 127.0.0.1:8001');
-
-            $p1->start();
-            $p2->start();
-
-            sleep(1);
-
-            $server = new ServerTask;
-
-            $this->assertEquals(8002, Reflexion::invoke($server, 'acquirePort', '127.0.0.1'));
-            $this->assertEquals(8002, Reflexion::invoke($server, 'getPort', '127.0.0.1'));
-
-            Reflexion::set($server, 'options', ['port' => true]);
-
-            try{
-                Reflexion::invoke($server, 'getPort', 'localhost');
-            } catch (\Exception $e){}
-
-            $this->assertTrue(isset($e));
-            $this->assertInstanceOf(\Exception::class, $e);
-            $this->assertEquals('Port can\'t be empty', $e->getMessage());
-
-            Reflexion::set($server, 'options', ['port' => 8000]);
-
-            try{
-                Reflexion::invoke($server, 'getPort', 'localhost');
-            } catch (\Exception $e){}
-
-            $this->assertTrue(isset($e));
-            $this->assertInstanceOf(\Exception::class, $e);
-            $this->assertEquals('Port [8000] on host [localhost] is already used.', $e->getMessage());
+            $output = $this->runCommand('server:run --port=' . $port);
         } finally {
-            $p1->close();
-            $p2->close();
+            fclose($server);
         }
+
+        $this->assertStringContainsString("Port [$port] on host [127.0.0.1] is already used.", $output);
+    }
+}
+
+/**
+ * Stands for Neutrino\Process\Process (ported in E14).
+ */
+class FakeProcess
+{
+    /** @var list<string> */
+    public array $calls = [];
+
+    public function start(): void
+    {
+        $this->calls[] = 'start';
     }
 
-    public function testServerCantStart()
+    public function watch(callable $callback): void
     {
-        $process = $this->mockService(Process::class, Process::class, false);
-        $process->expects($this->once())->method('start')->willThrowException(new Exception);
-
-        $output = $this->mockService(Services\Cli::OUTPUT, Writer::class, false);
-        $output->expects($this->exactly(3))->method('error');
-
-        $this->dispatchCli('quark server:run');
+        $this->calls[] = 'watch';
+        $callback("started\n", '');
     }
 
-    public function testServer()
+    public function close(): void
     {
-        $process = $this->mockService(Process::class, Process::class, false);
-        $process->expects($this->once())->method('start');
-
-        $output = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
-        $output->expects($this->exactly(3))->method('info');
-        $output->expects($this->exactly(3))->method('error');
-
-        $this->dispatchCli('quark server:run');
+        $this->calls[] = 'close';
     }
 }

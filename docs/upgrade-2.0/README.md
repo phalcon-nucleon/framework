@@ -67,7 +67,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | E3 | [Outils de test publics](epics/E03-outils-de-test.md) | Terminé | E2 |
 | E4 | [HTTP](epics/E04-http.md) | Terminé | E3 |
 | E5 | [Micro](epics/E05-micro.md) | Terminé | E3, E4-S4 |
-| E6 | [CLI](epics/E06-cli.md) | Rédigé | E3 |
+| E6 | [CLI](epics/E06-cli.md) | Terminé | E3 |
 | E7 | [Services d'infrastructure](epics/E07-services-infrastructure.md) | Rédigé | E3 |
 | E8 | [Auth & sécurité](epics/E08-auth-securite.md) | Rédigé | E4, E7 |
 | E9 | [Vues & Volt](epics/E09-vues.md) | Rédigé | E4 |

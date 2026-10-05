@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Cli\Output;
 
 use Fake\Kernels\Cli\Output\StubOutput;
@@ -23,34 +25,32 @@ class TableTest extends TestCase
         return new StubOutput();
     }
 
-    public function dataGenerateColumns()
+    public static function dataGenerateColumns(): array
     {
         return [
             [[
-                 'h1' => ['size' => 5], 'h2' => ['size' => 5]
-             ], [
-                 ['h1' => 't1', 'h2' => 't2'],
-                 ['h1' => 't.h.1', 'h2' => 't.h.2']
-             ]],
+                'h1' => ['size' => 5], 'h2' => ['size' => 5],
+            ], [
+                ['h1' => 't1', 'h2' => 't2'],
+                ['h1' => 't.h.1', 'h2' => 't.h.2'],
+            ]],
             [[
-                 'h1' => ['size' => 2], 'h2' => ['size' => 5]
-             ], [
-                 ['h1' => '', 'h2' => 't2'],
-                 ['h1' => 't', 'h2' => 't.h.2']
-             ]],
+                'h1' => ['size' => 2], 'h2' => ['size' => 5],
+            ], [
+                ['h1' => '', 'h2' => 't2'],
+                ['h1' => 't', 'h2' => 't.h.2'],
+            ]],
             [[
-                 'h1' => ['size' => 2], 'h2' => ['size' => 5]
-             ], [
-                 ['h2' => 't2'],
-                 ['h1' => 't', 'h2' => 't.h.2']
-             ]]
+                'h1' => ['size' => 2], 'h2' => ['size' => 5],
+            ], [
+                ['h2' => 't2'],
+                ['h1' => 't', 'h2' => 't.h.2'],
+            ]],
         ];
     }
 
-    /**
-     * @dataProvider dataGenerateColumns
-     */
-    public function testGenerateColumns($expected, $datas)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataGenerateColumns')]
+    public function testGenerateColumns($expected, $datas): void
     {
         $output = $this->consoleOutput();
 
@@ -63,16 +63,16 @@ class TableTest extends TestCase
         $this->assertEquals($expected, $columns);
     }
 
-    public function dataHeader()
+    public static function dataHeader(): array
     {
         return [
             ['| H1    | H2    |' . PHP_EOL, [
                 ['h1' => 't1', 'h2' => 't2'],
-                ['h1' => 't.h.1', 'h2' => 't.h.2']
+                ['h1' => 't.h.1', 'h2' => 't.h.2'],
             ], [], Table::STYLE_DEFAULT],
             ['| H1 | H2    |' . PHP_EOL, [
                 ['h1' => '', 'h2' => 't2'],
-                ['h1' => 't', 'h2' => 't.h.2']
+                ['h1' => 't', 'h2' => 't.h.2'],
             ], [], Table::STYLE_DEFAULT],
             ['| H1 | H2    |' . PHP_EOL, [
                 ['h1' => 't', 'h2' => 't.h.2'],
@@ -93,10 +93,8 @@ class TableTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataHeader
-     */
-    public function testHeader($expected, $datas, $headers, $style)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataHeader')]
+    public function testHeader($expected, $datas, $headers, $style): void
     {
         $output = $this->consoleOutput();
 
@@ -109,16 +107,16 @@ class TableTest extends TestCase
         $this->assertEquals($expected, $output->out);
     }
 
-    public function dataSeparator()
+    public static function dataSeparator(): array
     {
         return [
             ['+-------+-------+' . PHP_EOL, [
                 ['h1' => 't1', 'h2' => 't2'],
-                ['h1' => 't.h.1', 'h2' => 't.h.2']
+                ['h1' => 't.h.1', 'h2' => 't.h.2'],
             ], [], Table::STYLE_DEFAULT],
             ['+----+-------+' . PHP_EOL, [
                 ['h1' => '', 'h2' => 't2'],
-                ['h1' => 't', 'h2' => 't.h.2']
+                ['h1' => 't', 'h2' => 't.h.2'],
             ], [], Table::STYLE_DEFAULT],
             ['+----+-------+' . PHP_EOL, [
                 ['h1' => 't', 'h2' => 't.h.2'],
@@ -139,10 +137,8 @@ class TableTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataSeparator
-     */
-    public function testSeparator($expected, $datas, $headers, $style)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataSeparator')]
+    public function testSeparator($expected, $datas, $headers, $style): void
     {
         $output = $this->consoleOutput();
 
@@ -155,7 +151,7 @@ class TableTest extends TestCase
         $this->assertEquals($expected, $output->out);
     }
 
-    public function dataDisplay()
+    public static function dataDisplay(): array
     {
         return [
             [
@@ -167,16 +163,16 @@ class TableTest extends TestCase
                 '+-------+-------+' . PHP_EOL
                 , [
                     ['h1' => 't1', 'h2' => 't2'],
-                    ['h1' => 't.h.1', 'h2' => 't.h.2']
-                ], [], Table::STYLE_DEFAULT
+                    ['h1' => 't.h.1', 'h2' => 't.h.2'],
+                ], [], Table::STYLE_DEFAULT,
             ], [
                 ' H1     H2    ' . PHP_EOL .
                 ' t1     t2    ' . PHP_EOL .
                 ' t.h.1  t.h.2 ' . PHP_EOL
                 , [
                     ['h1' => 't1', 'h2' => 't2'],
-                    ['h1' => 't.h.1', 'h2' => 't.h.2']
-                ], [], Table::NO_STYLE
+                    ['h1' => 't.h.1', 'h2' => 't.h.2'],
+                ], [], Table::NO_STYLE,
             ], [
                 '+-------+-------+' . PHP_EOL .
                 '| H1    | H2    |' . PHP_EOL .
@@ -186,16 +182,14 @@ class TableTest extends TestCase
                 '+-------+-------+' . PHP_EOL
                 , [
                     ['h1' => 't1', 'h2' => 't2'],
-                    ['h1' => "\033[32mt.h.1\033[39m", 'h2' => 't.h.2']
-                ], [], Table::STYLE_DEFAULT
+                    ['h1' => "\033[32mt.h.1\033[39m", 'h2' => 't.h.2'],
+                ], [], Table::STYLE_DEFAULT,
             ],
         ];
     }
 
-    /**
-     * @dataProvider dataDisplay
-     */
-    public function testDisplay($expected,  $datas, $headers, $style)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataDisplay')]
+    public function testDisplay($expected, $datas, $headers, $style): void
     {
         $output = $this->consoleOutput();
 

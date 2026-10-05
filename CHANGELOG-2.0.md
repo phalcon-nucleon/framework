@@ -11,6 +11,7 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - `Neutrino\Config\Config`: a `Phalcon\Config\Config` with reads 7 to 9 times faster.
  - `Kernelable::handleIncoming()`.
  - `FuncTestCase::dispatch()`: request headers and JSON body.
+ - CLI: `ide-helper` and `dotconst:cache` commands; task documentation attributes (`Neutrino\Cli\Attribute`); `ProvidesTasks`; `NO_COLOR`.
  - Micro handlers `'Controller::action'` and `[Controller::class, 'action']`; `Micro\MiddlewarePosition`.
  - `StatusCode`: 102, 103, 421, 425 and 451; `UNAUTHORIZED`, `UPGRADE_REQUIRED`, `BANDWIDTH_LIMIT_EXCEEDED`.
  - Event constants for the Phalcon 5 events: router, di, `db:connectionLost`, dispatcher binding and action calls, micro binding and exceptions, model `prepareSave` and `validation`, view compilation.
@@ -30,6 +31,7 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Route middlewares declared as `[Middleware::class => $parameter]`.
  - Micro: a Before middleware returning `false` stops the request (Phalcon 5 ignores the returned value).
  - `Micro\Router::add()` returns the route; the controller of a Micro route is built once per request.
+ - CLI: `help <command>` and `help` alone; task options no longer break actions without parameters; a task run twice in a process reads its current options; `route:list` and `route:cache` no longer replace the console router; output blocks honour their padding.
  - `route:cache`: route names and hostnames are escaped; routes that cannot be cached are rejected instead of being lost.
 
 ### Removed

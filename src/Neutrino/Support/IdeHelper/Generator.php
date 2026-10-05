@@ -56,13 +56,20 @@ final class Generator
     /** @var array<string, class-string>|null */
     private ?array $services = null;
 
+    /** @var list<DiInterface> */
+    private readonly array $containers;
+
     /**
+     * @param DiInterface|array<DiInterface>      $di      Containers to document (e.g. of the CLI and HTTP kernels);
+     *                                                     for a service defined in several, the last one wins
      * @param list<class-string<Facades\Facade>> $facades Facades to document: the framework's and the application's
      */
     public function __construct(
-        private readonly DiInterface $di,
+        DiInterface|array $di,
         private readonly array $facades = self::FACADES,
-    ) {}
+    ) {
+        $this->containers = $di instanceof DiInterface ? [$di] : array_values($di);
+    }
 
     /**
      * Class of each service, by service name. Services whose class cannot be found are left out.
@@ -77,11 +84,13 @@ final class Generator
 
         $services = [];
 
-        foreach ($this->di->getServices() as $name => $service) {
-            $class = $this->classOf((string) $name, $service);
+        foreach ($this->containers as $di) {
+            foreach ($di->getServices() as $name => $service) {
+                $class = $this->classOf($di, (string) $name, $service);
 
-            if ($class !== null) {
-                $services[(string) $name] = $class;
+                if ($class !== null) {
+                    $services[(string) $name] = $class;
+                }
             }
         }
 
@@ -107,6 +116,20 @@ final class Generator
         }
 
         return array_keys($files);
+    }
+
+    /**
+     * Writes `_ide_helper.php` only.
+     *
+     * @return string The file written
+     */
+    public function writeIdeHelper(string $directory): string
+    {
+        $file = $directory . DIRECTORY_SEPARATOR . self::IDE_HELPER_FILE;
+
+        AtomicFile::write($file, $this->renderIdeHelper());
+
+        return $file;
     }
 
     public function renderIdeHelper(): string
@@ -176,7 +199,7 @@ final class Generator
     /**
      * @return class-string|null
      */
-    private function classOf(string $name, ServiceInterface $service): ?string
+    private function classOf(DiInterface $di, string $name, ServiceInterface $service): ?string
     {
         $definition = $service->getDefinition();
 
@@ -193,7 +216,7 @@ final class Generator
         }
 
         try {
-            $instance = $this->di->get($name);
+            $instance = $di->get($name);
         } catch (Throwable) {
             return null;
         }

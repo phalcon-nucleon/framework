@@ -15,9 +15,9 @@ use Neutrino\Dotconst;
 use Neutrino\Foundation\Http\RouteCompiler;
 use Neutrino\Support\Facades\Facade;
 
-const PORTED = '/^Neutrino\\\\(Foundation\\\\(Bootstrap|Kernelize|ProviderRegistrar|Http\\\\|Micro\\\\|Middleware\\\\(Application|Controller|Dispatcher))'
+const PORTED = '/^Neutrino\\\\(Foundation\\\\(Bootstrap|Kernelize|ProviderRegistrar|Http\\\\|Micro\\\\|Cli\\\\|Middleware\\\\(Application|Controller|Dispatcher))'
     . '|Support\\\\(Provider|SimpleProvider|Facades|Path|Arr|Str|AtomicFile)|Constants|Dotconst|Config\\\\(Config|Loader)|Events|Interfaces'
-    . '|Providers\\\\(Url|Cookies|Http|Cli|Micro)|Error\\\\Handler|Http\\\\|Micro\\\\|Version|Module)/';
+    . '|Providers\\\\(Url|Cookies|Http|Cli|Micro)|Error\\\\Handler|Http\\\\|Micro\\\\|Cli\\\\|Version|Module)/';
 
 $root = dirname(__DIR__);
 $app = $root . '/app';

@@ -1,44 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Group;
 use Neutrino\Cli\Output\Helper;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
-use Neutrino\Support\Arr;
 use Phalcon\Cli\Router\Route;
+use Phalcon\Cli\Router\RouteInterface;
 
-/**
- * Class ListTask
- *
- * @package Neutrino\Foundation\Cli
- */
-class ListTask extends Task
+final class ListTask extends Task
 {
-    protected $reflections = [];
-    protected $scanned     = [];
-    protected $describes   = [];
+    /** @var list<array<string, mixed>> */
+    private array $describes = [];
 
-    /**
-     * List all commands available.
-     *
-     * @description List all commands available.
-     */
-    public function mainAction()
+    #[Description('List all commands available.')]
+    public function mainAction(): void
     {
         $this->displayHeader();
 
-        $routes = $this->router->getRoutes();
-
+        /** @var \Neutrino\Cli\Router $router */
+        $router = $this->getDI()->getShared(Services::ROUTER);
         $delimiter = Route::getDelimiter();
-        foreach ($routes as $route) {
-            /** @var Route $route */
-            // Default route
+
+        /** @var RouteInterface $route */
+        foreach ($router->getRoutes() as $route) {
+            // Default routes of the Phalcon CLI router
             $pattern = $route->getPattern();
-            if ($pattern === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)[$delimiter]{0,1}$#" ||
-                $pattern === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)$delimiter([a-zA-Z0-9\\.\\_]+)($delimiter.*)*$#"
+            if ($pattern === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)[$delimiter]{0,1}$#"
+                || $pattern === "#^(?:$delimiter)?([a-zA-Z0-9\\_\\-]+)$delimiter([a-zA-Z0-9\\.\\_]+)($delimiter.*)*$#"
             ) {
                 continue;
             }
@@ -47,68 +41,45 @@ class ListTask extends Task
         }
 
         $datas = [];
-
         foreach ($this->describes as $describe) {
-            if (isset($describe['__exception'])) {
-                $datas[$describe['cmd']] = Decorate::error(explode(PHP_EOL, $describe['__exception'], 2)[0]);
-            } else {
-                $datas[$describe['cmd']] = explode(PHP_EOL, $describe['description'], 2)[0];
-            }
+            $text = $describe['__exception'] ?? $describe['description'] ?? '';
+            $line = explode(PHP_EOL, is_string($text) ? $text : '', 2)[0];
+            $cmd = $describe['cmd'] ?? '';
+
+            $datas[is_string($cmd) ? $cmd : ''] = isset($describe['__exception']) ? Decorate::error($line) : $line;
         }
 
         $this->notice('Available Commands :');
 
-        (new Group($this->output, $datas, Group::SORT_ASC))->display();
+        (new Group($this->writer(), $datas, Group::SORT_ASC))->display();
     }
 
-    /**
-     * Describe a \Phalcon\Cli\Router\Route
-     *
-     * @param \Phalcon\Cli\Router\Route $route
-     */
-    protected function describeRoute(Route $route)
+    private function describeRoute(RouteInterface $route): void
     {
         $paths = $route->getPaths();
 
-        $class = $paths['task'];
+        /** @var \Phalcon\Cli\Dispatcher $dispatcher */
+        $dispatcher = $this->getDI()->getShared(Services::DISPATCHER);
+        $action = (string) ($paths['action'] ?? 'main') . $dispatcher->getActionSuffix();
 
-        $action = Arr::fetch($paths, 'action', 'main') . $this->dispatcher->getActionSuffix();
-
-        $this->scanned[$class . '::' . $action] = true;
-
-        $compiled = Helper::describeRoutePattern($route, true);
-
-        $this->describe($compiled, $class, $action);
+        $this->describe(Helper::describeRoutePattern($route, true), (string) ($paths['task'] ?? ''), $action);
     }
 
-    /**
-     * @param string $pattern
-     * @param string $class
-     * @param string $action
-     */
-    protected function describe($pattern, $class, $action)
+    private function describe(string $pattern, string $class, string $action): void
     {
         $infos = Helper::getTaskInfos($class, $action);
 
-        if (!empty($infos['options'])) {
-            $infos['options'] = implode(', ', $infos['options']);
-        }
-        if (!empty($infos['arguments'])) {
-            $infos['arguments'] = implode(', ', $infos['arguments']);
-        }
-
-        if (isset($infos['__exception'])) {
-            $infos['cmd'] = Decorate::error($pattern);
-        } else {
-            $infos['cmd'] = Decorate::info($pattern);
-        }
+        $infos['cmd'] = isset($infos['__exception']) ? Decorate::error($pattern) : Decorate::info($pattern);
 
         $this->describes[] = $infos;
     }
 
-    protected function displayHeader()
+    private function displayHeader(): void
     {
-        $this->{Services::APP}->displayNeutrinoVersion();
+        /** @var \Neutrino\Foundation\Cli\Kernel $application */
+        $application = $this->getDI()->getShared(Services::APP);
+        $application->displayNeutrinoVersion();
+
         $this->notice('Usage :');
         $this->line('  command [options] [arguments]');
         $this->line('');
@@ -121,4 +92,3 @@ class ListTask extends Task
         $this->line('');
     }
 }
-

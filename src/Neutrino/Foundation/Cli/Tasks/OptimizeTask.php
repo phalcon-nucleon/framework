@@ -1,38 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
+use Neutrino\Constants\Services;
 use Neutrino\Foundation\Optimize\PreloadGenerator;
+use Phalcon\Config\Config;
+use Throwable;
 
-/**
- * Class OptimizeTask
- *
- * @package Neutrino\Foundation\Cli
- */
-class OptimizeTask extends Task
+final class OptimizeTask extends Task
 {
-    private $compileTasks = [
+    private const array COMPILE_TASKS = [
         ConfigCacheTask::class,
         DotconstCacheTask::class,
-        RouteCacheTask::class
+        RouteCacheTask::class,
     ];
 
-    /**
-     * Runs all optimizations: authoritative Composer classmap, configuration,
-     * dotconst and routes caches, and the OPcache preload script.
-     *
-     * @description Runs all optimizations.
-     *
-     * @option      -f, --force: Force optimization in debug mode.
-     * @option      --no-dump: Do not run `composer dump-autoload`.
-     * @option      --apcu: Use APCu to cache the Composer class lookups.
-     * @option      --no-dev: Exclude require-dev packages from the autoloader.
-     * @option      --composer={path}: Composer binary (default: composer).
-     * @option      --no-preload: Do not generate the OPcache preload script.
-     */
-    public function mainAction()
+    #[Description('Runs all optimizations: authoritative Composer classmap, configuration, dotconst and routes caches, OPcache preload script.')]
+    #[Option('-f, --force', 'Force optimization in debug mode.')]
+    #[Option('--no-dump', 'Do not run `composer dump-autoload`.')]
+    #[Option('--apcu', 'Use APCu to cache the Composer class lookups.')]
+    #[Option('--no-dev', 'Exclude require-dev packages from the autoloader.')]
+    #[Option('--composer={path}', 'Composer binary (default: composer).')]
+    #[Option('--no-preload', 'Do not generate the OPcache preload script.')]
+    public function mainAction(): void
     {
         if (APP_DEBUG && !$this->hasOption('f', 'force')) {
             $this->info('Application is in debug mode.');
@@ -45,10 +41,8 @@ class OptimizeTask extends Task
             return;
         }
 
-        foreach ($this->compileTasks as $compileTask) {
-            $this->application->handle([
-                'task' => $compileTask
-            ]);
+        foreach (self::COMPILE_TASKS as $task) {
+            $this->callTask($task, 'main');
         }
 
         if (!$this->hasOption('no-preload')) {
@@ -56,11 +50,12 @@ class OptimizeTask extends Task
         }
     }
 
-    private function dumpAutoload()
+    private function dumpAutoload(): bool
     {
-        $this->output->write(Decorate::notice(str_pad('Generating authoritative classmap', 40, ' ')), false);
+        $this->writer()->write(Decorate::notice(str_pad('Generating authoritative classmap', 40)), false);
 
-        $command = [$this->getOption('composer', 'composer'), 'dump-autoload', '--classmap-authoritative', '--quiet'];
+        $composer = $this->getOption('composer', 'composer');
+        $command = [is_string($composer) ? $composer : 'composer', 'dump-autoload', '--classmap-authoritative', '--quiet'];
         if ($this->hasOption('apcu')) {
             $command[] = '--apcu';
         }
@@ -68,7 +63,7 @@ class OptimizeTask extends Task
             $command[] = '--no-dev';
         }
 
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, BASE_PATH);
+        $process = @proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, BASE_PATH);
         if ($process === false) {
             $this->error('Error');
             $this->block(['Cannot run: ' . implode(' ', $command)], 'error');
@@ -92,21 +87,25 @@ class OptimizeTask extends Task
         return true;
     }
 
-    private function generatePreload()
+    private function generatePreload(): void
     {
-        $this->output->write(Decorate::notice(str_pad('Generating OPcache preload script', 40, ' ')), false);
+        $this->writer()->write(Decorate::notice(str_pad('Generating OPcache preload script', 40)), false);
 
-        $config = isset($this->config->optimize->preload) ? $this->config->optimize->preload->toArray() : [];
+        /** @var Config $config */
+        $config = $this->getDI()->getShared(Services::CONFIG);
+        $preload = $config->path('optimize.preload');
+        $preload = $preload instanceof Config ? $preload->toArray() : [];
 
         try {
-            $result = (new PreloadGenerator(
-                BASE_PATH,
-                BASE_PATH . '/vendor',
-                isset($config['namespaces']) ? $config['namespaces'] : ['Neutrino\\'],
-                isset($config['paths']) ? $config['paths'] : null,
-                isset($config['excludes']) ? $config['excludes'] : PreloadGenerator::DEFAULT_EXCLUDES
-            ))->generate();
-        } catch (\Exception $e) {
+            /** @var list<string> $namespaces */
+            $namespaces = $preload['namespaces'] ?? ['Neutrino\\'];
+            /** @var list<string>|null $paths */
+            $paths = $preload['paths'] ?? null;
+            /** @var list<string> $excludes */
+            $excludes = $preload['excludes'] ?? PreloadGenerator::DEFAULT_EXCLUDES;
+
+            $result = (new PreloadGenerator(BASE_PATH, BASE_PATH . '/vendor', $namespaces, $paths, $excludes))->generate();
+        } catch (Throwable $e) {
             $this->error('Error');
             $this->block([$e->getMessage()], 'error');
 

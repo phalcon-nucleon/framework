@@ -83,7 +83,7 @@ Pour rappel, `phalcon/migrations` a été écarté : il est déclaratif (une cla
 - Tests de `tests/Test/Database/Migrations/Storage` migrés.
 
 ### E11-S5 · Provider et tâches CLI
-- `MigrationsServicesProvider` sur `Phalcon\Di\Di`, sans `Di::getDefault()`. Il enregistre aussi les tâches via E6-S3.
+- `MigrationsServicesProvider` sur `Phalcon\Di\Di`, sans `Di::getDefault()`. Il déclare aussi les tâches en implémentant `Neutrino\Cli\ProvidesTasks` (E6-S3) ; elles ne sont plus déclarées en dur dans le router CLI depuis E6.
 - Tâches `migrate`, `migrate:install`, `migrate:status`, `migrate:rollback`, `migrate:reset`, `migrate:refresh`, `migrate:fresh` et `make:migration`, typées et documentées par attributs, avec les options `--database`, `--step`, `--pretend`, `--path` et `--force` (confirmation en production).
 - Tests de `tests/Test/Database/Cli` migrés.
 

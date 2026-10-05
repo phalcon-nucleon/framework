@@ -1,6 +1,6 @@
 # E6 — CLI
 
-**Statut** : Rédigé · **Dépend de** : E3 · **Bloque** : E11
+**Statut** : Terminé · **Dépend de** : E3 · **Bloque** : E11
 
 ## Objectif
 
@@ -92,3 +92,31 @@ Porter la console Nucleon sur Phalcon 5 : kernel CLI, router, `Task`, sortie et 
 - `list` et `help` affichent descriptions, options et arguments avec `opcache.save_comments=0`.
 - `ide-helper` produit des fichiers valides pour `tests/.fake`.
 - Mesures : le boot du kernel CLI et l'exécution d'une tâche simple ne sont pas moins bons que ceux de la 1.3.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Kernel CLI | Fait | `handle(?array)`, `handleIncoming()` (lit `$_SERVER['argv']` si aucun argument n'a été posé), redirection `-h` / `--help` vers `HelperTask`, options globales `-q`, `-s`, `--colors`, `--no-colors`. Tests de bout en bout (`KernelCliTest`). |
+| S2 · `Task`, `Router`, Output, Questions | Fait | Tout typé. `Task` : l'entrée des questions est injectable (`$input`), arguments et options relus avant chaque action (`beforeExecuteRoute()`) car Phalcon partage l'instance d'une tâche. `Writer::clean()` idempotent (le kernel l'appelle aussi en fin de commande). `Decorate` : `stream_isatty()`, `NO_COLOR`, `sapi_windows_vt100_support()` sous Windows. `Block` : la dernière ligne respectait 4 au lieu du `padding` demandé. |
+| S3 · Providers et tâches | Fait | Interface `Neutrino\Cli\ProvidesTasks` (méthode statique `tasks()`), lue par le provider Router sur les providers déclarés par le kernel (`Kernelize::getProviders()`), sans les instancier. Le provider Router déclare les tâches du framework par ce biais. Les tâches de migration ne sont plus déclarées en dur (E11 les rebranche). |
+| S4 · Attributs de documentation | Fait | `Neutrino\Cli\Attribute\{Description, Option, Argument}` ; toutes les tâches du framework annotées (testé). Les docblocks restent lus en repli, avec un `E_USER_DEPRECATED` par action. Testé avec `opcache.save_comments=0` dans un processus séparé : les attributs restent, les docblocks disparaissent. |
+| S5 · Tâches du framework | Fait | `final`, typées, attributs. `dotconst:cache` devient une commande. `route:cache` et `route:list` chargent les routes HTTP dans un conteneur séparé (`HttpRoutes`) au lieu de remplacer les services du kernel CLI ; `route:list` lit le suffixe des controllers par `getHandlerSuffix()`. `view:clear` vide le dossier sans le supprimer (sous-dossiers compris). `server:run` : options typées, port numérique. Tests de bout en bout (`FrameworkTasksTest`, `ServerTaskTest`) avec une sortie en mémoire ; les anciens tests à base de `withConsecutive()` (supprimé de PHPUnit) sont remplacés. |
+| S6 · `ide-helper` | Fait | Documente le conteneur du kernel CLI et les kernels donnés par `--kernel` (ou `ide_helper.kernels`) ; pour un même service, le dernier kernel l'emporte (le router HTTP documente `$this->router`). Facades de l'app : `ide_helper.facades`. Options `--output-dir`, `--no-meta`. Le générateur d'E2 accepte désormais plusieurs conteneurs. |
+
+Suite `Cli` activée (135 tests). 479 tests au total, verts sur Phalcon 5.22 et 6. Baseline PHPStan : 1 700 → 1 360. Outil ajouté : `docs/upgrade-2.0/tools/port-phpunit-tests.py`, portage mécanique des tests PHPUnit 5 (signatures, providers statiques, attributs, `expectException`).
+
+### Comportements de Phalcon 5 corrigés côté Nucleon
+
+- **Options passées aux actions.** `Cli\Dispatcher::callActionMethod()` ajoute les options aux arguments de l'action, en arguments nommés : `mainAction()` échoue dès qu'une option est donnée (« Unknown named parameter »). `Neutrino\Cli\Dispatcher` n'y passe que les paramètres de la route ; les tâches lisent leurs options par `getOption()`, comme en 1.3.
+- **Route sans action.** `Cli\Router` refuse `null` pour l'action (propriété typée) : `addTask()` ne la renseigne plus quand elle est absente.
+- **Motif de `help`.** `help ( .*)*` exigeait deux espaces après `help` et ne correspondait pas à `help` seul : il devient `help( .*)*`.
+
+### Mesures (`bench/compare.sh`, 100 itérations)
+
+| Scénario | Autoloader simple | Tel que déployé (`optimize`) |
+|---|---|---|
+| boot-cli | +10,5 % temps, +2,5 % mémoire | **−37,9 %** temps, **−37,4 %** mémoire |
+| cli (tâche simple) | +12,4 %, +1,0 % | **−37,9 %**, **−34,7 %** |
+
+La tâche de l'app de bench, écrite pour la 1.3 (`mainAction()` sans type), tourne sans modification.

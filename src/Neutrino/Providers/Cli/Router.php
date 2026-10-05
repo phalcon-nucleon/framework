@@ -1,75 +1,63 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers\Cli;
 
+use Neutrino\Cli\ProvidesTasks;
+use Neutrino\Cli\Router as CliRouter;
 use Neutrino\Constants\Services;
-use Neutrino\Cli\Router as NeutrinoRouter;
-use Neutrino\Database\Cli\Tasks\FreshTask;
-use Neutrino\Database\Cli\Tasks\InstallTask;
-use Neutrino\Database\Cli\Tasks\MakerTask;
-use Neutrino\Database\Cli\Tasks\MigrateTask;
-use Neutrino\Database\Cli\Tasks\RefreshTask;
-use Neutrino\Database\Cli\Tasks\ResetTask;
-use Neutrino\Database\Cli\Tasks\RollbackTask;
-use Neutrino\Database\Cli\Tasks\StatusTask;
-use Neutrino\Foundation\Cli\Tasks\ClearCompiledTask;
-use Neutrino\Foundation\Cli\Tasks\ConfigCacheTask;
-use Neutrino\Foundation\Cli\Tasks\ConfigClearTask;
-use Neutrino\Foundation\Cli\Tasks\DefaultTask;
-use Neutrino\Foundation\Cli\Tasks\HelperTask;
-use Neutrino\Foundation\Cli\Tasks\ListTask;
-use Neutrino\Foundation\Cli\Tasks\OptimizeTask;
-use Neutrino\Foundation\Cli\Tasks\RouteCacheTask;
-use Neutrino\Foundation\Cli\Tasks\RouteListTask;
-use Neutrino\Foundation\Cli\Tasks\ServerTask;
-use Neutrino\Foundation\Cli\Tasks\ViewClearTask;
+use Neutrino\Foundation\Cli\Tasks;
 use Neutrino\Support\Provider;
 
 /**
- * Class Router
- *
- *  @package Neutrino\Foundation\Bootstrap
+ * Console router: the framework commands, and those of the providers implementing {@see ProvidesTasks}.
  */
-class Router extends Provider
+class Router extends Provider implements ProvidesTasks
 {
     protected string $name = Services::ROUTER;
 
     protected bool $shared = true;
 
-    /**
-     * @return \Phalcon\Cli\Router
-     */
-    protected function register()
+    public static function tasks(): array
     {
-        $router = new NeutrinoRouter(false);
+        return [
+            'help( .*)*'     => Tasks\HelperTask::class,
+            'list'           => Tasks\ListTask::class,
+            'optimize'       => Tasks\OptimizeTask::class,
+            'clear-compiled' => Tasks\ClearCompiledTask::class,
+            'config:cache'   => Tasks\ConfigCacheTask::class,
+            'config:clear'   => Tasks\ConfigClearTask::class,
+            'dotconst:cache' => Tasks\DotconstCacheTask::class,
+            'route:list'     => Tasks\RouteListTask::class,
+            'route:cache'    => Tasks\RouteCacheTask::class,
+            'view:clear'     => Tasks\ViewClearTask::class,
+            'server:run'     => Tasks\ServerTask::class,
+            'ide-helper'     => Tasks\IdeHelperTask::class,
+        ];
+    }
 
-        $router->setDefaultTask(DefaultTask::class);
+    protected function register(): CliRouter
+    {
+        $router = new CliRouter(false);
 
-        $router->addTask('help ( .*)*', HelperTask::class);
-        $router->addTask('list', ListTask::class);
+        $router->setDefaultTask(Tasks\DefaultTask::class);
 
-        $router->addTask('optimize', OptimizeTask::class);
-        $router->addTask('clear-compiled', ClearCompiledTask::class);
+        $application = $this->getDI()->getShared(Services::APP);
+        $providers = is_object($application) && method_exists($application, 'getProviders') ? $application->getProviders() : [];
+        $providers = is_array($providers) ? array_filter($providers, 'is_string') : [];
 
+        foreach (array_unique([static::class, ...array_values($providers)]) as $provider) {
+            if (!is_subclass_of($provider, ProvidesTasks::class)) {
+                continue;
+            }
 
-        $router->addTask('config:cache', ConfigCacheTask::class);
-        $router->addTask('config:clear', ConfigClearTask::class);
+            foreach ($provider::tasks() as $command => $task) {
+                [$class, $action] = is_array($task) ? [$task[0], $task[1] ?? null] : [$task, null];
 
-        $router->addTask('route:list', RouteListTask::class);
-        $router->addTask('route:cache', RouteCacheTask::class);
-
-        $router->addTask('view:clear', ViewClearTask::class);
-
-        $router->addTask('migrate', MigrateTask::class);
-        $router->addTask('migrate:install', InstallTask::class);
-        $router->addTask('migrate:status', StatusTask::class);
-        $router->addTask('migrate:fresh', FreshTask::class);
-        $router->addTask('migrate:refresh', RefreshTask::class);
-        $router->addTask('migrate:reset', ResetTask::class);
-        $router->addTask('migrate:rollback', RollbackTask::class);
-        $router->addTask('make:migration {name}', MakerTask::class);
-
-        $router->addTask('server:run', ServerTask::class);
+                $router->addTask($command, $class, $action);
+            }
+        }
 
         return $router;
     }

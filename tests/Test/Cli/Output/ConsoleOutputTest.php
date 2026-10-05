@@ -1,32 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Cli\Output;
 
 use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Decorate;
+use Neutrino\Cli\Output\Writer;
 
 class ConsoleOutputTest extends \PHPUnit\Framework\TestCase
 {
-    private function output($quiet = false)
+    private function writer(bool $quiet = false): Writer
     {
         return new StubOutput($quiet);
     }
 
-    public function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
         Decorate::setColorSupport(true);
     }
 
-    public function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
 
         Decorate::setColorSupport(null);
     }
 
-    public function dataColorisedFunctions()
+    public static function dataColorisedFunctions(): array
     {
         return [
             ["\033[32mtest\033[39m" . PHP_EOL, 'info'],
@@ -37,29 +40,25 @@ class ConsoleOutputTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataColorisedFunctions
-     */
-    public function testColorisedFunctions($expected, $func)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataColorisedFunctions')]
+    public function testColorisedFunctions($expected, $func): void
     {
-        $output = $this->output();
+        $output = $this->writer();
 
         $output->$func('test');
 
         $this->assertEquals($expected, $output->out);
     }
 
-    /**
-     * @dataProvider dataColorisedFunctions
-     */
-    public function testQuiet($expected, $func)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataColorisedFunctions')]
+    public function testQuiet($expected, $func): void
     {
-        $output = $this->output(true);
+        $output = $this->writer(true);
 
         $output->$func('test');
 
-        $this->assertEquals(null, $output->out);
-
         $output->clean();
+
+        $this->assertSame('', $output->out);
     }
 }

@@ -1,47 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Question;
 
 /**
- * Class ConfirmationQuestion
- *
- * @package Neutrino\Cli\Question
+ * Yes / no question: the answer is a boolean.
  */
 class ConfirmationQuestion extends Question
 {
-    protected $answerRegex;
-
-    /**
-     * ConfirmationQuestion constructor.
-     *
-     * @param string $question
-     * @param bool   $default
-     * @param string $trueAnswerRegex
-     */
-    public function __construct($question, $default = true, $trueAnswerRegex = '/^(?:y|o)/i')
+    public function __construct(string $question, bool $default = true, protected string $answerRegex = '/^(?:y|o)/i')
     {
-        parent::__construct($question, (bool)$default);
-
-        $this->answerRegex = $trueAnswerRegex;
+        parent::__construct($question, $default);
     }
 
-    /**
-     * @param $response
-     *
-     * @return bool|null|string
-     */
-    public function normalize($response)
+    public function normalize(string $response): bool
     {
-        if (is_bool($response)) {
-            return $response;
+        if ($response === '') {
+            return (bool) $this->default;
         }
 
-        $response = parent::normalize($response);
-
-        if ($response === null || $response === '') {
-            return $this->default;
-        }
-
-        return (bool)preg_match($this->answerRegex, $response);
+        return preg_match($this->answerRegex, $response) === 1;
     }
 }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: xlzi590
@@ -8,26 +11,25 @@
 
 namespace Test\Cli\Output;
 
-
 use Neutrino\Cli\Output\Decorate;
 
 class DecorateTest extends \PHPUnit\Framework\TestCase
 {
-    public function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
         Decorate::setColorSupport(true);
     }
 
-    public function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
 
         Decorate::setColorSupport(null);
     }
 
-    public function dataColorisedFunctions()
+    public static function dataColorisedFunctions(): array
     {
         return [
             ["\033[32mtest\033[39m", 'info'],
@@ -38,10 +40,8 @@ class DecorateTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataColorisedFunctions
-     */
-    public function testColorisedFunctions($expected, $func)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataColorisedFunctions')]
+    public function testColorisedFunctions($expected, $func): void
     {
         $this->assertEquals($expected, Decorate::$func('test'));
     }

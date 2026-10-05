@@ -1,6 +1,6 @@
 # E5 — Micro
 
-**Statut** : Rédigé · **Dépend de** : E3 (et E4-S4 pour les middlewares de controller) · **Bloque** : —
+**Statut** : Terminé · **Dépend de** : E3 (et E4-S4 pour les middlewares de controller) · **Bloque** : —
 
 ## Objectif
 
@@ -63,3 +63,30 @@ Porter le kernel Micro et son router sur Phalcon 5, et simplifier `Micro\Router`
 
 - La suite `Micro` est activée et passe, y compris sur le job Phalcon 6.
 - Mesures : la requête Micro n'est pas moins bonne que celle de la 1.3.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Kernel Micro | Fait | Propriétés typées (E2), `handleIncoming()` partagé avec le kernel HTTP (`Kernelize::incomingUri()`), `registerModules()` no-op final. `registerMiddlewares()` par `match` sur `MiddlewarePosition`. Tests : requête, route introuvable (exception Micro faute de `notFound()`), middlewares Before / After / Finish. |
+| S2 · `Micro\Router` | Fait | Interface réduite aux méthodes prises en charge, méthodes typées, plus d'exceptions. `add()` passe par `Micro::map()` + `via()` et renvoie la route (elle renvoyait `null`). Handlers : closure, `'Controller::action'`, `[Controller::class, 'action']`, `['controller' => …, 'action' => …, 'middlewares' => […]]` ; les middlewares de controller acceptent `Classe`, `Classe => [paramètres]` et `Classe => paramètre`, avec la même règle que les middlewares de route HTTP (clé entière : la valeur est la classe). Le controller n'est construit qu'une fois par requête. Erreurs explicites : action inexistante, handler invalide, middleware qui n'étend pas `Foundation\Middleware\Controller`. `getRouteByName()` renvoie `null` au lieu de `false`. |
+| S3 · Middlewares Micro | Fait | Enum `Neutrino\Micro\MiddlewarePosition`, `bindOn(): MiddlewarePosition`. **Constat** : Phalcon 5 ignore la valeur renvoyée par un objet middleware ; seul `Micro::stop()` arrête la requête. Le kernel enveloppe donc les middlewares Before : `call()` qui renvoie `false` appelle `stop()` (testé : ni le handler, ni After, ni Finish ne s'exécutent). |
+| S4 · Provider et Facade | Fait | Provider `SimpleProvider` (classe vue par les IDE helpers, testé), docblock de la Facade réécrit sur l'API réelle (il décrivait le router MVC). |
+
+Suite `Micro` activée (28 tests), verte sur Phalcon 5.22 et 6. 344 tests au total. Baseline PHPStan : 1 735 → 1 700.
+
+### Décision S2 : handlers chargés à la demande (`Micro\Collection::setLazy`)
+
+Mesure (20 routes vers un controller, enregistrement et première requête, à froid, classes Nucleon déjà chargées comme avec le preload) : closure Nucleon 261 µs, Collection paresseuse 240 µs, soit environ 1 µs par route déclarée. La Collection ne prend pas en charge les middlewares de controller. **On garde la closure** ; une app peut toujours monter une `Collection` (`Router::mount()`, testé) pour les routes sans middleware.
+
+### Comportements de Phalcon 5 à connaître
+
+- Micro lie les closures de route à l'application (`$this` est le kernel).
+- Les paramètres de route sont passés en **arguments nommés** : une closure `fn () => …` sur `/users/{id}` échoue (« Unknown named parameter $id ») ; elle doit déclarer `$id` (ou `...$args`).
+
+### Mesures (`bench/compare.sh`, 100 itérations)
+
+| Scénario | Autoloader simple | Tel que déployé (`optimize`) |
+|---|---|---|
+| micro (requête) | +11,0 % temps, +1,8 % mémoire | **+4,9 %** temps (+9 µs), **−35 %** mémoire |
+| boot-micro | +7,5 %, +1,8 % | **−9,9 %**, **−38 %** |

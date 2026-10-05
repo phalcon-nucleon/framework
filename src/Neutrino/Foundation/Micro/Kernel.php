@@ -8,9 +8,9 @@ use Neutrino\Error;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Neutrino\Micro\Middleware;
+use Neutrino\Micro\MiddlewarePosition;
 use Phalcon\Di\FactoryDefault as Di;
 use Phalcon\Mvc\Micro as MicroKernel;
-use RuntimeException;
 
 /**
  * Base class of the application's Micro kernel.
@@ -70,11 +70,19 @@ abstract class Kernel extends MicroKernel implements Kernelable
 
     protected function registerMiddleware(Middleware $middleware): void
     {
-        match ($on = $middleware->bindOn()) {
-            'before' => $this->before($middleware),
-            'after' => $this->after($middleware),
-            'finish' => $this->finish($middleware), // @phpstan-ignore argument.type (Micro middlewares are ported by E5)
-            default => throw new RuntimeException(__METHOD__ . ': ' . $middleware::class . ' can\'t bind on "' . $on . '"'),
+        match ($middleware->bindOn()) {
+            // Phalcon ignores what a middleware object returns: `false` must call stop() to end the request.
+            MiddlewarePosition::Before => $this->before(function () use ($middleware): bool {
+                if ($middleware->call($this) === false) {
+                    $this->stop();
+
+                    return false;
+                }
+
+                return true;
+            }),
+            MiddlewarePosition::After  => $this->after($middleware),
+            MiddlewarePosition::Finish => $this->finish($middleware), // @phpstan-ignore argument.type (the stubs say callable; Micro also calls MiddlewareInterface objects)
         };
     }
 

@@ -77,7 +77,8 @@ switch ($scenario) {
         $kernel = $bootstrap->make(MicroKernel::class);
         $kernel->boot();
         ob_start();
-        $output = $kernel->handle();
+        // 2.x: the kernel reads the URI (handleIncoming); 1.3: the router reads $_GET['_url'].
+        $output = method_exists($kernel, 'handleIncoming') ? $kernel->handleIncoming() : $kernel->handle();
         ob_end_clean();
         if ($output !== 'Hello') {
             fwrite(STDERR, "Unexpected Micro output\n");

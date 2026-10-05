@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers\Micro;
 
 use Neutrino\Constants\Services;

@@ -1,24 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Micro;
 
+use Phalcon\Mvc\Micro;
 use Phalcon\Mvc\Micro\MiddlewareInterface;
 
 /**
- * Class Middleware
+ * Middleware of the Micro kernel (`$middlewares`), bound at the position given by {@see bindOn()}.
  *
- * @package Neutrino\Micro
+ * In position Before, `call()` returning `false` stops the request.
  */
 abstract class Middleware implements MiddlewareInterface
 {
-    const ON_BEFORE = 'before';
-    const ON_AFTER = 'after';
-    const ON_FINISH = 'finish';
+    abstract public function bindOn(): MiddlewarePosition;
 
     /**
-     * Return on witch event we bind the middleware
-     *
-     * @return string
+     * @return bool|null|void
      */
-    public abstract function bindOn();
+    abstract public function call(Micro $application);
 }

@@ -99,6 +99,22 @@ Compiled constants (`dotconst:cache`) are written as `const NAME = ...;`, except
 - `StatusCode::message()` returns `null` for an unknown code (it returned `''`). `BAD_UNAUTHORIZED`, `UPDATE_REQUIRED` and `BANDWIDTH_LIMIT_EXCEED` are deprecated for `UNAUTHORIZED`, `UPGRADE_REQUIRED` and `BANDWIDTH_LIMIT_EXCEEDED`.
 - The HTTP router provider no longer calls `setUriSource()`: the kernel passes the request URI to `handle()`.
 
+## Micro
+
+- `Micro\Router` only exposes what it supports (see `Micro\RouterInterface`): `setDefault*()`, `setDefaults()`, `addPurge()`, `addTrace()`, `addConnect()`, `clear()`, `getModuleName()`, `handle()`, `getNamespaceName()`, `getMatches()` and `getRouteById()` are removed. `add()` returns the route; `getRouteByName()` returns `null` when the route does not exist.
+- Handlers also accept `'Controller::action'` and `[Controller::class, 'action']`.
+- `Micro\Middleware::bindOn()` returns a `Neutrino\Micro\MiddlewarePosition` (`Before`, `After`, `Finish`); the `ON_BEFORE`, `ON_AFTER` and `ON_FINISH` constants are removed.
+
+```php
+// 1.3
+public function bindOn() { return self::ON_BEFORE; }
+
+// 2.0
+public function bindOn(): MiddlewarePosition { return MiddlewarePosition::Before; }
+```
+
+- Phalcon 5 passes route parameters as named arguments: a closure handler must declare them (`fn (string $id) => …`).
+
 ## Tests (`Neutrino\Test`)
 
 PHPUnit 11 is required: `setUp(): void`, `tearDown(): void`, `setUpBeforeClass(): void`, attributes instead of annotations.

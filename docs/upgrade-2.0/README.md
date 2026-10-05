@@ -45,6 +45,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | Maintenance de la 1.3 | Aucune. La 1.x est terminée, le tag `v1.3.2` reste disponible. | E15 |
 | Conteneur | On reste sur `Phalcon\Di\Di` : `Phalcon\Container` n'implémente pas `Di\DiInterface`, qu'exige toute la pile MVC. | E2 |
 | Config | `Neutrino\Config\Config extends Phalcon\Config\Config`, lectures directes du tableau interne : 7 à 9 fois plus rapide en lecture que la config de Phalcon 5, qui l'est jusqu'à 18 fois moins que celle de Phalcon 3. | E2 |
+| Handlers Micro | Closure Nucleon conservée (middlewares de controller) ; la `Collection` paresseuse de Phalcon ne gagne qu'environ 1 µs par route. | E5 |
 | Dotconst compilé | `const NAME = ...;` plutôt que `define()` (légèrement plus rapide), sauf `@php/env`. | E2 |
 
 ## Points à trancher (portés par les epics)
@@ -55,7 +56,6 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | Auth | Adoption de `Phalcon\Auth` (disponible depuis la 5.14), à confirmer par l'étude E8-S1 (remember-me haché et révoqué, coût de construction, présence dans Phalcon 6). Sinon, portage de notre `Manager` avec les corrections de sécurité. | E8 |
 | Performance de la requête HTTP | En production (`optimize`), la requête complète est 19 % plus lente que la 1.3 (+45 µs), le boot 11 % plus rapide, la mémoire 34 % plus basse. L'écart vient de Phalcon 5 (`dispatch()` et premier `Router::handle()` plus lents à froid). Accepter, ou chercher à contourner le dispatcher ? Voir E4. | E4 |
 | Compatibilité des données chiffrées | Phalcon 5 déchiffre-t-il les données chiffrées par la 1.3 ? À vérifier par un test, avec une procédure de migration si ce n'est pas le cas. | E7 |
-| Handlers Micro | Utiliser les handlers chargés à la demande de Phalcon (`Micro\Collection::setLazy`) plutôt que notre closure ? Décision sur mesures. | E5 |
 
 ## Epics
 
@@ -66,7 +66,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | E2 | [Noyau](epics/E02-noyau.md) | Terminé | E1 |
 | E3 | [Outils de test publics](epics/E03-outils-de-test.md) | Terminé | E2 |
 | E4 | [HTTP](epics/E04-http.md) | Terminé | E3 |
-| E5 | [Micro](epics/E05-micro.md) | Rédigé | E3, E4-S4 |
+| E5 | [Micro](epics/E05-micro.md) | Terminé | E3, E4-S4 |
 | E6 | [CLI](epics/E06-cli.md) | Rédigé | E3 |
 | E7 | [Services d'infrastructure](epics/E07-services-infrastructure.md) | Rédigé | E3 |
 | E8 | [Auth & sécurité](epics/E08-auth-securite.md) | Rédigé | E4, E7 |

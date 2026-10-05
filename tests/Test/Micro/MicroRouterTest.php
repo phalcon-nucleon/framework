@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Micro;
 
 use Neutrino\Constants\Events;
@@ -7,279 +9,283 @@ use Neutrino\Constants\Services;
 use Neutrino\Interfaces\Middleware\AfterInterface;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Neutrino\Micro\Router;
+use Neutrino\Support\IdeHelper\Generator;
 use Phalcon\Events\Event;
+use Phalcon\Http\ResponseInterface;
 use Phalcon\Mvc\Controller;
 use Phalcon\Mvc\Micro\Collection;
+use Phalcon\Mvc\Router\RouteInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Test\TestCase\TestCase;
+use UnexpectedValueException;
 
-class MicroRouterTest extends TestCase
+final class MicroRouterTest extends TestCase
 {
     use MicroTestCase;
 
-    public function dataRegisteringClosureHttpMethod()
+    private Router $router;
+
+    protected function setUp(): void
     {
-        return [
-            ['test.get', 'get', 'test.get', function () {
-                /** @var \Neutrino\Foundation\Micro\Kernel $this */
-                $this->response->setContent('test.get');
+        parent::setUp();
 
-                return $this->response;
-            }],
-            ['test.post', 'post', 'test.post', function () {
-                /** @var \Neutrino\Foundation\Micro\Kernel $this */
-                $this->response->setContent('test.post');
+        StubMicroMiddleware::$calls = [];
+        StubMicroMiddleware::$return = true;
 
-                return $this->response;
-            }],
-            ['test.delete', 'delete', 'test.delete', function () {
-                /** @var \Neutrino\Foundation\Micro\Kernel $this */
-                $this->response->setContent('test.delete');
-
-                return $this->response;
-            }],
-            ['test.put', 'put', 'test.put', function () {
-                /** @var \Neutrino\Foundation\Micro\Kernel $this */
-                $this->response->setContent('test.put');
-
-                return $this->response;
-            }],
-            ['test.patch', 'patch', 'test.patch', function () {
-                /** @var \Neutrino\Foundation\Micro\Kernel $this */
-                $this->response->setContent('test.patch');
-
-                return $this->response;
-            }],
-            ['test.options', 'options', 'test.options', function () {
-                /** @var \Neutrino\Foundation\Micro\Kernel $this */
-                $this->response->setContent('test.options');
-
-                return $this->response;
-            }],
-            ['test.head', 'head', 'test.head', function () {
-                /** @var \Neutrino\Foundation\Micro\Kernel $this */
-                $this->response->setContent('test.head');
-
-                return $this->response;
-            }],
-        ];
+        $router = $this->getDI()->getShared(Services::MICRO_ROUTER);
+        $this->assertInstanceOf(Router::class, $router);
+        $this->router = $router;
     }
 
     /**
-     * @dataProvider dataRegisteringClosureHttpMethod
-     *
-     * @param $expected
-     * @param $httpMethod
-     * @param $path
-     * @param $handler
+     * @return iterable<string, array{string}>
      */
-    public function testRegisteringClosureHttpMethod($expected, $httpMethod, $path, $handler)
+    public static function httpMethods(): iterable
     {
-        /** @var Router $router */
-        $router = $this->app->{Services::MICRO_ROUTER};
-
-        $router->{'add' . ucfirst($httpMethod)}($path, $handler);
-
-        $this->dispatch($path, strtoupper($httpMethod), [], $output);
-
-        $this->assertEquals($output, $this->getContent());
-        $this->assertEquals($expected, $this->getContent());
-        $this->assertEquals($expected, $output);
+        foreach (['get', 'post', 'put', 'patch', 'delete', 'options', 'head'] as $method) {
+            yield $method => [$method];
+        }
     }
 
-    public function testRegisteringControllerHttpMethod()
+    #[DataProvider('httpMethods')]
+    public function testClosureHandlerForEachMethod(string $method): void
     {
-        StubMicroHttpMiddleware::$call = null;
-        StubMicroHttpMiddleware::$return = null;
-
-        /** @var Router $router */
-        $router = $this->app->{Services::MICRO_ROUTER};
-
-        $router->addGet('/micro/index', [
-            'controller' => StubMicroController::class,
-            'action' => 'index',
-            'middlewares' => [StubMicroHttpMiddleware::class]
-        ]);
-
-        $this->dispatch('/micro/index');
-
-        $this->assertEquals(json_encode(['foo' => 'bar']), $this->getContent());
-        $this->assertEquals([
-            [
-                'method' => 'before',
-                'event'  => new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this->app),
-                'src'    => $this->app,
-                'data'   => null
-            ],
-            [
-                'method' => 'after',
-                'event'  => new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $this->app),
-                'src'    => $this->app,
-                'data'   => null
-            ]
-        ], StubMicroHttpMiddleware::$call);
-    }
-
-    public function testRegisteringHttpControllerMiddlewareReturnFalse()
-    {
-        StubMicroHttpMiddleware::$call = null;
-        StubMicroHttpMiddleware::$return = false;
-
-        /** @var Router $router */
-        $router = $this->app->{Services::MICRO_ROUTER};
-        $router->addGet('/micro/index', [
-            'controller' => StubMicroController::class,
-            'action' => 'index',
-            'middlewares' => [StubMicroHttpMiddleware::class]
-        ]);
-
-        $this->dispatch('/micro/index');
-
-        $this->assertEquals('', $this->getContent());
-        $this->assertEquals([
-            [
-                'method' => 'before',
-                'event'  => new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this->app),
-                'src'    => $this->app,
-                'data'   => null
-            ]
-        ], StubMicroHttpMiddleware::$call);
-    }
-
-    public function dataTryRegisteringUnsupportedHttpMethod()
-    {
-        return [
-            ['purge'],
-            ['connect'],
-            ['trace'],
-        ];
-    }
-
-    /**
-     * @dataProvider                    dataTryRegisteringUnsupportedHttpMethod
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessageRegExp  /Neutrino\\Micro\\Router::add\w+: Micro Application doesn't support HTTP \w+ method\./
-     *
-     * @param $httpMethod
-     */
-    public function testTryRegisteringUnsupportedHttpMethod($httpMethod)
-    {
-
-        /** @var Router $router */
-        $router = $this->app->{Services::MICRO_ROUTER};
-
-        $router->{'add' . ucfirst($httpMethod)}('', function () {
+        $route = $this->router->{'add' . ucfirst($method)}("/test.$method", function () use ($method): ResponseInterface {
+            /** @var \Neutrino\Foundation\Micro\Kernel $this */
+            return $this->response->setContent("test.$method");
         });
+
+        $this->assertInstanceOf(RouteInterface::class, $route);
+
+        $this->dispatch("/test.$method", strtoupper($method));
+
+        $this->assertSame("test.$method", $this->getContent());
     }
 
-    public function dataUnsupportedMethods()
+    public function testAddWithMethods(): void
     {
-        return [
-            ['setDefaultModule'],
-            ['setDefaultController'],
-            ['setDefaultAction'],
-            ['setDefaults'],
-            ['clear'],
-            ['getModuleName'],
-        ];
+        // Micro binds closure handlers to the application: the response is captured instead of using $this.
+        $response = $this->response();
+        $this->router->add('/any', fn() => $response->setContent('any'));
+        $this->router->add('/some', fn() => $response->setContent('some'), ['GET', 'POST']);
+
+        $this->dispatch('/any', 'PUT');
+        $this->assertSame('any', $this->getContent());
+
+        $this->dispatch('/some', 'POST');
+        $this->assertSame('some', $this->getContent());
+
+        $this->expectException(\Phalcon\Mvc\Micro\Exception::class);
+        $this->dispatch('/some', 'PUT');
     }
 
     /**
-     * @dataProvider dataUnsupportedMethods
-     * @expectedException \RuntimeException
+     * @return iterable<string, array{string|array<int|string, mixed>}>
      */
-    public function testUnsupportedMethods($method)
+    public static function controllerHandlers(): iterable
     {
-        /** @var Router $router */
-        $router = $this->app->{Services::MICRO_ROUTER};
-
-        $router->$method([], [], []);
+        yield 'Controller::action' => [StubMicroController::class . '::index'];
+        yield '[Controller, action]' => [[StubMicroController::class, 'index']];
+        yield 'paths' => [['controller' => StubMicroController::class, 'action' => 'index']];
     }
 
-    public function testMethodToRouter()
+    /**
+     * @param string|array<int|string, mixed> $handler
+     */
+    #[DataProvider('controllerHandlers')]
+    public function testControllerHandlers(string|array $handler): void
     {
-        $methods = [
-            'handle'            => ['uri'],
-            'getNamespaceName'  => [],
-            'getControllerName' => [],
-            'getActionName'     => [],
-            'getParams'         => [],
-            'getMatchedRoute'   => [],
-            'getMatches'        => [],
-            'wasMatched'        => [],
-            'getRoutes'         => [],
-            'getRouteById'      => [1],
-            'getRouteByName'    => ['name'],
-        ];
+        $this->router->addGet('/micro/{id}', $handler);
 
-        $router = $this->mockService(Services::ROUTER, \Phalcon\Mvc\Router::class, true);
+        $this->dispatch('/micro/12');
 
-        $mrouter = new Router();
-
-        foreach ($methods as $method => $params) {
-            $router
-                ->expects($this->once())
-                ->method($method)
-                ->with(...$params);
-
-            $mrouter->$method(...$params);
-        }
+        $this->assertSame(json_encode(['id' => '12']), $this->getContent());
+        $this->assertTrue($this->router->wasMatched());
+        $this->assertSame('/micro/{id}', $this->router->getMatchedRoute()?->getPattern());
     }
 
-    public function testMethodsToApplication()
+    public function testControllerMiddlewares(): void
     {
-        $methods = [
-            'mount'    => [new Collection()],
-            'notFound' => ['handler']
-        ];
+        $this->router->addGet('/micro/{id}', [
+            'controller'  => StubMicroController::class,
+            'action'      => 'index',
+            'middlewares' => [StubMicroMiddleware::class, StubMicroMiddleware::class => ['with', 'params']],
+        ]);
 
-        $application = $this->mockService(Services::APP, \Phalcon\Mvc\Micro::class, true);
+        $this->dispatch('/micro/1');
 
-        $mrouter = new Router();
+        $this->assertSame(json_encode(['id' => '1']), $this->getContent());
+        $this->assertEquals([
+            ['before', [], new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this->app), $this->app],
+            ['before', ['with', 'params'], new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this->app), $this->app],
+            ['after', [], new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $this->app), $this->app],
+            ['after', ['with', 'params'], new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $this->app), $this->app],
+        ], StubMicroMiddleware::$calls);
+    }
 
-        foreach ($methods as $method => $params) {
-            $application
-                ->expects($this->once())
-                ->method($method)
-                ->with(...$params);
+    /**
+     * @return iterable<string, array{mixed, list<mixed>}>
+     */
+    public static function singleParameters(): iterable
+    {
+        yield 'string' => ['api', ['api']];
+        yield 'int' => [10, [10]];
+    }
 
-            $mrouter->$method(...$params);
-        }
+    /**
+     * @param list<mixed> $expected
+     */
+    #[DataProvider('singleParameters')]
+    public function testControllerMiddlewareWithASingleParameter(mixed $parameter, array $expected): void
+    {
+        $this->router->addGet('/micro/{id}', [
+            'controller'  => StubMicroController::class,
+            'action'      => 'index',
+            'middlewares' => [StubMicroMiddleware::class => $parameter],
+        ]);
+
+        $this->dispatch('/micro/1');
+
+        $this->assertSame([$expected, $expected], array_column(StubMicroMiddleware::$calls, 1));
+    }
+
+    public function testControllerMiddlewareReturningFalseStopsTheAction(): void
+    {
+        StubMicroMiddleware::$return = false;
+
+        $this->router->addGet('/micro/{id}', [
+            'controller'  => StubMicroController::class,
+            'action'      => 'index',
+            'middlewares' => [StubMicroMiddleware::class],
+        ]);
+
+        $this->dispatch('/micro/1');
+
+        $this->assertSame('', $this->getContent());
+        $this->assertSame(['before'], array_column(StubMicroMiddleware::$calls, 0));
+    }
+
+    public function testUnknownAction(): void
+    {
+        $this->router->addGet('/micro', StubMicroController::class . '::unknown');
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('Method "unknown" does not exist on "' . StubMicroController::class . '".');
+
+        $this->dispatch('/micro');
+    }
+
+    /**
+     * @return iterable<string, array{string|array<int|string, mixed>}>
+     */
+    public static function invalidHandlers(): iterable
+    {
+        yield 'no action' => [StubMicroController::class];
+        yield 'empty' => [[]];
+        yield 'no controller' => [['action' => 'index']];
+        yield 'middlewares' => [['controller' => StubMicroController::class, 'action' => 'index', 'middlewares' => 'x']];
+    }
+
+    /**
+     * @param string|array<int|string, mixed> $handler
+     */
+    #[DataProvider('invalidHandlers')]
+    public function testInvalidHandlers(string|array $handler): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+
+        $this->router->addGet('/invalid', $handler);
+    }
+
+    public function testInvalidMiddleware(): void
+    {
+        $this->router->addGet('/micro', ['controller' => StubMicroController::class, 'action' => 'index', 'middlewares' => [\stdClass::class]]);
+
+        $this->expectException(UnexpectedValueException::class);
+
+        $this->dispatch('/micro');
+    }
+
+    public function testNotFoundAndMount(): void
+    {
+        $collection = new Collection();
+        $collection->setHandler(StubMicroController::class, true);
+        $collection->setPrefix('/collection');
+        $collection->get('/{id}', 'index');
+
+        $this->assertSame($this->router, $this->router->mount($collection));
+        $response = $this->response();
+        $this->assertSame($this->router, $this->router->notFound(fn() => $response->setContent('not found')));
+
+        $this->dispatch('/collection/5');
+        $this->assertSame(json_encode(['id' => '5']), $this->getContent());
+
+        $this->dispatch('/nowhere');
+        $this->assertSame('not found', $this->getContent());
+    }
+
+    public function testRouteAccessors(): void
+    {
+        // Phalcon 5 passes the route parameters as named arguments.
+        $response = $this->response();
+        $this->router->addGet('/named/{id}', fn(string $id) => $response->setContent("named $id"))->setName('named');
+
+        $this->dispatch('/named/3');
+
+        $this->assertSame('/named/{id}', $this->router->getRouteByName('named')?->getPattern());
+        $this->assertNull($this->router->getRouteByName('unknown'));
+        $this->assertContains('/named/{id}', array_map(static fn(RouteInterface $r): string => $r->getPattern(), $this->router->getRoutes()));
+        $this->assertSame(['id' => '3'], $this->router->getParams());
+        $this->assertSame('', $this->router->getControllerName());
+        $this->assertSame('', $this->router->getActionName());
+    }
+
+    public function testIdeHelpersKnowTheMicroRouter(): void
+    {
+        $this->assertSame(Router::class, (new Generator($this->getDI()))->services()[Services::MICRO_ROUTER]);
+    }
+
+    private function response(): ResponseInterface
+    {
+        /** @var ResponseInterface */
+        return $this->getDI()->getShared(Services::RESPONSE);
     }
 }
 
 class StubMicroController extends Controller
 {
-    public function index()
+    public function index(string $id = ''): ResponseInterface
     {
-        return $this->response->setJsonContent(['foo' => 'bar']);
+        return $this->response->setJsonContent(['id' => $id]);
     }
 }
 
-class StubMicroHttpMiddleware extends \Neutrino\Foundation\Middleware\Controller implements BeforeInterface, AfterInterface
+class StubMicroMiddleware extends \Neutrino\Foundation\Middleware\Controller implements BeforeInterface, AfterInterface
 {
-    public static $call;
+    /** @var list<array{string, list<mixed>, Event, object}> */
+    public static array $calls = [];
 
-    public static $return;
+    public static bool $return = true;
 
-    public function before(Event $event, $source, $data = null)
+    /** @var list<mixed> */
+    private array $params;
+
+    public function __construct(string $controllerClass, mixed ...$params)
     {
-        self::$call[] = [
-            'method' => 'before',
-            'event'  => $event,
-            'src'    => $source,
-            'data'   => $data
-        ];
+        parent::__construct($controllerClass);
+
+        $this->params = array_values($params);
+    }
+
+    public function before(Event $event, object $source, mixed $data = null): bool
+    {
+        self::$calls[] = ['before', $this->params, $event, $source];
 
         return self::$return;
     }
 
-    public function after(Event $event, $source, $data = null)
+    public function after(Event $event, object $source, mixed $data = null): void
     {
-        self::$call[] = [
-            'method' => 'after',
-            'event'  => $event,
-            'src'    => $source,
-            'data'   => $data
-        ];
+        self::$calls[] = ['after', $this->params, $event, $source];
     }
 }

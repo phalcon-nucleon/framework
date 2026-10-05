@@ -10,6 +10,7 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - `Support\IdeHelper\Generator`: `_ide_helper.php` (Facades `@method`, `@property-read` of the services on `Phalcon\Di\Injectable`) and `.phpstorm.meta.php` (`DiInterface::get()` / `getShared()` return types), generated from the booted application.
  - `Neutrino\Config\Config`: a `Phalcon\Config\Config` with reads 7 to 9 times faster.
  - `Kernelable::handleIncoming()`.
+ - `FuncTestCase::dispatch()`: request headers and JSON body.
  - Event constants for the Phalcon 5 events: router, di, `db:connectionLost`, dispatcher binding and action calls, micro binding and exceptions, model `prepareSave` and `validation`, view compilation.
 
 ### Changed
@@ -21,6 +22,8 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - `Facade::swap()` and `shouldReceive()` replace a service already resolved by the container.
  - `Singleton`: one instance per subclass.
  - Dotconst: `@php/dir@suffix` and unknown `@{reference}` values in the compiled file.
+ - `FuncTestCase::dispatch()`: PATCH parameters in `$_POST`, DELETE parameters kept, superglobals restored.
+ - `TestCase::checkExtension()`: the skip message was empty.
 
 ### Removed
  - Assets (`Neutrino\Assets`, `assets:*` tasks), `Optimizer`, `PhpPreloader` (and `nikic/php-parser`), `ConfigPreloader`, `ReturnConverter`.

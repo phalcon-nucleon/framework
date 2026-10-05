@@ -63,7 +63,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | E0 | [Socle & outillage](epics/E00-socle-outillage.md) | Terminé | — |
 | E1 | [Nettoyage](epics/E01-nettoyage.md) | Terminé | E0 |
 | E2 | [Noyau](epics/E02-noyau.md) | Terminé | E1 |
-| E3 | [Outils de test publics](epics/E03-outils-de-test.md) | Rédigé | E2 |
+| E3 | [Outils de test publics](epics/E03-outils-de-test.md) | Terminé | E2 |
 | E4 | [HTTP](epics/E04-http.md) | Rédigé | E3 |
 | E5 | [Micro](epics/E05-micro.md) | Rédigé | E3, E4-S4 |
 | E6 | [CLI](epics/E06-cli.md) | Rédigé | E3 |

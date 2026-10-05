@@ -1,82 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Assert;
 
 use Fake\Kernels\Http\Controllers\StubController;
 use Fake\Test\StubRouteTestCase;
-use Neutrino\Debug\Reflexion;
-use Neutrino\Http\Standards\Method;
 use Phalcon\Mvc\Router\Route;
 use Test\TestCase\TestCase;
-use Test\TestCase\TraitTestCase;
 
-class RoutesTestCaseTest extends TestCase
+final class RoutesTestCaseTest extends TestCase
 {
-    use TraitTestCase;
-
-    /**
-     * @return StubRouteTestCase
-     */
-    public function getStub()
+    public function testRoutesProvider(): void
     {
-        return new StubRouteTestCase;
+        $this->assertSame([
+            'GET-/-true-0'               => ['/', 'GET', true, null, null, null],
+            'POST-/-false-1'             => ['/', 'POST', false, null, null, null],
+            'GET-/something/:int-true-2' => ['/something/:int', 'GET', true, 'index', StubController::class, ['id' => 1]],
+        ], StubRouteTestCase::routesProvider());
     }
 
-    public function testRouteProvider()
+    public function testFormatDataRoute(): void
     {
-        $routesTestCase = $this->getStub();
+        $this->assertSame(['/a', 'GET', true, 'c', 'a', ['x' => 1]], StubRouteTestCase::formatDataRoute('/a', 'GET', true, 'c', 'a', ['x' => 1]));
+        $this->assertSame(['/a', 'GET', false, null, null, null], StubRouteTestCase::formatDataRoute('/a', 'GET', false));
+    }
 
-        $expecteds = [
-            'GET-/-true'               => ['/', 'GET', true, null, null, null],
-            'POST-/-false'             => ['/', 'POST', false, null, null, null],
-            'GET-/something/:int-true' => ['/something/:int', 'GET', true, 'index', StubController::class, [1]],
-        ];
+    public function testGetApplicationRoutes(): void
+    {
+        $routes = StubRouteTestCase::getApplicationRoutes();
 
-        $routes = $routesTestCase->routesProvider();
-
-        $routesKeys = array_keys($routes);
-        $routesValues = array_values($routes);
-
-        $i = 0;
-        foreach ($expecteds as $key => $expected) {
-            $this->assertStringStartsWith($key, $routesKeys[$i]);
-            $this->assertEquals($expected, $routesValues[$i]);
-
-            $i++;
+        foreach (['/get', '/post', '/u/:int', '/get-head', '/back/:controller/:action'] as $pattern) {
+            $this->assertArrayHasKey($pattern, $routes);
+            $this->assertInstanceOf(Route::class, $routes[$pattern][0]);
         }
+        $this->assertSame(['GET', 'HEAD'], $routes['/get-head'][0]->getHttpMethods());
     }
 
-    public function testGetRoutes()
+    public function testTestRoutesCallsAssertRoute(): void
     {
-        $routesTestCase = $this->getStub();
+        $routesTestCase = new StubRouteTestCase('testRoutes');
 
-        $expectedRoutes = [
-            '/get'      => [Route::class],
-            '/post'     => [Route::class],
-            '/u/:int'   => [Route::class],
-            '/get-head' => [Route::class],
-        ];
+        $routesTestCase->testRoutes('', 'GET', true);
+        $routesTestCase->testRoutes('/parameted/param_1', 'GET', true, 'Stub', 'index', ['tags' => 'param_1']);
 
-        $appRoutes = $routesTestCase->getApplicationRoutes();
-
-        foreach ($expectedRoutes as $route => $expectedRoute) {
-            $this->assertArrayHasKey($route, $appRoutes);
-            $this->assertInstanceOf($expectedRoute[0], $appRoutes[$route][0]);
-        }
-    }
-
-    public function testTestRoutes()
-    {
-        $routesTestCase = $this->getStub();
-
-        $routesTestCase->testRoutes('', Method::GET, true);
-        $routesTestCase->testRoutes('', Method::GET, true, 'Stub', 'index');
-        $routesTestCase->testRoutes('/parameted/param_1', Method::GET, true, 'Stub', 'index', ['tags' => 'param_1']);
-
-        $this->assertEquals([
-            ['', Method::GET, true, null, null, null],
-            ['', Method::GET, true, 'Stub', 'index', null],
-            ['/parameted/param_1', Method::GET, true, 'Stub', 'index', ['tags' => 'param_1']],
-        ], Reflexion::get($routesTestCase, 'testedRoutes'));
+        $this->assertSame([
+            ['', 'GET', true, null, null, null],
+            ['/parameted/param_1', 'GET', true, 'Stub', 'index', ['tags' => 'param_1']],
+        ], $routesTestCase->assertedRoutes);
     }
 }

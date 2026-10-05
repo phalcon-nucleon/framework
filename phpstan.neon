@@ -25,7 +25,6 @@ parameters:
         - src/Neutrino/Exceptions/TokenMismatchException.php         # E8
         - src/Neutrino/HttpClient/*                                  # E13
         - src/Neutrino/Repositories/Exceptions/TransactionException.php  # E10
-        - src/Neutrino/Test/TestCase.php                             # E3
     # Phalcon classes come from the extension when it is loaded; the stubs
     # cover analysis without it (Phalcon 6 job, editors).
     scanDirectories:

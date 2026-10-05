@@ -1,27 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Test;
 
+use Neutrino\Foundation\ProviderRegistrar;
 use Neutrino\Providers\Http\Router;
 use Neutrino\Support\Facades\Facade;
 use Neutrino\Test\Helpers\RoutesTrait;
-use Phalcon\Di;
+use Phalcon\Di\Di;
+use Phalcon\Mvc\Router\RouteInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Depends;
 
 /**
- * Class RoutesTestCase
- *
- * @package Neutrino\Test
+ * Tests the HTTP routes of the application: each route returned by {@see RoutesTestCase::routes()} is asserted,
+ * then every route of `routes/http.php` must have been matched by one of them.
  */
 abstract class RoutesTestCase extends FuncTestCase
 {
     use RoutesTrait;
 
     /**
-     * Return the application route
+     * Routes to test, built with {@see RoutesTestCase::formatDataRoute()}.
      *
-     * @return array
+     * @return list<array{string, string, bool, ?string, ?string, ?array<string, mixed>}>
      */
-    public function getApplicationRoutes()
+    abstract protected static function routes(): array;
+
+    /**
+     * Routes declared by `routes/http.php`, by pattern.
+     *
+     * @return array<string, array{RouteInterface}>
+     */
+    public static function getApplicationRoutes(): array
     {
         $di = new Di();
         Di::setDefault($di);
@@ -29,116 +41,94 @@ abstract class RoutesTestCase extends FuncTestCase
         Facade::clearResolvedInstances();
         Facade::setDependencyInjection($di);
 
-        (new Router())->registering();
+        try {
+            ProviderRegistrar::register($di, [Router::class]);
 
-        require BASE_PATH . '/routes/http.php';
+            require BASE_PATH . '/routes/http.php';
 
-        $routes = [];
-        foreach ($di->getShared('router')->getRoutes() as $route) {
-            /** @var \Phalcon\Mvc\Router\Route $route */
-            $routes[$route->getPattern()] = [$route];
+            /** @var \Phalcon\Mvc\Router $router */
+            $router = $di->getShared('router');
+
+            $routes = [];
+            /** @var RouteInterface $route */
+            foreach ($router->getRoutes() as $route) {
+                $routes[$route->getPattern()] = [$route];
+            }
+
+            return $routes;
+        } finally {
+            Facade::clearResolvedInstances();
+            Di::reset();
         }
+    }
 
-        Facade::clearResolvedInstances();
+    /**
+     * @param string                    $route      URI, relative to `app.base_uri`
+     * @param string                    $method     HTTP method
+     * @param bool                      $expected   Whether a route must match
+     * @param string|null               $controller Expected controller
+     * @param string|null               $action     Expected action
+     * @param array<string, mixed>|null $params     Expected route parameters
+     *
+     * @return array{string, string, bool, ?string, ?string, ?array<string, mixed>}
+     */
+    public static function formatDataRoute(
+        string $route,
+        string $method,
+        bool $expected,
+        ?string $controller = null,
+        ?string $action = null,
+        ?array $params = null,
+    ): array {
+        return [$route, $method, $expected, $controller, $action, $params];
+    }
+
+    /**
+     * @return array<string, array{string, string, bool, ?string, ?string, ?array<string, mixed>}>
+     */
+    public static function routesProvider(): array
+    {
+        $routes = [];
+        foreach (static::routes() as $i => $route) {
+            $routes[$route[1] . '-' . $route[0] . '-' . ($route[2] ? 'true' : 'false') . '-' . $i] = $route;
+        }
 
         return $routes;
     }
 
     /**
-     * @param string $route      Route Url
-     * @param string $method     Http Method
-     * @param bool   $expected   Route match excepted
-     * @param string $controller Controller excepted
-     * @param string $action     Action excepted
-     * @param array  $params     Params passed to the route
-     *
-     * @return array
+     * @param array<string, mixed>|null $params
      */
-    public function formatDataRoute(
-        $route,
-        $method,
-        $expected,
-        $controller = null,
-        $action = null,
-        array $params = null
-    ) {
-        return [$route, $method, $expected, $controller, $action, $params];
-    }
-
-    /**
-     * @return array
-     */
-    public function routesProvider()
-    {
-        $routes = $this->routes();
-
-        $_routes = [];
-        foreach ($routes as $route) {
-            $key = $route[1] . '-' . $route[0] . '-' . ($route[2] ? 'true' : 'false') . '-' . substr(md5(uniqid('', true)), 0, 6);
-
-            $_routes[$key] = $route;
-        }
-
-        return $_routes;
-    }
-
-    /**
-     * @test
-     * @dataProvider routesProvider
-     *
-     * @param       $route
-     * @param       $method
-     * @param       $expected
-     * @param null  $controller
-     * @param null  $action
-     * @param array $params
-     */
+    #[DataProvider('routesProvider')]
     public function testRoutes(
-        $route,
-        $method,
-        $expected,
-        $controller = null,
-        $action = null,
-        array $params = null
-    ) {
+        string $route,
+        string $method,
+        bool $expected,
+        ?string $controller = null,
+        ?string $action = null,
+        ?array $params = null,
+    ): void {
         $this->assertRoute($route, $method, $expected, $controller, $action, $params);
     }
 
-    /**
-     * @test
-     * @dataProvider      getApplicationRoutes
-     * @depends           testRoutes
-     *
-     * @param \Phalcon\Mvc\Router\RouteInterface $route
-     */
-    public function testRoutesTested($route)
+    #[DataProvider('getApplicationRoutes')]
+    #[Depends('testRoutes')]
+    public function testRoutesTested(RouteInterface $route): void
     {
         if (!array_key_exists($route->getPattern(), self::$testedRoutes)) {
-            $this->markTestIncomplete('Route "' . $route->getPattern() . '" has not been testing');
-
-            return;
+            $this->markTestIncomplete('Route "' . $route->getPattern() . '" has not been tested');
         }
 
-        $this->assertArrayHasKey($route->getPattern(), self::$testedRoutes);
         $this->assertEquals(
-            $this->routeToArray($route),
-            $this->routeToArray(self::$testedRoutes[$route->getPattern()])
+            self::routeToArray($route),
+            self::routeToArray(self::$testedRoutes[$route->getPattern()]),
         );
     }
 
     /**
-     * Return the routes to test
-     *
-     * @return array[]
+     * @return array<string, mixed>
      */
-    abstract protected function routes();
-
-    /**
-     * @param \Phalcon\Mvc\Router\RouteInterface $route
-     *
-     * @return array
-     */
-    private function routeToArray($route)
+    private static function routeToArray(RouteInterface $route): array
     {
         return [
             'HttpMethods'     => $route->getHttpMethods(),

@@ -90,6 +90,34 @@ Compiled constants (`dotconst:cache`) are written as `const NAME = ...;`, except
 
 `Neutrino\Config\Loader` returns a `Neutrino\Config\Config`, which extends `Phalcon\Config\Config` (reads with the exact key bypass the Phalcon case-insensitive lookup). Type hints on `Phalcon\Config\Config` keep working. Two differences with Phalcon 5: `path()` returns the default value when the path goes through a scalar value (Phalcon throws an error), and writing a key with another case replaces the previous spelling (Phalcon keeps every spelling, returned by `toArray()`). `config:cache` evaluates the configuration: closures and objects are no longer allowed in `config/*.php` (enums are).
 
+## Tests (`Neutrino\Test`)
+
+PHPUnit 11 is required: `setUp(): void`, `tearDown(): void`, `setUpBeforeClass(): void`, attributes instead of annotations.
+
+```php
+// 1.3
+protected static function kernelClassInstance() { return HttpKernel::class; }
+
+protected function routes()
+{
+    return [$this->formatDataRoute('/', 'GET', true, 'Index', 'index')];
+}
+
+// 2.0
+protected static function kernelClassInstance(): string { return HttpKernel::class; }
+
+protected static function routes(): array
+{
+    return [static::formatDataRoute('/', 'GET', true, 'Index', 'index')];
+}
+```
+
+- `RoutesTestCase::routes()`, `formatDataRoute()`, `routesProvider()` and `getApplicationRoutes()` are static (PHPUnit 11 data providers). `routes/http.php` is required from a static method: use the `Router` Facade there, not `$this`.
+- `FuncTestCase::dispatch(string $url, string $method = 'GET', array $params = [], array $headers = [], ?array $json = null): string` returns the output (it was filled by reference). PATCH parameters go to `$_POST` (they went to `$_GET`), DELETE parameters to `$_GET` (they were dropped). The superglobals are restored after the call.
+- `assertResponseCode()` expects an `int` and compares it with `Response::getStatusCode()`.
+- `mockService(string $service, string|object $class, bool $shared = true)`.
+- A test case fails (instead of being skipped) when Phalcon is not available.
+
 ## Removed
 
 - `Neutrino\Assets` and the `assets:js` / `assets:sass` tasks.

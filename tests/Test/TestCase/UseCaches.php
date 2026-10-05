@@ -1,18 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\TestCase;
 
 use Neutrino\Support\Facades\Cache;
 use Test\Cache\StubBackend;
 
 /**
- * Class UseCaches
- *
- * @package     Test\TestCase
+ * Cache stores of the cache tests. The stores are ported with the cache (E7).
  */
 trait UseCaches
 {
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
@@ -48,13 +48,13 @@ trait UseCaches
                         'adapter' => 'Data', // Files, Memcache, Libmemcached, Redis
                         'driver'  => StubBackend::class, // Files, Memcache, Libmemcached, Redis
                         'options' => ['cacheDir' => static::$cache_dir],
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ]);
     }
 
-    public function tearDown()
+    protected function tearDown(): void
     {
         Cache::uses('file');
 

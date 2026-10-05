@@ -1,45 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\TestCase;
 
 /**
- * Class TestListenize
+ * Implementation of {@see TestListenable}.
  */
 trait TestListenize
 {
-    /**
-     * @var array
-     */
-    public $views;
+    /** @var array<string, list<array<int, mixed>|null>> */
+    public array $views = [];
 
     /**
-     * @param string     $seek
-     * @param array|null $data
-     *
-     * @return void
+     * @param array<int, mixed>|null $data
      */
-    public function view($seek, ?array $data = null)
+    public function view(string $seek, ?array $data = null): void
     {
         $this->views[$seek][] = $data;
     }
 
-    /**
-     * @param string $seek
-     *
-     * @return bool
-     */
-    public function hasView($seek)
+    public function hasView(string $seek): bool
     {
         return isset($this->views[$seek]);
     }
 
     /**
-     * @param string $seek
-     *
-     * @return array|null
+     * @return list<array<int, mixed>|null>
      */
-    public function getView($seek)
+    public function getView(string $seek): array
     {
-        return $this->hasView($seek) ? $this->views[$seek] : [];
+        return $this->views[$seek] ?? [];
     }
 }

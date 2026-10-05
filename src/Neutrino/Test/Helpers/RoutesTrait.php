@@ -1,90 +1,85 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: gallegret
- * Date: 07/07/2016
- * Time: 15:08
- */
+
+declare(strict_types=1);
 
 namespace Neutrino\Test\Helpers;
 
 use Neutrino\Constants\Services;
+use Phalcon\Config\Config;
+use Phalcon\Mvc\Router;
+use Phalcon\Mvc\Router\RouteInterface;
 
 /**
- * Class RoutesTestCase
+ * Asserts how the application router handles a URI.
  *
- *  @package Neutrino\Test
+ * The using class must provide `getDI()` (as {@see \Neutrino\Test\TestCase}).
  */
 trait RoutesTrait
 {
-    protected static $testedRoutes = [];
+    /**
+     * Routes matched by {@see RoutesTrait::assertRoute()}, by pattern.
+     *
+     * @var array<string, RouteInterface>
+     */
+    protected static array $testedRoutes = [];
 
     /**
-     * @param string      $route
-     * @param string      $method
-     * @param bool        $expected
-     * @param string|null $controller
-     * @param string|null $action
-     * @param array|null  $params
+     * @param string                    $route      URI, relative to `app.base_uri`
+     * @param bool                      $expected   Whether a route must match
+     * @param string|null               $controller Expected controller (`null`: not checked when a route matches)
+     * @param string|null               $action     Expected action (`null`: not checked when a route matches)
+     * @param array<string, mixed>|null $params     Expected route parameters (all of them)
      */
     public function assertRoute(
-        $route,
-        $method,
-        $expected,
-        $controller = null,
-        $action = null,
-        array $params = null
-    ) {
+        string $route,
+        string $method,
+        bool $expected,
+        ?string $controller = null,
+        ?string $action = null,
+        ?array $params = null,
+    ): void {
         // GIVEN
-        /** @var \Phalcon\DiInterface $di */
         $di = $this->getDI();
-        /** @var \Phalcon\Mvc\Router $router */
+        /** @var Router $router */
         $router = $di->getShared(Services::ROUTER);
+        /** @var Config $config */
+        $config = $di->getShared(Services::CONFIG);
 
-        $base = $di->getShared(Services::CONFIG)->app->base_uri;
-
-        $route = preg_replace('#^/(.+)#', '$1', $route);
-
-        $uri = $base . $route;
+        $base = $config->path('app.base_uri', '/');
+        $base = is_string($base) ? $base : '/';
+        $uri = $base . preg_replace('#^/(.+)#', '$1', $route);
 
         // WHEN
+        $previousMethod = $_SERVER['REQUEST_METHOD'] ?? null;
         $_SERVER['REQUEST_METHOD'] = $method;
-        $router->handle($uri);
+        try {
+            $router->handle($uri);
+        } finally {
+            if ($previousMethod === null) {
+                unset($_SERVER['REQUEST_METHOD']);
+            } else {
+                $_SERVER['REQUEST_METHOD'] = $previousMethod;
+            }
+        }
 
         // THEN
-        $this->assertEquals($expected, $router->wasMatched());
+        $matched = $router->wasMatched();
+        self::assertSame($expected, $matched, sprintf('Failed asserting that %s %s %s.', $method, $uri, $expected ? 'matches a route' : 'matches no route'));
 
-        if ($expected && $router->wasMatched()) {
-            $matchedRoute = $router->getMatchedRoute();
-
+        $matchedRoute = $router->getMatchedRoute();
+        if ($matched && $matchedRoute !== null) {
             self::$testedRoutes[$matchedRoute->getPattern()] = $matchedRoute;
         }
 
-        $controls = [
-            'Controller' => $controller,
-            'Action'     => $action
-        ];
-
-        foreach ($controls as $key => $value) {
-            $key = 'get' . $key . 'Name';
-
-            if (!$expected || ($expected && !is_null($value))) {
-                $this->assertEquals($value, $router->$key());
-            } elseif ($expected) {
-                $this->assertTrue(is_string($router->$key()));
+        foreach (['Controller' => [$controller, $router->getControllerName()], 'Action' => [$action, $router->getActionName()]] as $name => [$expectedName, $actualName]) {
+            // Not checked when a route must match and no name is given.
+            if (!$expected || $expectedName !== null) {
+                self::assertEquals($expectedName, $actualName, "Failed asserting the $name name of $method $uri.");
             }
         }
 
-        $routeParams = $router->getParams();
-        if ($expected && $router->wasMatched() && $params) {
-            foreach ($params as $key => $value) {
-                $this->assertArrayHasKey($key, $routeParams);
-                $this->assertEquals($value, $routeParams[$key]);
-            }
-            foreach ($routeParams as $key => $value) {
-                $this->assertArrayHasKey($key, $params);
-                $this->assertEquals($value, $params[$key]);
-            }
+        if ($expected && $matched && $params !== null) {
+            self::assertEquals($params, $router->getParams(), "Failed asserting the parameters of $method $uri.");
         }
     }
 }

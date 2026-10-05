@@ -1,304 +1,267 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Test;
 
 use Neutrino\Constants\Services;
+use Phalcon\Cli\Console;
+use Phalcon\Cli\Dispatcher as CliDispatcher;
+use Phalcon\Http\Request;
+use Phalcon\Http\ResponseInterface;
+use Phalcon\Mvc\Application;
+use Phalcon\Mvc\Dispatcher as MvcDispatcher;
+use Phalcon\Mvc\Micro;
+use ReflectionProperty;
+use RuntimeException;
 
 /**
- * Class FuncTestCase
- *
- *  @package Neutrino\Test
+ * Functional tests: dispatches requests (or command lines) through the booted kernel,
+ * and asserts on the dispatcher and the response.
  */
 abstract class FuncTestCase extends TestCase
 {
-
     /**
-     * @param string $service
-     * @param string $class
-     * @param bool   $shared
+     * Replaces a service with a mock (built from a class name) or with the given instance.
      *
-     * @return \PHPUnit_Framework_MockObject_MockObject
+     * @template T of object
+     *
+     * @param class-string<T>|T $class
+     *
+     * @return ($class is class-string<T> ? T&\PHPUnit\Framework\MockObject\MockObject : T)
      */
-    public function mockService($service, $class, $shared)
+    public function mockService(string $service, string|object $class, bool $shared = true): object
     {
-        if ($this->getDI()->has($service)) {
-            $this->getDI()->remove($service);
+        $di = $this->getDI();
+
+        if ($di->has($service)) {
+            $di->remove($service);
         }
 
-        if(is_string($class)){
-            $instance = $this->createMock($class);
-        } else {
-            $instance = $class;
-        }
+        $instance = is_string($class) ? $this->createMock($class) : $class;
 
-        $this->getDI()->set($service, $instance, $shared);
+        $di->set($service, $instance, $shared);
 
         return $instance;
     }
 
     /**
-     * Assert that the last dispatched controller matches the given controller class name
-     *
-     * @param  string $expected The expected controller name
-     *
-     * @throws \PHPUnit_Framework_ExpectationFailedException
+     * Asserts that the last dispatched controller matches the given controller name.
      */
-    public function assertController($expected)
+    public function assertController(string $expected): void
     {
-        $actual = $this->getDI()->getShared(Services::DISPATCHER)->getControllerName();
-        if ($actual != $expected) {
-            throw new \PHPUnit_Framework_ExpectationFailedException(
-                sprintf(
-                    'Failed asserting Controller name "%s", actual Controller name is "%s"',
-                    $expected,
-                    $actual
-                )
+        $dispatcher = $this->dispatcher();
+        $actual = $dispatcher instanceof CliDispatcher ? $dispatcher->getTaskName() : $dispatcher->getControllerName();
+
+        self::assertSame(
+            $expected,
+            $actual,
+            sprintf('Failed asserting Controller name "%s", actual Controller name is "%s"', $expected, $actual),
+        );
+    }
+
+    /**
+     * Asserts that the last dispatched action matches the given action name.
+     */
+    public function assertAction(string $expected): void
+    {
+        $actual = $this->dispatcher()->getActionName();
+
+        self::assertSame(
+            $expected,
+            $actual,
+            sprintf('Failed asserting Action name "%s", actual Action name is "%s"', $expected, $actual),
+        );
+    }
+
+    /**
+     * Asserts that the response has the given headers: `['Content-Type' => 'application/json']`.
+     *
+     * @param array<string, string> $expected
+     */
+    public function assertHeader(array $expected): void
+    {
+        $headers = $this->response()->getHeaders();
+
+        foreach ($expected as $field => $value) {
+            $actual = $headers->get($field);
+
+            self::assertSame(
+                $value,
+                $actual,
+                sprintf('Failed asserting "%s" has a value of "%s", actual "%s" header value is "%s"', $field, $value, $field, var_export($actual, true)),
             );
         }
-
-        $this->assertEquals($expected, $actual);
     }
 
     /**
-     * Assert that the last dispatched action matches the given action name
-     *
-     * @param  string $expected The expected action name
-     *
-     * @throws \PHPUnit_Framework_ExpectationFailedException
+     * Asserts that the response status code matches the given one.
      */
-    public function assertAction($expected)
+    public function assertResponseCode(int $expected): void
     {
-        $actual = $this->getDI()->getShared(Services::DISPATCHER)->getActionName();
-        if ($actual != $expected) {
-            throw new \PHPUnit_Framework_ExpectationFailedException(
-                sprintf(
-                    'Failed asserting Action name "%s", actual Action name is "%s"',
-                    $expected,
-                    $actual
-                )
-            );
-        }
-        $this->assertEquals($expected, $actual);
+        $actual = $this->response()->getStatusCode();
+
+        self::assertSame(
+            $expected,
+            $actual,
+            sprintf('Failed asserting response code is "%d", actual response code is "%s"', $expected, var_export($actual, true)),
+        );
     }
 
     /**
-     * Assert that the response headers contains the given array
-     * <code>
-     * $expected = array('Content-Type' => 'application/json')
-     * </code>
-     *
-     * @param  array $expected The expected headers
-     *
-     * @throws \PHPUnit_Framework_ExpectationFailedException
+     * Asserts that the dispatch was forwarded.
      */
-    public function assertHeader(array $expected)
+    public function assertDispatchIsForwarded(): void
     {
-        foreach ($expected as $expectedField => $expectedValue) {
-            $actualValue =
-                $this->getDI()->getShared(Services::RESPONSE)->getHeaders()->get($expectedField);
-            if ($actualValue != $expectedValue) {
-                throw new \PHPUnit_Framework_ExpectationFailedException(
-                    sprintf(
-                        'Failed asserting "%s" has a value of "%s", actual "%s" header value is "%s"',
-                        $expectedField,
-                        $expectedValue,
-                        $expectedField,
-                        $actualValue
-                    )
-                );
-            }
-            $this->assertEquals($expectedValue, $actualValue);
-        }
+        self::assertTrue($this->dispatcher()->wasForwarded(), 'Failed asserting dispatch was forwarded');
     }
 
     /**
-     * Asserts that the response code matches the given one
-     *
-     * @param  string $expected the expected response code
-     *
-     * @throws \PHPUnit_Framework_ExpectationFailedException
+     * Asserts that the response redirects to the given location.
      */
-    public function assertResponseCode($expected)
+    public function assertRedirectTo(string $location): void
     {
-        // convert to string if int
-        if (is_integer($expected)) {
-            $expected = (string)$expected;
-        }
+        $actual = $this->response()->getHeaders()->get('Location');
 
-        $actualValue = $this->getDI()->getShared(Services::RESPONSE)->getHeaders()->get('Status');
+        self::assertNotFalse($actual, 'Failed asserting response caused a redirect');
+        self::assertSame(
+            $location,
+            $actual,
+            sprintf('Failed asserting response redirects to "%s". It redirects to "%s".', $location, (string) $actual),
+        );
+    }
 
-        if (empty($actualValue) || stristr($actualValue, $expected) === false) {
-            throw new \PHPUnit_Framework_ExpectationFailedException(
-                sprintf(
-                    'Failed asserting response code is "%s", actual response status is "%s"',
-                    $expected,
-                    $actualValue
-                )
-            );
+    /**
+     * Content of the response.
+     */
+    public function getContent(): string
+    {
+        return $this->response()->getContent();
+    }
+
+    /**
+     * Asserts that the response content contains the given string.
+     */
+    public function assertResponseContentContains(string $string): void
+    {
+        self::assertStringContainsString($string, $this->getContent());
+    }
+
+    /**
+     * Dispatches a request through the HTTP (or Micro) kernel and returns the output.
+     *
+     * Parameters go to `$_GET` for GET, HEAD and DELETE, to `$_POST` for POST, PUT and PATCH.
+     * Headers go to `$_SERVER['HTTP_*']` (and `CONTENT_TYPE`, `CONTENT_LENGTH`).
+     * `$json` is the request body, read by `Request::getJsonRawBody()`.
+     * The superglobals are restored afterwards.
+     *
+     * @param array<string, mixed>  $params
+     * @param array<string, string> $headers
+     * @param array<mixed>|null     $json
+     */
+    protected function dispatch(string $url, string $method = 'GET', array $params = [], array $headers = [], ?array $json = null): string
+    {
+        $app = $this->kernelInstance();
+
+        if (!$app instanceof Application && !$app instanceof Micro) {
+            throw new RuntimeException(static::class . '::dispatch() needs an HTTP or a Micro kernel.');
         }
 
-        $this->assertContains($expected, $actualValue);
-    }
+        $globals = [$_SERVER, $_GET, $_POST, $_COOKIE, $_REQUEST, $_FILES];
 
-    /**
-     * Asserts that the dispatch is forwarded
-     *
-     * @throws \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function assertDispatchIsForwarded()
-    {
-        /* @var $dispatcher \Phalcon\Mvc\Dispatcher */
-        $dispatcher = $this->getDI()->getShared(Services::DISPATCHER);
-        $actual = $dispatcher->wasForwarded();
+        [$path, $query] = array_pad(explode('?', $url, 2), 2, '');
+        parse_str($query, $queryParams);
 
-        if (!$actual) {
-            throw new \PHPUnit_Framework_ExpectationFailedException(
-                'Failed asserting dispatch was forwarded'
-            );
-        }
-
-        $this->assertTrue($actual);
-    }
-
-    /**
-     * Assert location redirect
-     *
-     * @param  string $location
-     *
-     * @throws \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function assertRedirectTo($location)
-    {
-        $actualLocation =
-            $this->getDI()->getShared(Services::RESPONSE)->getHeaders()->get('Location');
-
-        if (!$actualLocation) {
-            throw new \PHPUnit_Framework_ExpectationFailedException(
-                'Failed asserting response caused a redirect'
-            );
-        }
-
-        if ($actualLocation !== $location) {
-            throw new \PHPUnit_Framework_ExpectationFailedException(
-                sprintf(
-                    'Failed asserting response redirects to "%s". It redirects to "%s".',
-                    $location,
-                    $actualLocation
-                )
-            );
-        }
-
-        $this->assertEquals($location, $actualLocation);
-    }
-
-    /**
-     * Convenience method to retrieve response content
-     *
-     * @return string
-     */
-    public function getContent()
-    {
-        return $this->getDI()->getShared(Services::RESPONSE)->getContent();
-    }
-
-    /**
-     * Assert response content contains string
-     *
-     * @param string $string
-     */
-    public function assertResponseContentContains($string)
-    {
-        $this->assertContains($string, $this->getContent());
-    }
-
-    /**
-     * This method is called before a test is executed.
-     */
-    protected function setUp()
-    {
-        parent::setUp();
-    }
-
-    /**
-     * Ensures that each test has it's own DI and all globals are purged
-     *
-     * @return void
-     */
-    protected function tearDown()
-    {
-        $_SESSION = [];
-        $_GET = [];
-        $_POST = [];
-        $_COOKIE = [];
-        $_REQUEST = [];
-        $_FILES = [];
-        parent::tearDown();
-    }
-
-    /**
-     * Dispatches a given url and sets the response object accordingly
-     *
-     * @param string $url    request url
-     * @param string $method request method
-     * @param array  $params request params
-     * @param mixed  &$output
-     *
-     * @throws \Error|\Exception
-     */
-    protected function dispatch($url, $method = 'GET', $params = [], &$output = '')
-    {
+        $method = strtoupper($method);
         $_SERVER['REQUEST_METHOD'] = $method;
+        $_SERVER['REQUEST_URI'] = $url;
+        $_SERVER['QUERY_STRING'] = $query;
+        $_GET = $queryParams;
+        $_POST = [];
 
-        foreach ($params as $key => $param) {
-            switch ($method) {
-                case 'GET':
-                case 'PATCH':
-                    $_GET[$key] = $param;
-                    break;
-                case 'POST':
-                case 'PUT':
-                    $_POST[$key] = $param;
-            }
+        if (in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
+            $_POST = $params;
+        } else {
+            $_GET = $params + $_GET;
         }
+        $_REQUEST = $_GET + $_POST;
+
+        if ($json !== null) {
+            $headers += ['Content-Type' => 'application/json'];
+        }
+
+        foreach ($headers as $name => $value) {
+            $key = strtoupper(str_replace('-', '_', $name));
+            $_SERVER[in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH'], true) ? $key : 'HTTP_' . $key] = $value;
+        }
+
+        $this->setRawBody($json === null ? '' : json_encode($json, JSON_THROW_ON_ERROR));
 
         ob_start();
         try {
-            $this->getDI()->setShared(Services::RESPONSE, $this->app->handle($url));
-        } catch(\Exception $e) {
-        } catch(\Error $e) {
-        }
+            $response = $app->handle($path);
 
-        if(isset($e)){
-            ob_end_clean();
-
-            throw $e;
-        }
-
-        $output = ob_get_clean();
-
-
-        foreach ($params as $key => $param) {
-            switch ($method) {
-                case 'GET':
-                case 'PATCH':
-                    unset($_GET[$key]);
-                    break;
-                case 'POST':
-                case 'PUT':
-                    unset($_POST[$key]);
+            if ($response instanceof ResponseInterface) {
+                $this->setResponse($response);
             }
+
+            return (string) ob_get_contents();
+        } finally {
+            ob_end_clean();
+            [$_SERVER, $_GET, $_POST, $_COOKIE, $_REQUEST, $_FILES] = $globals;
         }
     }
 
     /**
-     * Dispatches a given command line
-     *
-     * @param string $cli
+     * Dispatches a command line through the CLI kernel and returns what `handle()` returns.
      */
-    protected function dispatchCli($cli)
+    protected function dispatchCli(string $cli): mixed
     {
-        $this->app->setArgument(explode(' ', $cli));
+        $app = $this->kernelInstance();
 
-        $this->app->handle();
+        if (!$app instanceof Console) {
+            throw new RuntimeException(static::class . '::dispatchCli() needs a CLI kernel.');
+        }
+
+        $app->setArgument(explode(' ', $cli));
+
+        return $app->handle();
+    }
+
+    private function dispatcher(): MvcDispatcher|CliDispatcher
+    {
+        /** @var MvcDispatcher|CliDispatcher */
+        return $this->getDI()->getShared(Services::DISPATCHER);
+    }
+
+    private function response(): \Phalcon\Http\Response
+    {
+        /** @var \Phalcon\Http\Response */
+        return $this->getDI()->getShared(Services::RESPONSE);
+    }
+
+    private function setResponse(ResponseInterface $response): void
+    {
+        $di = $this->getDI();
+
+        if ($di->has(Services::RESPONSE) && $di->getShared(Services::RESPONSE) === $response) {
+            return;
+        }
+
+        // The container caches resolved shared instances: remove the service before replacing it.
+        $di->remove(Services::RESPONSE);
+        $di->setShared(Services::RESPONSE, $response);
+    }
+
+    /**
+     * The request body is read once from php://input: it is given to the request service directly.
+     */
+    private function setRawBody(string $body): void
+    {
+        $request = $this->getDI()->getShared(Services::REQUEST);
+
+        if ($request instanceof Request) {
+            (new ReflectionProperty(Request::class, 'rawBody'))->setValue($request, $body);
+        }
     }
 }

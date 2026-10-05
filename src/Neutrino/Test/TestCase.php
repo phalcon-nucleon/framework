@@ -1,168 +1,165 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Test;
 
 use Mockery;
+use Neutrino\Config\Config;
 use Neutrino\Foundation\Bootstrap;
+use Neutrino\Interfaces\Kernelable;
 use Neutrino\Support\Facades\Facade;
-use Phalcon\Config;
-use Phalcon\Config as PhConfig;
+use Phalcon\Config\Config as PhalconConfig;
+use Phalcon\Di\Di;
+use Phalcon\Di\DiInterface;
 use Phalcon\Di\InjectionAwareInterface;
-use Phalcon\DiInterface;
-use PHPUnit_Framework_TestCase as UnitTestCase;
+use Phalcon\Support\Version;
+use PHPUnit\Framework\TestCase as UnitTestCase;
+use RuntimeException;
 
 /**
- * Class UnitTestCase
+ * Boots the application kernel before each test, and terminates it after.
  *
- * @package Phalcon\Test
+ * The kernel is given by {@see TestCase::kernelClassInstance()}, the configuration by {@see TestCase::setConfig()}.
  */
 abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
 {
     /**
-     * Holds the configuration variables and other stuff
-     * I can use the DI container but for tests like the Translate
-     * we do not need the overhead
-     *
-     * @var Config|null
+     * Configuration of the kernel. Reset before each test class.
      */
-    protected static $config;
+    protected static ?PhalconConfig $config = null;
 
     /**
-     * @var \Phalcon\Application|\Phalcon\Cli\Console|\Neutrino\Foundation\Kernelize
+     * The booted kernel.
      */
-    protected $app;
+    protected (Kernelable&InjectionAwareInterface)|null $app = null;
 
-    /**
-     * @var \Neutrino\Foundation\Bootstrap
-     */
-    protected $bootstrap;
+    protected ?Bootstrap $bootstrap = null;
 
-    /**
-     * This method is called before a test is executed.
-     */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
-        $this->checkExtension('phalcon');
+        self::assertPhalconIsAvailable();
 
-        // Creating the application
         $this->bootstrap = new Bootstrap(self::getConfig());
         $this->app = $this->bootstrap->make($this->kernel());
         $this->app->boot();
     }
 
-    /**
-     * @return string
-     */
-    protected function kernel()
+    protected function tearDown(): void
     {
-        return static::kernelClassInstance();
-    }
+        // Only when loaded: no Mockery means no mock to verify.
+        if (class_exists(Mockery::class, false)) {
+            Mockery::close();
+        }
 
-    /**
-     * @return string
-     */
-    protected static function kernelClassInstance()
-    {
-        throw new \RuntimeException("kernelClassInstance not implemented.");
-    }
-
-    protected function tearDown()
-    {
-        Mockery::close();
         Facade::clearResolvedInstances();
 
-        ob_start();
-        $this->app->terminate();
-        ob_end_clean();
-        $this->app->getDI()->reset();
-        $this->app = null;
+        if ($this->app !== null) {
+            ob_start();
+            try {
+                $this->app->terminate();
+            } finally {
+                ob_end_clean();
+            }
+
+            $this->app = null;
+        }
+
+        $this->bootstrap = null;
+
+        Di::reset();
 
         parent::tearDown();
     }
 
-    /**
-     * This method is called before the first test of this test class is run.
-     */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
-        self::$config = new PhConfig();
+        self::$config = new Config();
 
         parent::setUpBeforeClass();
     }
 
     /**
-     * Checks if a particular extension is loaded and if not it marks
-     * the tests skipped
+     * Class of the kernel to boot.
      *
-     * @param mixed $extension
+     * @return class-string<Kernelable&InjectionAwareInterface>
      */
-    public function checkExtension($extension)
+    protected function kernel(): string
     {
-        $message = function ($ext) {
-            sprintf('Warning: %s extension is not loaded', $ext);
-        };
+        return static::kernelClassInstance();
+    }
 
-        if (is_array($extension)) {
-            foreach ($extension as $ext) {
-                if (!extension_loaded($ext)) {
-                    $this->markTestSkipped($message($ext));
-                    break;
-                }
-            }
-        } elseif (!extension_loaded($extension)) {
-            $this->markTestSkipped($message($extension));
+    /**
+     * @return class-string<Kernelable&InjectionAwareInterface>
+     */
+    protected static function kernelClassInstance(): string
+    {
+        throw new RuntimeException(static::class . '::kernelClassInstance() not implemented.');
+    }
+
+    /**
+     * Fails when Phalcon is not available (extension, or the phalcon/phalcon package).
+     *
+     * Tests are not skipped: a run without Phalcon would otherwise look green.
+     */
+    public static function assertPhalconIsAvailable(): void
+    {
+        if (!class_exists(Version::class)) {
+            self::fail('Phalcon is not available: install the phalcon extension (or phalcon/phalcon).');
         }
     }
 
     /**
-     * Returns a unique file name
+     * Marks the test skipped when one of the extensions is not loaded.
      *
-     * @param  string $prefix A prefix for the file
-     * @param  string $suffix A suffix for the file
-     *
-     * @return string
+     * @param string|list<string> $extension
      */
-    protected function getFileName($prefix = '', $suffix = 'log')
+    public function checkExtension(string|array $extension): void
     {
-        $prefix = ($prefix) ? $prefix . '_' : '';
-        $suffix = ($suffix) ? $suffix : 'log';
+        foreach ((array) $extension as $ext) {
+            if (!extension_loaded($ext)) {
+                $this->markTestSkipped(sprintf('Warning: %s extension is not loaded', $ext));
+            }
+        }
+    }
+
+    /**
+     * Returns a unique file name.
+     */
+    protected function getFileName(string $prefix = '', string $suffix = 'log'): string
+    {
+        $prefix = $prefix !== '' ? $prefix . '_' : '';
+        $suffix = $suffix !== '' ? $suffix : 'log';
 
         return uniqid($prefix, true) . '.' . $suffix;
     }
 
     /**
-     * Removes a file from the system
-     *
-     * @param string $path
-     * @param string $fileName
+     * Removes a file if it exists.
      */
-    protected function cleanFile($path, $fileName)
+    protected function cleanFile(string $path, string $fileName): void
     {
-        $file = (substr($path, -1, 1) != "/") ? ($path . '/') : $path;
-        $file .= $fileName;
+        $file = rtrim($path, '/') . '/' . $fileName;
 
-        $actual = file_exists($file);
-
-        if ($actual) {
+        if (file_exists($file)) {
             unlink($file);
         }
     }
 
     /**
-     * Sets the Config object.
+     * Sets the configuration of the kernel, merged with the current one by default.
      *
-     * @param Config|array $config
-     * @param bool         $merge
+     * @param PhalconConfig|array<string, mixed> $config
      */
-    public static function setConfig($config, $merge = true)
+    public static function setConfig(PhalconConfig|array $config, bool $merge = true): void
     {
         if (is_array($config)) {
-            $config = new PhConfig($config);
+            $config = new Config($config);
         }
 
-        if (isset(self::$config) && $merge) {
+        if (self::$config !== null && $merge) {
             self::$config->merge($config);
 
             return;
@@ -171,42 +168,26 @@ abstract class TestCase extends UnitTestCase implements InjectionAwareInterface
         self::$config = $config;
     }
 
-    /**
-     * Returns the Config object if any.
-     *
-     * @return null|Config
-     */
-    public static function getConfig()
+    public static function getConfig(): PhalconConfig
     {
-        if(is_array(self::$config)){
-            return new PhConfig(self::$config);
-        }
-        if(self::$config instanceof Config){
-            return self::$config;
-        }
+        return self::$config ??= new Config();
+    }
 
-        return new PhConfig();
+    public function setDI(DiInterface $container): void
+    {
+        $this->kernelInstance()->setDI($container);
+    }
+
+    public function getDI(): DiInterface
+    {
+        return $this->kernelInstance()->getDI();
     }
 
     /**
-     * Sets the Dependency Injector.
-     *
-     * @param  DiInterface $di
-     *
-     * @return $this
+     * @return Kernelable&InjectionAwareInterface
      */
-    public function setDI(DiInterface $di)
+    protected function kernelInstance(): Kernelable
     {
-        return $this->app->setDI($di);
-    }
-
-    /**
-     * Returns the internal Dependency Injector.
-     *
-     * @return DiInterface
-     */
-    public function getDI()
-    {
-        return $this->app->getDI();
+        return $this->app ?? throw new RuntimeException('The kernel is not booted.');
     }
 }

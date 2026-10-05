@@ -1,268 +1,289 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Test\Assert;
 
 use Neutrino\Constants\Services;
-use Neutrino\Support\Str;
 use Phalcon\Http\Response;
+use Phalcon\Mvc\Router;
+use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\SkippedTest;
+use RuntimeException;
+use stdClass;
 use Test\TestCase\TestCase;
 
-/**
- * Trait FuncTestCaseTest
- *
- * @package Test\Assert
- */
-class FuncTestCaseTest extends TestCase
+final class FuncTestCaseTest extends TestCase
 {
-
-    public function setUp()
+    /**
+     * @return iterable<string, array{string, array<string, string>, array<string, string>, array<string, string>}>
+     */
+    public static function dataDispatch(): iterable
     {
-        self::setConfig(['app' => ['base_uri' => '/']]);
-
-        parent::setUp();
-
-        $this->app->useImplicitView(false);
-    }
-
-    public function dataDispatch()
-    {
-        return [
-            'GET' => ['GET', '/dispatch'],
-            'PATCH' => ['PATCH', '/dispatch'],
-            'POST' => ['POST', '/dispatch'],
-            'PUT' => ['PUT', '/dispatch'],
-            'GET.withParams' => ['GET', '/dispatch', ['data' => 'test']],
-            'PATCH.withParams' => ['PATCH', '/dispatch', ['data' => 'test']],
-            'POST.withParams' => ['POST', '/dispatch', ['data' => 'test']],
-            'PUT.withParams' => ['PUT', '/dispatch', ['data' => 'test']],
-        ];
+        foreach (['GET', 'HEAD', 'DELETE'] as $method) {
+            yield $method => [$method, [], [], []];
+            yield "$method.withParams" => [$method, ['data' => 'test'], ['data' => 'test'], []];
+        }
+        foreach (['POST', 'PUT', 'PATCH'] as $method) {
+            yield $method => [$method, [], [], []];
+            yield "$method.withParams" => [$method, ['data' => 'test'], [], ['data' => 'test']];
+        }
     }
 
     /**
-     * @dataProvider dataDispatch
+     * @param array<string, string> $params
+     * @param array<string, string> $get
+     * @param array<string, string> $post
      */
-    public function testDispatch($method, $url, $params = [])
+    #[DataProvider('dataDispatch')]
+    public function testDispatchParameters(string $method, array $params, array $get, array $post): void
     {
-        $this->app->router->{'add' . Str::capitalize($method)}($url, [
-            'namespace'  => \Fake\Kernels\Http\Controllers::class,
-            'controller' => 'Stub',
-            'action'     => 'data'
-        ]);
+        $this->addDataRoute($method);
 
-        $this->dispatch($url, $method, $params);
+        $output = $this->dispatch('/dispatch', $method, $params);
 
-        /** @var Response $response */
-        $response = $this->app->getDI()->getShared(Services::RESPONSE);
-        $this->assertInstanceOf(Response::class, $response);
-        $content = $response->getContent();
-        $this->assertNotEmpty($content);
-        $content = json_decode($content, true);
-        $this->assertEquals($method, $content['method']);
-        $this->assertEquals($params, $content['queries']);
+        $this->assertSame('', $output);
+        $this->assertInstanceOf(Response::class, $this->getDI()->getShared(Services::RESPONSE));
+
+        $content = json_decode($this->getContent(), true);
+        $this->assertSame($method, $content['method']);
+        $this->assertSame($get, $content['get']);
+        $this->assertSame($post, $content['post']);
     }
 
-    public function testAssertController()
+    public function testDispatchQueryStringHeadersAndJson(): void
     {
-        // GIVEN
-        // WHEN
+        $this->addDataRoute('POST');
+
+        $this->dispatch('/dispatch?page=2', 'POST', ['a' => '1'], ['X-Test' => 'yes'], ['json' => true]);
+
+        $content = json_decode($this->getContent(), true);
+        $this->assertSame(['page' => '2'], $content['get']);
+        $this->assertSame(['a' => '1'], $content['post']);
+        $this->assertSame(['X-Test' => 'yes', 'Content-Type' => 'application/json'], $content['headers']);
+        $this->assertSame(['json' => true], $content['json']);
+    }
+
+    public function testDispatchRestoresTheSuperglobals(): void
+    {
+        $this->addDataRoute('POST');
+        $server = $_SERVER;
+        $_GET = ['kept' => 'get'];
+        $_POST = ['kept' => 'post'];
+
+        $this->dispatch('/dispatch?page=2', 'POST', ['a' => '1'], ['X-Test' => 'yes']);
+
+        $this->assertSame($server, $_SERVER);
+        $this->assertSame(['kept' => 'get'], $_GET);
+        $this->assertSame(['kept' => 'post'], $_POST);
+    }
+
+    public function testDispatchReturnsTheOutput(): void
+    {
+        $router = $this->getDI()->getShared(Services::ROUTER);
+        $this->assertInstanceOf(Router::class, $router);
+        $router->addGet('/echo', ['namespace' => \Fake\Kernels\Http\Controllers::class, 'controller' => 'Stub', 'action' => 'return']);
+        $this->app->getEventsManager()?->attach('application:beforeSendResponse', function (): void {
+            echo 'echoed';
+        });
+
+        $this->assertSame('echoed', $this->dispatch('/echo'));
+    }
+
+    public function testDispatchRethrowsAndCleansTheBuffer(): void
+    {
+        $level = ob_get_level();
+
+        try {
+            $this->dispatch('/unknown-controller/action');
+            $this->fail('An exception was expected.');
+        } catch (\Phalcon\Mvc\Dispatcher\Exception) {
+            $this->assertSame($level, ob_get_level());
+        }
+    }
+
+    public function testDispatchCliNeedsACliKernel(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $this->dispatchCli('nucleon list');
+    }
+
+    public function testMockService(): void
+    {
+        $mock = $this->mockService(Services::URL, \Phalcon\Mvc\Url::class);
+        $this->assertSame($mock, $this->getDI()->getShared(Services::URL));
+
+        $instance = new stdClass();
+        $this->assertSame($instance, $this->mockService('custom', $instance, false));
+        $this->assertSame($instance, $this->getDI()->get('custom'));
+    }
+
+    public function testAssertControllerAndAction(): void
+    {
         $this->dispatch('/return');
 
         $this->assertController('Stub');
+        $this->assertAction('return');
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertControllerFail()
+    public function testAssertControllerFail(): void
     {
-        // GIVEN
-        // WHEN
         $this->dispatch('/return');
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Failed asserting Controller name "Blablabla", actual Controller name is "Stub"');
 
         $this->assertController('Blablabla');
     }
 
-    public function testAssertAction()
+    public function testAssertActionFail(): void
     {
-        // GIVEN
-        // WHEN
         $this->dispatch('/return');
 
-        $this->assertAction('return');
-    }
-
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertActionFail()
-    {
-        // GIVEN
-        // WHEN
-        $this->dispatch('/return');
+        $this->expectException(ExpectationFailedException::class);
 
         $this->assertAction('Blablabla');
     }
 
-    public function testAssertResponseContentContains()
+    public function testAssertResponseContentContains(): void
     {
-        // GIVEN
-        // WHEN
         $this->dispatch('/return');
 
         $this->assertResponseContentContains('return');
-    }
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertResponseContentContainsFail()
-    {
-        // GIVEN
-        // WHEN
-        $this->dispatch('/return');
-
+        $this->expectException(ExpectationFailedException::class);
         $this->assertResponseContentContains('redirect');
     }
 
-    public function testAssertRedirectTo()
+    public function testAssertRedirectTo(): void
     {
-        // GIVEN
-        // WHEN
         $this->dispatch('/redirect');
+
+        $this->assertRedirectTo('/');
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->assertRedirectTo('/wrong');
+    }
+
+    public function testNoRedirect(): void
+    {
+        $this->dispatch('/return');
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->expectExceptionMessage('Failed asserting response caused a redirect');
 
         $this->assertRedirectTo('/');
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertRedirectToFail()
+    public function testAssertResponseCode(): void
     {
-        // GIVEN
-        // WHEN
-        $this->dispatch('/redirect');
-
-        // THEN
-        $this->assertRedirectTo('/wrong');
-    }
-
-    public function testAssertResponseCode()
-    {
-        // GIVEN
-        // WHEN
         $this->dispatch('/redirect');
 
         $this->assertResponseCode(302);
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertResponseCodeFail()
+    public function testAssertResponseCodeFail(): void
     {
-        // GIVEN
-        // WHEN
         $this->dispatch('/return');
 
-        // THEN
+        $this->expectException(ExpectationFailedException::class);
+
         $this->assertResponseCode(302);
     }
 
-    public function testAssertHeaders()
+    public function testAssertHeaders(): void
     {
-        // GIVEN
-        // WHEN
         $this->dispatch('/redirect');
 
-        $this->assertHeader([
-            'Location' => '/',
-            'Status' => '302 Found',
-        ]);
+        $this->assertHeader(['Location' => '/']);
+
+        $this->expectException(ExpectationFailedException::class);
+        $this->assertHeader(['Location' => '/return']);
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertHeadersFail()
+    public function testAssertForwarded(): void
     {
-        // GIVEN
-        // WHEN
-        $this->dispatch('/redirect');
-
-        $this->assertHeader([
-            'Location' => '/return',
-        ]);
-    }
-
-    public function testAssertForwarded()
-    {
-        // GIVEN
-        // WHEN
         $this->dispatch('/forwarded');
 
         $this->assertDispatchIsForwarded();
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertForwardedFail()
+    public function testAssertForwardedFail(): void
     {
-        // GIVEN
-        // WHEN
         $this->dispatch('/redirect');
+
+        $this->expectException(ExpectationFailedException::class);
 
         $this->assertDispatchIsForwarded();
     }
 
-    public function testCheckExtension()
+    public function testCheckExtension(): void
     {
-        // GIVEN
-        // WHEN
-        $this->checkExtension('phalcon');
+        $this->checkExtension('json');
+        $this->checkExtension(['json', 'pcre']);
+
+        try {
+            $this->checkExtension(['json', 'phalconista']);
+            $this->fail('The test was expected to be skipped.');
+        } catch (SkippedTest $e) {
+            $this->assertSame('Warning: phalconista extension is not loaded', $e->getMessage());
+        }
     }
 
-    public function testCheckExtensionArray()
+    public function testPhalconIsDetectedWithoutTheExtension(): void
     {
-        // GIVEN
-        // WHEN
-        $this->checkExtension([
-            'phalcon',
-            'xdebug'
-        ]);
+        self::assertPhalconIsAvailable();
+
+        $this->addToAssertionCount(1);
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_SkippedTestError
-     */
-    public function testCheckExtensionStringFail()
+    public function testMissingPhalconFails(): void
     {
-        // GIVEN
-        // WHEN
-        $this->checkExtension('phalconista');
+        // A PHP process without any extension (-n), hence without Phalcon. Composer's ClassLoader is used
+        // directly: vendor/autoload.php would stop on the platform check (ext-phalcon).
+        $vendor = var_export(dirname(__DIR__, 3) . '/vendor/composer/', true);
+        $code = <<<PHP
+            require $vendor . 'ClassLoader.php';
+            \$loader = new Composer\\Autoload\\ClassLoader();
+            \$loader->addClassMap(require $vendor . 'autoload_classmap.php');
+            foreach (require $vendor . 'autoload_psr4.php' as \$prefix => \$dirs) { \$loader->setPsr4(\$prefix, \$dirs); }
+            \$loader->register();
+            try {
+                Neutrino\\Test\\TestCase::assertPhalconIsAvailable();
+                echo 'no failure';
+            } catch (Throwable \$e) {
+                echo \$e::class, ': ', \$e->getMessage();
+            }
+            PHP;
+
+        $process = proc_open([PHP_BINARY, '-n', '-r', $code], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        $this->assertIsResource($process);
+        $output = (string) stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+
+        if (extension_loaded('phalcon')) {
+            // The test case cannot even be loaded (it implements Phalcon interfaces): the run fails, nothing is skipped.
+            $this->assertMatchesRegularExpression('/^(Error: Interface "Phalcon\\\\.+" not found|' . preg_quote(AssertionFailedError::class, '/') . ': Phalcon is not available)/', $output);
+        } else {
+            // Phalcon 6: the phalcon/phalcon package is found without any extension.
+            $this->assertSame('no failure', $output);
+        }
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_SkippedTestError
-     */
-    public function testCheckExtensionArrayFail()
+    private function addDataRoute(string $method): void
     {
-        // GIVEN
-        // WHEN
-        $this->checkExtension([
-            'phalconista'
-        ]);
-    }
+        $router = $this->getDI()->getShared(Services::ROUTER);
+        $this->assertInstanceOf(Router::class, $router);
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testNoRedirect()
-    {
-        // GIVEN
-        // WHEN
-        $this->dispatch('/return');
-
-        // THEN
-        $this->assertRedirectTo('/');
+        $router->add('/dispatch', [
+            'namespace'  => \Fake\Kernels\Http\Controllers::class,
+            'controller' => 'Stub',
+            'action'     => 'data',
+        ], [$method]);
     }
 }

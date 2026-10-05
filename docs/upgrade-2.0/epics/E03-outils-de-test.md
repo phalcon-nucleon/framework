@@ -1,6 +1,6 @@
 # E3 — Outils de test publics
 
-**Statut** : Rédigé · **Dépend de** : E2 · **Bloque** : E4, E5, E6, E7
+**Statut** : Terminé · **Dépend de** : E2 · **Bloque** : E4, E5, E6, E7
 
 ## Objectif
 
@@ -80,3 +80,20 @@ Porter sur PHPUnit 11 et Phalcon 5 les classes de test que les apps utilisent (`
 - Le job Phalcon 6 exécute réellement les tests (aucun « skipped » dû à la détection de Phalcon).
 - `StubRouteTestCase` passe.
 - Les suites `TestCase` et les tests des outils de test sont activés en CI.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · `Neutrino\Test\TestCase` | Fait | PHPUnit 11, typé. `$app` est un `Kernelable&InjectionAwareInterface`. Détection de Phalcon par `class_exists(Phalcon\Support\Version::class)`, échec et non « skipped » ; en pratique, sans Phalcon la classe ne se charge même pas (elle implémente des interfaces Phalcon), ce qui fait aussi échouer le test. `checkExtension()` corrigé (le message de saut était toujours vide). `tearDown()` : `Mockery::close()` seulement si Mockery est chargé, `Di::reset()`. La config par défaut est un `Neutrino\Config\Config`. |
+| S2 · `FuncTestCase` | Fait | `dispatch(string $url, string $method = 'GET', array $params = [], array $headers = [], ?array $json = null): string`. Paramètres dans `$_GET` (GET, HEAD, DELETE) ou `$_POST` (POST, PUT, PATCH), query string de l'URL dans `$_GET`, en-têtes dans `$_SERVER['HTTP_*']` (`CONTENT_TYPE`, `CONTENT_LENGTH` sans préfixe), corps JSON injecté dans le service `request` (`Request::$rawBody`, lu par `getJsonRawBody()`). Les superglobales sont restaurées, le tampon de sortie aussi en cas d'exception. Accepte un kernel HTTP ou Micro. La réponse remplace le service `response` en le retirant d'abord du conteneur (cache des instances partagées, voir E2-S6). Assertions par `Assert` avec message, `assertResponseCode(int)` sur `getStatusCode()`, `assertController()` accepte aussi un dispatcher CLI (nom de tâche). `mockService()` : `$shared` vaut `true` par défaut. `dispatchCli()` exige un kernel CLI ; son comportement relève d'E6. |
+| S3 · `RoutesTestCase` et `RoutesTrait` | Fait | `routes()`, `formatDataRoute()`, `routesProvider()` et `getApplicationRoutes()` statiques ; attributs `#[DataProvider]` et `#[Depends]`. Clés des jeux de données stables (index au lieu d'un suffixe aléatoire). `getApplicationRoutes()` remet le conteneur par défaut à zéro après lecture. `assertRoute()` restaure `REQUEST_METHOD` et compare les paramètres de route d'un seul `assertEquals`. |
+| S4 · Application `tests/.fake` | Fait | Kernels typés dès E2. `StubController` : actions typées, `dataAction()` renvoie méthode, `$_GET`, `$_POST`, en-têtes et JSON. `StubRouteTestCase` statique, il enregistre les appels dans `$assertedRoutes`. Les classes qui étendent des classes encore non portées (`Neutrino\Http\Controller`, `Cli\Task`, `Cli\Output\Writer`, `StubCache` sur l'ancien cache) restent à typer avec leurs epics (E4, E6, E7). |
+| S5 · Classes de base du framework | Fait | Répertoire temporaire par processus (`sys_get_temp_dir()/nucleon-tests-<pid>/`), vidé après chaque test. `Test\TestCase\TestCase` appelle la config de `TraitTestCase` par un alias (sa propre méthode `setUpBeforeClass()` masquait celle du trait). La config de cache de `TraitTestCase` et `UseCaches` reste au format 1.3 : les stores ne sont qu'enregistrés, jamais construits ; E7 la remplace. |
+| S6 · Tests des outils | Fait | Suite `Assert` : `FuncTestCaseTest` (paramètres par méthode, query string, en-têtes, JSON, restauration des superglobales, sortie, exception et tampon, `mockService`, chaque assertion en succès et en échec, `checkExtension`, détection de Phalcon dans un processus sans extension), `RoutesTraitTest`, `RoutesTestCaseTest`, et `AppRoutesTest`, un vrai `RoutesTestCase` sur `routes/http.php` de l'app de test (toutes les routes testées, `testRoutesTested` passe sans test incomplet). |
+
+Suite ajoutée à `tests/migrated-suites.txt` : `Assert` (58 tests). 269 tests au total, verts sur Phalcon 5.22.1 et Phalcon 6 (aucun test ignoré). Baseline PHPStan : 1 922 → 1 795 erreurs, aucune dans le périmètre.
+
+Coût du kernel démarré à chaque test : la suite `Assert` (58 tests, un boot du kernel HTTP et souvent une requête par test) tourne en environ 35 ms, soit moins d'une milliseconde par test. Pas de réutilisation par classe à prévoir.
+
+Constat pour E4 : dans Phalcon, `:controller` et `:action` ne sont associés au contrôleur et à l'action que si les `paths` les déclarent (`'controller' => 1`). La route `/back/:controller/:action` de l'app de test ne le fait pas, que ce soit en 1.3 ou en 2.0.

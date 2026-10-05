@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Cli;
 
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
 use Neutrino\Error;
 use Neutrino\Foundation\Cli\Tasks\HelperTask;
@@ -15,9 +18,7 @@ use Phalcon\Di\FactoryDefault\Cli as Di;
 use Phalcon\Events\Manager as EventManager;
 
 /**
- * Class Cli
- *
- * @package Neutrino\Foundation\Kernel
+ * Base class of the application's CLI kernel.
  *
  * @property-read \Neutrino\Cli\Router    $router
  * @property-read \Phalcon\Cli\Dispatcher $dispatcher
@@ -25,155 +26,155 @@ use Phalcon\Events\Manager as EventManager;
 abstract class Kernel extends Console implements Kernelable
 {
     use Kernelize {
-        boot as _boot;
-        terminate as _terminate;
+        boot as private bootKernel;
+        terminate as private terminateKernel;
     }
 
     /**
-     * Return the Provider List to load.
+     * Providers to register.
      *
-     * @var string[]
+     * @var array<int|string, string>
      */
-    protected $providers = [];
+    protected array $providers = [];
 
     /**
-     * Return the Middlewares to attach onto the application.
+     * Middlewares to attach to the application.
      *
-     * @var string[]
+     * @var list<class-string<\Neutrino\Events\Listener>>
      */
-    protected $middlewares = [];
+    protected array $middlewares = [];
 
     /**
-     * Return the Events Listeners to attach onto the application.
+     * Events listeners to attach to the application.
      *
-     * @var string[]
+     * @var list<class-string<\Neutrino\Events\Listener>>
      */
-    protected $listeners = [];
+    protected array $listeners = [];
 
     /**
-     * Return the modules to attach onto the application.
+     * The container class. `null` uses the current default container.
      *
-     * @var string[]
+     * @var class-string<\Phalcon\Di\DiInterface>|null
      */
-    protected $modules = [];
+    protected ?string $dependencyInjection = Di::class;
 
     /**
-     * The DependencyInjection class to use.
+     * The events manager class. `null` disables the events manager.
      *
-     * @var string
+     * @var class-string<\Phalcon\Events\ManagerInterface>|null
      */
-    protected $dependencyInjection = Di::class;
+    protected ?string $eventsManagerClass = EventManager::class;
 
     /**
-     * The EventManager class to use.
+     * Error handler outputs.
      *
-     * @var string
+     * @var list<class-string<Error\Writer\Writable>>
      */
-    protected $eventsManagerClass = EventManager::class;
+    protected array $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Cli::class];
 
-    /**
-     * Error Handler Outputs
-     *
-     * @var int
-     */
-    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Cli::class];
-
-    /**
-     * Application constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct(null);
-    }
-
-    /**
-     * Register the routes of the application.
-     */
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
         require BASE_PATH . '/routes/cli.php';
     }
 
-    public function handle(array $arguments = null)
+    /**
+     * @param array<int|string, mixed>|null $arguments
+     */
+    public function handle(?array $arguments = null): mixed
     {
-        if (!empty($arguments)) {
+        if ($arguments !== null && $arguments !== []) {
             $this->setArgument($arguments, false, false);
         }
 
         if ($this->isHelp()) {
-            $this->_arguments = [
+            $this->arguments = [
                 'task'   => HelperTask::class,
                 'action' => 'main',
                 'params' => [
-                    'arguments' => $this->_arguments,
-                ]
+                    'arguments' => $this->arguments,
+                ],
             ];
         }
 
-        parent::handle($arguments);
+        return parent::handle();
     }
 
-    public function getArguments($raw = false)
+    public function handleIncoming(): mixed
     {
-        if ($raw) {
-            return $this->_arguments;
-        } else {
-            return explode(Route::getDelimiter(), $this->_arguments);
+        return $this->handle();
+    }
+
+    /**
+     * @return list<string>|string|array<int|string, mixed>
+     */
+    public function getArguments(bool $raw = false): array|string
+    {
+        if ($raw || !is_string($this->arguments)) {
+            return $this->arguments;
         }
+
+        return explode(Route::getDelimiter() ?: ' ', $this->arguments);
     }
 
-    public function boot()
+    public function boot(): void
     {
-        $this->_boot();
+        $this->bootKernel();
 
-        if (isset($this->_options['no-colors'])) {
+        if (isset($this->options['no-colors'])) {
             Decorate::setColorSupport(false);
-        } elseif (isset($this->_options['colors'])) {
+        } elseif (isset($this->options['colors'])) {
             Decorate::setColorSupport(true);
         }
     }
 
-    public function terminate()
+    public function terminate(): void
     {
-        $this->_terminate();
+        $this->terminateKernel();
 
         if ($this->withStats()) {
             $this->displayStats();
         }
 
         if ($this->getDI()->has(Services\Cli::OUTPUT)) {
-            $this->{Services\Cli::OUTPUT}->clean();
-        };
+            $this->output()->clean();
+        }
     }
 
-    public function isQuiet()
+    public function isQuiet(): bool
     {
-        return isset($this->_options['q']) || isset($this->_options['quiet']);
+        return isset($this->options['q']) || isset($this->options['quiet']);
     }
 
-    public function isHelp()
+    public function isHelp(): bool
     {
-        return isset($this->_options['h']) || isset($this->_options['help']);
+        return isset($this->options['h']) || isset($this->options['help']);
     }
 
-    public function withStats()
+    public function withStats(): bool
     {
-        return isset($this->_options['s']) || isset($this->_options['stats']);
+        return isset($this->options['s']) || isset($this->options['stats']);
     }
 
-    public function displayStats()
+    public function displayStats(): void
     {
-        /** @var \Neutrino\Cli\Output\Writer $output */
-        $output = $this->{Services\Cli::OUTPUT};
+        $start = $_SERVER['REQUEST_TIME_FLOAT'] ?? null;
+
+        $output = $this->output();
         $output->line('');
         $output->line('Stats : ');
-        $output->line("\tmem:" . Decorate::info(memory_get_usage()));
-        $output->line("\tmem.peak:" . Decorate::info(memory_get_peak_usage()));
-        $output->line("\ttime:" . Decorate::info((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'])));
+        $output->line("\tmem:" . Decorate::info((string) memory_get_usage()));
+        $output->line("\tmem.peak:" . Decorate::info((string) memory_get_peak_usage()));
+        $output->line("\ttime:" . Decorate::info((string) (microtime(true) - (is_float($start) ? $start : microtime(true)))));
     }
 
-    public function displayNeutrinoVersion()
+    public function displayNeutrinoVersion(): void
     {
-        $this->{Services\Cli::OUTPUT}->write(Helper::neutrinoVersion() . PHP_EOL, true);
+        $this->output()->write(Helper::neutrinoVersion() . PHP_EOL, true);
+    }
+
+    private function output(): Writer
+    {
+        /** @var Writer */
+        return $this->getDI()->getShared(Services\Cli::OUTPUT);
     }
 }

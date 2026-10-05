@@ -14,11 +14,11 @@ use Phalcon\Flash\Session as PhalconFlashSession;
  */
 class FlashSession extends Provider
 {
-    protected $name = Services::FLASH_SESSION;
+    protected string $name = Services::FLASH_SESSION;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [PhalconFlashSession::class];
+    protected array $aliases = [PhalconFlashSession::class];
 
     /**
      * @return \Phalcon\Flash\Session

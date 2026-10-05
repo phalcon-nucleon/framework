@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\Facades;
 
 use Neutrino\Constants\Services;
@@ -10,7 +12,7 @@ use Neutrino\Constants\Services;
  *  @package Neutrino\Support\Facades
  * @method static \Neutrino\Foundation\Auth\User|null user()
  * @method static bool guest()
- * @method static \Neutrino\Foundation\Auth\User|null attempt(array $credentials, bool $remember = false)
+ * @method static \Neutrino\Foundation\Auth\User|null attempt(array<mixed> $credentials, bool $remember = false)
  * @method static bool check()
  * @method static void logout()
  * @method static mixed id()
@@ -24,7 +26,7 @@ class Auth extends Facade
      *
      * @return string
      */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return Services::AUTH;
     }

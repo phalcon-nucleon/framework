@@ -19,7 +19,7 @@ class Database extends Injectable implements Providable
     /**
      * Database connection is created based in the parameters defined in the configuration file
      */
-    public function registering()
+    public function registering(): void
     {
         $di = $this->getDI();
 

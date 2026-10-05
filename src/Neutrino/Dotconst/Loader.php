@@ -1,26 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst;
 
 use Neutrino\Dotconst;
 
 /**
- * Class Loader
- *
- * @package Neutrino\Dotconst
+ * Reads the constants from the compiled file, or from the `.const.ini` and `.const.{APP_ENV}.ini` files.
  */
-class Loader
+final class Loader
 {
+    public const string COMPILED_FILE = 'consts.php';
+
     /**
-     * Load Compiled contants file
-     *
-     * @param string $path
-     *
-     * @return bool
+     * Includes the compiled constants file if it exists.
      */
-    public static function fromCompile($path)
+    public static function fromCompile(string $path): bool
     {
-        if (file_exists($compilePath = $path . '/consts.php')) {
+        if (is_file($compilePath = $path . '/' . self::COMPILED_FILE)) {
             require $compilePath;
 
             return true;
@@ -30,44 +28,41 @@ class Loader
     }
 
     /**
-     * Load & parse .const.ini & .const.{env}.ini files
+     * Reads and resolves the `.const.ini` and `.const.{APP_ENV}.ini` files of a directory.
      *
-     * {env} is matched by [APP_ENV] Parameter
+     * @return array<string, scalar|null>
      *
-     * @param string $path
-     *
-     * @return array
+     * @throws Exception\InvalidFileException
      */
-    public static function fromFiles($path)
+    public static function fromFiles(string $path): array
     {
-        $pathEnv = $path . DIRECTORY_SEPARATOR . '.const';
-
-        if (!file_exists($pathEnv . '.ini')) {
+        if (!is_file($path . DIRECTORY_SEPARATOR . '.const.ini')) {
             return [];
         }
 
-        $raw = self::loadRaw($path);
-
-        $config = self::parse($raw, $pathEnv . '.ini');
-
-        return $config;
+        return self::dynamize(self::loadRaw($path), $path);
     }
 
-    public static function loadRaw($path)
+    /**
+     * Reads the ini files without resolving the extensions and references.
+     *
+     * @return array<string, scalar|null>
+     *
+     * @throws Exception\InvalidFileException
+     */
+    public static function loadRaw(string $path): array
     {
         $basePath = $path . DIRECTORY_SEPARATOR . '.const';
 
-        $path = $basePath . '.ini';
-
-        if (!file_exists($path)) {
+        if (!is_file($basePath . '.ini')) {
             return [];
         }
 
-        $raw = Helper::loadIniFile($path);
+        $raw = Helper::loadIniFile($basePath . '.ini');
 
-        $config = self::parse($raw, $path);
+        $env = self::environment($raw, $path);
 
-        if (!empty($config['APP_ENV']) && file_exists($pathEnv = $basePath . '.' . $config['APP_ENV'] . '.ini')) {
+        if (is_string($env) && $env !== '' && is_file($pathEnv = $basePath . '.' . $env . '.ini')) {
             $raw = Helper::mergeConfigWithFile($raw, $pathEnv);
         }
 
@@ -75,22 +70,55 @@ class Loader
     }
 
     /**
-     * @param array $config
-     * @param string $file
+     * Parses a reference to another constant: `@{name}rest`.
      *
-     * @return array
-     * @throws \Neutrino\Dotconst\Exception\InvalidFileException
+     * @return array{string, string}|null The referenced name and the rest of the value
      */
-    private static function parse($config, $file)
+    public static function matchReference(mixed $value): ?array
     {
-        return self::dynamize($config, dirname($file));
+        if (is_string($value) && preg_match('#^@\{(\w+)\}@?#', $value, $match) === 1) {
+            return [$match[1], substr($value, strlen($match[0]))];
+        }
+
+        return null;
     }
 
-    private static function dynamize($config, $dir)
+    /**
+     * Value of `[APP] env`, resolving only that constant (it selects the `.const.{env}.ini` file).
+     *
+     * @param array<string, scalar|null> $raw
+     */
+    private static function environment(array $raw, string $dir): mixed
+    {
+        $env = $raw['APP_ENV'] ?? null;
+
+        if (self::matchReference($env) !== null) {
+            return self::dynamize($raw, $dir)['APP_ENV'];
+        }
+
+        foreach (Dotconst::getExtensions() as $extension) {
+            if ($extension->identify($env)) {
+                /** @var string $env */
+                return $extension->parse($env, $dir);
+            }
+        }
+
+        return $env;
+    }
+
+    /**
+     * Resolves the extensions, then the references.
+     *
+     * @param array<string, scalar|null> $config
+     *
+     * @return array<string, scalar|null>
+     */
+    private static function dynamize(array $config, string $dir): array
     {
         foreach (Dotconst::getExtensions() as $extension) {
             foreach ($config as $const => $value) {
                 if ($extension->identify($value)) {
+                    /** @var string $value */
                     $config[$const] = $extension->parse($value, $dir);
                 }
             }
@@ -98,39 +126,23 @@ class Loader
 
         $nested = [];
         foreach ($config as $const => $value) {
-            if (preg_match('#^@\{(\w+)\}@?#', $value, $match)) {
-                $key = strtoupper($match[1]);
+            if (($reference = self::matchReference($value)) !== null) {
+                [$name, $rest] = $reference;
+                $key = strtoupper($name);
 
-                $value = preg_replace('#^@\{(\w+)\}@?#', '', $value);
-
-                $draw = '';
-                $require = null;
-                if(isset($config[$key])){
-                    $require = $key;
-                } else {
-                    $draw .= $match[1] ;
-                }
-
-                $value = $draw . $value;
-
-                $nested[$const] = ['require' => $require, 'value' => $value];
+                $nested[$const] = isset($config[$key])
+                    ? ['require' => $key, 'value' => $rest]
+                    : ['require' => null, 'value' => $name . $rest];
             }
         }
 
-        $nested = Helper::nestedConstSort($nested);
+        foreach (Helper::nestedConstSort($nested) as $const => $item) {
+            $resolved = $item['require'] !== null ? $config[$item['require']] : null;
 
-        foreach ($nested as $const => $value) {
-            $v = null;
-            if (isset($config[$value['require']])) {
-                $v = $config[$value['require']];
-            }
-            if (!empty($value['value'])) {
-                $v .= $value['value'];
-            }
-
-            $config[$const] = $v;
+            $config[$const] = $item['value'] === '' ? $resolved : $resolved . $item['value']; // @phpstan-ignore binaryOp.invalid (scalar|null)
         }
 
+        /** @var array<string, scalar|null> $config */
         return $config;
     }
 }

@@ -13,9 +13,9 @@ use Neutrino\Support\Provider;
  */
 class Output extends Provider
 {
-    protected $name = Services\Cli::OUTPUT;
+    protected string $name = Services\Cli::OUTPUT;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
     /**
      * Return the service to register

@@ -18,7 +18,7 @@ trait TestListenize
      *
      * @return void
      */
-    public function view($seek, array $data = null)
+    public function view($seek, ?array $data = null)
     {
         $this->views[$seek][] = $data;
     }

@@ -5,7 +5,7 @@
  * measures on the last line. Called by bench/run.php in a fresh process for
  * each iteration.
  *
- *   php bench/scenario.php <scenario> <path/to/vendor/autoload.php>
+ *   php bench/scenario.php <scenario> <path/to/vendor/autoload.php> [<app dir>]
  *
  * Must stay compatible with PHP 7.3: the same file measures Nucleon 1.3.
  */
@@ -18,17 +18,19 @@ use Neutrino\Dotconst;
 use Neutrino\Foundation\Bootstrap;
 
 if ($argc < 3) {
-    fwrite(STDERR, "Usage: php bench/scenario.php <scenario> <autoload>\n");
+    fwrite(STDERR, "Usage: php bench/scenario.php <scenario> <autoload> [<app dir>]\n");
     exit(1);
 }
 
-list(, $scenario, $autoload) = $argv;
+$scenario = $argv[1];
+$autoload = $argv[2];
+$app = isset($argv[3]) ? $argv[3] : __DIR__ . '/app';
 
 require $autoload;
 
-spl_autoload_register(function ($class) {
+spl_autoload_register(function ($class) use ($app) {
     if (strpos($class, 'Bench\\') === 0) {
-        $file = __DIR__ . '/app/app/' . str_replace('\\', '/', substr($class, 6)) . '.php';
+        $file = $app . '/app/' . str_replace('\\', '/', substr($class, 6)) . '.php';
         if (is_file($file)) {
             require $file;
         }
@@ -37,7 +39,7 @@ spl_autoload_register(function ($class) {
 
 $start = hrtime(true);
 
-Dotconst::load(__DIR__ . '/app');
+Dotconst::load($app);
 $bootstrap = new Bootstrap(ConfigLoader::load(BASE_PATH));
 
 switch ($scenario) {

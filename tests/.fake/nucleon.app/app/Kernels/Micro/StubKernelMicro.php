@@ -8,7 +8,7 @@ use Neutrino\Providers;
 
 class StubKernelMicro extends Kernel
 {
-    protected $providers = [
+    protected array $providers = [
         Providers\Url::class,
         Providers\Http\Router::class,
         Providers\Http\Dispatcher::class,
@@ -16,15 +16,15 @@ class StubKernelMicro extends Kernel
         Providers\Micro\Router::class,
     ];
 
-    protected $listeners = [
+    protected array $listeners = [
         // StubListener::class
     ];
 
-    protected $middlewares = [
+    protected array $middlewares = [
         //StubMiddleware::class
     ];
 
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
         /** @var \Neutrino\Micro\Router $router */
         $router = $this->{Services::MICRO_ROUTER};

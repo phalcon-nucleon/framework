@@ -1,50 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation;
 
 use Neutrino\Constants\Env;
 use Neutrino\Debug\Debugger;
 use Neutrino\Interfaces\Kernelable;
-use Phalcon\Config;
-use Phalcon\Http\Response;
+use Phalcon\Config\Config;
+use Phalcon\Http\ResponseInterface;
 
 /**
- * Class Application
- *
- * Phalcon Application Bootstrap
- *
- * @package Neutrino\Foundation
+ * Builds a kernel and runs it.
  */
-class Bootstrap
+final class Bootstrap
 {
-    /**
-     * @var \Phalcon\Config
-     */
-    private $config;
+    public function __construct(private readonly Config $config) {}
 
     /**
-     * Application constructor.
+     * @template T of Kernelable
      *
-     * @param \Phalcon\Config $config
-     */
-    public function __construct(Config $config)
-    {
-        $this->config = $config;
-    }
-
-    /**
-     * @param $kernelClass
+     * @param class-string<T> $kernelClass
      *
-     * @return \Phalcon\Application
+     * @return T
      */
-    public function make($kernelClass)
+    public function make(string $kernelClass): Kernelable
     {
-        /** @var \Phalcon\Application|\Neutrino\Interfaces\Kernelable $kernel */
-        $kernel = new $kernelClass;
+        $kernel = new $kernelClass();
 
         $kernel->bootstrap($this->config);
 
-        if (APP_DEBUG && APP_ENV !== Env::TEST && php_sapi_name() !== 'cli') {
+        if (APP_DEBUG && APP_ENV !== Env::TEST && PHP_SAPI !== 'cli') {
             Debugger::register();
         }
 
@@ -57,18 +43,15 @@ class Bootstrap
         return $kernel;
     }
 
-    /**
-     * @param \Neutrino\Interfaces\Kernelable|\Phalcon\Application $kernel
-     */
-    public function run(Kernelable $kernel)
+    public function run(Kernelable $kernel): void
     {
         $kernel->boot();
 
-        if (($response = $kernel->handle()) instanceof Response) {
-            if (!$response->isSent()) {
-                $response->send();
-            }
-        };
+        $response = $kernel->handleIncoming();
+
+        if ($response instanceof ResponseInterface && !$response->isSent()) {
+            $response->send();
+        }
 
         $kernel->terminate();
     }

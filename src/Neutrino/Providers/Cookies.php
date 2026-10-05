@@ -13,11 +13,11 @@ use Neutrino\Support\SimpleProvider;
  */
 class Cookies extends SimpleProvider
 {
-    protected $class = \Phalcon\Http\Response\Cookies::class;
+    protected string $class = \Phalcon\Http\Response\Cookies::class;
 
-    protected $name = Services::COOKIES;
+    protected string $name = Services::COOKIES;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Http\Response\Cookies::class];
+    protected array $aliases = [\Phalcon\Http\Response\Cookies::class];
 }

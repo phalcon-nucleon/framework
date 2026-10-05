@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants;
 
 /**
@@ -11,8 +13,8 @@ namespace Neutrino\Constants;
  */
 final class Env
 {
-    const PRODUCTION  = 'production';
-    const STAGING     = 'staging';
-    const TEST        = 'test';
-    const DEVELOPMENT = 'development';
+    public const string PRODUCTION  = 'production';
+    public const string STAGING     = 'staging';
+    public const string TEST        = 'test';
+    public const string DEVELOPMENT = 'development';
 }

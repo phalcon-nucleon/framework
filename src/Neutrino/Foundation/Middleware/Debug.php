@@ -14,7 +14,7 @@ use Phalcon\Events\Event;
  */
 class Debug extends Listener
 {
-    protected $space = [
+    protected array $space = [
         Events::APPLICATION,
         Events::DISPATCH
     ];

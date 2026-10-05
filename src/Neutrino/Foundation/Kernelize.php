@@ -1,162 +1,136 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation;
 
+use Neutrino\Constants\Events\Kernel as KernelEvents;
 use Neutrino\Constants\Services;
 use Neutrino\Error\Handler;
 use Neutrino\Events\Listener;
 use Neutrino\Support\Facades\Facade;
-use Phalcon\Config;
-use Phalcon\Di;
+use Phalcon\Config\Config;
+use Phalcon\Di\Di;
+use Phalcon\Di\DiInterface;
+use Phalcon\Events\ManagerInterface;
+use RuntimeException;
 
 /**
- * Class HttpKernel
+ * Boot logic shared by the HTTP, CLI and Micro kernels.
  *
- * @package Neutrino\Foundation
+ * The using class declares `$providers`, `$middlewares`, `$listeners`, `$dependencyInjection`,
+ * `$eventsManagerClass` and `$errorHandlerLvl`.
  */
 trait Kernelize
 {
-    /**
-     * This methods registers the services to be used by the application
-     */
-    public function registerServices()
+    public function registerServices(): void
     {
-        /** @var Di $di */
-        $di = $this->getDI();
-
-        foreach ($this->providers as $name => $provider) {
-            if (is_string($name)) {
-                $service = new Di\Service($name, $provider, true);
-
-                $di->setRaw($name, $service);
-                $di->setRaw($provider, $service);
-
-                continue;
-            }
-
-            /* @var \Neutrino\Interfaces\Providable $prv */
-            $prv = new $provider();
-
-            $prv->registering();
-        }
+        ProviderRegistrar::register($this->getDI(), $this->providers);
     }
 
-    /**
-     * This methods registers the middlewares to be used by the application
-     */
-    public function registerMiddlewares()
+    public function registerMiddlewares(): void
     {
         foreach ($this->middlewares as $middleware) {
-            $this->attach(new $middleware);
+            $this->attach(new $middleware());
         }
     }
 
-    /**
-     * This methods registers the middlewares to be used by the application
-     */
-    public function registerListeners()
+    public function registerListeners(): void
     {
         foreach ($this->listeners as $listener) {
-            $this->attach(new $listener);
+            $this->attach(new $listener());
         }
     }
 
     /**
-     * This methods registers the middlewares to be used by the application
-     *
-     * @param array $modules
-     * @param bool  $merge
+     * @param array<string, array{className?: string, path?: string}|\Closure> $modules
      */
-    public function registerModules(array $modules, $merge = false)
+    public function registerModules(array $modules, bool $merge = false): static
     {
-        if (!empty($this->modules) || !empty($modules)) {
+        if ($this->modules !== [] || $modules !== []) {
             parent::registerModules(array_merge($this->modules, $modules), $merge);
         }
+
+        return $this;
     }
 
     /**
-     * Attach an Listener
-     *
-     * @param Listener $listener
-     *
-     * @throws \Exception
+     * Attaches a listener (or a middleware) to the kernel's events manager.
      */
-    public function attach(Listener $listener)
+    public function attach(Listener $listener): void
     {
-        /** @var \Phalcon\Application $this */
+        $eventsManager = $this->getEventsManager();
+
+        if ($eventsManager === null) {
+            throw new RuntimeException(static::class . ' has no events manager: set $eventsManagerClass to attach ' . $listener::class . '.');
+        }
+
         $listener->setDI($this->getDI());
-
-        $listener->setEventsManager($this->getEventsManager());
-
+        $listener->setEventsManager($eventsManager);
         $listener->attach();
     }
 
-    /**
-     * Application starter
-     *
-     * @param \Phalcon\Config $config
-     *
-     * @return void
-     */
-    public function bootstrap(Config $config)
+    public function bootstrap(Config $config): void
     {
-        /** @var \Phalcon\Application $this */
         Handler::setWriters($this->errorHandlerLvl);
 
         $diClass = $this->dependencyInjection;
 
-        if (empty($diClass)) {
-            $di = Di::getDefault();
+        if ($diClass === null) {
+            $di = Di::getDefault() ?? throw new RuntimeException('No default container: set ' . static::class . '::$dependencyInjection.');
         } else {
             Di::reset();
 
-            /** @var Di $di */
-            $di = new $diClass;
+            /** @var DiInterface $di */
+            $di = new $diClass();
 
-            // Global Register Di
             Di::setDefault($di);
         }
 
-        // Register Di on Application
         $this->setDI($di);
 
-        // Register Default Shared instance
         $di->setShared(Services::APP, $this);
         $di->setShared(Services::CONFIG, $config);
 
         $emClass = $this->eventsManagerClass;
 
-        if (!empty($emClass)) {
-            $em = new $emClass;
+        if ($emClass !== null) {
+            /** @var ManagerInterface $em */
+            $em = new $emClass();
 
             $this->setEventsManager($em);
 
-            $di->setInternalEventsManager($em);
+            if ($di instanceof Di) {
+                $di->setInternalEventsManager($em);
+            }
 
             $di->setShared(Services::EVENTS_MANAGER, $em);
         }
 
-        // Register Di on Facade
         Facade::setDependencyInjection($di);
     }
 
-    /**
-     * @return void
-     */
-    public function boot()
+    public function boot(): void
     {
-        if (!is_null($em = $this->getEventsManager())) {
-            $em->fire(\Neutrino\Constants\Events\Kernel::BOOT, $this);
-        }
+        $this->getEventsManager()?->fire(KernelEvents::BOOT, $this);
+    }
+
+    public function terminate(): void
+    {
+        $this->getEventsManager()?->fire(KernelEvents::TERMINATE, $this);
     }
 
     /**
-     * @return void
+     * Path of the current request URI, without the query string.
      */
-    public function terminate()
+    protected function incomingUri(): string
     {
-        if (!is_null($em = $this->getEventsManager())) {
-            $em->fire(\Neutrino\Constants\Events\Kernel::TERMINATE, $this);
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+
+        if (!is_string($uri) || $uri === '') {
+            return '/';
         }
+
+        return explode('?', $uri, 2)[0];
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Events\Http;
 
 /**
@@ -11,11 +13,11 @@ namespace Neutrino\Constants\Events\Http;
  */
 final class Application
 {
-    const BOOT                  = 'application:boot';
-    const BEFORE_START_MODULE   = 'application:beforeStartModule';
-    const AFTER_START_MODULE    = 'application:afterStartModule';
-    const BEFORE_HANDLE         = 'application:beforeHandleRequest';
-    const AFTER_HANDLE          = 'application:afterHandleRequest';
-    const VIEW_RENDER           = 'application:viewRender';
-    const BEFORE_SEND_RESPONSE  = 'application:beforeSendResponse';
+    public const string BOOT                  = 'application:boot';
+    public const string BEFORE_START_MODULE   = 'application:beforeStartModule';
+    public const string AFTER_START_MODULE    = 'application:afterStartModule';
+    public const string BEFORE_HANDLE         = 'application:beforeHandleRequest';
+    public const string AFTER_HANDLE          = 'application:afterHandleRequest';
+    public const string VIEW_RENDER           = 'application:viewRender';
+    public const string BEFORE_SEND_RESPONSE  = 'application:beforeSendResponse';
 }

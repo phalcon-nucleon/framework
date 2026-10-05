@@ -1,44 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst\Extensions;
 
 /**
- * Class PhpConst
- *
- * @package Neutrino\Dotconst\Extensions
+ * `@php/const:NAME[@suffix]`: value of a PHP constant (`PHP_INT_MAX`, `Foo::BAR`), with an optional suffix.
  */
-class PhpConst extends Extension
+final class PhpConst extends Extension
 {
-    protected $identifier = 'php/const:([\w:\\\\]+)(?:@(.+))?';
+    protected string $identifier = 'php/const:([\w:\\\\]+)(?:@(.+))?';
 
-    /**
-     * @param string $value
-     * @param string $basePath
-     *
-     * @return string
-     */
-    public function parse($value, $basePath)
+    public function parse(string $value, string $basePath): mixed
     {
         $match = $this->match($value);
 
-        return constant($match[1]) . (isset($match[2]) ? $match[2] : '');
+        $constant = constant($match[1]);
+
+        if (!isset($match[2])) {
+            return $constant;
+        }
+
+        if (!is_scalar($constant) && $constant !== null) {
+            throw new \UnexpectedValueException("Constant {$match[1]} can't be suffixed: it is not a scalar.");
+        }
+
+        return $constant . $match[2];
     }
 
-    /**
-     * @param string $value
-     * @param string $basePath
-     * @param string $compilePath
-     *
-     * @return string
-     */
-    public function compile($value, $basePath, $compilePath)
+    public function compile(string $value, string $basePath, string $compilePath): string
     {
         $match = $this->match($value);
 
         if (isset($match[2])) {
-            return "{$match[1]} . '{$match[2]}'";
+            return '\\' . ltrim($match[1], '\\') . ' . ' . var_export($match[2], true);
         }
 
-        return $match[1];
+        return '\\' . ltrim($match[1], '\\');
     }
 }

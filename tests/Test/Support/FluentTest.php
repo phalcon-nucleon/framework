@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Support;
 
 use ReflectionObject;
@@ -7,9 +9,9 @@ use IteratorAggregate;
 use Neutrino\Support\Fluent;
 use PHPUnit\Framework\TestCase;
 
-class FluentTest extends TestCase
+final class FluentTest extends TestCase
 {
-    public function testAttributesAreSetByConstructor()
+    public function testAttributesAreSetByConstructor(): void
     {
         $array = ['name' => 'Taylor', 'age' => 25];
         $fluent = new Fluent($array);
@@ -22,10 +24,10 @@ class FluentTest extends TestCase
         $this->assertEquals($array, $fluent->getAttributes());
     }
 
-    public function testAttributesAreSetByConstructorGivenStdClass()
+    public function testAttributesAreSetByConstructorGivenStdClass(): void
     {
         $array = ['name' => 'Taylor', 'age' => 25];
-        $fluent = new Fluent((object)$array);
+        $fluent = new Fluent((object) $array);
 
         $refl = new ReflectionObject($fluent);
         $attributes = $refl->getProperty('attributes');
@@ -35,7 +37,7 @@ class FluentTest extends TestCase
         $this->assertEquals($array, $fluent->getAttributes());
     }
 
-    public function testAttributesAreSetByConstructorGivenArrayIterator()
+    public function testAttributesAreSetByConstructorGivenArrayIterator(): void
     {
         $array = ['name' => 'Taylor', 'age' => 25];
         $fluent = new Fluent(new FluentArrayIteratorStub($array));
@@ -48,7 +50,7 @@ class FluentTest extends TestCase
         $this->assertEquals($array, $fluent->getAttributes());
     }
 
-    public function testGetMethodReturnsAttribute()
+    public function testGetMethodReturnsAttribute(): void
     {
         $fluent = new Fluent(['name' => 'Taylor']);
 
@@ -58,9 +60,9 @@ class FluentTest extends TestCase
         $this->assertNull($fluent->foo);
     }
 
-    public function testMagicMethodsCanBeUsedToSetAttributes()
+    public function testMagicMethodsCanBeUsedToSetAttributes(): void
     {
-        $fluent = new Fluent;
+        $fluent = new Fluent();
 
         $fluent->name = 'Taylor';
         $fluent->developer();
@@ -72,7 +74,7 @@ class FluentTest extends TestCase
         $this->assertInstanceOf(Fluent::class, $fluent->programmer());
     }
 
-    public function testIssetMagicMethod()
+    public function testIssetMagicMethod(): void
     {
         $array = ['name' => 'Taylor', 'age' => 25];
         $fluent = new Fluent($array);
@@ -84,7 +86,7 @@ class FluentTest extends TestCase
         $this->assertFalse(isset($fluent->name));
     }
 
-    public function testToArrayReturnsAttribute()
+    public function testToArrayReturnsAttribute(): void
     {
         $array = ['name' => 'Taylor', 'age' => 25];
         $fluent = new Fluent($array);
@@ -92,26 +94,42 @@ class FluentTest extends TestCase
         $this->assertEquals($array, $fluent->toArray());
     }
 
-    public function testToJsonEncodesTheToArrayResult()
+    public function testToJsonEncodesTheToArrayResult(): void
     {
-        $fluent = $this->createMock(Fluent::class);
-        $fluent->expects($this->once())->method('toArray')->will($this->returnValue('foo'));
+        $fluent = $this->getMockBuilder(Fluent::class)->onlyMethods(['toArray'])->getMock();
+        $fluent->expects($this->once())->method('toArray')->willReturn(['foo']);
         $results = $fluent->toJson();
 
-        $this->assertJsonStringEqualsJsonString(json_encode('foo'), $results);
+        $this->assertJsonStringEqualsJsonString(json_encode(['foo']), $results);
+    }
+
+    public function testArrayAccessAndIteration(): void
+    {
+        $fluent = new Fluent(['a' => 1]);
+        $fluent['b'] = 2;
+        $fluent[] = 3;
+
+        $this->assertTrue(isset($fluent['a']));
+        $this->assertSame(2, $fluent['b']);
+        $this->assertSame(['a' => 1, 'b' => 2, 0 => 3], iterator_to_array($fluent));
+
+        unset($fluent['a']);
+        $this->assertFalse(isset($fluent['a']));
+        $this->assertSame('default', $fluent->get('a', static fn() => 'default'));
     }
 }
 
+/**
+ * @implements IteratorAggregate<string, mixed>
+ */
 class FluentArrayIteratorStub implements IteratorAggregate
 {
-    protected $items = [];
+    /**
+     * @param array<string, mixed> $items
+     */
+    public function __construct(protected array $items = []) {}
 
-    public function __construct(array $items = [])
-    {
-        $this->items = (array)$items;
-    }
-
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->items);
     }

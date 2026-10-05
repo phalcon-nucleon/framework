@@ -1,73 +1,68 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\DesignPatterns\Strategy;
+
+use RuntimeException;
 
 trait StrategyTrait
 {
     /**
-     * Supported Adapters
+     * Supported adapters.
      *
-     * @var array
+     * @var list<string>
      */
-    protected $supported;
+    protected array $supported = [];
 
     /**
-     * Default Adapter
-     *
-     * @var string
+     * Default adapter.
      */
-    protected $default;
+    protected ?string $default = null;
 
     /**
-     * All registered Adapters
+     * Adapters already built, by name.
      *
-     * @var array
+     * @var array<string, object>
      */
-    private $adapters = [];
+    private array $adapters = [];
 
     /**
-     * Current Adapter
-     *
-     * @var mixed
+     * Current adapter.
      */
-    private $adapter;
+    private ?object $adapter = null;
 
     /**
-     * Return / Change current adapter.
+     * Returns the current adapter, after switching to `$use` when given.
      *
-     * @param string|null $use
-     *
-     * @return mixed
-     * @throws \RuntimeException
+     * @throws RuntimeException When `$use` is not supported
      */
-    public function uses($use = null)
+    public function uses(?string $use = null): object
     {
-        if (!empty($use)) {
-            if (!in_array($use, $this->supported)) {
-                throw new \RuntimeException(static::class . " : $use unsupported. ");
+        if ($use !== null && $use !== '') {
+            if (!in_array($use, $this->supported, true)) {
+                throw new RuntimeException(static::class . " : $use unsupported. ");
             }
-            if (!isset($this->adapters[$use])) {
-                $this->adapters[$use] = $this->make($use);
-            }
-            $this->adapter = $this->adapters[$use];
+
+            $this->adapter = $this->adapters[$use] ??= $this->make($use);
         }
 
-        if (empty($this->adapter)) {
-            $this->adapter = $this->adapters[$this->default] = $this->make($this->default);
+        if ($this->adapter === null) {
+            if ($this->default === null || $this->default === '') {
+                throw new RuntimeException(static::class . ' : no default adapter.');
+            }
+
+            $this->adapter = $this->adapters[$this->default] ??= $this->make($this->default);
         }
 
         return $this->adapter;
     }
 
     /**
-     * Make the instance & return them
-     *
-     * @param string $use
-     *
-     * @return mixed
+     * Builds an adapter.
      */
-    protected function make($use)
+    protected function make(string $use): object
     {
-        return new $use;
+        return new $use();
     }
 }

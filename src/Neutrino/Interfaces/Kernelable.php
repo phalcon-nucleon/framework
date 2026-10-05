@@ -1,72 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Interfaces;
 
-use Phalcon\Config;
+use Phalcon\Config\Config;
 
 /**
- * Interface KernelInterface
- *
- *  @package Neutrino\Interfaces
- *
- * @property-read Config|\stdClass|array config
+ * A Nucleon kernel: a Phalcon application configured declaratively and started by
+ * {@see \Neutrino\Foundation\Bootstrap}.
  */
 interface Kernelable
 {
     /**
-     * Application starter
-     *
-     * @param Config $config
-     *
-     * @return void
+     * Sets up the container, the events manager and the Facades.
      */
-    public function bootstrap(Config $config);
+    public function bootstrap(Config $config): void;
 
     /**
-     * Register the services.
-     *
-     * @return void
+     * Registers the `$providers`. Services are built when first resolved.
      */
-    public function registerServices();
+    public function registerServices(): void;
+
+    public function registerRoutes(): void;
+
+    public function registerMiddlewares(): void;
+
+    public function registerListeners(): void;
 
     /**
-     * Register the routes.
-     *
-     * @return void
+     * @param array<string, array{className?: string, path?: string}|\Closure> $modules
      */
-    public function registerRoutes();
+    public function registerModules(array $modules, bool $merge = false): static;
 
     /**
-     * Register the middlewares.
-     *
-     * @return void
+     * Fires `kernel:boot`.
      */
-    public function registerMiddlewares();
+    public function boot(): void;
 
     /**
-     * Register the events listeners.
-     *
-     * @return void
+     * Handles the current input (the request URI, or the command line arguments)
+     * and returns what the Phalcon `handle()` returns.
      */
-    public function registerListeners();
+    public function handleIncoming(): mixed;
 
     /**
-     * Register the modules.
-     *
-     * @param array $modules
-     * @param bool  $merge
-     *
-     * @return
+     * Fires `kernel:terminate`.
      */
-    public function registerModules(array $modules, $merge = false);
-
-    /**
-     * @return void
-     */
-    public function boot();
-
-    /**
-     * @return void
-     */
-    public function terminate();
+    public function terminate(): void;
 }

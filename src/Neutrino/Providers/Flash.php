@@ -14,11 +14,11 @@ use Phalcon\Flash\Direct as PhalconFlashDirect;
  */
 class Flash extends Provider
 {
-    protected $name = Services::FLASH;
+    protected string $name = Services::FLASH;
 
-    protected $shared = false;
+    protected bool $shared = false;
 
-    protected $aliases = [PhalconFlashDirect::class];
+    protected array $aliases = [PhalconFlashDirect::class];
 
     /**
      * @return \Phalcon\Flash\Direct

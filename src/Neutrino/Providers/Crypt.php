@@ -12,13 +12,13 @@ use Neutrino\Support\Provider;
  */
 class Crypt extends Provider
 {
-    protected $class = \Phalcon\Crypt::class;
+    protected string $class = \Phalcon\Crypt::class;
 
-    protected $name = Services::CRYPT;
+    protected string $name = Services::CRYPT;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Crypt::class];
+    protected array $aliases = [\Phalcon\Crypt::class];
 
     /**
      * Return the service to register

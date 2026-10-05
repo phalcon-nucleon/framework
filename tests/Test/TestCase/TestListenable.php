@@ -13,7 +13,7 @@ interface TestListenable
      *
      * @return void
      */
-    public function view($seek, array $data = null);
+    public function view($seek, ?array $data = null);
 
     /**
      * @param string $seek

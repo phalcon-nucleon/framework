@@ -14,11 +14,11 @@ use Phalcon\Mvc\Model\Metadata\Memory;
  */
 class ModelsMetaData extends SimpleProvider
 {
-    protected $class = Memory::class;
+    protected string $class = Memory::class;
 
-    protected $name = Services::MODELS_METADATA;
+    protected string $name = Services::MODELS_METADATA;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [Memory::class];
+    protected array $aliases = [Memory::class];
 }

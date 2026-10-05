@@ -7,7 +7,7 @@ use Neutrino\Providers;
 
 class MicroKernel extends Kernel
 {
-    protected $providers = [
+    protected array $providers = [
         Providers\Url::class,
         Providers\Micro\Router::class,
     ];

@@ -457,30 +457,6 @@ parameters:
 			path: src/Neutrino/Cli/Output/Group.php
 
 		-
-			message: '#^Binary operation "\." between ''v'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Cli/Output/Helper.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Cli/Output/Helper.php
-
-		-
-			message: '#^Call to an undefined static method Neutrino\\Version\:\:get\(\)\.$#'
-			identifier: staticMethod.notFound
-			count: 1
-			path: src/Neutrino/Cli/Output/Helper.php
-
-		-
-			message: '#^Call to an undefined static method Neutrino\\Version\:\:getId\(\)\.$#'
-			identifier: staticMethod.notFound
-			count: 1
-			path: src/Neutrino/Cli/Output/Helper.php
-
-		-
 			message: '#^Cannot access offset string on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
@@ -1261,93 +1237,15 @@ parameters:
 			path: src/Neutrino/Cli/Task.php
 
 		-
-			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Instantiated class Phalcon\\Config not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\Loader\:\:fromCompile\(\) has invalid return type Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\Loader\:\:fromFiles\(\) has invalid return type Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\Loader\:\:fromFiles\(\) has parameter \$excludes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\Loader\:\:load\(\) has invalid return type Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\Loader\:\:load\(\) has parameter \$excludes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\Loader\:\:raw\(\) has parameter \$excludes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\Loader\:\:raw\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_flip expects array\<int\|string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Config/Loader.php
-
-		-
 			message: '#^Access to property \$migrations on an unknown class Phalcon\\Config\.$#'
 			identifier: class.notFound
 			count: 1
 			path: src/Neutrino/Database/Cli/Tasks/BaseTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Database/Cli/Tasks/BaseTask.php
-
-		-
 			message: '#^Cannot access property \$path on mixed\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: src/Neutrino/Database/Cli/Tasks/BaseTask.php
-
-		-
-			message: '#^Constant APP_ENV not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Database/Cli/Tasks/BaseTask.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 2
 			path: src/Neutrino/Database/Cli/Tasks/BaseTask.php
 
 		-
@@ -2053,12 +1951,6 @@ parameters:
 			path: src/Neutrino/Database/Migrations/Storage/FileStorage.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/migrations/…'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Database/Migrations/Storage/FileStorage.php
-
-		-
 			message: '#^Cannot access an offset on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -2085,12 +1977,6 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 1
-			path: src/Neutrino/Database/Migrations/Storage/FileStorage.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
 			count: 1
 			path: src/Neutrino/Database/Migrations/Storage/FileStorage.php
 
@@ -3367,12 +3253,6 @@ parameters:
 			path: src/Neutrino/Debug/Debugger.php
 
 		-
-			message: '#^Call to an undefined static method Neutrino\\Version\:\:get\(\)\.$#'
-			identifier: staticMethod.notFound
-			count: 1
-			path: src/Neutrino/Debug/Debugger.php
-
-		-
 			message: '#^Call to method get\(\) on an unknown class Phalcon\\Di\.$#'
 			identifier: class.notFound
 			count: 2
@@ -4063,12 +3943,6 @@ parameters:
 			path: src/Neutrino/Debug/helpers/functions.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/''\|''\\\\'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Debug/helpers/functions.php
-
-		-
 			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -4108,12 +3982,6 @@ parameters:
 			message: '#^Class Highlight\\Renders\\Html not found\.$#'
 			identifier: class.notFound
 			count: 3
-			path: src/Neutrino/Debug/helpers/functions.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 1
 			path: src/Neutrino/Debug/helpers/functions.php
 
 		-
@@ -4193,534 +4061,6 @@ parameters:
 			identifier: deadCode.unreachable
 			count: 1
 			path: src/Neutrino/Debug/helpers/functions.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Neutrino/Dotconst.php
-
-		-
-			message: '#^Cannot access offset mixed on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Dotconst.php
-
-		-
-			message: '#^Cannot access offset string on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Dotconst.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\:\:getExtensions\(\) should return array\<Neutrino\\Dotconst\\Extensions\\Extension\> but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Dotconst.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\:\:load\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst.php
-
-		-
-			message: '#^Property Neutrino\\Dotconst\:\:\$extensions has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Dotconst.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 2
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Call to function is_string\(\) with Neutrino\\Dotconst\\Extensions\\Extension will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Cannot access offset ''draw'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Compile\:\:compile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Parameter \#1 \$value of method Neutrino\\Dotconst\\Extensions\\Extension\:\:compile\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Part \$const \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 3
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Part \$item\[''draw''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: src/Neutrino/Dotconst/Compile.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Extensions\\Extension\:\:identify\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/Extension.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Extensions\\Extension\:\:match\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/Extension.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Extensions\\Extension\:\:match\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/Extension.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Dotconst/Extensions/Extension.php
-
-		-
-			message: '#^Part \$this\-\>identifier \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 2
-			path: src/Neutrino/Dotconst/Extensions/Extension.php
-
-		-
-			message: '#^Property Neutrino\\Dotconst\\Extensions\\Extension\:\:\$identifier has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/Extension.php
-
-		-
-			message: '#^Binary operation "\." between mixed and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
-
-		-
-			message: '#^Cannot access offset 1 on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
-
-		-
-			message: '#^Cannot access offset 2 on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Extensions\\PhpConst\:\:compile\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
-
-		-
-			message: '#^Parameter \#1 \$name of function constant expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
-
-		-
-			message: '#^Part \$match\[1\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
-
-		-
-			message: '#^Part \$match\[2\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
-
-		-
-			message: '#^Property Neutrino\\Dotconst\\Extensions\\PhpConst\:\:\$identifier has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 3
-			path: src/Neutrino/Dotconst/Extensions/PhpDir.php
-
-		-
-			message: '#^Cannot access offset 1 on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Neutrino/Dotconst/Extensions/PhpDir.php
-
-		-
-			message: '#^Cannot access offset 2 on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpDir.php
-
-		-
-			message: '#^Property Neutrino\\Dotconst\\Extensions\\PhpDir\:\:\$identifier has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpDir.php
-
-		-
-			message: '#^Cannot access offset 1 on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: src/Neutrino/Dotconst/Extensions/PhpEnv.php
-
-		-
-			message: '#^Cannot access offset 2 on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Neutrino/Dotconst/Extensions/PhpEnv.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Extensions\\PhpEnv\:\:parse\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpEnv.php
-
-		-
-			message: '#^Parameter \#1 \$varname of function getenv expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpEnv.php
-
-		-
-			message: '#^Part \$match\[1\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 2
-			path: src/Neutrino/Dotconst/Extensions/PhpEnv.php
-
-		-
-			message: '#^Part \$match\[2\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpEnv.php
-
-		-
-			message: '#^Property Neutrino\\Dotconst\\Extensions\\PhpEnv\:\:\$identifier has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpEnv.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 3
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Binary operation "\." between ''Failed parse file \: '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Cannot access offset ''require'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 4
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Cannot access offset mixed on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 8
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Comparison operation "\>\=" between 0 and 128 is always false\.$#'
-			identifier: greaterOrEqual.alwaysFalse
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:definable\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:definable\(\) has parameter \$config with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:loadIniFile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:loadIniFile\(\) has parameter \$file with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:mergeConfigWithFile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:mergeConfigWithFile\(\) has parameter \$config with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:mergeConfigWithFile\(\) has parameter \$file with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:nestedConstSort\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:nestedConstSort\(\) has parameter \$nested with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Helper\:\:normalizePath\(\) has parameter \$path with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_change_key_case expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$array of function uasort expects TArray of array\<TKey of int\|string, mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$filename of function parse_ini_file expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#2 \$callback of function uasort expects callable\(mixed, mixed\)\: int, Closure\(mixed, mixed\)\: mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Part \$k \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Part \$section \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 3
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/''\|''\\\\'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Binary operation "\.\=" between mixed and mixed results in an error\.$#'
-			identifier: assignOp.invalid
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Cannot access offset ''require'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Cannot access offset ''value'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Cannot access offset mixed on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Cannot access offset non\-empty\-string on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:dynamize\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:dynamize\(\) has parameter \$config with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:dynamize\(\) has parameter \$dir with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:fromFiles\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:loadRaw\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:loadRaw\(\) has parameter \$path with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:parse\(\) has parameter \$config with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:parse\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Dotconst\\Loader\:\:parse\(\) should return array but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Parameter \#1 \$config of static method Neutrino\\Dotconst\\Loader\:\:parse\(\) expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Parameter \#1 \$value of method Neutrino\\Dotconst\\Extensions\\Extension\:\:parse\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Parameter \#2 \$basePath of method Neutrino\\Dotconst\\Extensions\\Extension\:\:parse\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: src/Neutrino/Dotconst/Loader.php
 
 		-
 			message: '#^Call to function is_null\(\) with Neutrino\\Error\\Writer\\Writable will always evaluate to false\.$#'
@@ -4921,12 +4261,6 @@ parameters:
 			path: src/Neutrino/Error/Helper.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''\\\\'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Error/Helper.php
-
-		-
 			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 3
@@ -4966,12 +4300,6 @@ parameters:
 			message: '#^Cannot use \+\+ on mixed\.$#'
 			identifier: postInc.type
 			count: 1
-			path: src/Neutrino/Error/Helper.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 2
 			path: src/Neutrino/Error/Helper.php
 
 		-
@@ -5287,12 +4615,6 @@ parameters:
 			path: src/Neutrino/Error/Writer/Flash.php
 
 		-
-			message: '#^Constant APP_DEBUG not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Error/Writer/Flash.php
-
-		-
 			message: '#^Parameter \#1 \$code of static method Neutrino\\Error\\Helper\:\:getLogType\(\) expects int, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -5331,12 +4653,6 @@ parameters:
 		-
 			message: '#^Cannot call method has\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Error/Writer/Json.php
-
-		-
-			message: '#^Constant APP_DEBUG not found\.$#'
-			identifier: constant.notFound
 			count: 1
 			path: src/Neutrino/Error/Writer/Json.php
 
@@ -5593,42 +4909,6 @@ parameters:
 			path: src/Neutrino/Error/Writer/View.php
 
 		-
-			message: '#^Call to an undefined method Neutrino\\Events\\Listener\:\:getEventsManager\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/Neutrino/Events/Listener.php
-
-		-
-			message: '#^Cannot call method attach\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: src/Neutrino/Events/Listener.php
-
-		-
-			message: '#^Cannot call method detach\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: src/Neutrino/Events/Listener.php
-
-		-
-			message: '#^Method Neutrino\\Events\\Listener\:\:attach\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Events/Listener.php
-
-		-
-			message: '#^Method Neutrino\\Events\\Listener\:\:detach\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Events/Listener.php
-
-		-
-			message: '#^Property Neutrino\\Events\\Listener\:\:\$closures type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Events/Listener.php
-
-		-
 			message: '#^Method Neutrino\\Foundation\\Auth\\User\:\:getAuthIdentifier\(\) should return string but returns mixed\.$#'
 			identifier: return.type
 			count: 1
@@ -5647,126 +4927,6 @@ parameters:
 			path: src/Neutrino/Foundation/Auth/User.php
 
 		-
-			message: '#^Call to an undefined method Neutrino\\Interfaces\\Kernelable\:\:handle\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Call to method bootstrap\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Call to method registerListeners\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Call to method registerMiddlewares\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Call to method registerModules\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Call to method registerRoutes\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Call to method registerServices\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Constant APP_DEBUG not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Constant APP_ENV not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Bootstrap\:\:make\(\) has invalid return type Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Bootstrap\:\:make\(\) has parameter \$kernelClass with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Bootstrap\:\:make\(\) should return Phalcon\\Application but returns Neutrino\\Interfaces\\Kernelable\|Phalcon\\Application\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Bootstrap\:\:run\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^PHPDoc tag @param for parameter \$kernel with type Neutrino\\Interfaces\\Kernelable\|Phalcon\\Application is not subtype of native type Neutrino\\Interfaces\\Kernelable\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$kernel contains unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Parameter \$config of method Neutrino\\Foundation\\Bootstrap\:\:__construct\(\) has invalid type Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Parameter \$kernel of method Neutrino\\Foundation\\Bootstrap\:\:run\(\) has invalid type Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Property Neutrino\\Foundation\\Bootstrap\:\:\$config has unknown class Phalcon\\Config as its type\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Bootstrap.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/''\|''\\\\'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ClearCompiledTask.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ClearCompiledTask.php
-
-		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\ClearCompiledTask\:\:clearLoader\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -5779,38 +4939,14 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/ClearCompiledTask.php
 
 		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ConfigCacheTask.php
-
-		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\ConfigCacheTask\:\:mainAction\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/ConfigCacheTask.php
 
 		-
-			message: '#^Parameter \#1 \$basePath of static method Neutrino\\Config\\ConfigCompiler\:\:compile\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ConfigCacheTask.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ConfigClearTask.php
-
-		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\ConfigClearTask\:\:mainAction\(\) has no return type specified\.$#'
 			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ConfigClearTask.php
-
-		-
-			message: '#^Parameter \#1 \$basePath of static method Neutrino\\Config\\ConfigCompiler\:\:clear\(\) expects string, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/ConfigClearTask.php
 
@@ -5833,7 +4969,7 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/DefaultTask.php
 
 		-
-			message: '#^Parameter \#1 \$array of function array_filter expects array, mixed given\.$#'
+			message: '#^Parameter \#1 \$array of function array_filter expects array, array\<int\|string, mixed\>\|string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/DefaultTask.php
@@ -5857,7 +4993,7 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/DefaultTask.php
 
 		-
-			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, array given\.$#'
+			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, array\<int\|string, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/DefaultTask.php
@@ -5881,18 +5017,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/DefaultTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/bootstrap/compile'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/DotconstCacheTask.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 2
-			path: src/Neutrino/Foundation/Cli/Tasks/DotconstCacheTask.php
-
-		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\DotconstCacheTask\:\:generateCache\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -5901,12 +5025,6 @@ parameters:
 		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\DotconstCacheTask\:\:mainAction\(\) has no return type specified\.$#'
 			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/DotconstCacheTask.php
-
-		-
-			message: '#^Parameter \#1 \$basePath of static method Neutrino\\Dotconst\\Compile\:\:compile\(\) expects string, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/DotconstCacheTask.php
 
@@ -6109,12 +5227,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/vendor'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
-
-		-
 			message: '#^Cannot access offset ''excludes'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -6145,18 +5257,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Constant APP_DEBUG not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 3
-			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
-
-		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\OptimizeTask\:\:dumpAutoload\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -6175,12 +5275,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Parameter \#1 \$basePath of class Neutrino\\Foundation\\Optimize\\PreloadGenerator constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
-
-		-
 			message: '#^Parameter \#1 \$command of function proc_open expects list\<string\>\|string, list\{0\: string\|null, 1\: ''dump\-autoload'', 2\: ''\-\-classmap…'', 3\: ''\-\-quiet'', 4\?\: ''\-\-apcu''\|''\-\-no\-dev'', 5\?\: ''\-\-no\-dev''\} given\.$#'
 			identifier: argument.type
 			count: 1
@@ -6188,12 +5282,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#3 \$namespaces of class Neutrino\\Foundation\\Optimize\\PreloadGenerator constructor expects list\<string\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
-
-		-
-			message: '#^Parameter \#4 \$cwd of function proc_open expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
@@ -6229,18 +5317,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/bootstrap/compile…'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/routes/http\.php'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
 			message: '#^Cannot call method getHostname\(\) on mixed\.$#'
 			identifier: method.nonObject
 			count: 2
@@ -6268,12 +5344,6 @@ parameters:
 			message: '#^Cannot call method getPattern\(\) on mixed\.$#'
 			identifier: method.nonObject
 			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 3
 			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
 
 		-
@@ -6307,12 +5377,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/RouteListTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/routes/http\.php'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteListTask.php
-
-		-
 			message: '#^Binary operation "\." between mixed and ''\:\:'' results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -6333,12 +5397,6 @@ parameters:
 		-
 			message: '#^Binary operation "\.\=" between string and mixed results in an error\.$#'
 			identifier: assignOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteListTask.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/RouteListTask.php
 
@@ -6379,12 +5437,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/public'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
-
-		-
 			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 4
@@ -6405,12 +5457,6 @@ parameters:
 		-
 			message: '#^Cannot call method watch\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
 
@@ -6557,216 +5603,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/ViewClearTask.php
-
-		-
-			message: '#^Access to property \$dependencyInjection on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Access to property \$errorHandlerLvl on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Access to property \$eventsManagerClass on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/routes/micro\.php'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to an undefined method Neutrino\\Events\\Listener\:\:setEventsManager\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to an undefined method object\:\:registering\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to method getDI\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to method getEventsManager\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to method setDI\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to method setEventsManager\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to method setRaw\(\) on an unknown class Phalcon\\Di\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to static method getDefault\(\) on an unknown class Phalcon\\Di\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to static method reset\(\) on an unknown class Phalcon\\Di\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Call to static method setDefault\(\) on an unknown class Phalcon\\Di\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Cannot call method setInternalEventsManager\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Cannot call method setShared\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 3
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Class Phalcon\\Di\\Service constructor invoked with 3 parameters, 1\-2 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Micro\\Kernel\:\:attach\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Micro\\Kernel\:\:registerMiddleware\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Micro\\Kernel\:\:registerModules\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Micro\\Kernel\:\:registerModules\(\) has parameter \$modules with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$di contains unknown class Phalcon\\Di\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$this contains unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^PHPDoc tag @var with type Phalcon\\Application is not subtype of native type \$this\(Neutrino\\Foundation\\Micro\\Kernel\)\.$#'
-			identifier: varTag.nativeType
-			count: 2
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^PHPDoc tag @var with type Phalcon\\Di is not subtype of native type Phalcon\\Di\\DiInterface\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Parameter \#1 \$container of method Phalcon\\Di\\Injectable\:\:setDI\(\) expects Phalcon\\Di\\DiInterface, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Parameter \#1 \$di of static method Neutrino\\Support\\Facades\\Facade\:\:setDependencyInjection\(\) expects Phalcon\\DiInterface, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Parameter \#1 \$handler of method Phalcon\\Mvc\\Micro\:\:finish\(\) expects callable\(\)\: mixed, Neutrino\\Micro\\Middleware given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Parameter \#1 \$listener of method Neutrino\\Foundation\\Micro\\Kernel\:\:attach\(\) expects Neutrino\\Events\\Listener, object given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Parameter \#1 \$middleware of method Neutrino\\Foundation\\Micro\\Kernel\:\:registerMiddleware\(\) expects Neutrino\\Micro\\Middleware, object given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Parameter \#1 \$writers of static method Neutrino\\Error\\Handler\:\:setWriters\(\) expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Parameter \#2 \$shared of class Phalcon\\Di\\Service constructor expects bool, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Parameter \$config of method Neutrino\\Foundation\\Micro\\Kernel\:\:bootstrap\(\) has invalid type Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Foundation/Micro/Kernel.php
-
-		-
-			message: '#^Property Neutrino\\Foundation\\Micro\\Kernel\:\:\$errorHandlerLvl \(int\) does not accept default value of type array\<int, string\>\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: src/Neutrino/Foundation/Micro/Kernel.php
 
 		-
 			message: '#^Call to an undefined method Phalcon\\Mvc\\DispatcherInterface\:\:getHandlerClass\(\)\.$#'
@@ -7073,36 +5909,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Neutrino/Http/Standards/StatusCode.php
-
-		-
-			message: '#^Method Neutrino\\Interfaces\\Kernelable\:\:registerModules\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Interfaces/Kernelable.php
-
-		-
-			message: '#^Method Neutrino\\Interfaces\\Kernelable\:\:registerModules\(\) has parameter \$modules with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Interfaces/Kernelable.php
-
-		-
-			message: '#^PHPDoc tag @property\-read has invalid value \(Config\|\\stdClass\|array config\)\: Unexpected token "config", expected variable at offset 113 on line 6$#'
-			identifier: phpDoc.parseError
-			count: 1
-			path: src/Neutrino/Interfaces/Kernelable.php
-
-		-
-			message: '#^PHPDoc tag @return has invalid value \(\)\: Unexpected token "\\n     ", expected type at offset 117 on line 7$#'
-			identifier: phpDoc.parseError
-			count: 1
-			path: src/Neutrino/Interfaces/Kernelable.php
-
-		-
-			message: '#^Parameter \$config of method Neutrino\\Interfaces\\Kernelable\:\:bootstrap\(\) has invalid type Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Interfaces/Kernelable.php
 
 		-
 			message: '#^Method Neutrino\\Interfaces\\Repositories\\RepositoryInterface\:\:all\(\) return type with generic class Phalcon\\Mvc\\Model does not specify its types\: T$#'
@@ -8083,8 +6889,8 @@ parameters:
 			path: src/Neutrino/Providers/Cli/Output.php
 
 		-
-			message: '#^Access to property \$app on an unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
+			message: '#^Access to an undefined property Phalcon\\Config\\Config\:\:\$app\.$#'
+			identifier: property.notFound
 			count: 1
 			path: src/Neutrino/Providers/Crypt.php
 
@@ -8115,12 +6921,6 @@ parameters:
 		-
 			message: '#^Instantiated class Phalcon\\Crypt not found\.$#'
 			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Providers/Crypt.php
-
-		-
-			message: '#^Property Neutrino\\Providers\\Crypt\:\:\$class has no type specified\.$#'
-			identifier: missingType.property
 			count: 1
 			path: src/Neutrino/Providers/Crypt.php
 
@@ -9067,328 +7867,10 @@ parameters:
 			path: src/Neutrino/Support/Db.php
 
 		-
-			message: '#^Private method Neutrino\\Support\\DesignPatterns\\Singleton\:\:__clone\(\) cannot be final as it is never overridden by other classes\.$#'
-			identifier: method.finalPrivate
-			count: 1
-			path: src/Neutrino/Support/DesignPatterns/Singleton.php
-
-		-
-			message: '#^Unsafe usage of new static\(\)\.$#'
-			identifier: new.static
-			count: 1
-			path: src/Neutrino/Support/DesignPatterns/Singleton.php
-
-		-
-			message: '#^Property Neutrino\\Support\\DesignPatterns\\Strategy\:\:\$adapters type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/DesignPatterns/Strategy.php
-
-		-
-			message: '#^Property Neutrino\\Support\\DesignPatterns\\Strategy\:\:\$supported type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/DesignPatterns/Strategy.php
-
-		-
-			message: '#^Trait Neutrino\\Support\\DesignPatterns\\Strategy\\MagicCallStrategyTrait is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: src/Neutrino/Support/DesignPatterns/Strategy/MagicCallStrategyTrait.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Auth has PHPDoc tag @method for method attempt\(\) parameter \#1 \$credentials with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Auth.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Cache has PHPDoc tag @method for method getOptions\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Cache.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Cache has PHPDoc tag @method for method queryKeys\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Cache.php
-
-		-
-			message: '#^PHPDoc tag @method for method Neutrino\\Support\\Facades\\Cache\:\:uses\(\) return type contains unknown class Phalcon\\Cache\\BackendInterface\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Support/Facades/Cache.php
-
-		-
-			message: '#^Call to method getShared\(\) on an unknown class Phalcon\\DiInterface\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Call to method setShared\(\) on an unknown class Phalcon\\DiInterface\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Cannot call method shouldReceive\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Facades\\Facade\:\:__callStatic\(\) has parameter \$args with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Facades\\Facade\:\:clearResolvedInstances\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Facades\\Facade\:\:getMockableClass\(\) should return string\|null but returns class\-string\|false\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Facades\\Facade\:\:setDependencyInjection\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Facades\\Facade\:\:shouldReceive\(\) should return Mockery\\Expectation but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Parameter \#1 \$object of function get_class expects object, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Parameter \$di of method Neutrino\\Support\\Facades\\Facade\:\:setDependencyInjection\(\) has invalid type Phalcon\\DiInterface\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Property Neutrino\\Support\\Facades\\Facade\:\:\$di has unknown class Phalcon\\DiInterface as its type\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Property Neutrino\\Support\\Facades\\Facade\:\:\$resolvedInstance type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Static property Neutrino\\Support\\Facades\\Facade\:\:\$di \(Phalcon\\DiInterface\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: src/Neutrino/Support/Facades/Facade.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Micro\\Router has PHPDoc tag @method for method getDefaults\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Micro/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Micro\\Router has PHPDoc tag @method for method getMatches\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Micro/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Micro\\Router has PHPDoc tag @method for method getParams\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Micro/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Micro\\Router has PHPDoc tag @method for method setDefaults\(\) parameter \#1 \$defaults with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Micro/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Router has PHPDoc tag @method for method addTask\(\) parameter \#4 \$params with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Router has PHPDoc tag @method for method getDefaults\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Router has PHPDoc tag @method for method getMatches\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Router has PHPDoc tag @method for method getParams\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Router has PHPDoc tag @method for method setDefaults\(\) parameter \#1 \$defaults with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Router.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Session has PHPDoc tag @method for method getOptions\(\) return type with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Session.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Session has PHPDoc tag @method for method setOptions\(\) parameter \#1 \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Session.php
-
-		-
-			message: '#^PHPDoc tag @method for method Neutrino\\Support\\Facades\\Session\:\:regenerateId\(\) return type contains unknown class Phalcon\\Session\\AdapterInterface\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Support/Facades/Session.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Url has PHPDoc tag @method for method get\(\) parameter \#1 \$uri with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Url.php
-
-		-
-			message: '#^Class Neutrino\\Support\\Facades\\Url has PHPDoc tag @method for method get\(\) parameter \#2 \$args with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Facades/Url.php
-
-		-
 			message: '#^Trait Neutrino\\Support\\Model\\Eachable is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: src/Neutrino/Support/Model/Eachable.php
-
-		-
-			message: '#^Call to an undefined method Phalcon\\Di\\DiInterface\:\:setRaw\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/Neutrino/Support/Provider.php
-
-		-
-			message: '#^Class Phalcon\\Di\\Service constructor invoked with 3 parameters, 1\-2 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: src/Neutrino/Support/Provider.php
-
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: src/Neutrino/Support/Provider.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Support\\Provider\:\:\$config contains generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Support/Provider.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Support\\Provider\:\:\$config contains unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Support/Provider.php
-
-		-
-			message: '#^Parameter \#2 \$shared of class Phalcon\\Di\\Service constructor expects bool, Closure given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Provider.php
-
-		-
-			message: '#^Call to an undefined method Phalcon\\Di\\DiInterface\:\:setRaw\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^Class Phalcon\\Di\\Service constructor invoked with 3 parameters, 1\-2 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 2
-			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Support\\SimpleProvider\:\:\$application contains unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Support\\SimpleProvider\:\:\$config contains generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Support\\SimpleProvider\:\:\$config contains unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^Parameter \#2 \$shared of class Phalcon\\Di\\Service constructor expects bool, array\|string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^Property Neutrino\\Support\\SimpleProvider\:\:\$options type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Support\\Traits\\InjectionAwareTrait\:\:\$config contains generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Support/Traits/InjectionAwareTrait.php
-
-		-
-			message: '#^Trait Neutrino\\Support\\Traits\\InjectionAwareTrait is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: src/Neutrino/Support/Traits/InjectionAwareTrait.php
-
-		-
-			message: '#^Trait Neutrino\\Support\\Traits\\Macroable is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: src/Neutrino/Support/Traits/Macroable.php
 
 		-
 			message: '#^Call to an undefined method Neutrino\\Test\\FuncTestCase\:\:assertContains\(\)\.$#'
@@ -9661,12 +8143,6 @@ parameters:
 			path: src/Neutrino/Test/RoutesTestCase.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/routes/http\.php'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Test/RoutesTestCase.php
-
-		-
 			message: '#^Binary operation "\." between mixed and string\|null results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -9747,12 +8223,6 @@ parameters:
 		-
 			message: '#^Cannot call method getRoutes\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Test/RoutesTestCase.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
 			count: 1
 			path: src/Neutrino/Test/RoutesTestCase.php
 
@@ -9853,7 +8323,7 @@ parameters:
 			path: src/Neutrino/Test/RoutesTestCase.php
 
 		-
-			message: '#^Parameter \#1 \$di of static method Neutrino\\Support\\Facades\\Facade\:\:setDependencyInjection\(\) expects Phalcon\\DiInterface, Phalcon\\Di given\.$#'
+			message: '#^Parameter \#1 \$di of static method Neutrino\\Support\\Facades\\Facade\:\:setDependencyInjection\(\) expects Phalcon\\Di\\DiInterface, Phalcon\\Di given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Test/RoutesTestCase.php
@@ -10425,18 +8895,6 @@ parameters:
 		-
 			message: '#^Cannot call method getShared\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/View/Engines/Volt/VoltEngineRegister.php
-
-		-
-			message: '#^Constant APP_DEBUG not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/View/Engines/Volt/VoltEngineRegister.php
-
-		-
-			message: '#^Constant APP_ENV not found\.$#'
-			identifier: constant.notFound
 			count: 1
 			path: src/Neutrino/View/Engines/Volt/VoltEngineRegister.php
 

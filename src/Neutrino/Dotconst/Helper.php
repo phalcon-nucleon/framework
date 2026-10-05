@@ -1,21 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst;
 
 use Neutrino\Dotconst\Exception\CycleNestedConstException;
 use Neutrino\Dotconst\Exception\InvalidFileException;
 
 /**
- * Class IniFile
- *
- * @package Neutrino\Dotconst
+ * @internal
  */
-class Helper
+final class Helper
 {
-
-    public static function loadIniFile($file)
+    /**
+     * Reads an ini file and flattens its sections: `[APP] env = x` gives `APP_ENV => x`.
+     *
+     * @return array<string, scalar|null>
+     *
+     * @throws InvalidFileException
+     */
+    public static function loadIniFile(string $file): array
     {
-        $config = parse_ini_file($file, true, INI_SCANNER_TYPED);
+        $config = @parse_ini_file($file, true, INI_SCANNER_TYPED);
 
         if ($config === false) {
             throw new InvalidFileException('Failed parse file : ' . $file);
@@ -24,104 +30,75 @@ class Helper
         return array_change_key_case(self::definable($config), CASE_UPPER);
     }
 
-    public static function mergeConfigWithFile($config, $file)
+    /**
+     * @param array<string, scalar|null> $config
+     *
+     * @return array<string, scalar|null>
+     *
+     * @throws InvalidFileException
+     */
+    public static function mergeConfigWithFile(array $config, string $file): array
     {
-        foreach (self::loadIniFile($file) as $section => $value) {
-            if (isset($config[$section]) && is_array($value)) {
-                $config[$section] = array_merge($config[$section], $value);
-            } else {
-                $config[$section] = $value;
-            }
-        }
-
-        return $config;
+        return array_replace($config, self::loadIniFile($file));
     }
 
-    public static function nestedConstSort($nested)
+    /**
+     * Sorts the nested constants so that each one comes after the constant it requires.
+     *
+     * @template T of array{require: ?string}
+     *
+     * @param array<string, T> $nested
+     *
+     * @return array<string, T>
+     *
+     * @throws CycleNestedConstException
+     */
+    public static function nestedConstSort(array $nested): array
     {
-        $stack = 0;
-
-        $sort = function ($a, $b) use ($nested, &$stack, &$sort) {
-            if ($stack++ >= 128) {
-                throw new CycleNestedConstException();
-            }
-
-            if (is_null($a['require']) && is_null($b['require'])) {
-                $return = 0;
-            } elseif (is_null($a['require'])) {
-                $return = -1;
-            } elseif (is_null($b['require'])) {
-                $return = 1;
-            } elseif (isset($nested[$a['require']]) && isset($nested[$b['require']])) {
-                $return = $sort($nested[$a['require']], $nested[$b['require']]);
-            } elseif (isset($nested[$a['require']]) && !isset($nested[$b['require']])) {
-                $return = 1;
-            } elseif (!isset($nested[$a['require']]) && isset($nested[$b['require']])) {
-                $return = -1;
-            } else {
-                $return = 0;
-            }
-
-            $stack--;
-
-            return $return;
-        };
-
-        uasort($nested, $sort);
+        uasort($nested, static fn(array $a, array $b): int => self::compareNested($nested, $a['require'], $b['require'], 0));
 
         return $nested;
     }
 
-    private static function definable($config)
+    /**
+     * @param array<string, array{require: ?string}> $nested
+     */
+    private static function compareNested(array $nested, ?string $a, ?string $b, int $depth): int
+    {
+        if ($depth >= 128) {
+            throw new CycleNestedConstException();
+        }
+
+        return match (true) {
+            $a === null && $b === null => 0,
+            $a === null => -1,
+            $b === null => 1,
+            isset($nested[$a], $nested[$b]) => self::compareNested($nested, $nested[$a]['require'], $nested[$b]['require'], $depth + 1),
+            isset($nested[$a]) => 1,
+            isset($nested[$b]) => -1,
+            default => 0,
+        };
+    }
+
+    /**
+     * @param array<mixed> $config
+     *
+     * @return array<string, scalar|null>
+     */
+    private static function definable(array $config): array
     {
         $flatten = [];
         foreach ($config as $section => $value) {
             if (is_array($value)) {
-                $value = self::definable($value);
-                foreach ($value as $k => $v) {
+                foreach (self::definable($value) as $k => $v) {
                     $flatten["{$section}_{$k}"] = $v;
                 }
             } else {
-                $flatten[$section] = $value;
+                /** @var scalar|null $value */
+                $flatten[(string) $section] = $value;
             }
         }
 
         return $flatten;
-    }
-
-    /**
-     * @param $path
-     *
-     * @return string
-     */
-    public static function normalizePath($path)
-    {
-        if (empty($path)) {
-            return '';
-        }
-
-        $path = str_replace(DIRECTORY_SEPARATOR, '/', $path);
-
-        $parts = explode('/', $path);
-
-        $safe = [];
-        foreach ($parts as $idx => $part) {
-            if (($idx == 0 && empty($part))) {
-                $safe[] = '';
-            } elseif (trim($part) == "" || $part == '.') {
-            } elseif ('..' == $part) {
-                if (null === array_pop($safe) || empty($safe)) {
-                    $safe[] = '';
-                }
-            } else {
-                $safe[] = $part;
-            }
-        }
-
-        if (count($safe) === 1 && $safe[0] === '') {
-            return DIRECTORY_SEPARATOR;
-        }
-
-        return implode(DIRECTORY_SEPARATOR, $safe);
     }
 }

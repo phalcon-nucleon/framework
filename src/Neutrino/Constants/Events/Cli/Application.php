@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Events\Cli;
 
 /**
@@ -11,9 +13,9 @@ namespace Neutrino\Constants\Events\Cli;
  */
 final class Application
 {
-    const BOOT                  = 'console:boot';
-    const BEFORE_START_MODULE   = 'console:beforeStartModule';
-    const AFTER_START_MODULE    = 'console:afterStartModule';
-    const BEFORE_HANDLE         = 'console:beforeHandleTask';
-    const AFTER_HANDLE          = 'console:afterHandleTask';
+    public const string BOOT                  = 'console:boot';
+    public const string BEFORE_START_MODULE   = 'console:beforeStartModule';
+    public const string AFTER_START_MODULE    = 'console:afterStartModule';
+    public const string BEFORE_HANDLE         = 'console:beforeHandleTask';
+    public const string AFTER_HANDLE          = 'console:afterHandleTask';
 }

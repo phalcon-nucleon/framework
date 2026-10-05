@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Http;
 
+use Neutrino\Constants\Services;
 use Neutrino\Error;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
@@ -10,70 +13,57 @@ use Phalcon\Events\Manager as EventManager;
 use Phalcon\Mvc\Application;
 
 /**
- * Class Http
- *
- * @package Neutrino\Foundation\Kernel
+ * Base class of the application's HTTP kernel.
  */
 abstract class Kernel extends Application implements Kernelable
 {
     use Kernelize {
-        boot as _boot;
+        boot as private bootKernel;
     }
 
     /**
-     * Return the Provider List to load.
+     * Providers to register.
      *
-     * @var string[]
+     * @var array<int|string, string>
      */
-    protected $providers = [];
+    protected array $providers = [];
 
     /**
-     * Return the Middlewares to attach onto the application.
+     * Middlewares to attach to the application.
      *
-     * @var string[]
+     * @var list<class-string<\Neutrino\Events\Listener>>
      */
-    protected $middlewares = [];
+    protected array $middlewares = [];
 
     /**
-     * Return the Events Listeners to attach onto the application.
+     * Events listeners to attach to the application.
      *
-     * @var string[]
+     * @var list<class-string<\Neutrino\Events\Listener>>
      */
-    protected $listeners = [];
+    protected array $listeners = [];
 
     /**
-     * Return the modules to attach onto the application.
+     * The container class. `null` uses the current default container.
      *
-     * @var string[]
+     * @var class-string<\Phalcon\Di\DiInterface>|null
      */
-    protected $modules = [];
+    protected ?string $dependencyInjection = Di::class;
 
     /**
-     * The DependencyInjection class to use.
+     * The events manager class. `null` disables the events manager.
      *
-     * @var string
+     * @var class-string<\Phalcon\Events\ManagerInterface>|null
      */
-    protected $dependencyInjection = Di::class;
+    protected ?string $eventsManagerClass = EventManager::class;
 
     /**
-     * The EventManager class to use.
+     * Error handler outputs.
      *
-     * @var string
+     * @var list<class-string<Error\Writer\Writable>>
      */
-    protected $eventsManagerClass = EventManager::class;
+    protected array $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Flash::class, Error\Writer\View::class];
 
-    /**
-     * Error Handler Outputs
-     *
-     * @var int
-     */
-    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Flash::class, Error\Writer\View::class];
-
-
-    /**
-     * Register the routes of the application.
-     */
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
         if (file_exists(BASE_PATH . '/bootstrap/compile/http-routes.php')) {
             require BASE_PATH . '/bootstrap/compile/http-routes.php';
@@ -82,10 +72,18 @@ abstract class Kernel extends Application implements Kernelable
         }
     }
 
-    public function boot()
+    public function boot(): void
     {
-        $this->_boot();
+        $this->bootKernel();
 
-        $this->useImplicitView(isset($this->config->view->implicit) ? $this->config->view->implicit : false);
+        /** @var \Phalcon\Config\Config $config */
+        $config = $this->getDI()->getShared(Services::CONFIG);
+
+        $this->useImplicitView((bool) $config->path('view.implicit', false));
+    }
+
+    public function handleIncoming(): mixed
+    {
+        return $this->handle($this->incomingUri());
     }
 }

@@ -14,11 +14,11 @@ use Phalcon\Mvc\Model\Manager;
  */
 class ModelManager extends SimpleProvider
 {
-    protected $class = Manager::class;
+    protected string $class = Manager::class;
 
-    protected $name = Services::MODELS_MANAGER;
+    protected string $name = Services::MODELS_MANAGER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [Manager::class];
+    protected array $aliases = [Manager::class];
 }

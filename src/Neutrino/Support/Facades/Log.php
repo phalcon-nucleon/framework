@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\Facades;
 
 use Neutrino\Constants\Services;
@@ -26,7 +28,7 @@ class Log extends Facade
      *
      * @return string
      */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return Services::LOGGER;
     }

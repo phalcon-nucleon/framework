@@ -1,46 +1,76 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Test\Design;
 
+use ArrayObject;
 use Neutrino\Support\DesignPatterns\Strategy;
-use Phalcon\Registry;
-use Test\TestCase\TestCase;
+use Neutrino\Support\DesignPatterns\Strategy\MagicCallStrategyTrait;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use SplStack;
 
-/**
- * Trait StrategyTest
- *
- * @package Test\Design
- */
-class StrategyTest extends TestCase
+final class StrategyTest extends TestCase
 {
-
-    public function testWrong()
+    public function testUnsupportedAdapter(): void
     {
-        $instance = new StubWrongStrategy;
+        $instance = new StubWrongStrategy();
 
-        $this->setExpectedException(\RuntimeException::class,
-            get_class($instance) . " : default unsupported. ");
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(StubWrongStrategy::class . ' : default unsupported. ');
 
         $instance->uses('default');
     }
 
-    public function testMake()
+    public function testNoDefaultAdapter(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(StubWrongStrategy::class . ' : no default adapter.');
+
+        (new StubWrongStrategy())->uses();
+    }
+
+    public function testDefaultAndSwitch(): void
     {
         $instance = new StubGoodStrategy();
 
-        $this->assertInstanceOf(Registry::class, $instance->uses(Registry::class));
+        $default = $instance->uses();
+        $this->assertInstanceOf(ArrayObject::class, $default);
+        $this->assertSame($default, $instance->uses());
+
+        $stack = $instance->uses(SplStack::class);
+        $this->assertInstanceOf(SplStack::class, $stack);
+        $this->assertSame($stack, $instance->uses());
+        $this->assertSame($default, $instance->uses(ArrayObject::class));
+    }
+
+    public function testMagicCallIsForwardedToTheAdapter(): void
+    {
+        $instance = new StubGoodStrategy();
+
+        $this->assertSame(0, $instance->count());
+
+        $this->expectException(\BadMethodCallException::class);
+
+        $instance->unknown();
     }
 }
 
 class StubWrongStrategy extends Strategy
 {
-    protected $supported = [];
+    protected array $supported = [];
 }
 
+/**
+ * @method int count()
+ * @method mixed unknown()
+ */
 class StubGoodStrategy extends Strategy
 {
-    protected $supported = [
-        Registry::class
-    ];
+    use MagicCallStrategyTrait;
 
-    protected $default = Registry::class;
+    protected array $supported = [ArrayObject::class, SplStack::class];
+
+    protected ?string $default = ArrayObject::class;
 }

@@ -1,257 +1,213 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Test\Support;
 
-use Neutrino\Support\Facades\Facade;
 use Mockery as m;
+use Mockery\MockInterface;
+use Neutrino\Support\Facades\Facade;
+use Phalcon\Di\Di;
 use Phalcon\Di\FactoryDefault;
-use Test\TestCase\TestCase;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
-/**
- * Class FacadeTest
- *
- * @package Support
- */
-class FacadeTest extends TestCase
+final class FacadeTest extends TestCase
 {
-    public function setUp()
+    protected function setUp(): void
     {
         Facade::clearResolvedInstances();
-        //FacadeStub::setDependencyInjection(null);
     }
 
-    public function tearDown()
+    protected function tearDown(): void
     {
         m::close();
+        Facade::clearResolvedInstances();
+        Di::reset();
     }
 
-    public function testFacadeOverriderFacadeAccessor()
+    public function testFacadeOverriderFacadeAccessor(): void
     {
-        $this->setExpectedExceptionRegExp(\RuntimeException::class,
-            '/Facade does not implement getFacadeAccessor method\\./');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Facade does not implement getFacadeAccessor method.');
 
         WrongImplementFacadeStub::some();
     }
 
-    public function testFacadeRootDiNotSet()
+    public function testFacadeRootNotRegistered(): void
     {
-        $this->setExpectedExceptionRegExp(\Phalcon\Di\Exception::class,
-            "/Service '' wasn't found in the dependency injection container/");
+        FacadeStub::setDependencyInjection(new FactoryDefault());
 
-        $app = new ApplicationStub;
+        $this->expectException(\Phalcon\Di\Exception::class);
 
-        WrongRootFacadeStub::setDependencyInjection($app);
-        WrongRootFacadeStub::some();
+        FacadeStub::bar();
     }
 
-
-    public function testFacadeWrongRoot()
+    public function testFacadeRootIsNotAnObject(): void
     {
-        $this->setExpectedExceptionRegExp(\RuntimeException::class,
-            '/A facade root has not been set\\./');
+        $di = new FactoryDefault();
+        $di->setShared('foo', fn() => 'not an object');
+        FacadeStub::setDependencyInjection($di);
 
-        $app = new ApplicationStub;
-        $app->setShared(null, function () {
-            return null;
-        });
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('A facade root has not been set.');
 
-        WrongRootFacadeStub::setDependencyInjection($app);
-        WrongRootFacadeStub::some();
+        FacadeStub::bar();
     }
 
-    public function testFacadeMockWrongAccessor()
+    public function testFacadeOnObjectAccessor(): void
     {
-        $app = new ApplicationStub;
-        $app->setShared(null, function () {
-            return null;
-        });
-        WrongRootFacadeStub::setDependencyInjection($app);
-
-        WrongRootFacadeStub::shouldReceive('foo')->once()->andReturn(null);
-
-        $this->assertNull(WrongRootFacadeStub::foo());
+        $this->assertSame('ObjectFacadeStub', ObjectFacadeStub::get());
+        ObjectFacadeStub::set('foo/bar');
+        $this->assertSame('ObjectFacadeStub', ObjectFacadeStub::get());
     }
 
-    public function testFacadeOnAnonymousClass()
+    public function testFacadeOnSingletonObjectAccessor(): void
     {
-        $this->assertEquals('AnonymousClassFacadeStub', AnonymousClassFacadeStub::get());
-        AnonymousClassFacadeStub::set('foo/bar');
-        $this->assertEquals('AnonymousClassFacadeStub', AnonymousClassFacadeStub::get());
+        $this->assertSame('SingletonObjectFacadeStub', SingletonObjectFacadeStub::get());
+        SingletonObjectFacadeStub::set('foo/bar');
+        $this->assertSame('foo/bar', SingletonObjectFacadeStub::get());
     }
 
-    public function testFacadeOnSingletonAnonymousClass()
+    public function testFacadeSwap(): void
     {
-        $this->assertEquals('SingletonAnonymousClassFacadeStub', SingletonAnonymousClassFacadeStub::get());
-        SingletonAnonymousClassFacadeStub::set('foo/bar');
-        $this->assertEquals('foo/bar', SingletonAnonymousClassFacadeStub::get());
+        $di = new FactoryDefault();
+        $di->setShared('foo', new Foo());
+        FacadeStub::setDependencyInjection($di);
+
+        $this->assertSame('baz', FacadeStub::bar());
+
+        FacadeStub::swap(new Bar());
+
+        $this->assertSame('foo', FacadeStub::bar());
+        $this->assertInstanceOf(Bar::class, $di->getShared('foo'));
     }
 
-    public function testFacadeSwap()
+    public function testFacadeCallsUnderlyingService(): void
     {
-        $app = new ApplicationStub;
-
-        $app->setShared('foo', new Foo);
-        FacadeStub::setDependencyInjection($app);
-
-        $this->assertEquals('baz', FacadeStub::bar());
-
-        FacadeStub::swap(new Bar);
-
-        $this->assertEquals('foo', FacadeStub::bar());
-    }
-
-    public function testFacadeCallsUnderlyingApplication()
-    {
-        $app = new ApplicationStub;
-        $app->setShared('foo', $mock = m::mock('StdClass'));
+        $di = new FactoryDefault();
+        $di->setShared('foo', $mock = m::mock(Foo::class));
         $mock->shouldReceive('bar')->once()->andReturn('baz');
-        FacadeStub::setDependencyInjection($app);
-        $this->assertEquals('baz', FacadeStub::bar());
+        FacadeStub::setDependencyInjection($di);
+
+        $this->assertSame('baz', FacadeStub::bar());
+        $this->assertSame($mock, FacadeStub::getFacadeRoot());
     }
 
-    public function testShouldReceiveReturnsAMockeryMock()
+    public function testShouldReceiveReturnsAMockeryMock(): void
     {
-        $app = new ApplicationStub;
-        $app->setShared('foo', new \stdClass);
-        FacadeStub::setDependencyInjection($app);
-        $this->assertInstanceOf('Mockery\MockInterface', $mock =
-            FacadeStub::shouldReceive('foo')->once()->with('bar')->andReturn('baz')->getMock());
-        $this->assertEquals('baz', FacadeStub::foo('bar'));
+        $di = new FactoryDefault();
+        $di->setShared('foo', new Foo());
+        FacadeStub::setDependencyInjection($di);
+
+        $mock = FacadeStub::shouldReceive('bar')->once()->with('x')->andReturn('mocked')->getMock();
+
+        $this->assertInstanceOf(MockInterface::class, $mock);
+        $this->assertInstanceOf(Foo::class, $mock);
+        $this->assertSame('mocked', FacadeStub::bar('x'));
+        $this->assertSame($mock, $di->getShared('foo'));
     }
 
-    public function testShouldReceiveCanBeCalledTwice()
+    public function testShouldReceiveCanBeCalledTwice(): void
     {
-        $app = new ApplicationStub;
-        $app->setShared('foo', new \stdClass);
-        FacadeStub::setDependencyInjection($app);
-        $this->assertInstanceOf('Mockery\MockInterface', $mock =
-            FacadeStub::shouldReceive('foo')->once()->with('bar')->andReturn('baz')->getMock());
-        $this->assertInstanceOf('Mockery\MockInterface', $mock =
-            FacadeStub::shouldReceive('foo2')->once()->with('bar2')->andReturn('baz2')->getMock());
-        $this->assertEquals('baz', FacadeStub::foo('bar'));
-        $this->assertEquals('baz2', FacadeStub::foo2('bar2'));
+        $di = new FactoryDefault();
+        $di->setShared('foo', new \stdClass());
+        FacadeStub::setDependencyInjection($di);
+
+        $first = FacadeStub::shouldReceive('foo')->once()->with('bar')->andReturn('baz')->getMock();
+        $second = FacadeStub::shouldReceive('foo2')->once()->with('bar2')->andReturn('baz2')->getMock();
+
+        $this->assertSame($first, $second);
+        $this->assertSame('baz', FacadeStub::foo('bar'));
+        $this->assertSame('baz2', FacadeStub::foo2('bar2'));
     }
 
-    public function testCanBeMockedWithoutUnderlyingInstance()
+    public function testCanBeMockedWithoutUnderlyingInstance(): void
     {
+        FacadeStub::setDependencyInjection(new Di());
+
         FacadeStub::shouldReceive('foo')->once()->andReturn('bar');
-        $this->assertEquals('bar', FacadeStub::foo());
+
+        $this->assertSame('bar', FacadeStub::foo());
     }
-}
 
-class WrongImplementFacadeStub extends Facade
-{
-
-}
-
-class WrongRootFacadeStub extends Facade
-{
-    protected static function getFacadeAccessor()
+    public function testShouldReceiveWithoutMockery(): void
     {
-        return null;
+        // A process whose autoloader only knows the framework: Mockery is not installed there.
+        $src = var_export(dirname(__DIR__, 3) . '/src/Neutrino/', true);
+        $code = <<<PHP
+            spl_autoload_register(static function (string \$class): void {
+                if (str_starts_with(\$class, 'Neutrino\\\\')) {
+                    require $src . str_replace('\\\\', '/', substr(\$class, 9)) . '.php';
+                }
+            });
+            class StubFacade extends Neutrino\\Support\\Facades\\Facade {
+                protected static function getFacadeAccessor(): string { return 'foo'; }
+            }
+            try {
+                StubFacade::shouldReceive('foo');
+            } catch (LogicException \$e) {
+                echo \$e->getMessage();
+            }
+            PHP;
+
+        $process = proc_open([PHP_BINARY, '-r', $code], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        $this->assertIsResource($process);
+        $output = (string) stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+
+        $this->assertSame('StubFacade::shouldReceive() requires mockery/mockery (composer require --dev mockery/mockery).', $output);
     }
 }
+
+class WrongImplementFacadeStub extends Facade {}
 
 class FacadeStub extends Facade
 {
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return 'foo';
     }
 }
 
-class AnonymousClassFacadeStub extends Facade
+class ObjectFacadeStub extends Facade
 {
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): object
     {
-        return new AnonymousClassFacadeStubClass;
+        return new ValueHolder('ObjectFacadeStub');
     }
 }
 
-class AnonymousClassFacadeStubClass
+class SingletonObjectFacadeStub extends Facade
 {
-    private $value = 'AnonymousClassFacadeStub';
+    private static ?ValueHolder $instance = null;
 
-    public function get()
+    protected static function getFacadeAccessor(): object
+    {
+        return self::$instance ??= new ValueHolder('SingletonObjectFacadeStub');
+    }
+}
+
+class ValueHolder
+{
+    public function __construct(private string $value) {}
+
+    public function get(): string
     {
         return $this->value;
     }
 
-    public function set($value = null)
+    public function set(string $value): void
     {
         $this->value = $value;
-    }
-}
-
-class SingletonAnonymousClassFacadeStub extends Facade
-{
-    private static $instance;
-
-    private static function getInstance()
-    {
-        if (self::$instance == null) {
-            self::$instance = new SingletonAnonymousClassFacadeStubClass;
-        }
-
-        return self::$instance;
-    }
-
-    protected static function getFacadeAccessor()
-    {
-        return self::getInstance();
-    }
-}
-class SingletonAnonymousClassFacadeStubClass
-{
-    private $value = 'SingletonAnonymousClassFacadeStub';
-
-    public function get()
-    {
-        return $this->value;
-    }
-
-    public function set($value = null)
-    {
-        $this->value = $value;
-    }
-}
-class ApplicationStub extends FactoryDefault
-{
-    protected $attributes = [];
-
-    public function setAttributes($attributes)
-    {
-        $this->attributes = $attributes;
-    }
-
-    public function instance($key, $instance)
-    {
-        $this->attributes[$key] = $instance;
-    }
-
-    public function offsetExists($offset)
-    {
-        return isset($this->attributes[$offset]);
-    }
-
-    public function offsetGet($key)
-    {
-        return $this->attributes[$key];
-    }
-
-    public function offsetSet($key, $value)
-    {
-        $this->attributes[$key] = $value;
-    }
-
-    public function offsetUnset($key)
-    {
-        unset($this->attributes[$key]);
     }
 }
 
 class Foo
 {
-    public function bar()
+    public function bar(): string
     {
         return 'baz';
     }
@@ -259,7 +215,7 @@ class Foo
 
 class Bar
 {
-    public function bar()
+    public function bar(): string
     {
         return 'foo';
     }

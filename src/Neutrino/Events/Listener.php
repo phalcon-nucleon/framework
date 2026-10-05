@@ -1,91 +1,96 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Events;
 
+use Closure;
 use Phalcon\Di\Injectable;
-use Phalcon\Events\Event;
+use Phalcon\Events\EventInterface;
+use Phalcon\Events\EventsAwareInterface;
+use Phalcon\Events\ManagerInterface;
+use RuntimeException;
 
 /**
- * Class Listener
- *
- *  @package Neutrino\Events
+ * Attaches its methods to an events manager.
  */
-abstract class Listener extends Injectable
+abstract class Listener extends Injectable implements EventsAwareInterface
 {
     /**
-     * List to event to listen.
+     * Events to listen, with the method to call.
      *
      * ex : [
      *      {eventName} => {methodCall},
-     *      \Neutrino\Constants\Events\Application::BOOT => 'onBoot',
+     *      \Neutrino\Constants\Events\Kernel::BOOT => 'onBoot',
      *      \Neutrino\Constants\Events\Dispatch::BEFORE_DISPATCH => 'onBeforeDispatch'
      * ]
      *
-     * @var string[]
+     * @var array<array-key, string>
      */
-    protected $listen;
+    protected array $listen = [];
 
     /**
-     * List to space to listen.
+     * Event spaces to listen: the listener method named after each event of the space is called.
      *
      * ex : [
-     *      {eventSpace},
      *      \Neutrino\Constants\Events::APPLICATION,
      *      \Neutrino\Constants\Events::DISPATCH,
      * ]
      *
-     * @var string[]
+     * @var list<string>
      */
-    protected $space;
+    protected array $space = [];
+
+    protected ?ManagerInterface $eventsManager = null;
 
     /**
-     * Closure attached to the EventsManager
+     * Closures attached to the events manager, by event.
      *
-     * @var array
+     * @var array<string, Closure>
      */
-    private $closures = [];
+    private array $closures = [];
+
+    public function getEventsManager(): ?ManagerInterface
+    {
+        return $this->eventsManager;
+    }
+
+    public function setEventsManager(ManagerInterface $eventsManager): void
+    {
+        $this->eventsManager = $eventsManager;
+    }
 
     /**
-     * Attach all require event to make the listener
+     * Attaches the listened events and spaces to the events manager.
      */
-    public function attach()
+    public function attach(): void
     {
-        $em = $this->getEventsManager();
+        $em = $this->requireEventsManager();
 
-        if (!empty($this->space)) {
-            foreach ($this->space as $space) {
-                $em->attach($space, $this);
-            }
+        foreach ($this->space as $space) {
+            $em->attach($space, $this);
         }
 
-        if (!empty($this->listen)) {
-            foreach ($this->listen as $event => $callback) {
-                if (!method_exists($this, $callback)) {
-                    throw new \RuntimeException(
-                        "Method '$callback' not exist in " . get_class($this)
-                    );
-                }
-
-                $this->closures[$event] = $closure = function (Event $event, $handler, $data = null) use ($callback) {
-                    return $this->$callback($event, $handler, $data);
-                };
-
-                $em->attach($event, $closure);
+        foreach ($this->listen as $event => $callback) {
+            if (!is_string($event) || !method_exists($this, $callback)) {
+                throw new RuntimeException("Method '$callback' not exist in " . static::class);
             }
+
+            $this->closures[$event] = $closure = fn(EventInterface $event, mixed $handler, mixed $data = null): mixed => $this->$callback($event, $handler, $data);
+
+            $em->attach($event, $closure);
         }
     }
 
     /**
-     * Detach all event attached to the EventsManager
+     * Detaches everything {@see Listener::attach()} attached.
      */
-    public function detach()
+    public function detach(): void
     {
-        $em = $this->getEventsManager();
+        $em = $this->requireEventsManager();
 
-        if (!empty($this->space)) {
-            foreach ($this->space as $space) {
-                $em->detach($space, $this);
-            }
+        foreach ($this->space as $space) {
+            $em->detach($space, $this);
         }
 
         foreach ($this->closures as $event => $closure) {
@@ -93,5 +98,10 @@ abstract class Listener extends Injectable
         }
 
         $this->closures = [];
+    }
+
+    private function requireEventsManager(): ManagerInterface
+    {
+        return $this->eventsManager ?? throw new RuntimeException(static::class . ' has no events manager.');
     }
 }

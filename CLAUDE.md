@@ -19,7 +19,7 @@ docker compose run --rm php8 vendor/bin/phpunit --testsuite Cache  # one module 
 docker compose run --rm php8 vendor/bin/phpunit --filter testName
 docker compose run --rm php8 vendor/bin/phpstan analyse --memory-limit=1G
 docker compose run --rm php8 vendor/bin/php-cs-fixer fix --dry-run --diff
-docker compose run --rm php8 php bench/run.php --compare=bench/baseline-1.3.json
+# benchmarks: see bench/README.md (no-dev install in bench/.current, run on a copy inside the container)
 PHP_VERSION=8.4 docker compose build php8                          # other PHP version
 ```
 

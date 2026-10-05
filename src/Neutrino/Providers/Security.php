@@ -12,11 +12,11 @@ use Neutrino\Support\SimpleProvider;
  */
 class Security extends SimpleProvider
 {
-    protected $class = \Phalcon\Security::class;
+    protected string $class = \Phalcon\Security::class;
 
-    protected $name = Services::SECURITY;
+    protected string $name = Services::SECURITY;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Security::class];
+    protected array $aliases = [\Phalcon\Security::class];
 }

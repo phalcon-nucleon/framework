@@ -24,7 +24,7 @@ class MigrationsServicesProvider implements Providable
      *
      * @return void
      */
-    public function registering()
+    public function registering(): void
     {
         $di = Di::getDefault();
 

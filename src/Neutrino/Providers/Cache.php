@@ -20,7 +20,7 @@ class Cache extends Injectable implements Providable
     /**
      *
      */
-    public function registering()
+    public function registering(): void
     {
         $di = $this->getDI();
 

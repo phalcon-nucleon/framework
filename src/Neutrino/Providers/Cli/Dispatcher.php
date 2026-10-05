@@ -12,9 +12,9 @@ use Neutrino\Support\Provider;
  */
 class Dispatcher extends Provider
 {
-    protected $name = Services::DISPATCHER;
+    protected string $name = Services::DISPATCHER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
     /**
      * @return \Phalcon\Cli\Dispatcher

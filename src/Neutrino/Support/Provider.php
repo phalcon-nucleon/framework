@@ -1,72 +1,67 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support;
 
 use Neutrino\Interfaces\Providable;
 use Phalcon\Di\Injectable;
 use Phalcon\Di\Service;
+use RuntimeException;
 
 /**
- * Class Provider
+ * Registers a service built by {@see Provider::register()}, called on the first resolution only.
  *
- * @package Neutrino\Providers
+ * Declare the real return type of `register()` (e.g. `register(): \Phalcon\Mvc\Router`):
+ * the IDE helpers read it to document the service without building it.
  *
  * @property-read \Neutrino\Foundation\Http\Kernel|\Neutrino\Foundation\Cli\Kernel|\Neutrino\Foundation\Micro\Kernel $application
- * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
+ * @property-read \Phalcon\Config\Config                                                                               $config
  */
 abstract class Provider extends Injectable implements Providable
 {
     /**
-     * Name of the service
+     * Name of the service.
+     */
+    protected string $name;
+
+    /**
+     * Other names the service is registered under (usually its class).
      *
-     * @var string
+     * @var list<string>
      */
-    protected $name;
+    protected array $aliases = [];
 
-    /**
-     * @var string[]
-     */
-    protected $aliases;
+    protected bool $shared = false;
 
-    /**
-     * @var bool
-     */
-    protected $shared = false;
-
-    /**
-     * Provider constructor.
-     */
     final public function __construct()
     {
-        if (empty($this->name) || !is_string($this->name)) {
-            throw new \RuntimeException('Provider "' . static::class . '::$name" isn\'t valid.');
+        if (!isset($this->name) || $this->name === '') {
+            throw new RuntimeException('Provider "' . static::class . '::$name" isn\'t valid.');
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    final public function registering()
+    final public function registering(): void
     {
         $self = $this;
 
-        $service = new Service($this->name, function () use ($self) {
+        // Phalcon binds closure definitions to the container: $this would be the Di, not the provider.
+        $service = new Service(function () use ($self) {
             return $self->register();
         }, $this->shared);
 
-        $this->getDI()->setRaw($this->name, $service);
+        $di = $this->getDI();
+        $di->setService($this->name, $service);
 
-        if (!empty($this->aliases)) {
-            foreach ($this->aliases as $alias) {
-                $this->getDI()->setRaw($alias, $service);
-            }
+        foreach ($this->aliases as $alias) {
+            $di->setService($alias, $service);
         }
     }
 
     /**
-     * Return the service to register
+     * Builds the service. Called when the container resolves the service.
      *
-     * Called when the services container tries to resolve the service
+     * Not typed here so that each provider can declare the type of its service.
      *
      * @return mixed
      */

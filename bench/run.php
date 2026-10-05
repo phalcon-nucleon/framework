@@ -9,6 +9,7 @@
  *
  *   --autoload=PATH      vendor/autoload.php of the Nucleon version to measure
  *                        (default: ./vendor/autoload.php)
+ *   --app=DIR            the measured application (default: bench/app)
  *   --scenarios=a,b      scenarios to run (default: all)
  *   --iterations=N       measured iterations per scenario (default: 200)
  *   --warmup=N           discarded iterations per scenario (default: 20)
@@ -20,9 +21,10 @@
 
 $scenarios = ['boot-http', 'boot-cli', 'boot-micro', 'http', 'micro', 'cli', 'service'];
 
-$options = getopt('', ['autoload:', 'scenarios:', 'iterations:', 'warmup:', 'out:', 'compare:']);
+$options = getopt('', ['autoload:', 'app:', 'scenarios:', 'iterations:', 'warmup:', 'out:', 'compare:']);
 
 $autoload = isset($options['autoload']) ? realpath($options['autoload']) : realpath(__DIR__ . '/../vendor/autoload.php');
+$app = isset($options['app']) ? realpath($options['app']) : __DIR__ . '/app';
 $iterations = isset($options['iterations']) ? (int) $options['iterations'] : 200;
 $warmup = isset($options['warmup']) ? (int) $options['warmup'] : 20;
 if (isset($options['scenarios'])) {
@@ -31,6 +33,11 @@ if (isset($options['scenarios'])) {
 
 if ($autoload === false) {
     fwrite(STDERR, "Autoload file not found.\n");
+    exit(1);
+}
+
+if ($app === false || !is_dir($app)) {
+    fwrite(STDERR, "Application directory not found.\n");
     exit(1);
 }
 
@@ -51,6 +58,7 @@ $results = [
         'php' => PHP_VERSION,
         'phalcon' => phalconVersion(),
         'autoload' => $autoload,
+        'app' => $app,
         'iterations' => $iterations,
         'date' => date(DATE_ATOM),
     ],
@@ -61,7 +69,7 @@ $results = [
 // (thermal throttling, other processes) affects all of them equally.
 for ($i = 0; $i < $warmup; $i++) {
     foreach ($scenarios as $scenario) {
-        runScenario($phpArgs, $scenario, $autoload);
+        runScenario($phpArgs, $scenario, $autoload, $app);
     }
 }
 
@@ -69,7 +77,7 @@ $times = array_fill_keys($scenarios, []);
 $memories = array_fill_keys($scenarios, []);
 for ($i = 0; $i < $iterations; $i++) {
     foreach ($scenarios as $scenario) {
-        $measure = runScenario($phpArgs, $scenario, $autoload);
+        $measure = runScenario($phpArgs, $scenario, $autoload, $app);
         $times[$scenario][] = $measure['time_ns'] / 1e3;
         $memories[$scenario][] = $measure['memory_peak'];
     }
@@ -93,7 +101,7 @@ if (isset($options['out'])) {
     file_put_contents($options['out'], json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
 }
 
-function runScenario(array $phpArgs, $scenario, $autoload)
+function runScenario(array $phpArgs, $scenario, $autoload, $app)
 {
     $command = escapeshellarg(PHP_BINARY);
     foreach ($phpArgs as $arg) {
@@ -102,6 +110,7 @@ function runScenario(array $phpArgs, $scenario, $autoload)
     $command .= ' ' . escapeshellarg(__DIR__ . '/scenario.php')
         . ' ' . escapeshellarg($scenario)
         . ' ' . escapeshellarg($autoload)
+        . ' ' . escapeshellarg($app)
         . ' 2>&1';
 
     exec($command, $output, $code);

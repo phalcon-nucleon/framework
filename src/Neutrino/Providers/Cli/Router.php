@@ -32,9 +32,9 @@ use Neutrino\Support\Provider;
  */
 class Router extends Provider
 {
-    protected $name = Services::ROUTER;
+    protected string $name = Services::ROUTER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
     /**
      * @return \Phalcon\Cli\Router

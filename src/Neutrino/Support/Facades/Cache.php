@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\Facades;
 
 use Neutrino\Constants\Services;
@@ -9,11 +11,11 @@ use Neutrino\Constants\Services;
  *
  *  @package Neutrino\Support\Facades
  *
- * @method static \Phalcon\Cache\BackendInterface uses() uses(string $uses = null)
+ * @method static object uses() uses(string $uses = null)
  * @method static mixed start() start(int|string $keyName, int $lifetime = null)
  * @method static void stop() stop(bool $stopBuffer = true)
  * @method static mixed getFrontend() getFrontend()
- * @method static array getOptions() getOptions()
+ * @method static array<mixed> getOptions() getOptions()
  * @method static bool isFresh() isFresh()
  * @method static bool isStarted() isStarted()
  * @method static string setLastKey() setLastKey($lastKey)
@@ -21,7 +23,7 @@ use Neutrino\Constants\Services;
  * @method static mixed|null get() get(string $keyName, int $lifetime = null)
  * @method static bool save() save(int|string $keyName = null, string $content = null, int $lifetime = null, boolean $stopBuffer = true)
  * @method static bool delete() delete(int|string $keyName)
- * @method static array queryKeys() queryKeys(string $prefix = null)
+ * @method static array<mixed> queryKeys() queryKeys(string $prefix = null)
  * @method static bool exists() exists(string $keyName = null, int $lifetime = null)
  */
 class Cache extends Facade
@@ -31,7 +33,7 @@ class Cache extends Facade
      *
      * @return string
      */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return Services::CACHE;
     }

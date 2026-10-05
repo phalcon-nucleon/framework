@@ -47,6 +47,9 @@
         <testsuite name="Facades">
             <directory>tests/Test/Facades</directory>
         </testsuite>
+        <testsuite name="Foundation">
+            <directory>tests/Test/Foundation</directory>
+        </testsuite>
         <testsuite name="Http">
             <directory>tests/Test/Http</directory>
         </testsuite>

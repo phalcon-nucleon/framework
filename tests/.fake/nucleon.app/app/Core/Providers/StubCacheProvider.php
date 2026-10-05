@@ -14,9 +14,9 @@ use Neutrino\Support\Provider;
 class StubCacheProvider extends Provider
 {
 
-    protected $name = Services::CACHE;
+    protected string $name = Services::CACHE;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
     public function register()
     {

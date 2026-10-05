@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Events;
 
 /**
@@ -11,22 +13,22 @@ namespace Neutrino\Constants\Events;
  */
 final class Model
 {
-    const NOT_DELETED                 = 'model:notDeleted';
-    const NOT_SAVED                   = 'model:notSaved';
-    const ON_VALIDATION_FAILS         = 'model:onValidationFails';
-    const BEFORE_VALIDATION           = 'model:beforeValidation';
-    const BEFORE_VALIDATION_ON_CREATE = 'model:beforeValidationOnCreate';
-    const BEFORE_VALIDATION_ON_UPDATE = 'model:beforeValidationOnUpdate';
-    const AFTER_VALIDATION_ON_CREATE  = 'model:afterValidationOnCreate';
-    const AFTER_VALIDATION_ON_UPDATE  = 'model:afterValidationOnUpdate';
-    const AFTER_VALIDATION            = 'model:afterValidation';
-    const BEFORE_SAVE                 = 'model:beforeSave';
-    const BEFORE_UPDATE               = 'model:beforeUpdate';
-    const BEFORE_CREATE               = 'model:beforeCreate';
-    const AFTER_UPDATE                = 'model:afterUpdate';
-    const AFTER_CREATE                = 'model:afterCreate';
-    const AFTER_SAVE                  = 'model:afterSave';
-    const NOT_SAVE                    = 'model:notSave';
-    const BEFORE_DELETE               = 'model:beforeDelete';
-    const AFTER_DELETE                = 'model:afterDelete';
+    public const string NOT_DELETED                 = 'model:notDeleted';
+    public const string ON_VALIDATION_FAILS         = 'model:onValidationFails';
+    public const string BEFORE_VALIDATION           = 'model:beforeValidation';
+    public const string BEFORE_VALIDATION_ON_CREATE = 'model:beforeValidationOnCreate';
+    public const string BEFORE_VALIDATION_ON_UPDATE = 'model:beforeValidationOnUpdate';
+    public const string AFTER_VALIDATION_ON_CREATE  = 'model:afterValidationOnCreate';
+    public const string AFTER_VALIDATION_ON_UPDATE  = 'model:afterValidationOnUpdate';
+    public const string AFTER_VALIDATION            = 'model:afterValidation';
+    public const string BEFORE_SAVE                 = 'model:beforeSave';
+    public const string BEFORE_UPDATE               = 'model:beforeUpdate';
+    public const string BEFORE_CREATE               = 'model:beforeCreate';
+    public const string AFTER_UPDATE                = 'model:afterUpdate';
+    public const string AFTER_CREATE                = 'model:afterCreate';
+    public const string AFTER_SAVE                  = 'model:afterSave';
+    public const string BEFORE_DELETE               = 'model:beforeDelete';
+    public const string AFTER_DELETE                = 'model:afterDelete';
+    public const string PREPARE_SAVE                = 'model:prepareSave';
+    public const string VALIDATION                  = 'model:validation';
 }

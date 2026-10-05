@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Laravel 5.4 Fluent Class
  *
@@ -11,9 +14,7 @@ use Neutrino\Support\Fluent\Fluentable;
 use Neutrino\Support\Fluent\Fluentize;
 
 /**
- * Class Fluent
- *
- * @package Neutrino\Support
+ * Attribute container with a fluent API.
  */
 class Fluent implements Fluentable
 {

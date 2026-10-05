@@ -14,11 +14,11 @@ use Phalcon\Annotations\Adapter\Memory as AnnotationsMemory;
  */
 class Annotations extends SimpleProvider
 {
-    protected $class = AnnotationsMemory::class;
+    protected string $class = AnnotationsMemory::class;
 
-    protected $name = Services::ANNOTATIONS;
+    protected string $name = Services::ANNOTATIONS;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [AnnotationsMemory::class];
+    protected array $aliases = [AnnotationsMemory::class];
 }

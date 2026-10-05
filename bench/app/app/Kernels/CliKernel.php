@@ -7,7 +7,7 @@ use Neutrino\Providers;
 
 class CliKernel extends Kernel
 {
-    protected $providers = [
+    protected array $providers = [
         Providers\Cli\Router::class,
         Providers\Cli\Dispatcher::class,
         Providers\Cli\Output::class,

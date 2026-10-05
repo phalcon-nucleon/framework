@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Events;
 
 /**
@@ -11,6 +13,6 @@ namespace Neutrino\Constants\Events;
  */
 final class Acl
 {
-    const BEFORE_CHECK_ACCESS = 'acl:beforeCheckAccess';
-    const AFTER_CHECK_ACCESS  = 'acl:afterCheckAccess';
+    public const string BEFORE_CHECK_ACCESS = 'acl:beforeCheckAccess';
+    public const string AFTER_CHECK_ACCESS  = 'acl:afterCheckAccess';
 }

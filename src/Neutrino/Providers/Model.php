@@ -21,7 +21,7 @@ class Model extends Injectable  implements Providable
     /**
      * @inheritdoc
      */
-    public function registering()
+    public function registering(): void
     {
         $di = $this->getDI();
 

@@ -13,11 +13,11 @@ use Neutrino\Support\SimpleProvider;
  */
 class Filter extends SimpleProvider
 {
-    protected $class = \Phalcon\Filter::class;
+    protected string $class = \Phalcon\Filter::class;
 
-    protected $name = Services::FILTER;
+    protected string $name = Services::FILTER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Filter::class];
+    protected array $aliases = [\Phalcon\Filter::class];
 }

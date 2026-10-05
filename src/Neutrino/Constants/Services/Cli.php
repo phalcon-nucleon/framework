@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Services;
 
 /**
@@ -9,5 +11,5 @@ namespace Neutrino\Constants\Services;
  */
 final class Cli
 {
-    const OUTPUT = 'output';
+    public const string OUTPUT = 'output';
 }

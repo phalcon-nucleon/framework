@@ -1,53 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Design;
 
+use Error;
 use Fake\Core\StubSingleton;
-use Neutrino\Debug\Reflexion;
-use Test\TestCase\TestCase;
+use Neutrino\Support\DesignPatterns\Singleton;
+use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
+use RuntimeException;
 
-class SingletonTest extends TestCase
+final class SingletonTest extends TestCase
 {
-    public function testBasic()
+    public function testBasic(): void
     {
         $this->assertInstanceOf(StubSingleton::class, StubSingleton::instance());
-        $this->assertEquals('test', StubSingleton::instance()->getVar());
+        $this->assertSame(StubSingleton::instance(), StubSingleton::instance());
+        $this->assertSame('test', StubSingleton::instance()->getVar());
     }
 
-    public function testFailConstruct()
+    public function testOneInstancePerSubclass(): void
     {
-        if (PHP_MAJOR_VERSION == 5) {
-            $this->markTestSkipped('Can\'t test this in php5.');
-
-            return;
-        }
-
-        $this->setExpectedException('\Error');
-
-        new StubSingleton;
+        $this->assertInstanceOf(OtherSingleton::class, OtherSingleton::instance());
+        $this->assertInstanceOf(StubSingleton::class, StubSingleton::instance());
+        $this->assertNotSame(OtherSingleton::instance(), StubSingleton::instance());
     }
 
-    public function testFailClone()
+    public function testFailConstruct(): void
     {
-        if (PHP_MAJOR_VERSION == 5) {
-            $this->markTestSkipped('Can\'t test this in php5.');
+        $this->expectException(Error::class);
 
-            return;
-        }
-
-        $this->setExpectedException('\Error');
-
-        $instance = StubSingleton::instance();
-
-        $new_instance = clone $instance;
+        new StubSingleton(); // @phpstan-ignore new.private
     }
 
-    public function testFailCallClone()
+    public function testFailClone(): void
     {
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException(Error::class);
 
-        $instance = StubSingleton::instance();
+        clone StubSingleton::instance(); // @phpstan-ignore clone.private
+    }
 
-        Reflexion::invoke($instance, '__clone');
+    public function testFailCallClone(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        (new ReflectionMethod(Singleton::class, '__clone'))->invoke(StubSingleton::instance());
     }
 }
+
+class OtherSingleton extends Singleton {}

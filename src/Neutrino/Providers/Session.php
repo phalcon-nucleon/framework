@@ -25,7 +25,7 @@ class Session extends Injectable implements Providable
      *
      * @return void
      */
-    public function registering()
+    public function registering(): void
     {
         $di = $this->getDI();
 

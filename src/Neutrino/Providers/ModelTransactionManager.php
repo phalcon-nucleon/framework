@@ -14,11 +14,11 @@ use Phalcon\Mvc\Model\Transaction\Manager;
  */
 class ModelTransactionManager extends SimpleProvider
 {
-    protected $class = Manager::class;
+    protected string $class = Manager::class;
 
-    protected $name = Services::TRANSACTION_MANAGER;
+    protected string $name = Services::TRANSACTION_MANAGER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [Manager::class];
+    protected array $aliases = [Manager::class];
 }

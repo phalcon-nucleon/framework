@@ -1,44 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Config;
 
-use Phalcon\Config;
+use Phalcon\Config\Config;
 
 /**
- * Class Loader
- *
- * @package     Neutrino\Config
+ * Loads the application configuration: the compiled file when it exists, the `config/*.php` files otherwise.
  */
-class Loader
+final class Loader
 {
     /**
-     * @param string $basePath
-     * @param array  $excludes
-     *
-     * @return \Phalcon\Config
+     * @param list<string> $excludes Names of the config files to skip (without `.php`)
      */
-    public static function load($basePath, array $excludes = [])
+    public static function load(string $basePath, array $excludes = []): Config
     {
-        if (!is_null($config = self::fromCompile($basePath))) {
-            return $config;
-        } else {
-            return self::fromFiles($basePath, $excludes);
-        }
+        return self::fromCompile($basePath) ?? self::fromFiles($basePath, $excludes);
     }
 
     /**
-     * @param string $basePath
-     * @param array  $excludes
+     * @param list<string> $excludes Names of the config files to skip (without `.php`)
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public static function raw($basePath, array $excludes = [])
+    public static function raw(string $basePath, array $excludes = []): array
     {
         $config = [];
 
         $excludes = array_flip($excludes);
 
-        foreach (glob($basePath . '/config/*.php') as $file) {
+        foreach (glob($basePath . '/config/*.php') ?: [] as $file) {
             if (!isset($excludes[$fileName = basename($file, '.php')])) {
                 $config[$fileName] = require $file;
             }
@@ -48,25 +40,20 @@ class Loader
     }
 
     /**
-     * @param string $basePath
-     * @param array  $excludes
-     *
-     * @return \Phalcon\Config
+     * @param list<string> $excludes Names of the config files to skip (without `.php`)
      */
-    public static function fromFiles($basePath, array $excludes = [])
+    public static function fromFiles(string $basePath, array $excludes = []): Config
     {
         return new Config(self::raw($basePath, $excludes));
     }
 
-    /**
-     * @param string $basePath
-     *
-     * @return null|\Phalcon\Config
-     */
-    public static function fromCompile($basePath)
+    public static function fromCompile(string $basePath): ?Config
     {
-        if (file_exists($compilePath = $basePath . '/bootstrap/compile/config.php')) {
-            return new Config(require $compilePath);
+        if (is_file($compilePath = $basePath . ConfigCompiler::COMPILED_FILE)) {
+            /** @var array<string, mixed> $config */
+            $config = require $compilePath;
+
+            return new Config($config);
         }
 
         return null;

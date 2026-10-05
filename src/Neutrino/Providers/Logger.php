@@ -13,9 +13,9 @@ use Phalcon\Logger\Adapter\File as FileLoggerAdapter;
  */
 class Logger extends Provider
 {
-    protected $name = Services::LOGGER;
+    protected string $name = Services::LOGGER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
     /**
      * Register the logger

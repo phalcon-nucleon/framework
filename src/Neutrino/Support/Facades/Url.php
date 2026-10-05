@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\Facades;
 
 use Neutrino\Constants\Services;
@@ -10,7 +12,7 @@ use Neutrino\Constants\Services;
  *  @package Neutrino\Support\Facades
  *
  * @method static string getBasePath() Returns a base path
- * @method static string get(string|array $uri = null, array|object $args = null, bool $local = null) Generates a URL
+ * @method static string get(string|array<mixed> $uri = null, array<mixed>|object $args = null, bool $local = null) Generates a URL
  * @method static string path(string $path = null) Generates a local path
  */
 class Url extends Facade
@@ -20,7 +22,7 @@ class Url extends Facade
      *
      * @return string
      */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return Services::URL;
     }

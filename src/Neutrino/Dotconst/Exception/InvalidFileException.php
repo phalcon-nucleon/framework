@@ -1,12 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst\Exception;
 
-/**
- * Class InvalidFileException
- *
- * @package Neutrino\Dotenv\Exception
- */
-class InvalidFileException extends \Exception
-{
-}
+class InvalidFileException extends \Exception {}

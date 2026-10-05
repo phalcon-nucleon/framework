@@ -1,70 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino;
 
-use Phalcon\Di\Service;
-use Phalcon\DiInterface;
+use Neutrino\Foundation\ProviderRegistrar;
+use Phalcon\Di\DiInterface;
+use Phalcon\Di\Injectable;
 use Phalcon\Mvc\ModuleDefinitionInterface;
-use Phalcon\Mvc\User\Module as PhalconModule;
 
 /**
- * Class Module
+ * Base class of an application module: registers its `$providers`, then calls {@see Module::initialise()}.
  *
- * @package     Neutrino
- * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console $application
- * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                             $config
- *
+ * @property-read \Neutrino\Foundation\Http\Kernel|\Neutrino\Foundation\Cli\Kernel $application
+ * @property-read \Phalcon\Config\Config                                            $config
  */
-class Module extends PhalconModule implements ModuleDefinitionInterface
+class Module extends Injectable implements ModuleDefinitionInterface
 {
     /**
-     * Return the Provider List to load.
+     * Providers of the module, in the same format as the kernel's.
      *
-     * @var array
+     * @var array<int|string, string>
      */
-    protected $providers = [];
+    protected array $providers = [];
 
-    /**
-     * Registers an autoloader related to the module
-     *
-     * @param \Phalcon\DiInterface $dependencyInjector
-     */
-    public function registerAutoloaders(DiInterface $dependencyInjector = null)
+    public function registerAutoloaders(?DiInterface $container = null): void {}
+
+    public function registerServices(DiInterface $container): void
     {
+        ProviderRegistrar::register($container, $this->providers);
+
+        $this->initialise($container);
     }
 
     /**
-     * This methods registers the services to be used by the application
-     *
-     * @param \Phalcon\DiInterface $di
+     * Called once the module's providers are registered.
      */
-    public function registerServices(DiInterface $di)
-    {
-        foreach ($this->providers as $name => $provider) {
-            if (is_string($name)) {
-                $service = new Service($name, $provider, true);
-
-                $di->setRaw($name, $service);
-                $di->setRaw($provider, $service);
-
-                continue;
-            }
-
-            /* @var \Neutrino\Interfaces\Providable $prv */
-            $prv = new $provider();
-
-            $prv->registering();
-        }
-
-        $this->initialise($di);
-    }
-
-    /**
-     * Initialise the Modules
-     *
-     * @param \Phalcon\DiInterface $di
-     */
-    public function initialise(DiInterface $di)
-    {
-    }
+    public function initialise(DiInterface $container): void {}
 }

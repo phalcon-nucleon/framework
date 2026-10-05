@@ -12,3 +12,5 @@ composer.lock
 /bench/.legacy/composer.lock
 .DS_Store
 Thumbs.db
+/bench/.current/vendor
+/bench/.current/composer.lock

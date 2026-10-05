@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Events;
 
 /**
@@ -11,8 +13,8 @@ namespace Neutrino\Constants\Events;
  */
 final class Loader
 {
-    const BEFORE_CHECK_CLASS = 'loader:beforeCheckClass';
-    const PATH_FOUND         = 'loader:pathFound';
-    const BEFORE_CHECK_PATH  = 'loader:beforeCheckPath';
-    const AFTER_CHECK_CLASS  = 'loader:afterCheckClass';
+    public const string BEFORE_CHECK_CLASS = 'loader:beforeCheckClass';
+    public const string PATH_FOUND         = 'loader:pathFound';
+    public const string BEFORE_CHECK_PATH  = 'loader:beforeCheckPath';
+    public const string AFTER_CHECK_CLASS  = 'loader:afterCheckClass';
 }

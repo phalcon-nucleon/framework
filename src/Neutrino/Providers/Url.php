@@ -12,11 +12,11 @@ use Neutrino\Support\Provider;
  */
 class Url extends Provider
 {
-    protected $name = Services::URL;
+    protected string $name = Services::URL;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Mvc\Url::class];
+    protected array $aliases = [\Phalcon\Mvc\Url::class];
 
     /**
      * The URL component is used to generate all kind of urls in the application

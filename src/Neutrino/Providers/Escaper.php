@@ -13,11 +13,11 @@ use Neutrino\Support\SimpleProvider;
  */
 class Escaper extends SimpleProvider
 {
-    protected $class = \Phalcon\Escaper::class;
+    protected string $class = \Phalcon\Escaper::class;
 
-    protected $name = Services::ESCAPER;
+    protected string $name = Services::ESCAPER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Escaper::class];
+    protected array $aliases = [\Phalcon\Escaper::class];
 }

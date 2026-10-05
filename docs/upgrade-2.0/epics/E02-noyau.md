@@ -1,6 +1,6 @@
 # E2 — Noyau
 
-**Statut** : Rédigé · **Dépend de** : E1 · **Bloque** : E3, puis tous les epics fonctionnels
+**Statut** : Terminé · **Dépend de** : E1 · **Bloque** : E3, puis tous les epics fonctionnels
 
 ## Objectif
 
@@ -119,3 +119,65 @@ Faire démarrer les trois kernels (HTTP, CLI, Micro) sur Phalcon 5 avec le même
 - Les suites `Config`, `Dotconst`, `Events`, `Facades`, `Design` et `Support` sont activées en CI et passent.
 - Mesures : le boot de chaque kernel et la résolution d'un service partagé ne sont pas moins bons que ceux de la 1.3.
 - Le générateur produit `_ide_helper.php` et `.phpstorm.meta.php` valides pour `tests/.fake`.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Kernelize, Bootstrap, Kernelable | Fait | Propriétés déclaratives typées dans les trois kernels, `Kernelable` typé avec `handleIncoming()` (HTTP et Micro : chemin de `REQUEST_URI` sans la query string ; CLI : `handle()` sur les arguments déjà posés). `Bootstrap` `final`, `make()` générique (`@template`). Kernel CLI sur `$this->arguments` / `$this->options`, sans constructeur. `Neutrino\Version` autonome (`MAJOR`, `MINOR`, `PATCH`, `STABILITY`). Les providers concrets de `Providers/*` ont seulement reçu le typage de leurs propriétés, pour pouvoir être chargés. |
+| S2 · Providers et Module | Fait | `Foundation\ProviderRegistrar` (interne) partagé par `Kernelize` et `Module`. Il injecte le conteneur dans le provider avant `registering()` (plus de dépendance au conteneur par défaut). `Provider::register()` reste sans type de retour dans la classe de base, pour que chaque provider déclare le sien. `SimpleProvider::getClass()` pour le générateur d'IDE helpers. |
+| S3 · Étude `Phalcon\Container` | Fait | Voir « Décision S3 » ci-dessous : on reste sur `Phalcon\Di\Di`. |
+| S4 · Events et Constants | Fait | Noms vérifiés dans le binaire `phalcon.so` 5.22.1 et par exécution réelle (modèles, Volt) : voir le tableau ci-dessous. `Listener` implémente `EventsAwareInterface` lui-même (`Injectable` n'a plus d'events manager en Phalcon 5). Constantes en `public const string`. `Services::ASSETS` et `Services::HTTP_CLIENT` conservés. |
+| S5 · Config et Dotconst | Fait | `Config\Loader` sur `Phalcon\Config\Config` et `ConfigCompiler::COMPILED_FILE`. Dotconst typé ; `Helper::normalizePath` supprimé (doublon exact de `Path::normalize`). `const` adopté dans le fichier compilé (mesure ci-dessous). Corrections : `@php/dir@suffixe` perdait son suffixe une fois compilé, `@php/env` sans défaut valait `false` compilé contre `null` lu, une référence `@{inconnue}` produisait du PHP invalide. `Loader::loadRaw()` ne résout plus tout le fichier pour trouver `APP_ENV`. Tests : 26, dont la parité fichier compilé / fichiers ini dans un processus séparé. |
+| S6 · Facades | Fait | `getFacadeAccessor(): string\|object` (l'accès par objet existait et est testé). Mockery chargé à la demande, `LogicException` explicite sans Mockery (testé dans un processus sans Mockery). **Correction** : Phalcon 5 garde en cache les instances partagées déjà résolues, `swap()` et `shouldReceive()` ne remplaçaient donc pas un service déjà utilisé ; le service est désormais retiré du conteneur avant d'être remplacé. |
+| S7 · IDE helpers | Fait | `Support\IdeHelper\Generator` (+ `SignatureRenderer`). Classe d'un service trouvée sans le construire : définition par nom de classe (ou `className`), type de retour de `Provider::register()` (lu sur la closure du provider), type de retour d'une closure, objet ; sinon résolution protégée. `_ide_helper.php` (Facades, `@property-read` sur `Phalcon\Di\Injectable`) et `.phpstorm.meta.php` (`get()` / `getShared()` de `DiInterface` et `Di`). Fichiers valides (`php -l`) sur `tests/.fake`. La tâche CLI reste dans E6. |
+| S8 · Traits et design patterns | Fait | **Correction** : `Singleton` partageait une seule instance entre toutes ses sous-classes. `InjectionAwareTrait` ne crée plus de propriétés dynamiques (dépréciées en PHP 8.2) et stocke le conteneur dans `$container`. `Strategy` typé (`uses(?string): object`, erreur explicite sans adaptateur par défaut). `CacheStrategy`, `DatabaseStrategy` et `RateLimiter` restent à porter (E7, E10, E8) ; `CacheStrategy` ne se charge de toute façon pas en Phalcon 5 (`Phalcon\Cache\BackendInterface` n'existe plus). |
+
+Suites ajoutées à `tests/migrated-suites.txt` : `Design`, `Dotconst`, `Events`, `Facades`, `Foundation` (nouvelle : boot des cinq stub kernels, ordre des étapes, événements `kernel:*`, `run()`, providers, module, version), `Support`. 204 tests, verts sur Phalcon 5.22.1 et sur Phalcon 6 (exécution locale du job). Baseline PHPStan : 2 240 → 1 922 erreurs, plus aucune dans le périmètre. Les tests du périmètre n'utilisent plus `Test\TestCase\TestCase` (porté par E3).
+
+Outillage : `phpstan/constants.php` déclare à PHPStan les constantes d'app (`BASE_PATH`, `APP_ENV`, `APP_DEBUG`, typées par `dynamicConstantNames`), `phpstan/TraitUsage.php` fait analyser les traits fournis aux apps.
+
+### Décision S3 : `Phalcon\Container`
+
+`Phalcon\Container\Container` n'implémente pas `Phalcon\Di\DiInterface`. Or `Mvc\Application`, `Cli\Console`, `Mvc\Micro`, `Di\Injectable` (controllers, tâches, listeners), les dispatchers et les vues attendent un `DiInterface`. C'est le conteneur de la pile ADR (`Phalcon\ADR`, `Phalcon\Auth`), pas un remplaçant du `Di` de la pile MVC. L'adopter imposerait un adaptateur `DiInterface`, donc une couche de plus sur chaque résolution. **On reste sur `Phalcon\Di\Di`** ; pas de mesure, l'incompatibilité tranche.
+
+### Événements Phalcon 5 (S4)
+
+| Changement | Événements |
+|---|---|
+| Supprimés | `collection:*`, `collectionManager:*` (ODM supprimé) ; `volt:*` (le compilateur Volt n'a plus d'events manager) ; `model:notSaved`, `model:notSave` (absents du binaire, non déclenchés quand `beforeSave` annule) |
+| Ajoutés | `router:*` (6), `di:beforeServiceResolve`, `di:afterServiceResolve`, `db:connectionLost`, `dispatch:{beforeForward, afterBinding, beforeCallAction, afterCallAction}`, `micro:{afterBinding, beforeException}`, `model:{prepareSave, validation}`, `view:{beforeCompile, afterCompile}`, espace `kernel` |
+| Inchangés | les autres (`application:*`, `console:*`, `dispatch:*`, `micro:*`, `db:*`, `loader:*`, `acl:*`, `view:*`, `modelsManager:afterInitialize`) |
+
+### Dotconst : `const` contre `define()` (S5)
+
+Fichier de 60 constantes (chemins `__DIR__`, entiers, références), inclusion seule, OPcache avec cache fichier, 400 processus alternés : `const` 55,1 µs, `define()` 56,3 µs (médianes). L'écart est faible mais pas défavorable : `const` est adopté. `@php/env` reste en `define()` (lu à l'exécution).
+
+### Mesures (critère « pas moins bon que la 1.3 »)
+
+La première mesure était faussée par deux biais, corrigés dans `bench/` :
+- l'autoloader de développement du dépôt (dépendances de dev, 28 fichiers chargés au démarrage) : la 2.x est désormais mesurée avec `bench/.current`, une installation `--no-dev` comme celle d'une app ;
+- le montage Docker de macOS, qui rend chaque inclusion de fichier 2 à 3 fois plus lente et masque tout le reste : les mesures se font sur une copie dans le conteneur, et la baseline 1.3 a été régénérée ainsi (avec l'app 1.3 figée dans `bench/.legacy/app`).
+
+Boot et résolution d'un service (médianes, 200 itérations, deux passes à ±0,5 %) :
+
+| Scénario | 1.3 | 2.0 (Composer simple) | 2.0 + classmap optimisée | 2.0 + classmap + preload |
+|---|---|---|---|---|
+| boot-http | 461 µs | 522 µs (+13 %) | 487 µs (+5,5 %) | 204 µs (−56 %) |
+| boot-cli | 519 µs | 577 µs (+11 %) | 540 µs (+3,9 %) | 249 µs (−52 %) |
+| boot-micro | 513 µs | 570 µs (+11 %) | 530 µs (+3,4 %) | 267 µs (−48 %) |
+| service | 4,3 µs | 10,0 µs | 10,0 µs | 9,8 µs |
+| mémoire | 432–500 Kio | +1,6 à +4,9 % | | +2,8 % |
+
+La mémoire suit le surcoût de PHP 8.3 à vide (+6 %). Le preload a été mesuré sur les seuls espaces de noms déjà portés (le générateur s'arrête sur une erreur fatale de compilation dans un module non porté, ici `HttpClient`).
+
+Origine de l'écart, mesurée sur Phalcon seul :
+
+| Primitive | Phalcon 3.4 / PHP 7.3 | Phalcon 5.22 / PHP 8.3 |
+|---|---|---|
+| `new Config([...])` | 4,9 µs | 12,6 µs |
+| Accès `$config->app->base_uri` | 0,10 µs | 0,78 à 1,8 µs |
+| Première résolution d'un service (closure) | 0,69 µs | 1,12 µs |
+| Events manager créé et un `fire()` | 0,8 µs | 6,2 µs |
+
+**À trancher** : `Phalcon\Config\Config` (une `Support\Collection` insensible à la casse) est jusqu'à 18 fois plus lent en lecture que celui de Phalcon 3, et c'est l'essentiel de l'écart sur `service` (le provider `Url` lit la config). Une sous-classe `Neutrino\Config\Config extends Phalcon\Config\Config` qui lit directement le tableau interne (repli sur Phalcon pour les clés de casse différente) divise par deux le coût d'un niveau dans un prototype, et par environ dix si les niveaux imbriqués sont aussi de cette classe. Elle resterait un `Phalcon\Config\Config`.

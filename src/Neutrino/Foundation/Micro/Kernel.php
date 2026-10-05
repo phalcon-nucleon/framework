@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Micro;
 
 use Neutrino\Error;
@@ -8,105 +10,91 @@ use Neutrino\Interfaces\Kernelable;
 use Neutrino\Micro\Middleware;
 use Phalcon\Di\FactoryDefault as Di;
 use Phalcon\Mvc\Micro as MicroKernel;
+use RuntimeException;
 
 /**
- * Class Kernel
- *
- * @package Neutrino\Foundation\Micro
+ * Base class of the application's Micro kernel.
  */
 abstract class Kernel extends MicroKernel implements Kernelable
 {
     use Kernelize;
 
     /**
-     * Return the Provider List to load.
+     * Providers to register.
      *
-     * @var string[]
+     * @var array<int|string, string>
      */
-    protected $providers = [];
+    protected array $providers = [];
 
     /**
-     * Return the Middlewares to attach onto the application.
+     * Middlewares to bind to the application.
      *
-     * @var string[]
+     * @var list<class-string<Middleware>>
      */
-    protected $middlewares = [];
+    protected array $middlewares = [];
 
     /**
-     * Return the Events Listeners to attach onto the application.
+     * Events listeners to attach to the application.
      *
-     * @var string[]
+     * @var list<class-string<\Neutrino\Events\Listener>>
      */
-    protected $listeners = [];
+    protected array $listeners = [];
 
     /**
-     * The DependencyInjection class to use.
+     * The container class. `null` uses the current default container.
      *
-     * @var string
+     * @var class-string<\Phalcon\Di\DiInterface>|null
      */
-    protected $dependencyInjection = Di::class;
+    protected ?string $dependencyInjection = Di::class;
 
     /**
-     * The EventManager class to use.
+     * The events manager class. `null` disables the events manager.
      *
-     * @var string
+     * @var class-string<\Phalcon\Events\ManagerInterface>|null
      */
-    protected $eventsManagerClass = null;
+    protected ?string $eventsManagerClass = null;
 
     /**
-     * Error Handler Outputs
+     * Error handler outputs.
      *
-     * @var int
+     * @var list<class-string<Error\Writer\Writable>>
      */
-    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Json::class];
+    protected array $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Json::class];
 
-    /**
-     * This methods registers the middlewares to be used by the application
-     */
-    public function registerMiddlewares()
+    public function registerMiddlewares(): void
     {
         foreach ($this->middlewares as $middleware) {
-            $this->registerMiddleware(new $middleware);
+            $this->registerMiddleware(new $middleware());
         }
     }
 
-    /**
-     * @param \Neutrino\Micro\Middleware $middleware
-     *
-     * @throws \RuntimeException
-     */
-    protected function registerMiddleware(Middleware $middleware)
+    protected function registerMiddleware(Middleware $middleware): void
     {
-        $on = $middleware->bindOn();
-        if ($on == 'before') {
-            $this->before($middleware);
-        } elseif ($on == 'after') {
-            $this->after($middleware);
-        } elseif ($on == 'finish') {
-            $this->finish($middleware);
-        } else {
-            throw new \RuntimeException(__METHOD__ . ': ' . get_class($middleware) . ' can\'t bind on "' . $on . '"');
-        }
+        match ($on = $middleware->bindOn()) {
+            'before' => $this->before($middleware),
+            'after' => $this->after($middleware),
+            'finish' => $this->finish($middleware), // @phpstan-ignore argument.type (Micro middlewares are ported by E5)
+            default => throw new RuntimeException(__METHOD__ . ': ' . $middleware::class . ' can\'t bind on "' . $on . '"'),
+        };
     }
 
     /**
-     * @override
+     * Micro applications have no modules.
      *
-     * @param array $modules
-     * @param bool  $merge
+     * @param array<string, array{className?: string, path?: string}|\Closure> $modules
      */
-    final public function registerModules(array $modules = [], $merge = false)
+    final public function registerModules(array $modules = [], bool $merge = false): static
     {
-
+        return $this;
     }
 
-    /**
-     * Register the routes.
-     *
-     * @return void
-     */
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
         require BASE_PATH . '/routes/micro.php';
+    }
+
+    public function handleIncoming(): mixed
+    {
+        return $this->handle($this->incomingUri());
     }
 }

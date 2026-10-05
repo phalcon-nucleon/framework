@@ -13,11 +13,11 @@ use Neutrino\Support\SimpleProvider;
  */
 class Auth extends SimpleProvider
 {
-    protected $class = AuthManager::class;
+    protected string $class = AuthManager::class;
 
-    protected $name = Services::AUTH;
+    protected string $name = Services::AUTH;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [AuthManager::class];
+    protected array $aliases = [AuthManager::class];
 }

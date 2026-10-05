@@ -17,16 +17,16 @@ use PHPUnit\Framework\TestCase;
 class RequestTest extends TestCase
 {
     /**
-     * @return \PHPUnit_Framework_MockObject_MockObject|Request
+     * @return \PHPUnit\Framework\MockObject\MockObject|Request
      */
     private function getRequest()
     {
         $request = $this->getMockForAbstractClass(Request::class);
 
-        $request->expects($this->any())->method('buildParams')->willReturnSelf();
-        $request->expects($this->any())->method('buildHeaders')->willReturnSelf();
-        $request->expects($this->any())->method('buildProxy')->willReturnSelf();
-        $request->expects($this->any())->method('buildCookies')->willReturnSelf();
+        $request->method('buildParams')->willReturnSelf();
+        $request->method('buildHeaders')->willReturnSelf();
+        $request->method('buildProxy')->willReturnSelf();
+        $request->method('buildCookies')->willReturnSelf();
 
         return $request;
     }
@@ -297,7 +297,7 @@ class RequestTest extends TestCase
         $this->assertFalse($request->isJsonRequest());
     }
 
-    public function dataRequest()
+    public static function dataRequest()
     {
         return [
             [['uri'=>'/?q=q', 'headers' => ['Accept' => '*/*'], 'json' => false, 'full' => false,], Method::GET, '/', ['q' => 'q'], ['headers' => ['Accept' => '*/*']]],
@@ -309,9 +309,7 @@ class RequestTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataRequest
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataRequest')]
     public function testRequest($expected, $method, $url, $params, $options)
     {
         $request = $this->getRequest();

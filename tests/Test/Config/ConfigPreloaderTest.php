@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class ConfigPreloaderTest extends TestCase
 {
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
 
@@ -82,6 +82,6 @@ PHP
         $this->assertInstanceOf($exceptionClass, $e);
         $this->assertEquals("Usage of $const constant is prohibited. Use BASE_PATH . '/path_to_$type' instead.\nin : " . BASE_PATH . "/config/test.php", $e->getMessage());
 
-        $this->assertFileNotExists(BASE_PATH . ' / bootstrap / compile / config . php');
+        $this->assertFileDoesNotExist(BASE_PATH . ' / bootstrap / compile / config . php');
     }
 }

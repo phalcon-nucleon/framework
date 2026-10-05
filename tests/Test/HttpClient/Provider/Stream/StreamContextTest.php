@@ -16,7 +16,7 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
 {
     use TraitWithLocalServer;
 
-    public function dataCall()
+    public static function dataCall()
     {
         return [
             "GET 200"    => self::makeDataCall(Method::GET, 200),
@@ -46,7 +46,6 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider dataCall
      *
      * @param       $expected
      * @param       $method
@@ -54,6 +53,7 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
      * @param array $params
      * @param bool  $json
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataCall')]
     public function testCall($expected, $method, $url, $params = [], $json = false)
     {
         if ($method !== Method::HEAD) {
@@ -86,11 +86,9 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * @expectedException \Neutrino\HttpClient\Exception
-     */
     public function testCallFailed()
     {
+        $this->expectException(\Neutrino\HttpClient\Exception::class);
         try {
             $curl = new StreamContext();
 
@@ -163,12 +161,10 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(10, $options['timeout']);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Neutrino\HttpClient\Provider\StreamContext\Streaming only support stream:start, stream:progress, stream:finish
-     */
     public function testTryRegisterWrongEvent()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Neutrino\HttpClient\Provider\StreamContext\Streaming only support stream:start, stream:progress, stream:finish');
         $streamCtx = new StreamContext\Streaming();
 
         $streamCtx->on('test', function () {
@@ -222,7 +218,7 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals([], $listener[$streamCtx::EVENT_FINISH]);
     }
 
-    public function dataFullResponse()
+    public static function dataFullResponse()
     {
         $phpVersion = explode('-', PHP_VERSION)[0];
 
@@ -255,12 +251,12 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider dataFullResponse
      *
      * @param $method
      * @param $url
      * @param $fullResponse
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataFullResponse')]
     public function testFullResponse($method, $url, $fullResponse, $expected)
     {
         $streamContext = new StreamContext();
@@ -278,12 +274,10 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $body);
     }
 
-    /**
-     * @expectedException \Neutrino\HttpClient\Provider\Exception
-     * @expectedExceptionMessage Neutrino\HttpClient\Provider\StreamContext HTTP or HTTPS stream wrappers not registered.
-     */
     public function testAvailabilityFail()
     {
+        $this->expectException(\Neutrino\HttpClient\Provider\Exception::class);
+        $this->expectExceptionMessage('Neutrino\HttpClient\Provider\StreamContext HTTP or HTTPS stream wrappers not registered.');
         Reflexion::set(StreamContext::class, 'isAvailable', false);
 
         new StreamContext;

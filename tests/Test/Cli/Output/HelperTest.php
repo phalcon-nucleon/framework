@@ -7,7 +7,7 @@ use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Helper;
 use Phalcon;
 
-class HelperTest extends \PHPUnit_Framework_TestCase
+class HelperTest extends \PHPUnit\Framework\TestCase
 {
     public static function setUpBeforeClass()
     {

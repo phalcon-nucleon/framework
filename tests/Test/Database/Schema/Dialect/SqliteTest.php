@@ -6,7 +6,7 @@ use Neutrino\Database\Schema\Dialect\Sqlite;
 use Neutrino\Support\Fluent;
 use Phalcon\Db\Column;
 
-class SqliteTest extends \PHPUnit_Framework_TestCase
+class SqliteTest extends \PHPUnit\Framework\TestCase
 {
     public function dataType()
     {

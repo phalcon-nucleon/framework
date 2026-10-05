@@ -5,7 +5,7 @@ namespace Test\HttpClient;
 use Neutrino\Debug\Reflexion;
 use Neutrino\HttpClient\Uri;
 
-class UriTest extends \PHPUnit_Framework_TestCase
+class UriTest extends \PHPUnit\Framework\TestCase
 {
     public function dataConstruct()
     {

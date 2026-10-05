@@ -4,7 +4,7 @@ namespace Test\HttpClient;
 
 use Neutrino\Http\Standards\StatusCode;
 
-class StatusCodeTest extends \PHPUnit_Framework_TestCase
+class StatusCodeTest extends \PHPUnit\Framework\TestCase
 {
     public function dataMessages()
     {

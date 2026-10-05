@@ -34,12 +34,10 @@ class ReturnConverterTest extends TestCase
         ], $nodes);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Last statement must be the return of config.
-     */
     public function testReturnConverterThrowException()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Last statement must be the return of config.');
         $visitor = new ReturnConverter('config');
 
         $visitor->setName('test');

@@ -4,7 +4,7 @@ namespace Test\Assets\Closure;
 
 use Neutrino\Assets\Closure\GlobalClosurePrecompilation;
 
-class GlobalClosurePrecompilationTest extends \PHPUnit_Framework_TestCase
+class GlobalClosurePrecompilationTest extends \PHPUnit\Framework\TestCase
 {
     public function testPrecompile()
     {

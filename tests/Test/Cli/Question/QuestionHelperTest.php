@@ -55,7 +55,7 @@ class QuestionHelperTest extends TestCase
 
     public function testDoAsk()
     {
-        $output = $this->createMock(Writer::class);
+        $output = $this->createStub(Writer::class);
         $question = new Question('test');
 
         $this->mockStdIn('test');
@@ -89,7 +89,7 @@ class QuestionHelperTest extends TestCase
      */
     public function testAskQuestion($expected, $mock, $question)
     {
-        $output = $this->createMock(Writer::class);
+        $output = $this->createStub(Writer::class);
 
         $this->mockStdIn($mock);
 
@@ -100,7 +100,7 @@ class QuestionHelperTest extends TestCase
 
     public function testAskChoiceQuestionMultiAttemps()
     {
-        $output = $this->createMock(Writer::class);
+        $output = $this->createStub(Writer::class);
 
         $this->mockStdIn("\n\nb");
         $question = new ChoiceQuestion('Ask this', ['a', 'b', 'c'], 'a', 3);

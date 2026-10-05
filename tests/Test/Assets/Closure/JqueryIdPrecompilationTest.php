@@ -6,7 +6,7 @@ use Neutrino\Assets\Closure\JqueryIdPrecompilation;
 
 class JqueryIdPrecompilationTest extends \PHPUnit\Framework\TestCase
 {
-    public function dataPrecompile()
+    public static function dataPrecompile()
     {
         $speedHack = <<<JS
 /**
@@ -28,16 +28,7 @@ JS;
         ];
 
     }
-    /**
-     * @dataProvider dataPrecompile
-     *
-     *  jQuery('#someid')   > jQuerySelectorSpeedhack('someid')
-     *  $('#someid')        > jQuerySelectorSpeedhack('someid')
-     *
-     *  $('#someid .test')                      > jQuerySelectorSpeedhack('someid').find('.test')
-     *  $('#someid li[data="test"]')            > jQuerySelectorSpeedhack('someid').find('li[data="test"]')
-     *  $('#someid .item > span:not(.selected)')  > jQuerySelectorSpeedhack('someid').find('.item span:not(.selected)')
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataPrecompile')]
     public function testPrecompile($expected, $input)
     {
         $precompiler = new JqueryIdPrecompilation([]);

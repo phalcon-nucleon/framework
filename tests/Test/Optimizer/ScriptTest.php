@@ -9,7 +9,7 @@ use Neutrino\Optimizer\Composer\Script;
  *
  * @package Test
  */
-class ScriptTest extends \PHPUnit_Framework_TestCase
+class ScriptTest extends \PHPUnit\Framework\TestCase
 {
     public function dataGetComposerCmd()
     {

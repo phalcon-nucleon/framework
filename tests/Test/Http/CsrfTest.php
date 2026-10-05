@@ -57,7 +57,7 @@ class CsrfTest extends TestCase
 
     public function testCsrfFail_Get()
     {
-        /** @var \PHPUnit_Framework_MockObject_MockObject $security */
+        /** @var \PHPUnit\Framework\MockObject\MockObject $security */
         $security = $this->mockService(Services::SECURITY, Security::class, true);
 
         $security->expects($this->any())->method('getSessionToken')->willReturn(true);
@@ -65,7 +65,7 @@ class CsrfTest extends TestCase
         $security->expects($this->any())->method('getTokenKey')->willReturn("tokenKey");
         $security->expects($this->any())->method('checkToken')->willReturn(false);
 
-        /** @var \PHPUnit_Framework_MockObject_MockObject $session */
+        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
         $session = $this->getDI()->getShared(Services::SESSION);
 
         $session->expects($this->any())->method('get')->willReturn(false);
@@ -86,7 +86,7 @@ class CsrfTest extends TestCase
     {
         /** @var \Phalcon\Security $security */
         $security = $this->getDI()->getShared(Services::SECURITY);
-        /** @var \PHPUnit_Framework_MockObject_MockObject $session */
+        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
         $session = $this->getDI()->getShared(Services::SESSION);
 
         $session->expects($this->any())->method('get')->willReturn($security->getToken());
@@ -100,7 +100,7 @@ class CsrfTest extends TestCase
     {
         /** @var \Phalcon\Security $security */
         $security = $this->getDI()->getShared(Services::SECURITY);
-        /** @var \PHPUnit_Framework_MockObject_MockObject $session */
+        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
         $session = $this->getDI()->getShared(Services::SESSION);
 
         $session->expects($this->any())->method('get')->willReturn($security->getToken());
@@ -114,7 +114,7 @@ class CsrfTest extends TestCase
     {
         /** @var \Phalcon\Security $security */
         $security = $this->getDI()->getShared(Services::SECURITY);
-        /** @var \PHPUnit_Framework_MockObject_MockObject $session */
+        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
         $session = $this->getDI()->getShared(Services::SESSION);
 
         $session->expects($this->any())->method('get')->willReturn($security->getToken());
@@ -129,7 +129,7 @@ class CsrfTest extends TestCase
 
     public function testCsrfFail_Ajax()
     {
-        /** @var \PHPUnit_Framework_MockObject_MockObject $security */
+        /** @var \PHPUnit\Framework\MockObject\MockObject $security */
         $security = $this->mockService(Services::SECURITY, Security::class, true);
 
         $security->expects($this->any())->method('getSessionToken')->willReturn(true);
@@ -137,7 +137,7 @@ class CsrfTest extends TestCase
         $security->expects($this->any())->method('getTokenKey')->willReturn("tokenKey");
         $security->expects($this->any())->method('checkToken')->willReturn(false);
 
-        /** @var \PHPUnit_Framework_MockObject_MockObject $session */
+        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
         $session = $this->getDI()->getShared(Services::SESSION);
 
         $session->expects($this->any())->method('get')->willReturn(null);

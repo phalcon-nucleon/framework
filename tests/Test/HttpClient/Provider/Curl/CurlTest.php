@@ -11,7 +11,7 @@ class CurlTest extends \PHPUnit\Framework\TestCase
 {
     use TraitWithLocalServer;
 
-    public function dataCall()
+    public static function dataCall()
     {
         return [
             "GET 200"    => self::makeDataCall(Method::GET, 200),
@@ -41,13 +41,13 @@ class CurlTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider dataCall
      *
      * @param $expected
      * @param $method
      * @param $url
      * @param $params
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataCall')]
     public function testCall($expected, $method, $url, $params = [], $json = false)
     {
         if ($method !== Method::HEAD) {
@@ -80,11 +80,9 @@ class CurlTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * @expectedException \Neutrino\HttpClient\Exception
-     */
     public function testCallFailed()
     {
+        $this->expectException(\Neutrino\HttpClient\Exception::class);
         try {
             $curl = new Curl();
 
@@ -232,7 +230,7 @@ class CurlTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals([], $listener[$curl::EVENT_FINISH]);
     }
 
-    public function dataFullResponse()
+    public static function dataFullResponse()
     {
         $phpVersion = explode('-', PHP_VERSION)[0];
 
@@ -265,12 +263,12 @@ class CurlTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider dataFullResponse
      *
      * @param $method
      * @param $url
      * @param $fullResponse
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataFullResponse')]
     public function testFullResponse($method, $url, $fullResponse, $expected)
     {
         $curl = new Curl();
@@ -289,12 +287,10 @@ class CurlTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $body);
     }
 
-    /**
-     * @expectedException \Neutrino\HttpClient\Provider\Exception
-     * @expectedExceptionMessage Neutrino\HttpClient\Provider\Curl require curl extension.
-     */
     public function testAvailabilityFail()
     {
+        $this->expectException(\Neutrino\HttpClient\Provider\Exception::class);
+        $this->expectExceptionMessage('Neutrino\HttpClient\Provider\Curl require curl extension.');
         Reflexion::set(Curl::class, 'isAvailable', false);
 
         new Curl;

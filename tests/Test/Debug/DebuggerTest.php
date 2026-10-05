@@ -192,7 +192,7 @@ class DebuggerTest extends TestCase
         /** @var Manager $gem */
         $gem = Reflexion::get($debugger, 'em');
 
-        $view = $this->createMock(View::class);
+        $view = $this->createStub(View::class);
         $gem->fire('view:beforeRender', $view, []);
         $gem->fire('view:beforeRender', $view, []);
         $gem->fire('view:beforeRenderView', $view, []);

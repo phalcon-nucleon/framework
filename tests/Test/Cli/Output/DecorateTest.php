@@ -11,7 +11,7 @@ namespace Test\Cli\Output;
 
 use Neutrino\Cli\Output\Decorate;
 
-class DecorateTest extends \PHPUnit_Framework_TestCase
+class DecorateTest extends \PHPUnit\Framework\TestCase
 {
     public function setUp()
     {

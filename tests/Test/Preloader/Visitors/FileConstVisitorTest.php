@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class FileConstVisitorTest extends TestCase
 {
+    #[\PHPUnit\Framework\Attributes\DoesNotPerformAssertions]
     public function testFileConstVisitor()
     {
         $visitor = new FileConstVisitor();
@@ -14,11 +15,9 @@ class FileConstVisitorTest extends TestCase
         $visitor->enterNode(new \PhpParser\Node\Scalar\MagicConst\Class_);
     }
 
-    /**
-     * @expectedException \Neutrino\PhpPreloader\Exceptions\FileConstantException
-     */
     public function testFileConstVisitorThrowException()
     {
+        $this->expectException(\Neutrino\PhpPreloader\Exceptions\FileConstantException::class);
         $visitor = new FileConstVisitor();
 
         $visitor->enterNode(new \PhpParser\Node\Scalar\MagicConst\File());

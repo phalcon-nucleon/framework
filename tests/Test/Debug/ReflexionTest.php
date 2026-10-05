@@ -4,7 +4,7 @@ namespace Test\Debug;
 
 use Neutrino\Debug\Reflexion;
 
-class ReflexionTest extends \PHPUnit_Framework_TestCase
+class ReflexionTest extends \PHPUnit\Framework\TestCase
 {
     public function testGet()
     {

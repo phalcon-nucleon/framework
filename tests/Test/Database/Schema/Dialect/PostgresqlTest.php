@@ -6,7 +6,7 @@ use Neutrino\Database\Schema\Dialect\Postgresql;
 use Neutrino\Support\Fluent;
 use Phalcon\Db\Column;
 
-class PostgresqlTest extends \PHPUnit_Framework_TestCase
+class PostgresqlTest extends \PHPUnit\Framework\TestCase
 {
     public function dataType()
     {

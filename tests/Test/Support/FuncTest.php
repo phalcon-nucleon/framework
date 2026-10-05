@@ -10,7 +10,7 @@ namespace Test\Support;
 
 use Neutrino\Support\Func;
 
-class FuncTest extends \PHPUnit_Framework_TestCase
+class FuncTest extends \PHPUnit\Framework\TestCase
 {
     public function testTap()
     {

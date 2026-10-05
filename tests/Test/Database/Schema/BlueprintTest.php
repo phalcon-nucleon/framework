@@ -11,7 +11,7 @@ use Phalcon\Db\Column;
 use Phalcon\Db\Index;
 use Phalcon\Db\Reference;
 
-class BlueprintTest extends \PHPUnit_Framework_TestCase
+class BlueprintTest extends \PHPUnit\Framework\TestCase
 {
 
     public function testConstruct()

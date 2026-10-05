@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class PreloaderTest extends TestCase
 {
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
 

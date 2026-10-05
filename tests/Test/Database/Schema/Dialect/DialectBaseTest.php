@@ -6,7 +6,7 @@ use Neutrino\Database\Schema;
 use Neutrino\Support\Fluent;
 use Phalcon\Db\Column;
 
-class DialectBaseTest extends \PHPUnit_Framework_TestCase
+class DialectBaseTest extends \PHPUnit\Framework\TestCase
 {
     public function dataType()
     {

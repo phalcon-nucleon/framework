@@ -11,7 +11,7 @@ use Neutrino\Support\Arr;
  *
  * @coversDefaultClass \Neutrino\Support\Arr
  */
-class ArrFuncTest extends \PHPUnit_Framework_TestCase
+class ArrFuncTest extends \PHPUnit\Framework\TestCase
 {
     public function testAccessible()
     {

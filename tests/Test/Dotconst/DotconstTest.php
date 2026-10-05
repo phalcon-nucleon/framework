@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
  */
 class DotconstTest extends TestCase
 {
-    public function dataNormalizePath()
+    public static function dataNormalizePath()
     {
         $s = DIRECTORY_SEPARATOR;
 
@@ -35,11 +35,11 @@ class DotconstTest extends TestCase
     }
 
     /**
-     * @dataProvider dataNormalizePath
      *
      * @param $expected
      * @param $path
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataNormalizePath')]
     public function testNormalizePath($expected, $path)
     {
         $reflecion = new \ReflectionClass(Dotconst\Helper::class);
@@ -49,7 +49,7 @@ class DotconstTest extends TestCase
         $this->assertEquals($expected, $method->invoke(null, $path));
     }
 
-    public function dataDynamize()
+    public static function dataDynamize()
     {
         return [
             [['max_int' => PHP_INT_MAX], ['max_int' => '@php/const:PHP_INT_MAX']],
@@ -70,13 +70,13 @@ class DotconstTest extends TestCase
     }
 
     /**
-     * @dataProvider dataDynamize
      *
-     * @depends      testNormalizePath
      *
      * @param $expected
      * @param $array
      */
+    #[\PHPUnit\Framework\Attributes\Depends('testNormalizePath')]
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataDynamize')]
     public function testDynamize($expected, $array)
     {
         $reflecion = new \ReflectionClass(Loader::class);
@@ -156,11 +156,9 @@ class DotconstTest extends TestCase
         $this->assertEquals(var_export($expected, true), var_export($method->invoke(null, $given), true));
     }
 
-    /**
-     * @expectedException \Neutrino\Dotconst\Exception\CycleNestedConstException
-     */
     public function testCyclicNestedConstSort()
     {
+        $this->expectException(\Neutrino\Dotconst\Exception\CycleNestedConstException::class);
         $given = [
             'A' => [
                 'require' => 'B',

@@ -6,7 +6,7 @@ use Neutrino\Database\Schema\Dialect\Mysql;
 use Neutrino\Support\Fluent;
 use Phalcon\Db\Column;
 
-class MysqlTest extends \PHPUnit_Framework_TestCase
+class MysqlTest extends \PHPUnit\Framework\TestCase
 {
     public function dataType()
     {

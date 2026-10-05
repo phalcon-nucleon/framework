@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class DirConstVisitorTest extends TestCase
 {
+    #[\PHPUnit\Framework\Attributes\DoesNotPerformAssertions]
     public function testDirConstVisitor()
     {
         $visitor = new DirConstVisitor();
@@ -14,11 +15,9 @@ class DirConstVisitorTest extends TestCase
         $visitor->enterNode(new \PhpParser\Node\Scalar\MagicConst\Class_);
     }
 
-    /**
-     * @expectedException \Neutrino\PhpPreloader\Exceptions\DirConstantException
-     */
     public function testDirConstVisitorThrowException()
     {
+        $this->expectException(\Neutrino\PhpPreloader\Exceptions\DirConstantException::class);
         $visitor = new DirConstVisitor();
 
         $visitor->enterNode(new \PhpParser\Node\Scalar\MagicConst\Dir());

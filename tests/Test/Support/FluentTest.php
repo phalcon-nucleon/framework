@@ -94,7 +94,7 @@ class FluentTest extends TestCase
 
     public function testToJsonEncodesTheToArrayResult()
     {
-        $fluent = $this->getMockBuilder(Fluent::class)->setMethods(['toArray'])->getMock();
+        $fluent = $this->createMock(Fluent::class);
         $fluent->expects($this->once())->method('toArray')->will($this->returnValue('foo'));
         $results = $fluent->toJson();
 

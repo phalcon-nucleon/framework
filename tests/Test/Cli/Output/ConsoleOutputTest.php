@@ -5,7 +5,7 @@ namespace Test\Cli\Output;
 use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Decorate;
 
-class ConsoleOutputTest extends \PHPUnit_Framework_TestCase
+class ConsoleOutputTest extends \PHPUnit\Framework\TestCase
 {
     private function output($quiet = false)
     {

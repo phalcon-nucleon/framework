@@ -12,7 +12,7 @@ use Phalcon\Db\IndexInterface;
 use Phalcon\Db\Reference;
 use Phalcon\Db\ReferenceInterface;
 
-class DatabaseStrategyTest extends \PHPUnit_Framework_TestCase
+class DatabaseStrategyTest extends \PHPUnit\Framework\TestCase
 {
     public function testProxy()
     {

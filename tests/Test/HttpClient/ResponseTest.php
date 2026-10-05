@@ -74,12 +74,10 @@ class ResponseTest extends TestCase
         $this->assertEquals($data, $response->getData());
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Neutrino\HttpClient\Response::parse: $parserize must implement Neutrino\HttpClient\Contract\Parser\Parserize
-     */
     public function testParseException()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Neutrino\HttpClient\Response::parse: $parserize must implement Neutrino\HttpClient\Contract\Parser\Parserize');
         $response = new Response();
 
         $response->parse([]);

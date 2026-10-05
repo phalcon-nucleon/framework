@@ -26,7 +26,7 @@ class RouteListTaskTest extends TestCase
             ['pattern' => '/get', 'paths' => ['controller' => 'Stub', 'action' => 'index']]
         ];
 
-        $eventManager = $this->createMock(Manager::class);
+        $eventManager = $this->createStub(Manager::class);
 
         $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
 
@@ -80,7 +80,7 @@ class RouteListTaskTest extends TestCase
             ]]
         ];
 
-        $eventManager = $this->createMock(Manager::class);
+        $eventManager = $this->createStub(Manager::class);
 
         $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
 
@@ -131,7 +131,7 @@ class RouteListTaskTest extends TestCase
             ]]
         ];
 
-        $eventManager = $this->createMock(Manager::class);
+        $eventManager = $this->createStub(Manager::class);
 
         $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
 

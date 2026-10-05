@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class DebugEventsManagerWrapperTest extends TestCase
 {
-    public function tearDown()
+    public function tearDown(): void
     {
         Reflexion::set(DebugEventsManagerWrapper::class, 'events', []);
 

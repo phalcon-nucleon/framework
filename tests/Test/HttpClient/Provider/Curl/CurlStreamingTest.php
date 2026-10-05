@@ -92,12 +92,10 @@ class CurlStreamingTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Neutrino\HttpClient\Provider\Curl\Streaming only support stream:start, stream:progress, stream:finish
-     */
     public function testTryRegisterWrongEvent()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Neutrino\HttpClient\Provider\Curl\Streaming only support stream:start, stream:progress, stream:finish');
         $curlStream = new Curl\Streaming();
 
         $curlStream->on('test', function (){});

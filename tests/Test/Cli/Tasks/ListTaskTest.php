@@ -64,7 +64,7 @@ class ListTaskTest extends TestCase
      */
     public function testDescribe($expected, $cmd, $class, $action)
     {
-        $eventManager = $this->createMock(Manager::class);
+        $eventManager = $this->createStub(Manager::class);
 
         $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
 
@@ -106,7 +106,7 @@ class ListTaskTest extends TestCase
      */
     public function testDescribeRoute($expected, $route)
     {
-        $eventManager = $this->createMock(Manager::class);
+        $eventManager = $this->createStub(Manager::class);
 
         $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
 

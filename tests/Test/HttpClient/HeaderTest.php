@@ -70,7 +70,7 @@ class HeaderTest extends \PHPUnit\Framework\TestCase
         ], $header->build());
     }
 
-    public function dataParse()
+    public static function dataParse()
     {
         return [
             [null, null, null, [], ""],
@@ -109,13 +109,13 @@ class HeaderTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider dataParse
      *
      * @param $expectedCode
      * @param $expectedStatus
      * @param $expectedHeaders
      * @param $raw
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataParse')]
     public function testParse($expectedVersion, $expectedCode, $expectedStatus, $expectedHeaders, $raw)
     {
         $header = new Header();

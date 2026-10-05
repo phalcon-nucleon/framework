@@ -1,15 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers\Http;
 
 use Neutrino\Constants\Services;
 use Neutrino\Support\Provider;
-
+use Phalcon\Mvc\Router as MvcRouter;
 
 /**
- * Class Router
- *
- * @package Neutrino\Foundation\Bootstrap
+ * HTTP router, without the default routes. The kernel passes it the request URI.
  */
 class Router extends Provider
 {
@@ -17,17 +17,10 @@ class Router extends Provider
 
     protected bool $shared = true;
 
-    protected array $aliases = [\Phalcon\Mvc\Router::class];
+    protected array $aliases = [MvcRouter::class];
 
-    /**
-     * @return \Phalcon\Mvc\Router
-     */
-    protected function register()
+    protected function register(): MvcRouter
     {
-        $router = new \Phalcon\Mvc\Router(false);
-
-        $router->setUriSource(\Phalcon\Mvc\Router::URI_SOURCE_SERVER_REQUEST_URI);
-
-        return $router;
+        return new MvcRouter(false);
     }
 }

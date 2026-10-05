@@ -12,6 +12,7 @@ noise evenly.
 |---|---|
 | `boot-http`, `boot-cli`, `boot-micro` | Dotconst + config + `Bootstrap::make()` + `boot()` |
 | `http` | full HTTP request: route → controller → response sent |
+| `http-mw1`, `http-mw3` | same request, with 1 and 3 route middlewares |
 | `micro` | full Micro request |
 | `cli` | full CLI task |
 | `service` | first resolution of a provider-registered shared service |
@@ -42,6 +43,21 @@ Options: `--scenarios=http,micro`, `--iterations=200`, `--warmup=20`, `--app=DIR
 
 The `http`, `micro` and `cli` scenarios run on 2.x once their kernels are
 ported (E4, E5, E6). Until then, use `--scenarios=boot-http,boot-cli,boot-micro,service`.
+
+## Comparing with 1.3 on a noisy machine
+
+`bench/compare.sh` runs 1.3 and 2.x at the same time (two containers) and alternates their
+processes one by one, so that machine-wide noise affects both equally. Prefer it to
+`--compare` when the machine is loaded.
+
+```bash
+bench/compare.sh http http-mw1 service            # default Composer autoloaders
+bench/compare.sh --optimize http service          # each version as deployed (its `optimize`)
+```
+
+With `--optimize`, 1.3 runs with its compiled loader and classes (`bench/tools/legacy-optimize.php`),
+and 2.x with an authoritative classmap, its caches and an OPcache preload script
+(`bench/tools/current-optimize.php`, limited to the modules ported so far).
 
 ## Baseline 1.3
 

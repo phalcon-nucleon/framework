@@ -5,7 +5,7 @@ namespace Neutrino\Foundation\Cli\Tasks;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
-use Neutrino\Debug\Reflexion;
+use Neutrino\Foundation\Http\RouteCompiler;
 use Phalcon\Mvc\Router;
 
 /**
@@ -23,18 +23,14 @@ class RouteCacheTask extends Task
         $this->output->write(Decorate::notice(str_pad('Generating http-routes cache', 40, ' ')), false);
 
         try {
-            $router = $this->loadHttpRouter();
-
-            $str = $this->compile($router);
-
-            file_put_contents(BASE_PATH . '/bootstrap/compile/http-routes.php', "<?php\n$str");
+            RouteCompiler::write($this->loadHttpRouter(), BASE_PATH);
 
             $this->info("Success");
         } catch (\Exception $e) {
             $this->error("Error");
             $this->block([$e->getMessage()], 'error');
 
-            @unlink(BASE_PATH . '/bootstrap/compile/http-routes.php');
+            RouteCompiler::clear(BASE_PATH);
         }
     }
 
@@ -58,54 +54,5 @@ class RouteCacheTask extends Task
         $di->set(Services::ROUTER, $cliRouter);
 
         return $router;
-    }
-
-    private function compile(Router $router)
-    {
-
-        $str = "\$router = \Phalcon\Di::getDefault()->getShared('router');\n";
-
-        $fluents = [];
-        foreach ([
-                     '_defaultModule'      => 'setDefaultModule',
-                     '_defaultNamespace'   => 'setDefaultNamespace',
-                     '_defaultController'  => 'setDefaultController',
-                     '_defaultAction'      => 'setDefaultAction',
-                     '_removeExtraSlashes' => 'removeExtraSlashes',
-                     '_notFoundPaths'      => 'notFound',
-                 ] as $property => $method) {
-            $var = Reflexion::get($router, $property);
-            if (!is_null($var)) {
-                $fluents[] = "$method(" . var_export($var, true) . ")\n";
-            }
-        }
-
-        $defaultParams = Reflexion::get($router, '_defaultParams');
-
-        if (!is_null($defaultParams) && [] !== $defaultParams) {
-            $fluents[] = "setDefaults(" . var_export(['params' => $defaultParams], true) . ")\n";
-        }
-
-        if (!empty($fluents)) {
-            $str .= "\$router->" . implode('->', $fluents) . ";";
-        }
-
-        foreach ($router->getRoutes() as $route) {
-            $str .= "\$router->add("
-                . var_export($route->getPattern(), true) . ","
-                . var_export($route->getPaths(), true) . ","
-                . var_export($route->getHttpMethods(), true) . ")";
-
-            if (!empty($route->getName())) {
-                $str .= "->setName('" . $route->getName() . "')";
-            }
-            if (!empty($route->getHostname())) {
-                $str .= "->setHostname('" . $route->getHostname() . "')";
-            }
-
-            $str .= "\n;";
-        }
-
-        return $str;
     }
 }

@@ -1,6 +1,6 @@
 # E4 — HTTP
 
-**Statut** : Rédigé · **Dépend de** : E3 · **Bloque** : E8, E9, E12
+**Statut** : Terminé · **Dépend de** : E3 · **Bloque** : E8, E9, E12
 
 ## Objectif
 
@@ -99,3 +99,44 @@ Servir une requête HTTP complète sur Phalcon 5 : kernel, routage (y compris le
 - Les suites `Http` et `Middleware` (hors Throttle) sont activées et passent, y compris sur le job Phalcon 6.
 - Mesures : la requête HTTP complète, avec et sans cache des routes, n'est pas moins bonne que celle de la 1.3.
 - Le test aller-retour du cache des routes passe sur toutes les routes de `tests/.fake`.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Kernel HTTP | Fait | `handleIncoming()` (posé dans E2), `registerRoutes()` sur `RouteCompiler::COMPILED_FILE` ou `routes/http.php`, `boot()` avec `view.implicit`. Tests : requête complète, route introuvable (exception du dispatcher, faute de `notFound()`), `Bootstrap::run()` avec query string, réponse déjà envoyée (pas d'envoi en double), fichier compilé ou fichier de routes. Le test du cycle de vie des listeners (retiré d'E2 faute de pile HTTP) est rétabli. |
+| S2 · Providers | Fait | `register()` typés (`Router`, `Dispatcher`, `Url`), lus par les IDE helpers (testé). Router sans routes par défaut ni `setUriSource()`. Url : repli sur `/` sans `app.base_uri`, et `static_base_uri` sur `base_uri`. |
+| S3 · Cache des routes | Fait | `Foundation\Http\RouteCompiler` (`compile()`, `write()` atomique, `clear()`), appelé par `RouteCacheTask` (tâche portée dans E6). Défauts via `getDefaults()`, `removeExtraSlashes` et `notFound` par réflexion, hostname du groupe repris. Échec explicite (`UncacheableRouteException`) pour un convertisseur, un `beforeMatch` (de la route ou du groupe : Phalcon le copie sur la route), un `match()` ou un objet dans les paths. Tests aller-retour sur toutes les routes de `tests/.fake` et sur un router complet (défauts, `removeExtraSlashes`, `notFound`, nom avec apostrophe, hostname, groupe, placeholders) ; fichier compilé valide (`php -l`) et rien d'écrit en cas d'échec. Voir « `dumpDispatcher()` » ci-dessous. |
+| S4 · Infrastructure des middlewares | Fait | `Application`, `Controller`, `Dispatcher` (renommé, sans alias) et interfaces typés. Noms d'événements vérifiés dans E2-S4. Un middleware qui renvoie `false` sur `dispatch:beforeDispatch` arrête bien la requête (testé). Voir « Hooks des apps » pour les signatures. |
+| S5 · Controller et middlewares de route | Fait | `routeMiddleware()` et `middleware()` typés ; formats `Classe`, `[Classe, …]`, `[Classe => paramètres]` et `[Classe => paramètre]` testés. **Correction** : `[Classe => paramètre]` (paramètre seul) n'était pas accepté (le test portait sur le tableau des middlewares au lieu du paramètre). Une classe qui n'est pas un middleware de controller lève une exception explicite. `Ajax` lit l'en-tête par `Request::getHeader()` (testable avec `dispatch()`), sans casse : `Request::isAjax()` de Phalcon 5 compare `XMLHttpRequest` strictement, ce qui aurait rejeté les clients acceptés en 1.3. `only()` / `except()` s'additionnent comme en 1.3 (`[]` remet à zéro). |
+| S6 · `Http\Standards` | Fait | `StatusCode` : 176 lignes au lieu de 808, constantes `int`, tableau `MESSAGES`, `message(int): ?string` (`null` au lieu de `''` pour un code inconnu). Ajout de 102, 103, 421, 425, 451 et des noms corrects `UNAUTHORIZED`, `UPGRADE_REQUIRED`, `BANDWIDTH_LIMIT_EXCEEDED` (les anciens restent, dépréciés). Comparaison avec Phalcon : sept libellés diffèrent, tous obsolètes côté Phalcon (« Request Time-out », 425 « Unordered Collection »…) ; le test fige cette liste. `Method` : constantes `string`. |
+
+Suites activées : `Http` (32 tests, hors `CsrfTest` → E8) et `Middleware` (14 tests, hors Debug → E12 et Throttle → E8), vertes sur Phalcon 5.22 et 6. 315 tests au total. Baseline PHPStan : 1 795 → 1 735, rien dans le périmètre.
+
+### Hooks des apps
+
+Les interfaces de middleware typent les paramètres (`Event $event, object $source, mixed $data = null`) mais **pas le retour** : une app peut ne rien renvoyer (seul `false` a un effet), et ses middlewares de la 1.3 restent compatibles sans modification (paramètres non typés = plus larges). Même principe pour `Http\Controller::onConstruct()`. Règle ajoutée à `CONVENTIONS.md`.
+
+### `Router::dumpDispatcher()` (Phalcon 5.22)
+
+Phalcon 5.22 sait sérialiser le router (`buildDispatcherDump()`, `dumpDispatcher()`, `loadDispatcherFromArray()`), y compris les index, et refuse les closures. Évalué et écarté : le rechargement est plus lent que de rejouer les `add()` (205 µs contre 152 µs pour 50 routes, première requête comprise) et il perd les défauts du router, `removeExtraSlashes()` et `notFound()`. Disponible aussi dans Phalcon 6.
+
+### Mesures
+
+Mesurées avec `bench/compare.sh` (1.3 et 2.x alternés, 120 itérations, médianes).
+
+Telles que déployées (`optimize` de chaque version) :
+
+| Scénario | 1.3 | 2.0 | Temps | Mémoire |
+|---|---|---|---|---|
+| boot-http | 162 µs | 145 µs | −11 % | −38 % |
+| http (requête complète) | 236 µs | 281 µs | +19 % | −34 % |
+| http-mw1 (1 middleware de route) | 272 µs | 310 µs | +14 % | −32 % |
+| http-mw3 (3 middlewares de route) | 276 µs | 316 µs | +15 % | −32 % |
+| service | 4,4 µs | 7,2 µs | +2,8 µs | −38 % |
+
+Autoloaders Composer simples, sans cache : boot +14 %, requête +20 %, middlewares de route +20 %, service +3 µs.
+
+Le surcoût de la requête vient de Phalcon 5, mesuré sans Nucleon (une requête MVC à froid, Phalcon 3.4 contre 5.22) : `Router::handle()` +20 µs (index des routes construit à la première requête), `Dispatcher::dispatch()` +50 µs, `Response::send()` +6 µs, soit +92 µs sur `handle()` de bout en bout. Avec Nucleon, l'écart sur `handle()` est de +71 µs : Nucleon n'ajoute rien, et gagne au boot. Le coût d'un middleware de route est le même qu'en 1.3 (+30 à +40 µs pour le premier).
+
+**À trancher** : le critère « pas moins bon que la 1.3 » n'est pas atteint sur la requête complète (+19 % en production), à cause de Phalcon 5. Le boot et la mémoire sont meilleurs.

@@ -52,6 +52,10 @@
         </testsuite>
         <testsuite name="Http">
             <directory>tests/Test/Http</directory>
+            <exclude>tests/Test/Http/CsrfTest.php</exclude><!-- E8 -->
+        </testsuite>
+        <testsuite name="Csrf">
+            <file>tests/Test/Http/CsrfTest.php</file>
         </testsuite>
         <testsuite name="HttpClient">
             <directory>tests/Test/HttpClient</directory>
@@ -61,6 +65,14 @@
         </testsuite>
         <testsuite name="Middleware">
             <directory>tests/Test/Middleware</directory>
+            <exclude>tests/Test/Middleware/MiddlewareDebugTest.php</exclude><!-- E12 -->
+            <exclude>tests/Test/Middleware/ThrottleTest.php</exclude><!-- E8 -->
+        </testsuite>
+        <testsuite name="MiddlewareDebug">
+            <file>tests/Test/Middleware/MiddlewareDebugTest.php</file>
+        </testsuite>
+        <testsuite name="Throttle">
+            <file>tests/Test/Middleware/ThrottleTest.php</file>
         </testsuite>
         <testsuite name="Models">
             <directory>tests/Test/Models</directory>

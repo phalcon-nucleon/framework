@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 use Neutrino\Support\SimpleProvider;
-
 
 /**
  * Class Cookies

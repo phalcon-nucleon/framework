@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Middleware\Stub;
 
 use Neutrino\Foundation\Middleware\Application;
@@ -18,5 +20,6 @@ class ApplicationMiddlewareStub extends Application implements
     AfterInterface,
     FinishInterface
 {
-    use TestListenize, Middlewarize;
+    use TestListenize;
+    use Middlewarize;
 }

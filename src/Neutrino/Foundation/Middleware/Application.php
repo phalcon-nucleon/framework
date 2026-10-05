@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Middleware;
 
 use Neutrino\Constants\Events\Http\Application as AppEvent;
@@ -10,17 +12,11 @@ use Neutrino\Interfaces\Middleware\FinishInterface;
 use Neutrino\Interfaces\Middleware\InitInterface;
 
 /**
- * ApplicationMiddleware
- *
- * Class Application
- *
- *  @package Neutrino\Foundation\Middleware
+ * Middleware of the HTTP application: `init` on boot, `before` / `after` around the request handling,
+ * `finish` before the response is sent.
  */
 abstract class Application extends Listener
 {
-    /**
-     * ApplicationMiddleware constructor.
-     */
     public function __construct()
     {
         if ($this instanceof InitInterface) {

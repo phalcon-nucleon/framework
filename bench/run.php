@@ -19,7 +19,7 @@
  * Must stay compatible with PHP 7.3: the same file measures Nucleon 1.3.
  */
 
-$scenarios = ['boot-http', 'boot-cli', 'boot-micro', 'http', 'micro', 'cli', 'service'];
+$scenarios = ['boot-http', 'boot-cli', 'boot-micro', 'http', 'http-mw1', 'http-mw3', 'micro', 'cli', 'service'];
 
 $options = getopt('', ['autoload:', 'app:', 'scenarios:', 'iterations:', 'warmup:', 'out:', 'compare:']);
 

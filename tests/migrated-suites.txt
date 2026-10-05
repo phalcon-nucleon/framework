@@ -8,5 +8,7 @@ Events
 Facades
 Foundation
 Helpers
+Http
+Middleware
 Optimize
 Support

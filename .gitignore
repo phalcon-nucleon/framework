@@ -14,3 +14,6 @@ composer.lock
 Thumbs.db
 /bench/.current/vendor
 /bench/.current/composer.lock
+/bench/app/bootstrap/
+/bench/.legacy/app/bootstrap/
+/bench/.legacy/app/vendor

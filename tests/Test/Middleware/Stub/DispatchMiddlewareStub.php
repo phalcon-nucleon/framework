@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Middleware\Stub;
 
-use Neutrino\Foundation\Middleware\Disptacher;
+use Neutrino\Foundation\Middleware\Dispatcher;
 use Neutrino\Interfaces\Middleware\AfterInterface;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Neutrino\Interfaces\Middleware\FinishInterface;
@@ -11,12 +13,13 @@ use Test\Middleware\Middlewarize;
 use Test\TestCase\TestListenable;
 use Test\TestCase\TestListenize;
 
-class DispatchMiddlewareStub extends Disptacher implements
+class DispatchMiddlewareStub extends Dispatcher implements
     TestListenable,
     InitInterface,
     BeforeInterface,
     AfterInterface,
     FinishInterface
 {
-    use TestListenize, Middlewarize;
+    use TestListenize;
+    use Middlewarize;
 }

@@ -1,27 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Interfaces\Middleware;
 
 use Phalcon\Events\Event;
 
-/**
- * Interface AfterMiddleware
- *
- *  @package Neutrino\Middleware
- *
- * Middleware after handled
- */
 interface AfterInterface
 {
     /**
-     * Called after the execution of handler
+     * Called after the handler.
      *
-     * @param \Phalcon\Events\Event $event
-     * @param \Phalcon\Dispatcher|mixed   $source
-     * @param mixed|null                  $data
+     * No return type is imposed, so that implementations may return nothing:
+     * only `false` has an effect (it stops cancelable events).
      *
-     * @throws \Exception
-     * @return bool
+     * @param object $source The application, the dispatcher…
+     * @param mixed  $data   Data of the event
+     *
+     * @return bool|null|void
      */
-    public function after(Event $event, $source, $data = null);
+    public function after(Event $event, object $source, mixed $data = null);
 }

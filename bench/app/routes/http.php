@@ -7,3 +7,17 @@ Router::addGet('/hello', [
     'controller' => 'index',
     'action'     => 'hello',
 ]);
+
+Router::addGet('/hello-mw1', [
+    'namespace'  => 'Bench\Controllers',
+    'controller' => 'index',
+    'action'     => 'hello',
+    'middleware' => [\Bench\Middlewares\Noop::class],
+]);
+
+Router::addGet('/hello-mw3', [
+    'namespace'  => 'Bench\Controllers',
+    'controller' => 'index',
+    'action'     => 'hello',
+    'middleware' => [\Bench\Middlewares\Noop::class, \Bench\Middlewares\Noop::class, \Bench\Middlewares\Noop::class],
+]);

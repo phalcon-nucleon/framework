@@ -39,7 +39,8 @@ spl_autoload_register(function ($class) use ($app) {
 
 $start = hrtime(true);
 
-Dotconst::load($app);
+// Compiled constants are used when the application was optimized, as in production.
+Dotconst::load($app, $app . '/bootstrap/compile');
 $bootstrap = new Bootstrap(ConfigLoader::load(BASE_PATH));
 
 switch ($scenario) {
@@ -56,8 +57,10 @@ switch ($scenario) {
         break;
 
     case 'http':
+    case 'http-mw1':
+    case 'http-mw3':
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REQUEST_URI'] = '/hello';
+        $_SERVER['REQUEST_URI'] = $scenario === 'http' ? '/hello' : '/hello-' . substr($scenario, 5);
         ob_start();
         $bootstrap->run($bootstrap->make(HttpKernel::class));
         $output = ob_get_clean();

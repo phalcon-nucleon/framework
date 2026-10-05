@@ -11,11 +11,13 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - `Neutrino\Config\Config`: a `Phalcon\Config\Config` with reads 7 to 9 times faster.
  - `Kernelable::handleIncoming()`.
  - `FuncTestCase::dispatch()`: request headers and JSON body.
+ - `StatusCode`: 102, 103, 421, 425 and 451; `UNAUTHORIZED`, `UPGRADE_REQUIRED`, `BANDWIDTH_LIMIT_EXCEEDED`.
  - Event constants for the Phalcon 5 events: router, di, `db:connectionLost`, dispatcher binding and action calls, micro binding and exceptions, model `prepareSave` and `validation`, view compilation.
 
 ### Changed
  - Kernels, providers, modules, listeners, Facades, constants, Dotconst, `Support` helpers, traits and design patterns are typed (`strict_types`).
  - Dotconst compiles constants with `const` (faster than `define()`).
+ - `Foundation\Middleware\Disptacher` renamed `Dispatcher`.
  - The `Str` helpers use the PHP 8 string functions; `Str::slug` is 6 times faster.
 
 ### Fixed
@@ -24,6 +26,8 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Dotconst: `@php/dir@suffix` and unknown `@{reference}` values in the compiled file.
  - `FuncTestCase::dispatch()`: PATCH parameters in `$_POST`, DELETE parameters kept, superglobals restored.
  - `TestCase::checkExtension()`: the skip message was empty.
+ - Route middlewares declared as `[Middleware::class => $parameter]`.
+ - `route:cache`: route names and hostnames are escaped; routes that cannot be cached are rejected instead of being lost.
 
 ### Removed
  - Assets (`Neutrino\Assets`, `assets:*` tasks), `Optimizer`, `PhpPreloader` (and `nikic/php-parser`), `ConfigPreloader`, `ReturnConverter`.

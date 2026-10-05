@@ -90,6 +90,15 @@ Compiled constants (`dotconst:cache`) are written as `const NAME = ...;`, except
 
 `Neutrino\Config\Loader` returns a `Neutrino\Config\Config`, which extends `Phalcon\Config\Config` (reads with the exact key bypass the Phalcon case-insensitive lookup). Type hints on `Phalcon\Config\Config` keep working. Two differences with Phalcon 5: `path()` returns the default value when the path goes through a scalar value (Phalcon throws an error), and writing a key with another case replaces the previous spelling (Phalcon keeps every spelling, returned by `toArray()`). `config:cache` evaluates the configuration: closures and objects are no longer allowed in `config/*.php` (enums are).
 
+## HTTP
+
+- `Foundation\Middleware\Disptacher` is renamed `Foundation\Middleware\Dispatcher` (no alias).
+- Middleware hooks are declared `init|before|after|finish(Event $event, object $source, mixed $data = null)`, without return type: 1.3 middlewares (untyped parameters) keep working; only `false` stops the request.
+- `Http\Controller::middleware(string $middlewareClass, mixed ...$params): Foundation\Middleware\Controller` is typed (controllers overriding it must follow). A route middleware that does not extend `Foundation\Middleware\Controller` throws an exception.
+- `route:cache` fails on routes it cannot cache (converters, `beforeMatch()`, `match()`, objects in the paths): they were silently lost.
+- `StatusCode::message()` returns `null` for an unknown code (it returned `''`). `BAD_UNAUTHORIZED`, `UPDATE_REQUIRED` and `BANDWIDTH_LIMIT_EXCEED` are deprecated for `UNAUTHORIZED`, `UPGRADE_REQUIRED` and `BANDWIDTH_LIMIT_EXCEEDED`.
+- The HTTP router provider no longer calls `setUriSource()`: the kernel passes the request URI to `handle()`.
+
 ## Tests (`Neutrino\Test`)
 
 PHPUnit 11 is required: `setUp(): void`, `tearDown(): void`, `setUpBeforeClass(): void`, attributes instead of annotations.

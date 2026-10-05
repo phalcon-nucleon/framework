@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Middleware;
 
 use Neutrino\Constants\Events\Dispatch;
@@ -10,15 +12,11 @@ use Neutrino\Interfaces\Middleware\FinishInterface;
 use Neutrino\Interfaces\Middleware\InitInterface;
 
 /**
- * Class DisptacherMiddleware
- *
- *  @package Neutrino\Foundation\Middleware
+ * Middleware of the dispatcher: `init` / `finish` around the dispatch loop, `before` / `after` around each dispatch
+ * (forwards included).
  */
-abstract class Disptacher extends Listener
+abstract class Dispatcher extends Listener
 {
-    /**
-     * DisptacherMiddleware constructor.
-     */
     public function __construct()
     {
         if ($this instanceof InitInterface) {

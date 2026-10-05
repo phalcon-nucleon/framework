@@ -11,6 +11,7 @@ Règles communes à tous les epics. Un epic peut y déroger s'il le justifie exp
 - Promotion des paramètres du constructeur et `readonly` pour les objets valeur.
 - **Enums** : seulement pour les ensembles fermés de valeurs internes, jamais comparées à des chaînes venues de l'extérieur. Les noms de services et d'événements, et `Env` (comparé à la constante `APP_ENV` issue du `.const.ini`), restent des **constantes de classe typées** (`const string CACHE = 'cache';`), car ils servent de clés ou de valeurs de chaîne (`$this->{Services::CACHE}`, `APP_ENV === Env::TEST`). Un enum imposerait `->value` partout.
 - Plus de code de compatibilité PHP < 8.3 ni de polyfills.
+- Les hooks que les apps surchargent couramment (`init`, `before`, `after`, `finish` des middlewares, `onConstruct()` des controllers) typent leurs paramètres mais pas leur retour : le code 1.3 des apps reste compatible et peut ne rien renvoyer.
 - Pas de `static function` ni de `static fn` pour une définition de service : Phalcon lie les closures du conteneur au conteneur (`Closure::bind`), ce qui échoue sur une closure statique. Ne pas appliquer la règle Rector `StaticClosureRector` à ce code.
 - Ne pas réimplémenter ce que PHP 8.3 ou Phalcon 5 fournissent (`str_contains`, `array_is_list`, `Phalcon\Support\Helper\*`, etc.), sauf si l'API Nucleon apporte une vraie valeur et reste rétrocompatible.
 

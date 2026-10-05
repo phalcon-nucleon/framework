@@ -5305,54 +5305,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Binary operation "\." between ''\-\>setHostname\(\\'''' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Binary operation "\." between ''\-\>setName\(\\'''' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Cannot call method getHostname\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Cannot call method getHttpMethods\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Cannot call method getName\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Cannot call method getPaths\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Cannot call method getPattern\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\RouteCacheTask\:\:compile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\RouteCacheTask\:\:loadHttpRouter\(\) should return Phalcon\\Mvc\\Router but returns mixed\.$#'
 			identifier: return.type
 			count: 1
@@ -5361,12 +5313,6 @@ parameters:
 		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\RouteCacheTask\:\:mainAction\(\) has no return type specified\.$#'
 			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
-			message: '#^Part \$str \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
 
@@ -5605,156 +5551,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/ViewClearTask.php
 
 		-
-			message: '#^Call to an undefined method Phalcon\\Mvc\\DispatcherInterface\:\:getHandlerClass\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Call to an undefined method Phalcon\\Mvc\\DispatcherInterface\:\:wasForwarded\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Cannot access offset mixed on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Cannot access offset string on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkAfter\(\) has parameter \$data with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkAfter\(\) has parameter \$event with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkAfter\(\) has parameter \$source with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkBefore\(\) has parameter \$data with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkBefore\(\) has parameter \$event with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkBefore\(\) has parameter \$source with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkFinish\(\) has parameter \$data with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkFinish\(\) has parameter \$event with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:checkFinish\(\) has parameter \$source with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:except\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:filters\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:filters\(\) has parameter \$type with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Middleware\\Controller\:\:only\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^PHPDoc tag @var with type Neutrino\\Interfaces\\Middleware\\AfterInterface is not subtype of native type \$this\(Neutrino\\Foundation\\Middleware\\Controller\)\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^PHPDoc tag @var with type Neutrino\\Interfaces\\Middleware\\BeforeInterface is not subtype of native type \$this\(Neutrino\\Foundation\\Middleware\\Controller\)\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^PHPDoc tag @var with type Neutrino\\Interfaces\\Middleware\\FinishInterface is not subtype of native type \$this\(Neutrino\\Foundation\\Middleware\\Controller\)\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Parameter \#1 \$event of method Neutrino\\Interfaces\\Middleware\\AfterInterface\:\:after\(\) expects Phalcon\\Events\\Event, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Parameter \#1 \$event of method Neutrino\\Interfaces\\Middleware\\BeforeInterface\:\:before\(\) expects Phalcon\\Events\\Event, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Parameter \#1 \$event of method Neutrino\\Interfaces\\Middleware\\FinishInterface\:\:finish\(\) expects Phalcon\\Events\\Event, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
-			message: '#^Property Neutrino\\Foundation\\Middleware\\Controller\:\:\$filter type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Foundation/Middleware/Controller.php
-
-		-
 			message: '#^Method Neutrino\\Foundation\\Middleware\\Debug\:\:afterDispatch\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -5813,102 +5609,6 @@ parameters:
 			identifier: argument.type
 			count: 9
 			path: src/Neutrino/Foundation/Middleware/Debug.php
-
-		-
-			message: '#^Call to an undefined method Phalcon\\Mvc\\DispatcherInterface\:\:wasForwarded\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Call to function is_array\(\) with array\{int\<min, \-1\>\|int\<1, max\>\|non\-falsy\-string\} will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Call to function is_array\(\) with int\<min, \-1\>\|int\<1, max\>\|non\-falsy\-string will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Call to function is_int\(\) with 0 will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Call to method attach\(\) on an unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Cannot call method getPaths\(\) on Phalcon\\Mvc\\Router\\RouteInterface\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Http\\Controller\:\:middleware\(\) should return Neutrino\\Foundation\\Middleware\\Controller but returns object\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Http\\Controller\:\:onConstruct\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Method Neutrino\\Http\\Controller\:\:routeMiddleware\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Http\\Controller\:\:\$application contains unknown class Phalcon\\Application\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Http\\Controller\:\:\$config contains generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^PHPDoc tag @property\-read for property Neutrino\\Http\\Controller\:\:\$config contains unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Parameter \#1 \$middlewareClass of method Neutrino\\Http\\Controller\:\:middleware\(\) expects string, int\<min, \-1\>\|int\<1, max\>\|string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Http/Controller.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtolower expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Http/Middleware/Ajax.php
-
-		-
-			message: '#^Method Neutrino\\Http\\Standards\\StatusCode\:\:message\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Http/Standards/StatusCode.php
-
-		-
-			message: '#^Property Neutrino\\Http\\Standards\\StatusCode\:\:\$messages type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Http/Standards/StatusCode.php
 
 		-
 			message: '#^Method Neutrino\\Interfaces\\Repositories\\RepositoryInterface\:\:all\(\) return type with generic class Phalcon\\Mvc\\Model does not specify its types\: T$#'
@@ -6244,6 +5944,12 @@ parameters:
 			message: '#^PHPDoc tag @param for parameter \$event with type mixed is not subtype of native type Phalcon\\Events\\Event\.$#'
 			identifier: parameter.phpDocType
 			count: 2
+			path: src/Neutrino/Middleware/Throttle.php
+
+		-
+			message: '#^Parameter \#1 \$content of method Phalcon\\Http\\Response\:\:setContent\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
 			path: src/Neutrino/Middleware/Throttle.php
 
 		-
@@ -6979,12 +6685,6 @@ parameters:
 			path: src/Neutrino/Providers/Filter.php
 
 		-
-			message: '#^Parameter \#1 \$eventsManager of method Phalcon\\Dispatcher\\AbstractDispatcher\:\:setEventsManager\(\) expects Phalcon\\Events\\ManagerInterface, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Providers/Http/Dispatcher.php
-
-		-
 			message: '#^Access to property \$adapter on an unknown class Phalcon\\Config\.$#'
 			identifier: class.notFound
 			count: 2
@@ -7223,36 +6923,6 @@ parameters:
 			identifier: encapsedStringPart.nonString
 			count: 1
 			path: src/Neutrino/Providers/Session.php
-
-		-
-			message: '#^Cannot access property \$app on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Url.php
-
-		-
-			message: '#^Cannot access property \$base_uri on mixed\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: src/Neutrino/Providers/Url.php
-
-		-
-			message: '#^Cannot access property \$static_base_uri on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Providers/Url.php
-
-		-
-			message: '#^Parameter \#1 \$baseUri of method Phalcon\\Mvc\\Url\:\:setBaseUri\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Providers/Url.php
-
-		-
-			message: '#^Parameter \#1 \$staticBaseUri of method Phalcon\\Mvc\\Url\:\:setStaticBaseUri\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Providers/Url.php
 
 		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'

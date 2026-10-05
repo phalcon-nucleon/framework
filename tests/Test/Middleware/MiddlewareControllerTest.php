@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Middleware;
 
 use Fake\Kernels\Http\Controllers\StubController;
@@ -13,7 +15,7 @@ use Test\TestCase\TestCase;
  *
  * @package Test\Middleware
  */
-class MiddlewareControllerTest extends TestCase
+final class MiddlewareControllerTest extends TestCase
 {
     /**
      * @return Controller
@@ -23,7 +25,7 @@ class MiddlewareControllerTest extends TestCase
         return new StubMiddlewareController(StubController::class);
     }
 
-    public function testFilter()
+    public function testFilter(): void
     {
         $controller = $this->getStubControllerMiddleware();
 
@@ -32,7 +34,7 @@ class MiddlewareControllerTest extends TestCase
 
         $this->assertEquals(
             [],
-            Reflexion::get($controller, 'filter')
+            Reflexion::get($controller, 'filter'),
         );
 
         $this->assertEquals($controller, $controller->only([]));
@@ -40,23 +42,23 @@ class MiddlewareControllerTest extends TestCase
 
         $this->assertEquals([
             'only'   => [],
-            'except' => []
+            'except' => [],
         ], Reflexion::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only(['test']));
         $this->assertEquals($controller, $controller->except(['test']));
 
         $this->assertEquals([
-            'only'   => ['test'=>true],
-            'except' => ['test'=>true]
+            'only'   => ['test' => true],
+            'except' => ['test' => true],
         ], Reflexion::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only(null));
         $this->assertEquals($controller, $controller->except(null));
 
         $this->assertEquals([
-            'only'   => ['test'=>true],
-            'except' => ['test'=>true]
+            'only'   => ['test' => true],
+            'except' => ['test' => true],
         ], Reflexion::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only([]));
@@ -64,11 +66,26 @@ class MiddlewareControllerTest extends TestCase
 
         $this->assertEquals([
             'only'   => [],
-            'except' => []
+            'except' => [],
         ], Reflexion::get($controller, 'filter'));
     }
 
-    public function dataCheck()
+    public function testFiltersAddUp(): void
+    {
+        $controller = $this->getStubControllerMiddleware();
+
+        $controller->only(['index'])->only(['show'])->except(['a'])->except(['b']);
+
+        $this->assertSame([
+            'only'   => ['index' => true, 'show' => true],
+            'except' => ['a' => true, 'b' => true],
+        ], Reflexion::get($controller, 'filter'));
+
+        $controller->only([]);
+        $this->assertSame([], Reflexion::get($controller, 'filter')['only']);
+    }
+
+    public static function dataCheck(): array
     {
         return [
             ['only', 'test', 'test', true],
@@ -79,26 +96,26 @@ class MiddlewareControllerTest extends TestCase
     }
 
     /**
-     * @dataProvider dataCheck
      *
      * @param $filterType
      * @param $filter
      * @param $actionName
      * @param $expected
      */
-    public function testCheck($filterType, $filter, $actionName, $expected)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataCheck')]
+    public function testCheck($filterType, $filter, $actionName, $expected): void
     {
         $dispatcher = $this->mockService(Services::DISPATCHER, \Phalcon\Mvc\Dispatcher::class, true);
 
         $dispatcher->expects($this->any())
             ->method('getActionName')
-            ->will($this->returnValue($actionName));
+            ->willReturn($actionName);
         $dispatcher->expects($this->any())
             ->method('getActionSuffix')
-            ->will($this->returnValue(''));
+            ->willReturn('');
         $dispatcher->expects($this->any())
             ->method('getHandlerClass')
-            ->will($this->returnValue(StubController::class));
+            ->willReturn(StubController::class);
 
         $controller = $this->getStubControllerMiddleware();
 
@@ -108,7 +125,4 @@ class MiddlewareControllerTest extends TestCase
     }
 }
 
-class StubMiddlewareController extends Controller
-{
-
-}
+class StubMiddlewareController extends Controller {}

@@ -53,6 +53,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 |---|---|---|
 | Debug | Remplacement de notre barre de debug par `phalcon/debugbar` (en `suggest`, sans dépendance de production), à confirmer par l'étude E12-S1. On garde notre page d'erreur et `VarDump`. | E12 |
 | Auth | Adoption de `Phalcon\Auth` (disponible depuis la 5.14), à confirmer par l'étude E8-S1 (remember-me haché et révoqué, coût de construction, présence dans Phalcon 6). Sinon, portage de notre `Manager` avec les corrections de sécurité. | E8 |
+| Performance de la requête HTTP | En production (`optimize`), la requête complète est 19 % plus lente que la 1.3 (+45 µs), le boot 11 % plus rapide, la mémoire 34 % plus basse. L'écart vient de Phalcon 5 (`dispatch()` et premier `Router::handle()` plus lents à froid). Accepter, ou chercher à contourner le dispatcher ? Voir E4. | E4 |
 | Compatibilité des données chiffrées | Phalcon 5 déchiffre-t-il les données chiffrées par la 1.3 ? À vérifier par un test, avec une procédure de migration si ce n'est pas le cas. | E7 |
 | Handlers Micro | Utiliser les handlers chargés à la demande de Phalcon (`Micro\Collection::setLazy`) plutôt que notre closure ? Décision sur mesures. | E5 |
 
@@ -64,7 +65,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | E1 | [Nettoyage](epics/E01-nettoyage.md) | Terminé | E0 |
 | E2 | [Noyau](epics/E02-noyau.md) | Terminé | E1 |
 | E3 | [Outils de test publics](epics/E03-outils-de-test.md) | Terminé | E2 |
-| E4 | [HTTP](epics/E04-http.md) | Rédigé | E3 |
+| E4 | [HTTP](epics/E04-http.md) | Terminé | E3 |
 | E5 | [Micro](epics/E05-micro.md) | Rédigé | E3, E4-S4 |
 | E6 | [CLI](epics/E06-cli.md) | Rédigé | E3 |
 | E7 | [Services d'infrastructure](epics/E07-services-infrastructure.md) | Rédigé | E3 |

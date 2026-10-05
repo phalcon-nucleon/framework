@@ -1,24 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Http;
 
 use Neutrino\Constants\Services;
+use Neutrino\Foundation\Middleware\Controller as ControllerMiddleware;
+use Phalcon\Mvc\Dispatcher;
+use Phalcon\Mvc\Router;
+use UnexpectedValueException;
 
 /**
- * Class Controller
+ * Base controller: attaches the middlewares declared on the matched route (`paths['middleware']`).
  *
- *  @package Neutrino\Foundation
+ * Route middlewares, in the paths of a route:
+ * - `'middleware' => Ajax::class`
+ * - `'middleware' => [Ajax::class, Other::class]`
+ * - `'middleware' => [Throttle::class => [10, 60], Ajax::class]` (constructor parameters)
  *
- * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
- * @property-read \Neutrino\Auth\Manager                                                                $auth
- * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
+ * @property-read \Neutrino\Foundation\Http\Kernel $application
+ * @property-read \Neutrino\Auth\Manager           $auth
+ * @property-read \Phalcon\Config\Config           $config
  */
 abstract class Controller extends \Phalcon\Mvc\Controller
 {
     /**
-     * Event called on controller construction
+     * Called when the controller is built: register the controller middlewares here.
      *
-     * Register middleware here.
+     * No return type, so that controllers can override it as before.
+     *
+     * @return void
      */
     protected function onConstruct()
     {
@@ -26,63 +37,64 @@ abstract class Controller extends \Phalcon\Mvc\Controller
     }
 
     /**
-     * Register middleware was attached in the route.
+     * Attaches the middlewares declared on the matched route, for the dispatched action only.
      */
-    protected function routeMiddleware()
+    protected function routeMiddleware(): void
     {
-        $router = $this->router;
-        $dispatcher = $this->dispatcher;
+        $di = $this->getDI();
+        /** @var Router $router */
+        $router = $di->getShared(Services::ROUTER);
+        /** @var Dispatcher $dispatcher */
+        $dispatcher = $di->getShared(Services::DISPATCHER);
 
-        if (!$dispatcher->wasForwarded() && $router->wasMatched()) {
-            $actionMethod = $dispatcher->getActionName();
+        if ($dispatcher->wasForwarded() || !$router->wasMatched()) {
+            return;
+        }
 
-            $route = $router->getMatchedRoute();
+        $paths = $router->getMatchedRoute()?->getPaths() ?? [];
 
-            $paths = $route->getPaths();
+        if (empty($paths['middleware'])) {
+            return;
+        }
 
-            if (!empty($paths['middleware'])) {
-                $middlewares = $paths['middleware'];
+        $action = $dispatcher->getActionName();
 
-                if (!is_array($middlewares)) {
-                    $middlewares = [$middlewares];
-                }
+        // The stubs type the paths as scalars, but they can hold arrays.
+        /** @var mixed $declared */
+        $declared = $paths['middleware'];
+        /** @var array<int|string, mixed> $middlewares */
+        $middlewares = is_array($declared) ? $declared : [$declared];
 
-                foreach ($middlewares as $key => $middleware) {
-                    if (is_int($key)) {
-                        $middlewareClass  = $middleware;
-                        $middlewareParams = [];
-                    } else {
-                        $middlewareClass  = $key;
-                        $middlewareParams = !is_array($middlewares) ? [$middleware] : $middleware;
-                    }
+        foreach ($middlewares as $key => $middleware) {
+            [$class, $params] = is_int($key) ? [$middleware, []] : [$key, is_array($middleware) ? array_values($middleware) : [$middleware]];
 
-                    $this->middleware($middlewareClass, ...$middlewareParams)->only([$actionMethod]);
-                }
+            if (!is_string($class) || !is_subclass_of($class, ControllerMiddleware::class)) {
+                throw new UnexpectedValueException(static::class . ': a route middleware must extend ' . ControllerMiddleware::class . ', ' . (is_string($class) ? $class : get_debug_type($class)) . ' given.');
             }
+
+            $this->middleware($class, ...$params)->only([$action]);
         }
     }
 
     /**
-     * Attach a ControllerMiddleware.
+     * Attaches a controller middleware.
      *
-     * On controllers, only ControllerMiddleware are attachable,
-     * because the middleware registration, passed by the controller, will made at the controller instantiation.
-     * Because of this, the events
-     *  "Application::boot"
-     *  "Dispatch::beforeDispatchLoop"
-     *  "Dispatch::BeforeDispatch"
-     * can not be caught.
+     * Controller middlewares are built with the controller, after the start of the dispatch:
+     * they cannot listen to `application:boot`, `dispatch:beforeDispatchLoop` nor `dispatch:beforeDispatch`.
      *
-     * @param string $middlewareClass
-     * @param mixed  ...$params
+     * @template T of ControllerMiddleware
      *
-     * @return \Neutrino\Foundation\Middleware\Controller
+     * @param class-string<T> $middlewareClass
+     *
+     * @return T
      */
-    protected function middleware($middlewareClass, ...$params)
+    protected function middleware(string $middlewareClass, mixed ...$params): ControllerMiddleware
     {
         $middleware = new $middlewareClass(static::class, ...$params);
 
-        $this->{Services::APP}->attach($middleware);
+        /** @var \Neutrino\Foundation\Http\Kernel $application */
+        $application = $this->getDI()->getShared(Services::APP);
+        $application->attach($middleware);
 
         return $middleware;
     }

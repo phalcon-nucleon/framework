@@ -2,7 +2,6 @@
   "name": "nucleon/framework",
   "description": "Phalcon extended framework. (Nucleon:Kernel)",
   "keywords": ["framework", "phalcon", "nucleon"],
-  "minimum-stability": "dev",
   "license": "MIT",
   "authors": [
     {
@@ -11,20 +10,24 @@
     }
   ],
   "require": {
-    "php": "5.6 - 7.3",
-    "ext-phalcon": "~3.0",
-    "nikic/php-parser": "^3.0",
-    "ark4ne/highlight": "dev-master"
+    "php": ">=8.3",
+    "ext-phalcon": "^5.22"
   },
   "require-dev": {
-    "phalcon/ide-stubs": "~3.0",
-    "phpunit/phpunit": "~5.6",
-    "mockery/mockery": "~0.9.4",
-    "satooshi/php-coveralls": "~1.0"
+    "friendsofphp/php-cs-fixer": "^3.64",
+    "mockery/mockery": "^1.6",
+    "phalcon/ide-stubs": "^5.22",
+    "phpstan/phpstan": "^2.0",
+    "phpunit/phpunit": "^11.0",
+    "rector/rector": "^2.0",
+    "tempest/highlight": "^2.12"
   },
-  "replace" : {
-    "neutrino/dotconst": "~1.0",
-    "neutrino/optimizer": "self.version"
+  "suggest": {
+    "phalcon/debugbar": "Debug bar for development (enabled when APP_DEBUG is true).",
+    "tempest/highlight": "Syntax highlighting of the debug error page and of `migrate --pretend`."
+  },
+  "replace": {
+    "neutrino/dotconst": "~1.0"
   },
   "autoload": {
     "psr-4": {
@@ -36,5 +39,20 @@
       "Test\\": "tests/Test/",
       "Fake\\": "tests/.fake/nucleon.app/app/"
     }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-2.x": "2.0-dev"
+    }
+  },
+  "scripts": {
+    "test": "@php bin/phpunit-migrated",
+    "phpstan": "phpstan analyse --memory-limit=1G",
+    "cs": "php-cs-fixer fix --dry-run --diff",
+    "cs:fix": "php-cs-fixer fix",
+    "bench": "@php bench/run.php"
   }
 }

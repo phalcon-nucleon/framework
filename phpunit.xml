@@ -1,26 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="./tests/bootstrap.php"
-         backupGlobals="false"
-         backupStaticAttributes="false"
-         verbose="true"
-         colors="false"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
-         processIsolation="false"
-         stopOnFailure="false"
-         syntaxCheck="true">
-    <testsuite name="Nucleon - Testsuite">
-        <directory>./tests/Test</directory>
-    </testsuite>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true" addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./src</directory>
-            <exclude>
-                <directory suffix=".php">./src/Neutrino/Debug/resources</directory>
-            </exclude>
-        </whitelist>
-    </filter>
+<!--
+  One test suite per module. Only the suites listed in tests/migrated-suites.txt
+  run in CI (see bin/phpunit-migrated): each 2.0 epic adds its suites once ported.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="Assert">
+            <directory>tests/Test/Assert</directory>
+        </testsuite>
+        <testsuite name="Assets">
+            <directory>tests/Test/Assets</directory>
+        </testsuite>
+        <testsuite name="Auth">
+            <directory>tests/Test/Auth</directory>
+        </testsuite>
+        <testsuite name="Cache">
+            <directory>tests/Test/Cache</directory>
+        </testsuite>
+        <testsuite name="Cli">
+            <directory>tests/Test/Cli</directory>
+        </testsuite>
+        <testsuite name="Config">
+            <directory>tests/Test/Config</directory>
+        </testsuite>
+        <testsuite name="Database">
+            <directory>tests/Test/Database</directory>
+        </testsuite>
+        <testsuite name="Debug">
+            <directory>tests/Test/Debug</directory>
+        </testsuite>
+        <testsuite name="Design">
+            <directory>tests/Test/Design</directory>
+        </testsuite>
+        <testsuite name="Dotconst">
+            <directory>tests/Test/Dotconst</directory>
+        </testsuite>
+        <testsuite name="Error">
+            <directory>tests/Test/Error</directory>
+        </testsuite>
+        <testsuite name="Events">
+            <directory>tests/Test/Events</directory>
+        </testsuite>
+        <testsuite name="Facades">
+            <directory>tests/Test/Facades</directory>
+        </testsuite>
+        <testsuite name="Http">
+            <directory>tests/Test/Http</directory>
+        </testsuite>
+        <testsuite name="HttpClient">
+            <directory>tests/Test/HttpClient</directory>
+        </testsuite>
+        <testsuite name="Micro">
+            <directory>tests/Test/Micro</directory>
+        </testsuite>
+        <testsuite name="Middleware">
+            <directory>tests/Test/Middleware</directory>
+        </testsuite>
+        <testsuite name="Models">
+            <directory>tests/Test/Models</directory>
+        </testsuite>
+        <testsuite name="Optimizer">
+            <directory>tests/Test/Optimizer</directory>
+        </testsuite>
+        <testsuite name="Preloader">
+            <directory>tests/Test/Preloader</directory>
+        </testsuite>
+        <testsuite name="Process">
+            <directory>tests/Test/Process</directory>
+        </testsuite>
+        <testsuite name="Providers">
+            <directory>tests/Test/Providers</directory>
+        </testsuite>
+        <testsuite name="Repositories">
+            <directory>tests/Test/Repositories</directory>
+        </testsuite>
+        <testsuite name="Security">
+            <directory>tests/Test/Security</directory>
+        </testsuite>
+        <testsuite name="Support">
+            <directory>tests/Test/Support</directory>
+        </testsuite>
+        <testsuite name="TestCase">
+            <directory>tests/Test/TestCase</directory>
+        </testsuite>
+        <testsuite name="View">
+            <directory>tests/Test/View</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">src/Neutrino/Debug/resources</directory>
+        </exclude>
+    </source>
     <php>
         <env name="APP_ENV" value="test"/>
     </php>

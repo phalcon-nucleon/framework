@@ -1,0 +1,8 @@
+{
+  "description": "Nucleon 1.3 install used to measure the baseline (run in the legacy Docker image).",
+  "require": {
+    "nucleon/framework": "1.3.2"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

@@ -8,7 +8,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Ongoing: 2.0 upgrade
 
-A migration to PHP ≥ 8.3 / Phalcon 5.22 is planned in `docs/upgrade-2.0/` (decisions, conventions, epics). Read `docs/upgrade-2.0/README.md` and `CONVENTIONS.md` before working on the `2.x` branch. The constraints below describe the current 1.3 code on `master`.
+The `2.x` branch migrates the framework to PHP ≥ 8.3 / Phalcon 5.22. The plan lives in `docs/upgrade-2.0/` (decisions, conventions, one file per epic): read `docs/upgrade-2.0/README.md` and `CONVENTIONS.md` before working on it. On `2.x`, code not yet ported by its epic is still 1.3 code and does not run on Phalcon 5.
+
+2.x development happens in Docker (`compose.yaml`, PHP 8.3 + Phalcon 5.22, MySQL, PostgreSQL, Redis):
+
+```bash
+docker compose run --rm php8 composer install
+docker compose run --rm php8 php bin/phpunit-migrated            # suites listed in tests/migrated-suites.txt (what CI runs)
+docker compose run --rm php8 vendor/bin/phpunit --testsuite Cache  # one module suite (see phpunit.xml)
+docker compose run --rm php8 vendor/bin/phpunit --filter testName
+docker compose run --rm php8 vendor/bin/phpstan analyse --memory-limit=1G
+docker compose run --rm php8 vendor/bin/php-cs-fixer fix --dry-run --diff
+docker compose run --rm php8 php bench/run.php --compare=bench/baseline-1.3.json
+PHP_VERSION=8.4 docker compose build php8                          # other PHP version
+```
+
+Porting a module (see `CONVENTIONS.md`): add `declare(strict_types=1)` (this opts the file into PHP-CS-Fixer), remove its entries from `phpstan-baseline.neon` / `excludePaths` in `phpstan.neon`, and add its suite to `tests/migrated-suites.txt` once green. `rector.php` holds the mechanical upgrade rules; it is never applied in CI.
+
+The constraints below describe the 1.3 code (`master`).
 
 ## Runtime constraints
 

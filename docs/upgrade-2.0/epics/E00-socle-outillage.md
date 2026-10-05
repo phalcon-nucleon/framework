@@ -1,6 +1,6 @@
 # E0 — Socle & outillage
 
-**Statut** : Rédigé · **Dépend de** : — · **Bloque** : tous les autres epics
+**Statut** : En cours (reste : premier passage de la CI sur GitHub) · **Dépend de** : — · **Bloque** : tous les autres epics
 
 ## Objectif
 
@@ -85,3 +85,16 @@ Disposer d'un environnement PHP 8.3+ / Phalcon 5.22 reproductible, d'une CI et d
 - `docker compose run php8 vendor/bin/phpunit` fonctionne (même avec 0 suite migrée).
 - La CI est verte : style, PHPStan avec baseline, suites migrées. Le job Phalcon 6 s'exécute.
 - `bench/baseline-1.3.json` est versionné et reproductible (écart inférieur à 5 % entre deux exécutions).
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Docker | Fait | `compose.yaml`, `docker/php8` (PHP 8.3.35 + Phalcon 5.22.1 via `install-php-extensions`), `docker/legacy` (PHP 7.3.33 + Phalcon 3.4.5 compilé depuis les sources, dépôts Debian archivés). |
+| S2 · `composer.json` | Fait | `nikic/php-parser`, `ark4ne/highlight`, `satooshi/php-coveralls` et `minimum-stability: dev` retirés. `tempest/highlight` résolu en 2.12.1 sur PHP 8.3. |
+| S3 · PHPUnit 11 | Fait, partiel pour Rector | `phpunit.xml` : 27 suites. `bin/phpunit-migrated` exécute celles de `tests/migrated-suites.txt` (vide). `tests/bootstrap.php` n'affiche plus la version (`Neutrino\Version` est cassé jusqu'à E2-S1). La passe Rector a modifié 40 fichiers. Les tests qui héritent de `Neutrino\Test\TestCase` ne sont pas reconnus par Rector tant qu'E3 ne l'a pas porté : à relancer après E3. `phpunit --list-suites` échoue jusqu'à E3 (il charge tous les tests). |
+| S4 · Qualité | Fait | Baseline PHPStan : 2 666 erreurs. 15 fichiers avec des erreurs impossibles à mettre en baseline (classes ou signatures incompatibles avec Phalcon 5) sont dans `excludePaths`, chacun annoté avec l'epic qui le corrige. PHP-CS-Fixer ne vérifie que les fichiers qui commencent par `declare(strict_types=1)`. Rector : la version 2.6 n'a plus de jeux par version de PHPUnit, `withComposerBased(phpunit: true)` les remplace. |
+| S5 · CI | Écrit, non vérifié | `.github/workflows/ci.yml` : qualité, matrice PHP 8.3/8.4/8.5 × Phalcon 5.22.1, job Phalcon 6 non bloquant. La syntaxe `phalcon-5.22.1` de `setup-php` et le job Phalcon 6 restent à valider au premier push. |
+| S6 · Mesures 1.3 | Fait | `bench/baseline-1.3.json`. Les scénarios sont entrelacés : deux exécutions de 200 itérations diffèrent de moins de 2,5 % (médiane) sur tous les scénarios. |
+
+Constat en passant : la suite `Dotconst` passe déjà sur PHP 8.3 + Phalcon 5 (27 tests, 2 dépréciations). Elle sera ajoutée à `tests/migrated-suites.txt` par E2-S5, conformément au processus.

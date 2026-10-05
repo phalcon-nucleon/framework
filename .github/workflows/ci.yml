@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [master, 2.x]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: phalcon-5.22.1
+          coverage: none
+      - run: composer validate --strict
+      - run: composer install --no-interaction --no-progress
+      - name: PHP-CS-Fixer (files ported to 2.0)
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+  tests:
+    name: Tests (PHP ${{ matrix.php }}, Phalcon ${{ matrix.phalcon }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+        phalcon: ['5.22.1']
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: nucleon
+        ports: ['3306:3306']
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=5s --health-retries=10
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nucleon
+        ports: ['5432:5432']
+        options: --health-cmd=pg_isready --health-interval=5s --health-timeout=5s --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+    env:
+      DB_MYSQL_HOST: 127.0.0.1
+      DB_PGSQL_HOST: 127.0.0.1
+      REDIS_HOST: 127.0.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: phalcon-${{ matrix.phalcon }}, apcu, redis, pdo_mysql, pdo_pgsql, pdo_sqlite
+          ini-values: apc.enable_cli=1
+          coverage: pcov
+      - run: composer install --no-interaction --no-progress
+      - name: PHPUnit (migrated suites)
+        run: php bin/phpunit-migrated --coverage-clover build/logs/clover.xml
+      - uses: actions/upload-artifact@v4
+        if: matrix.php == '8.3'
+        with:
+          name: coverage
+          path: build/logs/clover.xml
+          if-no-files-found: ignore
+
+  phalcon6:
+    name: Tests (PHP 8.3, Phalcon 6 RC, non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: apcu, pdo_sqlite
+          ini-values: apc.enable_cli=1
+          coverage: none
+      - name: Install Phalcon 6 (pure PHP) instead of the extension
+        run: |
+          composer config platform.ext-phalcon 5.22.1
+          composer require --no-interaction --no-progress "phalcon/phalcon:^6.0@RC"
+      - name: PHPUnit (migrated suites)
+        run: php bin/phpunit-migrated
+      - name: Summary
+        if: always()
+        run: echo "Phalcon 6 job finished with status ${{ job.status }} (non-blocking)." >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,30 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Runs PHPUnit on the test suites already ported to 2.0, as listed in
+ * tests/migrated-suites.txt. Extra arguments are passed through to PHPUnit.
+ */
+
+$root = dirname(__DIR__);
+$list = $root . '/tests/migrated-suites.txt';
+
+$suites = array_values(array_filter(
+    array_map('trim', file($list) ?: []),
+    static fn(string $line): bool => $line !== '' && !str_starts_with($line, '#'),
+));
+
+if ($suites === []) {
+    fwrite(STDOUT, "No migrated test suite yet (tests/migrated-suites.txt is empty).\n");
+    exit(0);
+}
+
+$command = array_merge(
+    [PHP_BINARY, $root . '/vendor/bin/phpunit', '--testsuite', implode(',', $suites)],
+    array_slice($argv, 1),
+);
+
+$process = proc_open($command, [STDIN, STDOUT, STDERR], $pipes);
+exit($process === false ? 1 : proc_close($process));

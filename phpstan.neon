@@ -1,0 +1,32 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: max
+    paths:
+        - src
+    excludePaths:
+        - src/Neutrino/Debug/resources
+        # Files with errors PHPStan cannot baseline (classes or signatures
+        # incompatible with Phalcon 5). Each epic removes its files from this
+        # list once ported. Do not add new entries.
+        - src/Neutrino/Cache/CacheStrategy.php                       # E7
+        - src/Neutrino/Database/DatabaseStrategy.php                 # E10
+        - src/Neutrino/Database/Schema/Dialect/*                     # E11
+        - src/Neutrino/Debug/DebugEventsManagerWrapper.php           # E12
+        - src/Neutrino/Error/Error.php                               # E12
+        - src/Neutrino/Exceptions/TokenMismatchException.php         # E8
+        - src/Neutrino/Foundation/Cli/Kernel.php                     # E2 / E6
+        - src/Neutrino/Foundation/Http/Kernel.php                    # E2 / E4
+        - src/Neutrino/HttpClient/*                                  # E13
+        - src/Neutrino/Module.php                                    # E2
+        - src/Neutrino/Repositories/Exceptions/TransactionException.php  # E10
+        - src/Neutrino/Support/Fluent/*                              # E2
+        - src/Neutrino/Support/Fluent.php                            # E2
+        - src/Neutrino/Test/TestCase.php                             # E3
+        - src/Neutrino/Version.php                                   # E2
+    # Phalcon classes come from the extension when it is loaded; the stubs
+    # cover analysis without it (Phalcon 6 job, editors).
+    scanDirectories:
+        - vendor/phalcon/ide-stubs/src
+    tmpDir: build/phpstan

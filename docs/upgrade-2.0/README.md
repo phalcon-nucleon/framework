@@ -44,6 +44,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | Config Rector de migration | Livrée avec la 2.0 (`resources/rector/upgrade-2.0.php`). | E15 |
 | Maintenance de la 1.3 | Aucune. La 1.x est terminée, le tag `v1.3.2` reste disponible. | E15 |
 | Conteneur | On reste sur `Phalcon\Di\Di` : `Phalcon\Container` n'implémente pas `Di\DiInterface`, qu'exige toute la pile MVC. | E2 |
+| Config | `Neutrino\Config\Config extends Phalcon\Config\Config`, lectures directes du tableau interne : 7 à 9 fois plus rapide en lecture que la config de Phalcon 5, qui l'est jusqu'à 18 fois moins que celle de Phalcon 3. | E2 |
 | Dotconst compilé | `const NAME = ...;` plutôt que `define()` (légèrement plus rapide), sauf `@php/env`. | E2 |
 
 ## Points à trancher (portés par les epics)
@@ -52,7 +53,6 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 |---|---|---|
 | Debug | Remplacement de notre barre de debug par `phalcon/debugbar` (en `suggest`, sans dépendance de production), à confirmer par l'étude E12-S1. On garde notre page d'erreur et `VarDump`. | E12 |
 | Auth | Adoption de `Phalcon\Auth` (disponible depuis la 5.14), à confirmer par l'étude E8-S1 (remember-me haché et révoqué, coût de construction, présence dans Phalcon 6). Sinon, portage de notre `Manager` avec les corrections de sécurité. | E8 |
-| Performance de la config | `Phalcon\Config\Config` est jusqu'à 18 fois plus lent en lecture que celui de Phalcon 3 (première résolution d'un service lisant la config : 4,3 → 10 µs). Proposition : une sous-classe `Neutrino\Config\Config` qui lit directement le tableau interne, toujours un `Phalcon\Config\Config`. Voir les mesures d'E2. | E2 / E7 |
 | Compatibilité des données chiffrées | Phalcon 5 déchiffre-t-il les données chiffrées par la 1.3 ? À vérifier par un test, avec une procédure de migration si ce n'est pas le cas. | E7 |
 | Handlers Micro | Utiliser les handlers chargés à la demande de Phalcon (`Micro\Collection::setLazy`) plutôt que notre closure ? Décision sur mesures. | E5 |
 

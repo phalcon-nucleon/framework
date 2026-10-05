@@ -88,7 +88,7 @@ Compiled constants (`dotconst:cache`) are written as `const NAME = ...;`, except
 
 ## Config
 
-`Neutrino\Config\Loader` returns a `Phalcon\Config\Config`. `config:cache` evaluates the configuration: closures and objects are no longer allowed in `config/*.php` (enums are).
+`Neutrino\Config\Loader` returns a `Neutrino\Config\Config`, which extends `Phalcon\Config\Config` (reads with the exact key bypass the Phalcon case-insensitive lookup). Type hints on `Phalcon\Config\Config` keep working. Two differences with Phalcon 5: `path()` returns the default value when the path goes through a scalar value (Phalcon throws an error), and writing a key with another case replaces the previous spelling (Phalcon keeps every spelling, returned by `toArray()`). `config:cache` evaluates the configuration: closures and objects are no longer allowed in `config/*.php` (enums are).
 
 ## Removed
 

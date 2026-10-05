@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Neutrino\Config;
 
-use Phalcon\Config\Config;
-
 /**
  * Loads the application configuration: the compiled file when it exists, the `config/*.php` files otherwise.
  */

@@ -64,6 +64,8 @@ jobs:
           extensions: phalcon-${{ matrix.phalcon }}, apcu, redis, pdo_mysql, pdo_pgsql, pdo_sqlite
           ini-values: apc.enable_cli=1
           coverage: pcov
+      - name: Phalcon version
+        run: php -r 'echo (new Phalcon\Support\Version())->get(), PHP_EOL;'
       - run: composer install --no-interaction --no-progress
       - name: PHPUnit (migrated suites)
         run: php bin/phpunit-migrated --coverage-clover build/logs/clover.xml
@@ -90,6 +92,7 @@ jobs:
         run: |
           composer config platform.ext-phalcon 5.22.1
           composer require --no-interaction --no-progress "phalcon/phalcon:^6.0@RC"
+          php -r 'require "vendor/autoload.php"; echo (new Phalcon\Support\Version())->get(), PHP_EOL;'
       - name: PHPUnit (migrated suites)
         run: php bin/phpunit-migrated
       - name: Summary

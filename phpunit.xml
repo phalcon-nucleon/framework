@@ -14,9 +14,6 @@
         <testsuite name="Assert">
             <directory>tests/Test/Assert</directory>
         </testsuite>
-        <testsuite name="Assets">
-            <directory>tests/Test/Assets</directory>
-        </testsuite>
         <testsuite name="Auth">
             <directory>tests/Test/Auth</directory>
         </testsuite>
@@ -65,11 +62,8 @@
         <testsuite name="Models">
             <directory>tests/Test/Models</directory>
         </testsuite>
-        <testsuite name="Optimizer">
-            <directory>tests/Test/Optimizer</directory>
-        </testsuite>
-        <testsuite name="Preloader">
-            <directory>tests/Test/Preloader</directory>
+        <testsuite name="Optimize">
+            <directory>tests/Test/Optimize</directory>
         </testsuite>
         <testsuite name="Process">
             <directory>tests/Test/Process</directory>
@@ -83,8 +77,20 @@
         <testsuite name="Security">
             <directory>tests/Test/Security</directory>
         </testsuite>
+        <testsuite name="Helpers">
+            <file>tests/Test/Support/ArrFuncTest.php</file>
+            <file>tests/Test/Support/FuncTest.php</file>
+            <file>tests/Test/Support/ObjFuncTest.php</file>
+            <file>tests/Test/Support/PathFuncTest.php</file>
+            <file>tests/Test/Support/StrFuncTest.php</file>
+        </testsuite>
         <testsuite name="Support">
             <directory>tests/Test/Support</directory>
+            <exclude>tests/Test/Support/ArrFuncTest.php</exclude>
+            <exclude>tests/Test/Support/FuncTest.php</exclude>
+            <exclude>tests/Test/Support/ObjFuncTest.php</exclude>
+            <exclude>tests/Test/Support/PathFuncTest.php</exclude>
+            <exclude>tests/Test/Support/StrFuncTest.php</exclude>
         </testsuite>
         <testsuite name="TestCase">
             <directory>tests/Test/TestCase</directory>

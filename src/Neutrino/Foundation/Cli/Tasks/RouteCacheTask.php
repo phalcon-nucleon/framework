@@ -6,7 +6,6 @@ use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
 use Neutrino\Debug\Reflexion;
-use Neutrino\PhpPreloader\Factory;
 use Phalcon\Mvc\Router;
 
 /**
@@ -64,8 +63,7 @@ class RouteCacheTask extends Task
     private function compile(Router $router)
     {
 
-        $str = "<?php\n";
-        $str .= "\$router = \Phalcon\Di::getDefault()->getShared('router');\n";
+        $str = "\$router = \Phalcon\Di::getDefault()->getShared('router');\n";
 
         $fluents = [];
         foreach ([
@@ -107,12 +105,6 @@ class RouteCacheTask extends Task
 
             $str .= "\n;";
         }
-
-        $preloader = (new Factory)->create();
-
-        $stmts = $preloader->getParser()->parse($str);
-        $stmts = $preloader->traverse($stmts);
-        $str = $preloader->prettyPrint($stmts);
 
         return $str;
     }

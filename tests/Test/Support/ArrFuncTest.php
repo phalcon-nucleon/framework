@@ -8,9 +8,8 @@ use Neutrino\Support\Arr;
  * Class ArrTest
  *
  * @package Support
- *
- * @coversDefaultClass \Neutrino\Support\Arr
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\Neutrino\Support\Arr::class)]
 class ArrFuncTest extends \PHPUnit\Framework\TestCase
 {
     public function testAccessible()
@@ -339,23 +338,6 @@ class ArrFuncTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(200, $array);
     }
 
-    public function testSort()
-    {
-        $this->markTestSkipped('Sort not implemented');
-        $array    = [
-            ['name' => 'Desk'],
-            ['name' => 'Chair'],
-        ];
-        $array    = array_values(Arr::sort($array, function ($value) {
-            return $value['name'];
-        }));
-        $expected = [
-            ['name' => 'Chair'],
-            ['name' => 'Desk'],
-        ];
-        $this->assertEquals($expected, $array);
-    }
-
     public function testSortRecursive()
     {
         $array  = [
@@ -410,15 +392,6 @@ class ArrFuncTest extends \PHPUnit\Framework\TestCase
             ],
         ];
         $this->assertEquals($expect, Arr::sortRecursive($array));
-    }
-
-    public function testWhere()
-    {
-        $array = [100, '200', 300, '400', 500];
-        $array = Arr::where($array, function ($value, $key) {
-            return is_string($value);
-        });
-        $this->assertEquals([1 => 200, 3 => 400], $array);
     }
 
     public function testForget()

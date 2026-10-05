@@ -4,7 +4,7 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
-use Neutrino\Config\ConfigPreloader;
+use Neutrino\Config\ConfigCompiler;
 
 /**
  * Class ConfigCacheTask
@@ -25,10 +25,8 @@ class ConfigCacheTask extends Task
     {
         $this->output->write(Decorate::notice(str_pad('Generating configuration cache', 40, ' ')), false);
 
-        $preloader = new ConfigPreloader();
-
         try {
-            $preloader->compile();
+            ConfigCompiler::compile(BASE_PATH);
 
             $this->info("Success");
         } catch (\Exception $e) {

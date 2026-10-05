@@ -51,11 +51,7 @@ class ServerTask extends Task
             // IP validation
             filter_var($host, FILTER_VALIDATE_IP)
             // Domain validation
-            || (PHP_VERSION_ID >= 70000 && filter_var($host, FILTER_VALIDATE_DOMAIN))
-            || (PHP_VERSION_ID < 70000
-                && preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $host) //valid chars check
-                && preg_match("/^.{1,253}$/", $host) //overall length check
-                && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $host))
+            || filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
         )) {
             throw new \Exception('Host [' . $host . '] is not valid.');
         }

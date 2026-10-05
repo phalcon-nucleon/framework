@@ -2,15 +2,14 @@
 namespace Test\Support;
 
 use Neutrino\Support\Obj;
-use Test\TestCase\TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class ObjTest
  *
  * @package Support
- *
- * @coversDefaultClass \Neutrino\Support\Obj
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\Neutrino\Support\Obj::class)]
 class ObjFuncTest extends TestCase
 {
 

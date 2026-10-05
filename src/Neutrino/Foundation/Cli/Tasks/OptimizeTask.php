@@ -4,11 +4,7 @@ namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
-use Neutrino\Optimizer\Composer;
-use Neutrino\PhpPreloader\Exceptions\DirConstantException;
-use Neutrino\PhpPreloader\Exceptions\FileConstantException;
-use Neutrino\PhpPreloader\Factory;
-use Neutrino\Support\Path;
+use Neutrino\Foundation\Optimize\PreloadGenerator;
 
 /**
  * Class OptimizeTask
@@ -17,11 +13,6 @@ use Neutrino\Support\Path;
  */
 class OptimizeTask extends Task
 {
-    /**
-     * @var Composer
-     */
-    private $optimizer;
-
     private $compileTasks = [
         ConfigCacheTask::class,
         DotconstCacheTask::class,
@@ -29,12 +20,17 @@ class OptimizeTask extends Task
     ];
 
     /**
-     * Runs all optimization
+     * Runs all optimizations: authoritative Composer classmap, configuration,
+     * dotconst and routes caches, and the OPcache preload script.
      *
-     * @description Runs all optimization.
+     * @description Runs all optimizations.
      *
-     * @option      -m, --memory: Generate a memory optimized autoloader.
-     * @option      -f, --force: Force optimization.
+     * @option      -f, --force: Force optimization in debug mode.
+     * @option      --no-dump: Do not run `composer dump-autoload`.
+     * @option      --apcu: Use APCu to cache the Composer class lookups.
+     * @option      --no-dev: Exclude require-dev packages from the autoloader.
+     * @option      --composer={path}: Composer binary (default: composer).
+     * @option      --no-preload: Do not generate the OPcache preload script.
      */
     public function mainAction()
     {
@@ -45,129 +41,90 @@ class OptimizeTask extends Task
             return;
         }
 
-        $this->optimizer = $this->getDI()->get(Composer::class, [
-            BASE_PATH . '/bootstrap/compile/loader.php',
-            BASE_PATH . '/vendor/composer',
-            BASE_PATH
-        ]);
-
-        if ($this->hasOption('m', 'memory')) {
-            $this->optimizeMemory();
-        } else {
-            $this->optimizeProcess();
+        if (!$this->hasOption('no-dump') && !$this->dumpAutoload()) {
+            return;
         }
-
-        $this->optimizeClass();
 
         foreach ($this->compileTasks as $compileTask) {
             $this->application->handle([
                 'task' => $compileTask
             ]);
         }
+
+        if (!$this->hasOption('no-preload')) {
+            $this->generatePreload();
+        }
     }
 
-    /**
-     * Build an memory optimized autoloader
-     *
-     * @return bool|int
-     */
-    protected function optimizeMemory()
+    private function dumpAutoload()
     {
-        $this->output->write(Decorate::notice(str_pad('Generating memory optimized auto-loader', 40, ' ')), false);
+        $this->output->write(Decorate::notice(str_pad('Generating authoritative classmap', 40, ' ')), false);
 
-        $return = $this->optimizer->optimizeMemory();
+        $command = [$this->getOption('composer', 'composer'), 'dump-autoload', '--classmap-authoritative', '--quiet'];
+        if ($this->hasOption('apcu')) {
+            $command[] = '--apcu';
+        }
+        if ($this->hasOption('no-dev')) {
+            $command[] = '--no-dev';
+        }
 
-        if ($return) {
-            $this->info('Success');
-        } else {
+        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, BASE_PATH);
+        if ($process === false) {
             $this->error('Error');
+            $this->block(['Cannot run: ' . implode(' ', $command)], 'error');
+
+            return false;
         }
 
-        return $return;
-    }
+        $output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
 
-    /**
-     * Build an process optimized autoloader
-     *
-     * @return bool|int
-     */
-    protected function optimizeProcess()
-    {
-        $this->output->write(Decorate::notice(str_pad('Generating optimized auto-loader', 40, ' ')), false);
-
-        $return = $this->optimizer->optimizeProcess();
-
-        if ($return) {
-            $this->info('Success');
-        } else {
+        if (proc_close($process) !== 0) {
             $this->error('Error');
+            $this->block([implode(' ', $command) . ' failed:', trim($output)], 'error');
+
+            return false;
         }
 
-        return $return;
+        $this->info('Success');
+
+        return true;
     }
 
-    protected function optimizeClass()
+    private function generatePreload()
     {
-        $this->output->write(Decorate::notice(str_pad('Compiling common classes', 40, ' ')), false);
+        $this->output->write(Decorate::notice(str_pad('Generating OPcache preload script', 40, ' ')), false);
 
-        $outputFile = BASE_PATH . '/bootstrap/compile/compile.php';
-        $compileConfigFile = BASE_PATH . '/config/compile.php';
-
-        $preloader = (new Factory())->create();
-
-        $handle = $preloader->prepareOutput($outputFile);
-
-        $files = require __DIR__ . '/Optimize/compile.php';
-
-        if (file_exists($compileConfigFile)) {
-            $files = array_unique(array_map(function ($path) {
-                return Path::normalize($path);
-            }, array_merge($files, require $compileConfigFile)));
-        }
+        $config = isset($this->config->optimize->preload) ? $this->config->optimize->preload->toArray() : [];
 
         try {
-            $parts = [];
-
-            foreach ($files as $file) {
-                $file = Path::normalize($file);
-
-                try {
-                    $stmts = $preloader->parse($file);
-                    $stmts = $preloader->traverse($stmts);
-
-                    $parts = array_merge($parts, $stmts);
-                } catch (DirConstantException $e) {
-                    $this->block([
-                        "Usage of __DIR__ constant is prohibited. Use BASE_PATH . '/path' instead.",
-                        "in : $file"
-                    ], 'error');
-                } catch (FileConstantException $e) {
-                    $this->block([
-                        "Usage of __FILE__ constant is prohibited. Use BASE_PATH . '/path' instead.",
-                        "in : $file"
-                    ], 'error');
-                } catch (\Exception $e) {
-                    $this->block([
-                        $e->getMessage(),
-                        "in : $file"
-                    ], 'error');
-                }
-            }
-
-            fwrite($handle, $preloader->prettyPrint($parts) . PHP_EOL);
-
-            $this->info("Success");
+            $result = (new PreloadGenerator(
+                BASE_PATH,
+                BASE_PATH . '/vendor',
+                isset($config['namespaces']) ? $config['namespaces'] : ['Neutrino\\'],
+                isset($config['paths']) ? $config['paths'] : null,
+                isset($config['excludes']) ? $config['excludes'] : PreloadGenerator::DEFAULT_EXCLUDES
+            ))->generate();
         } catch (\Exception $e) {
-            $this->error("Error");
+            $this->error('Error');
             $this->block([$e->getMessage()], 'error');
 
-        } finally {
-            if (isset($r) && is_resource($r)) {
-                fclose($r);
-            }
-            if (isset($e)) {
-                @unlink($outputFile);
-            }
+            return;
         }
+
+        $this->info('Success');
+        $this->line(sprintf('  %d classes preloaded, %d skipped.', count($result->preloaded), count($result->skipped)));
+
+        foreach ($result->skipped as $class => $reason) {
+            $this->warn("  skipped $class: $reason");
+        }
+
+        $this->line('');
+        $this->line('Recommended php.ini settings for production:');
+        $this->line('  opcache.enable = 1');
+        $this->line('  opcache.validate_timestamps = 0');
+        $this->line('  opcache.preload = ' . $result->file);
+        $this->line('  opcache.preload_user = <the PHP-FPM user>');
     }
 }

@@ -1,318 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method Neutrino\\Assets\\AssetsCompilator\:\:compile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Assets/AssetsCompilator.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\AssetsCompilator\:\:compile\(\) has parameter \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Assets/AssetsCompilator.php
-
-		-
-			message: '#^Binary operation "\." between "/\*\*\\n\* @param \{\.\.\.\*\}…" and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Assets/Closure/DebugPrecompilation.php
-
-		-
-			message: '#^Cannot access offset ''debug'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Assets/Closure/DebugPrecompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\DebugPrecompilation\:\:precompile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Assets/Closure/DebugPrecompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\DebugPrecompilation\:\:precompile\(\) has parameter \$content with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Assets/Closure/DebugPrecompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\GlobalClosurePrecompilation\:\:precompile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Assets/Closure/GlobalClosurePrecompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\GlobalClosurePrecompilation\:\:precompile\(\) has parameter \$content with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Assets/Closure/GlobalClosurePrecompilation.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_keys expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/Closure/GlobalClosurePrecompilation.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_values expects array\<T\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/Closure/GlobalClosurePrecompilation.php
-
-		-
-			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, list given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/Closure/GlobalClosurePrecompilation.php
-
-		-
-			message: '#^Part \$content \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Assets/Closure/GlobalClosurePrecompilation.php
-
-		-
-			message: '#^Binary operation "\." between "/\*\*\\n\* @param …" and array\<string\>\|string\|null results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Assets/Closure/JqueryIdPrecompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\JqueryIdPrecompilation\:\:precompile\(\) has parameter \$content with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Assets/Closure/JqueryIdPrecompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\JqueryIdPrecompilation\:\:precompile\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Assets/Closure/JqueryIdPrecompilation.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace_callback expects array\<float\|int\|string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/Closure/JqueryIdPrecompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\Precompilation\:\:__construct\(\) has parameter \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Assets/Closure/Precompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\Precompilation\:\:precompile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Assets/Closure/Precompilation.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\Closure\\Precompilation\:\:precompile\(\) has parameter \$content with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Assets/Closure/Precompilation.php
-
-		-
-			message: '#^Property Neutrino\\Assets\\Closure\\Precompilation\:\:\$options has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Assets/Closure/Precompilation.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 2
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/\*'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Cannot access offset ''compiledCode'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Cannot access offset ''directories'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Cannot access offset ''externs_url'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Cannot access offset ''js_externs'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Cannot access offset ''level'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 2
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\ClosureCompiler\:\:applyPrecompilation\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\ClosureCompiler\:\:applyPrecompilation\(\) has parameter \$content with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\ClosureCompiler\:\:applyPrecompilation\(\) has parameter \$precompilators with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\ClosureCompiler\:\:compile\(\) has parameter \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\ClosureCompiler\:\:extractJsCode\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\ClosureCompiler\:\:extractJsCode\(\) has parameter \$directories with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\ClosureCompiler\:\:getDirFiles\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\ClosureCompiler\:\:getDirFiles\(\) has parameter \$path with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Parameter \#1 \$array of function usort expects list\<string\>, list\<string\>\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Parameter \#1 \$directories of method Neutrino\\Assets\\ClosureCompiler\:\:extractJsCode\(\) expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Parameter \#1 \$filename of function file_get_contents expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Parameter \#1 \$filename of function is_dir expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Parameter \#1 \$filename of function is_file expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Parameter \#1 \$parameters of method Neutrino\\HttpClient\\Request\:\:setParams\(\) expects array, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Parameter \#2 \$precompilators of method Neutrino\\Assets\\ClosureCompiler\:\:applyPrecompilation\(\) expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Part \$response\-\>getHeader\(\)\-\>get\(''Status''\) \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Assets/ClosureCompiler.php
-
-		-
-			message: '#^Binary operation "\." between ''"'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Assets/SassCompiler.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Assets/SassCompiler.php
-
-		-
-			message: '#^Method Neutrino\\Assets\\SassCompiler\:\:compile\(\) has parameter \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Assets/SassCompiler.php
-
-		-
-			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/SassCompiler.php
-
-		-
-			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Assets/SassCompiler.php
-
-		-
 			message: '#^Binary operation "\." between ''\\\\'' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -469,7 +157,7 @@ parameters:
 			path: src/Neutrino/Auth/Manager.php
 
 		-
-			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects string, mixed given\.$#'
+			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects int\|string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 2
 			path: src/Neutrino/Auth/Manager.php
@@ -537,12 +225,6 @@ parameters:
 		-
 			message: '#^Method Neutrino\\Cli\\Output\\Block\:\:draw\(\) has parameter \$lines with no type specified\.$#'
 			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Cli/Output/Block.php
-
-		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:get\(\) expects array\|ArrayAccess, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Cli/Output/Block.php
 
@@ -1183,7 +865,7 @@ parameters:
 			path: src/Neutrino/Cli/Output/Table.php
 
 		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects array, mixed given\.$#'
+			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Cli/Output/Table.php
@@ -1195,13 +877,13 @@ parameters:
 			path: src/Neutrino/Cli/Output/Table.php
 
 		-
-			message: '#^Parameter \#1 \$value of static method Neutrino\\Support\\Str\:\:upper\(\) expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$string of function mb_strtoupper expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Cli/Output/Table.php
 
 		-
-			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects string, mixed given\.$#'
+			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects int\|string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Cli/Output/Table.php
@@ -1549,13 +1231,7 @@ parameters:
 			path: src/Neutrino/Cli/Task.php
 
 		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Cli/Task.php
-
-		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:has\(\) expects array\|ArrayAccess, mixed given\.$#'
+			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 2
 			path: src/Neutrino/Cli/Task.php
@@ -1583,102 +1259,6 @@ parameters:
 			identifier: missingType.property
 			count: 1
 			path: src/Neutrino/Cli/Task.php
-
-		-
-			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/bootstrap/compile…'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/config/\*\.php'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Cannot call method parse\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Cannot call method prepareOutput\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Cannot call method prettyPrint\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Cannot call method setName\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Cannot call method traverse\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Constant BASE_PATH not found\.$#'
-			identifier: constant.notFound
-			count: 2
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\ConfigPreloader\:\:compile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Parameter \#1 \$stream of function fwrite expects resource, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Parameter \#2 \$data of function fwrite expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Property Neutrino\\Config\\ConfigPreloader\:\:\$preloader has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Property Neutrino\\Config\\ConfigPreloader\:\:\$returnConverter has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Config/ConfigPreloader.php
-
-		-
-			message: '#^Variable \$file might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: src/Neutrino/Config/ConfigPreloader.php
 
 		-
 			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
@@ -1739,60 +1319,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Config/Loader.php
-
-		-
-			message: '#^Method Neutrino\\Config\\ReturnConverter\:\:__construct\(\) has parameter \$variable with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
-
-		-
-			message: '#^Method Neutrino\\Config\\ReturnConverter\:\:afterTraverse\(\) has parameter \$nodes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
-
-		-
-			message: '#^Method Neutrino\\Config\\ReturnConverter\:\:afterTraverse\(\) should return array\<PhpParser\\Node\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
-
-		-
-			message: '#^Method Neutrino\\Config\\ReturnConverter\:\:setName\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
-
-		-
-			message: '#^Parameter \#1 \$name of class PhpParser\\Node\\Expr\\Variable constructor expects PhpParser\\Node\\Expr\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
-
-		-
-			message: '#^Parameter \#1 \$value of class PhpParser\\Node\\Scalar\\String_ constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
-
-		-
-			message: '#^Parameter \#2 \$expr of class PhpParser\\Node\\Expr\\Assign constructor expects PhpParser\\Node\\Expr, PhpParser\\Node\\Expr\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
-
-		-
-			message: '#^Property Neutrino\\Config\\ReturnConverter\:\:\$name has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
-
-		-
-			message: '#^Property Neutrino\\Config\\ReturnConverter\:\:\$variable has no type specified\.$#'
-			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Config/ReturnConverter.php
 
 		-
 			message: '#^Access to property \$migrations on an unknown class Phalcon\\Config\.$#'
@@ -2353,7 +1879,7 @@ parameters:
 			path: src/Neutrino/Database/Migrations/Migrator.php
 
 		-
-			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:get\(\) expects string, mixed given\.$#'
+			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:get\(\) expects array\<\(int\|string\)\>\|int\|string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Database/Migrations/Migrator.php
@@ -2635,7 +2161,7 @@ parameters:
 			path: src/Neutrino/Database/Migrations/Storage/FileStorage.php
 
 		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:pluck\(\) expects array\|ArrayAccess, mixed given\.$#'
+			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:pluck\(\) expects iterable, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Database/Migrations/Storage/FileStorage.php
@@ -3400,12 +2926,6 @@ parameters:
 			message: '#^Method Neutrino\\Database\\Schema\\Builder\:\:listColumnsName\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
-			path: src/Neutrino/Database/Schema/Builder.php
-
-		-
-			message: '#^Parameter \#1 \$blueprint of method Neutrino\\Database\\Schema\\Builder\:\:build\(\) expects Neutrino\\Database\\Schema\\Blueprint, mixed given\.$#'
-			identifier: argument.type
-			count: 6
 			path: src/Neutrino/Database/Schema/Builder.php
 
 		-
@@ -4855,12 +4375,6 @@ parameters:
 			path: src/Neutrino/Dotconst/Extensions/PhpConst.php
 
 		-
-			message: '#^Binary operation "\." between ''/'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Dotconst/Extensions/PhpDir.php
-
-		-
 			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 3
@@ -4933,12 +4447,6 @@ parameters:
 			path: src/Neutrino/Dotconst/Helper.php
 
 		-
-			message: '#^Binary operation "\+" between mixed and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
 			message: '#^Binary operation "\." between ''Failed parse file \: '' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -4954,12 +4462,6 @@ parameters:
 			message: '#^Cannot access offset mixed on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 8
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Comparison operation "\<" between int\<80300, 80699\> and 70000 is always false\.$#'
-			identifier: smaller.alwaysFalse
-			count: 1
 			path: src/Neutrino/Dotconst/Helper.php
 
 		-
@@ -5035,63 +4537,15 @@ parameters:
 			path: src/Neutrino/Dotconst/Helper.php
 
 		-
-			message: '#^Parameter \#1 \$array of function array_slice expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$array of function current expects array\|object, mixed given\.$#'
-			identifier: argument.type
-			count: 10
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$array of function end expects array\|object, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$array of function key expects array\|object, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$array of function next expects array\|object, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$array of function reset expects array\|object, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
 			message: '#^Parameter \#1 \$array of function uasort expects TArray of array\<TKey of int\|string, mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Dotconst/Helper.php
 
 		-
-			message: '#^Parameter \#1 \$callback of function call_user_func expects callable\(\)\: mixed, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
 			message: '#^Parameter \#1 \$filename of function parse_ini_file expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'
-			identifier: argument.type
-			count: 2
 			path: src/Neutrino/Dotconst/Helper.php
 
 		-
@@ -5102,18 +4556,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#2 \$callback of function uasort expects callable\(mixed, mixed\)\: int, Closure\(mixed, mixed\)\: mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#2 \$offset of function array_slice expects int, float\|int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Dotconst/Helper.php
-
-		-
-			message: '#^Parameter \#3 \$length of function array_slice expects int\|null, float\|int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Dotconst/Helper.php
@@ -5139,7 +4581,7 @@ parameters:
 		-
 			message: '#^Possibly invalid array key type mixed\.$#'
 			identifier: offsetAccess.invalidOffset
-			count: 5
+			count: 1
 			path: src/Neutrino/Dotconst/Helper.php
 
 		-
@@ -5611,7 +5053,7 @@ parameters:
 			path: src/Neutrino/Error/Helper.php
 
 		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:isAssoc\(\) expects array, mixed given\.$#'
+			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:isAssoc\(\) expects array\<mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Error/Helper.php
@@ -5977,18 +5419,6 @@ parameters:
 			path: src/Neutrino/Error/Writer/Logger.php
 
 		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:get\(\) expects array\|ArrayAccess, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Error/Writer/Logger.php
-
-		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:has\(\) expects array\|ArrayAccess, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Error/Writer/Logger.php
-
-		-
 			message: '#^Parameter \#1 \$code of static method Neutrino\\Error\\Helper\:\:getLogType\(\) expects int, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -6136,18 +5566,6 @@ parameters:
 			message: '#^Method Neutrino\\Error\\Writer\\View\:\:send\(\) has parameter \$content with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
-			path: src/Neutrino/Error/Writer/View.php
-
-		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:get\(\) expects array\|ArrayAccess, mixed given\.$#'
-			identifier: argument.type
-			count: 5
-			path: src/Neutrino/Error/Writer/View.php
-
-		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:has\(\) expects array\|ArrayAccess, mixed given\.$#'
-			identifier: argument.type
-			count: 5
 			path: src/Neutrino/Error/Writer/View.php
 
 		-
@@ -6337,330 +5755,6 @@ parameters:
 			path: src/Neutrino/Foundation/Bootstrap.php
 
 		-
-			message: '#^Access to property \$assets on an unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 5
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Binary operation "\." between ''External '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Binary operation "\." between ''Internal '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot access offset ''compile'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot access offset ''errors'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot access offset ''externs_url'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot access offset ''file'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot access offset ''statistics'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot access offset ''warnings'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot access offset mixed on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot access property \$js on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot call method compile\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Cannot call method toArray\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:extractExternsErrors\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:extractExternsErrors\(\) has parameter \$externs with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:extractExternsErrors\(\) has parameter \$result with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:formatErrorsOrWarnings\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:formatErrorsOrWarnings\(\) has parameter \$item with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:mainAction\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:outputErrors\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:outputErrors\(\) has parameter \$display with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:outputErrors\(\) has parameter \$items with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:outputErrors\(\) has parameter \$options with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsJsTask\:\:outputErrors\(\) has parameter \$type with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_values expects array\<T\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Parameter \#1 \$datas of method Neutrino\\Cli\\Task\:\:table\(\) expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Parameter \#2 \$haystack of function in_array expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Parameter \#2 \$style of method Neutrino\\Cli\\Task\:\:block\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Part \$count \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Part \$file \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 3
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsJsTask.php
-
-		-
-			message: '#^Access to property \$assets on an unknown class Phalcon\\Config\.$#'
-			identifier: class.notFound
-			count: 5
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Binary operation "\." between ''\-\-sourcemap\="'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Cannot access property \$files on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Cannot access property \$options on mixed\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Cannot access property \$sass on mixed\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Cannot access property \$sourcemap on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Cannot access property \$style on mixed\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Cannot call method compile\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsSassTask\:\:compile\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsSassTask\:\:compile\(\) has parameter \$dest with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsSassTask\:\:compile\(\) has parameter \$src with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsSassTask\:\:getSassStyle\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsSassTask\:\:getSourcemap\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\AssetsSassTask\:\:mainAction\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Part \$dest \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Part \$src \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
-			message: '#^Part \$style \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/AssetsSassTask.php
-
-		-
 			message: '#^Binary operation "\." between mixed and ''/''\|''\\\\'' results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -6685,16 +5779,22 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/ClearCompiledTask.php
 
 		-
+			message: '#^Constant BASE_PATH not found\.$#'
+			identifier: constant.notFound
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/ConfigCacheTask.php
+
+		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\ConfigCacheTask\:\:mainAction\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/ConfigCacheTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/bootstrap/compile…'' results in an error\.$#'
-			identifier: binaryOp.invalid
+			message: '#^Parameter \#1 \$basePath of static method Neutrino\\Config\\ConfigCompiler\:\:compile\(\) expects string, mixed given\.$#'
+			identifier: argument.type
 			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ConfigClearTask.php
+			path: src/Neutrino/Foundation/Cli/Tasks/ConfigCacheTask.php
 
 		-
 			message: '#^Constant BASE_PATH not found\.$#'
@@ -6705,6 +5805,12 @@ parameters:
 		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\ConfigClearTask\:\:mainAction\(\) has no return type specified\.$#'
 			identifier: missingType.return
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/ConfigClearTask.php
+
+		-
+			message: '#^Parameter \#1 \$basePath of static method Neutrino\\Config\\ConfigCompiler\:\:clear\(\) expects string, mixed given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/ConfigClearTask.php
 
@@ -6853,7 +5959,7 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/HelperTask.php
 
 		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects array, mixed given\.$#'
+			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 2
 			path: src/Neutrino/Foundation/Cli/Tasks/HelperTask.php
@@ -6991,26 +6097,50 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/ListTask.php
 
 		-
+			message: '#^Access to property \$optimize on an unknown class Phalcon\\Config\.$#'
+			identifier: class.notFound
+			count: 2
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
 			identifier: foreach.nonIterable
-			count: 2
+			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/bootstrap/compile…'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
-
-		-
-			message: '#^Binary operation "\." between mixed and ''/config/compile\.php'' results in an error\.$#'
+			message: '#^Binary operation "\." between mixed and ''/vendor'' results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Binary operation "\." between mixed and ''/vendor/composer'' results in an error\.$#'
-			identifier: binaryOp.invalid
+			message: '#^Cannot access offset ''excludes'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Cannot access offset ''namespaces'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Cannot access offset ''paths'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Cannot access property \$preload on mixed\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on mixed\.$#'
+			identifier: method.nonObject
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
@@ -7023,7 +6153,19 @@ parameters:
 		-
 			message: '#^Constant BASE_PATH not found\.$#'
 			identifier: constant.notFound
-			count: 5
+			count: 3
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\OptimizeTask\:\:dumpAutoload\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\OptimizeTask\:\:generatePreload\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
@@ -7033,25 +6175,37 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\OptimizeTask\:\:optimizeClass\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
-
-		-
-			message: '#^Parameter \#1 \$stmts of method Neutrino\\PhpPreloader\\Preloader\:\:traverse\(\) expects array\<PhpParser\\Node\>, array\<PhpParser\\Node\>\|null given\.$#'
+			message: '#^Parameter \#1 \$basePath of class Neutrino\\Foundation\\Optimize\\PreloadGenerator constructor expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Parameter \#1 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
+			message: '#^Parameter \#1 \$command of function proc_open expects list\<string\>\|string, list\{0\: string\|null, 1\: ''dump\-autoload'', 2\: ''\-\-classmap…'', 3\: ''\-\-quiet'', 4\?\: ''\-\-apcu''\|''\-\-no\-dev'', 5\?\: ''\-\-no\-dev''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
 		-
-			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
+			message: '#^Parameter \#3 \$namespaces of class Neutrino\\Foundation\\Optimize\\PreloadGenerator constructor expects list\<string\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Parameter \#4 \$cwd of function proc_open expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Parameter \#4 \$paths of class Neutrino\\Foundation\\Optimize\\PreloadGenerator constructor expects list\<string\>\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
+
+		-
+			message: '#^Parameter \#5 \$excludes of class Neutrino\\Foundation\\Optimize\\PreloadGenerator constructor expects list\<string\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
@@ -7059,12 +6213,6 @@ parameters:
 		-
 			message: '#^Property Neutrino\\Foundation\\Cli\\Tasks\\OptimizeTask\:\:\$compileTasks has no type specified\.$#'
 			identifier: missingType.property
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
-
-		-
-			message: '#^Property Neutrino\\Foundation\\Cli\\Tasks\\OptimizeTask\:\:\$optimizer \(Neutrino\\Optimizer\\Composer\) does not accept mixed\.$#'
-			identifier: assign.propertyType
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/OptimizeTask.php
 
@@ -7147,12 +6295,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
 
 		-
-			message: '#^Parameter \#1 \$stmts of method Neutrino\\PhpPreloader\\Preloader\:\:traverse\(\) expects array\<PhpParser\\Node\>, array\<PhpParser\\Node\\Stmt\>\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/RouteCacheTask.php
-
-		-
 			message: '#^Part \$str \(mixed\) of encapsed string cannot be cast to string\.$#'
 			identifier: encapsedStringPart.nonString
 			count: 1
@@ -7213,7 +6355,7 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/RouteListTask.php
 
 		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects array, mixed given\.$#'
+			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/RouteListTask.php
@@ -7263,18 +6405,6 @@ parameters:
 		-
 			message: '#^Cannot call method watch\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
-
-		-
-			message: '#^Comparison operation "\<" between int\<80300, 80699\> and 70000 is always false\.$#'
-			identifier: smaller.alwaysFalse
-			count: 1
-			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
-
-		-
-			message: '#^Comparison operation "\>\=" between int\<80300, 80699\> and 70000 is always true\.$#'
-			identifier: greaterOrEqual.alwaysTrue
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
 
@@ -7381,12 +6511,6 @@ parameters:
 			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
 
 		-
-			message: '#^Result of && is always false\.$#'
-			identifier: booleanAnd.alwaysFalse
-			count: 3
-			path: src/Neutrino/Foundation/Cli/Tasks/ServerTask.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between true and non\-falsy\-string will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 2
@@ -7425,6 +6549,12 @@ parameters:
 		-
 			message: '#^Method Neutrino\\Foundation\\Cli\\Tasks\\ViewClearTask\:\:rm\(\) has parameter \$path with no type specified\.$#'
 			identifier: missingType.parameter
+			count: 1
+			path: src/Neutrino/Foundation/Cli/Tasks/ViewClearTask.php
+
+		-
+			message: '#^Parameter \#1 \$path of static method Neutrino\\Support\\Path\:\:normalize\(\) expects string, mixed given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Foundation/Cli/Tasks/ViewClearTask.php
 
@@ -8567,312 +7697,6 @@ parameters:
 			identifier: staticClassAccess.privateMethod
 			count: 1
 			path: src/Neutrino/Model.php
-
-		-
-			message: '#^Access to constant VERSION_MAJOR on an unknown class Phalcon\\Version\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Access to constant VERSION_MEDIUM on an unknown class Phalcon\\Version\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Binary operation "\." between ''\$loader\-…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 4
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Binary operation "\." between ''/'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Call to static method getPart\(\) on an unknown class Phalcon\\Version\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\:\:generateOutput\(\) has parameter \$classmap with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\:\:generateOutput\(\) has parameter \$directories with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\:\:generateOutput\(\) has parameter \$files with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\:\:generateOutput\(\) has parameter \$namespaces with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\:\:prepareOutput\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\:\:prepareOutput\(\) has parameter \$items with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Property Neutrino\\Optimizer\\Composer\:\:\$autoload \(Neutrino\\Optimizer\\Composer\\Autoload\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Property Neutrino\\Optimizer\\Composer\:\:\$basePath \(string\) does not accept string\|null\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Property Neutrino\\Optimizer\\Composer\:\:\$basePath \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 2
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Property Neutrino\\Optimizer\\Composer\:\:\$composer \(Neutrino\\Optimizer\\Composer\\Script\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/Neutrino/Optimizer/Composer.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Autoload\:\:getAutoloadContent\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Autoload.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Autoload\:\:getAutoloadContent\(\) should return array but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Autoload.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Autoload\:\:getClassmap\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Autoload.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Autoload\:\:getFiles\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Autoload.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Autoload\:\:getNamespaces\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Autoload.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Autoload\:\:getPsr4\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Autoload.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Binary operation "\." between '' \-\-'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Call to function is_null\(\) with string will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Script\:\:__construct\(\) has parameter \$basePath with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Script\:\:buildComposerCmd\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Script\:\:buildComposerCmd\(\) has parameter \$action with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Script\:\:buildComposerCmd\(\) has parameter \$options with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Script\:\:callComposer\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Script\:\:callComposer\(\) has parameter \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Script\:\:dumpautoload\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Method Neutrino\\Optimizer\\Composer\\Script\:\:setBasePath\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Parameter \#1 \$basePath of method Neutrino\\Optimizer\\Composer\\Script\:\:setBasePath\(\) expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Parameter \#1 \$command of function proc_open expects list\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Parameter \#1 \$process of function proc_close expects resource, resource\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Property Neutrino\\Optimizer\\Composer\\Script\:\:\$basePath \(string\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/Neutrino/Optimizer/Composer/Script.php
-
-		-
-			message: '#^Access to undefined constant PhpParser\\ParserFactory\:\:PREFER_PHP7\.$#'
-			identifier: classConstant.notFound
-			count: 1
-			path: src/Neutrino/PhpPreloader/Factory.php
-
-		-
-			message: '#^Call to an undefined method PhpParser\\ParserFactory\:\:create\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Neutrino/PhpPreloader/Factory.php
-
-		-
-			message: '#^Method Neutrino\\PhpPreloader\\Factory\:\:getParser\(\) should return PhpParser\\Parser but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/PhpPreloader/Factory.php
-
-		-
-			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Neutrino/PhpPreloader/Preloader.php
-
-		-
-			message: '#^Comparison operation "\<" between int\<80300, 80699\> and 70000 is always false\.$#'
-			identifier: smaller.alwaysFalse
-			count: 1
-			path: src/Neutrino/PhpPreloader/Preloader.php
-
-		-
-			message: '#^Parameter \#1 \$stmts of method Neutrino\\PhpPreloader\\Preloader\:\:traverse\(\) expects array\<PhpParser\\Node\>, array\<PhpParser\\Node\>\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/PhpPreloader/Preloader.php
-
-		-
-			message: '#^Result of && is always false\.$#'
-			identifier: booleanAnd.alwaysFalse
-			count: 1
-			path: src/Neutrino/PhpPreloader/Preloader.php
-
-		-
-			message: '#^Method Neutrino\\PhpPreloader\\Visitors\\ArrayShortConverterVisitor\:\:leaveNode\(\) should return array\<PhpParser\\Node\>\|int\|PhpParser\\Node\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 2
-			path: src/Neutrino/PhpPreloader/Visitors/ArrayShortConverterVisitor.php
-
-		-
-			message: '#^Method Neutrino\\PhpPreloader\\Visitors\\DirConstVisitor\:\:enterNode\(\) should return array\<PhpParser\\Node\>\|int\|PhpParser\\Node\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: src/Neutrino/PhpPreloader/Visitors/DirConstVisitor.php
-
-		-
-			message: '#^Method Neutrino\\PhpPreloader\\Visitors\\FileConstVisitor\:\:enterNode\(\) should return array\<PhpParser\\Node\>\|int\|PhpParser\\Node\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: src/Neutrino/PhpPreloader/Visitors/FileConstVisitor.php
-
-		-
-			message: '#^Method Neutrino\\PhpPreloader\\Visitors\\UseRemoverVisitor\:\:leaveNode\(\) should return array\<PhpParser\\Node\>\|int\|PhpParser\\Node\|null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: src/Neutrino/PhpPreloader/Visitors/UseRemoverVisitor.php
 
 		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
@@ -10027,12 +8851,6 @@ parameters:
 			path: src/Neutrino/Repositories/Repository.php
 
 		-
-			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:fetch\(\) expects string, int given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Repositories/Repository.php
-
-		-
 			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -10187,426 +9005,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Neutrino/Security/RateLimiter.php
-
-		-
-			message: '#^Argument of an invalid type array\|ArrayAccess supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 2
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Call to function is_array\(\) with string will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Call to function is_null\(\) with array\|string will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Call to function is_null\(\) with string will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 4
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Cannot access offset string on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Default value of the parameter \#2 \$depth \(float\) of method Neutrino\\Support\\Arr\:\:flatten\(\) is incompatible with type int\.$#'
-			identifier: parameter.defaultValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:add\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:add\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:collapse\(\) has parameter \$array with generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:collapse\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:collapse\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:divide\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:divide\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:dot\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:dot\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:except\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:except\(\) has parameter \$keys with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:except\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:exists\(\) has parameter \$array with generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:exists\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:explodePluckParameters\(\) has parameter \$key with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:explodePluckParameters\(\) has parameter \$value with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:explodePluckParameters\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:fetch\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:first\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:flatten\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:flatten\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:forget\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:forget\(\) has parameter \$keys with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:get\(\) has parameter \$array with generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:get\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:has\(\) has parameter \$array with generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:has\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:has\(\) has parameter \$keys with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:isAssoc\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:last\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:map\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:map\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:only\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:only\(\) has parameter \$keys with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:only\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:pluck\(\) has parameter \$array with generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:pluck\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:pluck\(\) has parameter \$key with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:pluck\(\) has parameter \$value with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:pluck\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:prepend\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:prepend\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:pull\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:read\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:set\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:set\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:set\(\) should return array but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:sortRecursive\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:sortRecursive\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:where\(\) has parameter \$array with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Arr\:\:where\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_flip expects array\<int\|string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#1 \$array of function sort expects an array of values castable to string and float, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:exists\(\) expects array\|ArrayAccess, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#1 \$array of static method Neutrino\\Support\\Arr\:\:get\(\) expects array\|ArrayAccess, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#2 \$flags of function ksort expects int, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#2 \$flags of function sort expects int, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:exists\(\) expects int\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#2 \$key of static method Neutrino\\Support\\Arr\:\:get\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#2 \$string of function explode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Parameter &\$array by\-ref type of method Neutrino\\Support\\Arr\:\:set\(\) expects array, mixed given\.$#'
-			identifier: parameterByRef.type
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: array.invalidKey
-			count: 1
-			path: src/Neutrino/Support/Arr.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
-			path: src/Neutrino/Support/Arr.php
 
 		-
 			message: '#^Call to method getRealSQLStatement\(\) on an unknown class Phalcon\\Db\\Adapter\.$#'
@@ -10891,108 +9289,6 @@ parameters:
 			path: src/Neutrino/Support/Model/Eachable.php
 
 		-
-			message: '#^Call to function is_null\(\) with array\|string will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 2
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:fetch\(\) has parameter \$object with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:fetch\(\) has parameter \$property with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:fetch\(\) should return null but returns mixed\.$#'
-			identifier: return.type
-			count: 2
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:fill\(\) has parameter \$key with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:get\(\) has parameter \$key with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:read\(\) has parameter \$object with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:read\(\) has parameter \$property with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:read\(\) should return null but returns mixed\.$#'
-			identifier: return.type
-			count: 3
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Obj\:\:set\(\) has parameter \$key with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Parameter \#1 \$object_or_class of function property_exists expects object\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Parameter \#2 \$property of function property_exists expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Obj.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Path\:\:findRelative\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Support/Path.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Path\:\:findRelative\(\) has parameter \$frompath with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Path.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Path\:\:findRelative\(\) has parameter \$topath with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Path.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Path\:\:normalize\(\) has parameter \$path with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Path.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: src/Neutrino/Support/Path.php
-
-		-
 			message: '#^Call to an undefined method Phalcon\\Di\\DiInterface\:\:setRaw\(\)\.$#'
 			identifier: method.notFound
 			count: 2
@@ -11075,204 +9371,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Neutrino/Support/SimpleProvider.php
-
-		-
-			message: '#^Cannot access offset string on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 10
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Cannot call method bytes\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Constant MCRYPT_DEV_URANDOM not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Function mcrypt_create_iv not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Instantiated class Phalcon\\Security\\Random not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:ascii\(\) should return string but returns string\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:callRandom\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:callRandom\(\) has parameter \$size with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:camel\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:capitalize\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:charsArray\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:charsArray\(\) should return array but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:contains\(\) has parameter \$needles with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:endsWith\(\) has parameter \$needles with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:normalizePath\(\) has parameter \$path with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:parseCallback\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:snake\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:startsWith\(\) has parameter \$needles with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Method Neutrino\\Support\\Str\:\:studly\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$length of function Sodium\\randombytes_buf expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$length of function openssl_random_pseudo_bytes expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$length of function random_bytes expects int\<1, max\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$search of function str_replace expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$string of function base64_encode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$string of function mb_strtolower expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Neutrino\\Support\\Str\:\:length\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Neutrino\\Support\\Str\:\:lower\(\) expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#2 \$needle of function mb_strpos expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Neutrino/Support/Str.php
-
-		-
-			message: '#^Variable \$result might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: src/Neutrino/Support/Str.php
 
 		-
 			message: '#^PHPDoc tag @property\-read for property Neutrino\\Support\\Traits\\InjectionAwareTrait\:\:\$config contains generic interface ArrayAccess but does not specify its types\: TKey, TValue$#'

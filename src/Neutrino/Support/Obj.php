@@ -1,35 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support;
 
-class Obj
+use Closure;
+use stdClass;
+
+/**
+ * Object helpers, with "dot" notation support for nested properties.
+ */
+final class Obj
 {
     /**
-     * Fill in data where it's missing.
+     * Set a property using "dot" notation, only if it is not already set.
      *
-     * @param  mixed        $target
-     * @param  string|array $key
-     * @param  mixed        $value
-     *
-     * @return mixed
+     * @param array<array-key>|string|int|null $key
      */
-    public static function fill(&$target, $key, $value)
+    public static function fill(object &$target, array|string|int|null $key, mixed $value): object
     {
         return self::set($target, $key, $value, false);
     }
 
     /**
-     * Get an item from an object.
-     *
-     * @param      $object
-     * @param      $property
-     * @param null $default
-     *
-     * @return null
+     * Get a property (no "dot" notation). Null values are returned.
      */
-    public static function read($object, $property, $default = null)
+    public static function read(?object $object, ?string $property, mixed $default = null): mixed
     {
-        if (is_null($object)) {
+        if ($object === null || $property === null) {
             return self::value($default);
         }
 
@@ -41,48 +39,37 @@ class Obj
     }
 
     /**
-     * Get an item, no null, from an object.
-     *
-     * @param      $object
-     * @param      $property
-     * @param null $default
-     *
-     * @return null
+     * Get a property (no "dot" notation). Null values return the default.
      */
-    public static function fetch($object, $property, $default = null)
+    public static function fetch(?object $object, ?string $property, mixed $default = null): mixed
     {
-        if (is_null($object)) {
+        if ($object === null || $property === null) {
             return self::value($default);
         }
 
-        return isset($object->$property) ? $object->$property : self::value($default);
+        return $object->$property ?? self::value($default);
     }
 
     /**
-     * Get an item from an array or object using "dot" notation.
+     * Get a property using "dot" notation.
      *
-     * @param  mixed        $target
-     * @param  string|array $key
-     * @param  mixed        $default
-     *
-     * @return mixed
+     * @param array<array-key>|string|int|null $key
      */
-    public static function get($target, $key, $default = null)
+    public static function get(mixed $target, array|string|int|null $key, mixed $default = null): mixed
     {
-        if (is_null($key) || !is_object($target)) {
+        if ($key === null || !is_object($target)) {
             return self::value($default);
         }
 
         if (!is_array($key)) {
-            if (isset($target->{$key}) || property_exists($target, $key)) {
+            if (isset($target->{$key}) || property_exists($target, (string) $key)) {
                 return $target->{$key};
             }
 
-            $keys = explode('.', $key);
-        } else {
-            $keys = $key;
+            $key = explode('.', (string) $key);
         }
-        foreach ($keys as $segment) {
+
+        foreach ($key as $segment) {
             if (is_object($target) && isset($target->{$segment})) {
                 $target = $target->{$segment};
             } else {
@@ -94,23 +81,19 @@ class Obj
     }
 
     /**
-     * Set an item on an array or object using dot notation.
+     * Set a property using "dot" notation. Missing intermediate properties
+     * are created as stdClass objects.
      *
-     * @param  mixed        $target
-     * @param  string|array $key
-     * @param  mixed        $value
-     * @param  bool         $overwrite
-     *
-     * @return mixed
+     * @param array<array-key>|string|int|null $key
      */
-    public static function set(&$target, $key, $value, $overwrite = true)
+    public static function set(object &$target, array|string|int|null $key, mixed $value, bool $overwrite = true): object
     {
-        if (is_null($key)) {
+        if ($key === null) {
             return $target;
         }
 
         if (!is_array($key)) {
-            if (isset($target->{$key}) || property_exists($target, $key)) {
+            if (isset($target->{$key}) || property_exists($target, (string) $key)) {
                 if ($overwrite) {
                     $target->{$key} = self::value($value);
                 }
@@ -118,46 +101,37 @@ class Obj
                 return $target;
             }
 
-            $keys = explode('.', $key);
-        } else {
-            $keys = $key;
+            $key = explode('.', (string) $key);
         }
 
         $keep = $target;
 
-        while (count($keys) > 1) {
-            $key = array_shift($keys);
+        while (count($key) > 1) {
+            $segment = array_shift($key);
 
-            // If the key doesn't exist at this depth, we will just create an empty array
-            // to hold the next value, allowing us to create the arrays to hold final
-            // values at the correct depth. Then we'll keep digging into the array.
-            if (!isset($target->{$key}) || !is_object($target->{$key}) && $overwrite) {
-                $target->{$key} = new \stdClass;
-            } elseif (!is_object($target->{$key})) {
+            if (!isset($target->{$segment}) || (!is_object($target->{$segment}) && $overwrite)) {
+                $target->{$segment} = new stdClass();
+            } elseif (!is_object($target->{$segment})) {
                 return $target;
             }
 
-            $target = &$target->{$key};
+            $target = &$target->{$segment};
         }
 
+        $segment = array_shift($key);
 
-        $key = array_shift($keys);
-        if (!isset($target->{$key}) || $overwrite) {
-            $target->{$key} = self::value($value);
+        if (!isset($target->{$segment}) || $overwrite) {
+            $target->{$segment} = self::value($value);
         }
 
         return $keep;
     }
 
     /**
-     * Return the default value of the given value.
-     *
-     * @param  mixed $value
-     *
-     * @return mixed
+     * Return the default value of the given value (closures are called).
      */
-    public static function value($value)
+    public static function value(mixed $value): mixed
     {
-        return $value instanceof \Closure ? $value() : $value;
+        return $value instanceof Closure ? $value() : $value;
     }
 }

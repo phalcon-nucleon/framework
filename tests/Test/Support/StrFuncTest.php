@@ -2,23 +2,21 @@
 namespace Test\Support;
 
 use Neutrino\Support\Str;
-use Test\TestCase\TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class StrTest
  *
  * @package Support
- *
- * @coversDefaultClass \Neutrino\Support\Str
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\Neutrino\Support\Str::class)]
 class StrFuncTest extends TestCase
 {
 
     /**
      * Test the Str::words method.
-     *
-     * @group laravel
      */
+    #[\PHPUnit\Framework\Attributes\Group('laravel')]
     public function testStringCanBeLimitedByWords()
     {
         $this->assertEquals('Taylor...', Str::words('Taylor Otwell', 1));
@@ -29,11 +27,6 @@ class StrFuncTest extends TestCase
     {
         $this->assertEquals(' Taylor Otwell ', Str::words(' Taylor Otwell ', 3));
         $this->assertEquals(' Taylor...', Str::words(' Taylor Otwell ', 1));
-    }
-    public function testStringTitle()
-    {
-        $this->assertEquals('Jefferson Costella', Str::title('jefferson costella'));
-        $this->assertEquals('Jefferson Costella', Str::title('jefFErson coSTella'));
     }
     public function testStringWithoutWordsDoesntProduceError()
     {
@@ -63,7 +56,7 @@ class StrFuncTest extends TestCase
         $this->assertFalse(Str::endsWith('7', ' 7'));
     }
 
-    public function dataStrContains()
+    public static function dataStrContains()
     {
         return [
             [true, 'taylor', ['ylo']],
@@ -76,9 +69,7 @@ class StrFuncTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataStrContains
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataStrContains')]
     public function testStrContains($expected, $str, $search)
     {
         $this->assertEquals($expected, Str::contains($str, $search));
@@ -114,39 +105,18 @@ class StrFuncTest extends TestCase
         $this->assertTrue(Str::is('foo/bar/baz', $valueObject));
         $this->assertTrue(Str::is($patternObject, $valueObject));
     }
-    public function testLower()
-    {
-        $this->assertEquals('foo bar baz', Str::lower('FOO BAR BAZ'));
-        $this->assertEquals('foo bar baz', Str::lower('fOo Bar bAz'));
-    }
-    public function testUpper()
-    {
-        $this->assertEquals('FOO BAR BAZ', Str::upper('foo bar baz'));
-        $this->assertEquals('FOO BAR BAZ', Str::upper('foO bAr BaZ'));
-    }
     public function testLimit()
     {
         $this->assertEquals('Laravel is...', Str::limit('Laravel is a free, open source PHP web application framework.', 10));
         $this->assertEquals('Laravel is awesome', Str::limit('Laravel is awesome', 20));
         $this->assertEquals('这是一...', Str::limit('这是一段中文', 6));
     }
-    public function testLength()
-    {
-        $this->assertEquals(11, Str::length('foo bar baz'));
-    }
-    public function testQuickRandom()
-    {
-        $randomInteger = mt_rand(1, 100);
-        $this->assertEquals($randomInteger, strlen(Str::quickRandom($randomInteger)));
-        $this->assertInternalType('string', Str::quickRandom());
-        $this->assertEquals(16, strlen(Str::quickRandom()));
-    }
     public function testRandom()
     {
         $this->assertEquals(16, strlen(Str::random()));
         $randomInteger = mt_rand(1, 100);
         $this->assertEquals($randomInteger, strlen(Str::random($randomInteger)));
-        $this->assertInternalType('string', Str::random());
+        $this->assertIsString(Str::random());
     }
     public function testReplaceFirst()
     {
@@ -197,20 +167,6 @@ class StrFuncTest extends TestCase
         $this->assertEquals('Laravel', Str::capitalize('laravel'));
         $this->assertEquals('Laravel', Str::capitalize('lArAVeL'));
     }
-    public function testSubstr()
-    {
-        $this->assertEquals('Ё', Str::substr('БГДЖИЛЁ', -1));
-        $this->assertEquals('ЛЁ', Str::substr('БГДЖИЛЁ', -2));
-        $this->assertEquals('И', Str::substr('БГДЖИЛЁ', -3, 1));
-        $this->assertEquals('ДЖИЛ', Str::substr('БГДЖИЛЁ', 2, -1));
-        $this->assertEmpty(Str::substr('БГДЖИЛЁ', 4, -4));
-        $this->assertEquals('ИЛ', Str::substr('БГДЖИЛЁ', -3, -1));
-        $this->assertEquals('ГДЖИЛЁ', Str::substr('БГДЖИЛЁ', 1));
-        $this->assertEquals('ГДЖ', Str::substr('БГДЖИЛЁ', 1, 3));
-        $this->assertEquals('БГДЖ', Str::substr('БГДЖИЛЁ', 0, 4));
-        $this->assertEquals('Ё', Str::substr('БГДЖИЛЁ', -1, 1));
-        $this->assertEmpty(Str::substr('Б', 2));
-    }
     public function testUcfirst()
     {
         $this->assertEquals('Laravel', Str::ucfirst('laravel'));
@@ -219,7 +175,7 @@ class StrFuncTest extends TestCase
         $this->assertEquals('Мама мыла раму', Str::ucfirst('мама мыла раму'));
     }
 
-    public function dataLevenshtein()
+    public static function dataLevenshtein()
     {
         return [
             [['abc', 'bcd', 'xyz'], 'abc', ['bcd', 'xyz', 'abc'], SORT_ASC],
@@ -228,61 +184,16 @@ class StrFuncTest extends TestCase
     }
 
     /**
-     * @dataProvider dataLevenshtein
      *
      * @param $expected
      * @param $word
      * @param $words
      * @param $sort
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataLevenshtein')]
     public function testLevenshtein($expected, $word, $words, $sort)
     {
         $this->assertEquals($expected, array_keys(Str::levenshtein($word, $words, $sort)));
-    }
-
-    public function dataNormalizePath()
-    {
-        $s = DIRECTORY_SEPARATOR;
-
-        return [
-            ['', ''],
-            [$s, '/'],
-            [$s . '0', '/0/'],
-            [$s . 'home', '/home/'],
-            ['home', 'home/'],
-            [$s . 'home', '/home/test/..'],
-            [$s . 'home', '/home/test/../'],
-            [$s . 'home' . $s . 'some', '/home/test/.././some'],
-            [$s . 'home' . $s . 'some', '/../home/test/.././some'],
-            [$s . 'hello' . $s . '0' . $s . 'you', '/hello/0//how/../are/../you'],
-            [$s . 'hello' . $s . '0' . $s . 'are' . $s . 'you', '/ /hello/0// / /how/../are/you/./././'],
-            [$s . 'hello' . $s . '0.0' . $s . 'are' . $s . 'you', '/ /hello/0.0/././././////how/../are/you'],
-        ];
-    }
-
-    /**
-     * @dataProvider dataNormalizePath
-     *
-     * @param $expected
-     * @param $path
-     */
-    public function testNormalizePath($expected, $path)
-    {
-        $error = [];
-        set_error_handler(function ($errno, $errstr) use (&$error) {
-            $error[] = [
-                'no'  => $errno,
-                'str' => $errstr
-            ];
-        });
-
-        $this->assertEquals($expected, Str::normalizePath($path));
-
-        restore_error_handler();
-
-        $this->assertCount(1, $error);
-        $this->assertEquals(E_USER_DEPRECATED, $error[0]['no']);
-        $this->assertEquals('Deprecated: Neutrino\Support\Str::normalizePath. Use Neutrino\Support\Path::normalize instead.', $error[0]['str']);
     }
 
 }

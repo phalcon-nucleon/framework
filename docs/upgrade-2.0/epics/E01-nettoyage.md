@@ -1,6 +1,6 @@
 # E1 — Nettoyage
 
-**Statut** : Rédigé · **Dépend de** : E0 · **Bloque** : E2
+**Statut** : Terminé · **Dépend de** : E0 · **Bloque** : E2
 
 ## Objectif
 
@@ -85,3 +85,40 @@ Supprimer ce que PHP 8.3, OPcache et Phalcon 5 rendent inutile, avant tout porta
 - `composer why nikic/php-parser` ne renvoie rien.
 - `optimize` puis `clear-compiled` fonctionnent sur l'app `tests/.fake`.
 - Les mesures d'une requête HTTP avec `optimize` + preload ne sont pas moins bonnes que celles de la 1.3 avec son `optimize`.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Suppressions | Fait | `Optimizer`, `PhpPreloader`, `Assets`, les tâches `assets:*`, `ConfigPreloader`, `ReturnConverter` et leurs tests (Optimizer, Preloader, Assets, ancien `OptimizeTaskTest`) supprimés. Plus aucune référence dans `src/` ni `tests/`. |
+| S2 · `optimize` | Fait | `Foundation\Optimize\PreloadGenerator` (+ `PreloadResult`) : classes candidates tirées de la classmap Composer (namespaces `Neutrino\` hors CLI, debug, migrations et tests, plus les classes sous `app/`), chacune chargée une fois à la génération ; celles qui échouent sont écartées avec leur raison. Une erreur fatale de compilation PHP (signature incompatible) ne peut pas être interceptée : elle arrête la génération, jamais le serveur. Configurable via `config/optimize.php` (`preload.namespaces`, `paths`, `excludes`). `OptimizeTask` : `composer dump-autoload --classmap-authoritative` (`--apcu`, `--no-dev`, `--composer=`, `--no-dump`), caches config/dotconst/routes, script de preload, réglages OPcache recommandés. `clear-compiled` supprime aussi `preload.php` (et les fichiers de la 1.x). Tests : 5, dont l'exécution réelle du script généré. Les tests de la tâche elle-même relèvent d'E6. |
+| S3 · Cache de config | Fait | `Config\ConfigCompiler` (`compile()`, `clear()`) : `var_export` de la config évaluée, écriture atomique (`Support\AtomicFile`, qui invalide aussi OPcache). Les enums sont acceptés. Une closure ou un objet lève `UncacheableConfigException` (fichier, clé, type). Tests : 7. |
+| S4 · `route:cache` | Fait | Plus de passage par le preloader. Le reste (propriétés du router Phalcon 5, échappement, écriture atomique) relève d'E4-S3. |
+| S5 · Compatibilité PHP < 8 | Fait | `Dotconst\Helper` (tri stable maison), `ServerTask` (validation d'hôte, désormais `FILTER_VALIDATE_DOMAIN` + `FILTER_FLAG_HOSTNAME`), `Foundation\Cli\Kernel` (contournement PHP 5.6), `Str::random` (cascade de générateurs). |
+| S6 · Helpers `Support` | Fait | `Str`, `Arr`, `Obj`, `Func` et `Path` réécrits (`strict_types`, typage complet, fonctions natives PHP 8, PHPStan niveau max sans baseline). Suite `Helpers` (81 tests) séparée de `Support`, dont le reste relève d'E2. |
+
+Suites ajoutées à `tests/migrated-suites.txt` : `Config`, `Helpers`, `Optimize` (93 tests). Baseline PHPStan : 2 666 → 2 240 erreurs.
+
+### Revue des helpers (pour `UPGRADING-2.0.md`)
+
+| Classe | Supprimé (remplacement) | Conservé | Changements de comportement |
+|---|---|---|---|
+| `Str` | `length` (`mb_strlen`), `lower` (`mb_strtolower`), `upper` (`mb_strtoupper`), `substr` (`mb_substr`), `title` (`mb_convert_case($v, MB_CASE_TITLE)`), `quickRandom` (`Str::random`), `normalizePath` (`Path::normalize`) | `ascii`, `camel`, `contains`, `endsWith`, `finish`, `is`, `levenshtein`, `limit`, `words`, `parseCallback`, `random`, `replaceFirst`, `replaceLast`, `slug`, `snake`, `startsWith`, `studly`, `capitalize`, `ucfirst` | Paramètres typés (`string`). `replaceFirst`/`replaceLast` avec une recherche vide renvoient la chaîne inchangée. |
+| `Arr` | `where` (`array_filter($array, $callback, ARRAY_FILTER_USE_BOTH)`) | toutes les autres méthodes | `pluck` lève `InvalidArgumentException` si une clé n'est pas scalaire. `isAssoc` s'appuie sur `array_is_list`. |
+| `Obj`, `Func`, `Path` | — | toutes | `Func::tap` accepte tout `callable` (et non plus seulement une `Closure`). |
+
+Les fonctions Volt `str_length`, `str_lower`, `str_upper`, `str_substr` et `str_title` (via `StrExtension`) disparaissent avec ces méthodes : E9 le prend en compte (filtres Volt natifs `length`, `lower`, `upper`, `slice`, `capitalize`).
+
+### Comparaison avec `Phalcon\Support\Helper` (PHP 8.3, OPcache, ns par appel)
+
+| Helper | Nucleon | Phalcon |
+|---|---|---|
+| `startsWith` | 176 | 387 |
+| `endsWith` | 158 | 371 |
+| `camel` | 105 | 239 |
+| `snake` | 148 | 223 |
+| `slug` | 1 758 (11 275 avant optimisation de `Str::ascii`) | 2 537 |
+| `random` | 507 | 2 708 |
+| `Arr::get` (clé simple) | 232 | 234 |
+
+Les helpers Nucleon restent plus rapides (les helpers Phalcon sont des objets invocables instanciés à chaque appel) : on ne délègue pas. La mesure a révélé que `Str::slug` était 4 fois plus lent que Phalcon : `Str::ascii` enchaînait environ 150 `str_replace`, remplacés par une table unique et un seul `strtr`.

@@ -3,7 +3,6 @@
 namespace Neutrino\Cli\Output;
 
 use Neutrino\Support\Arr;
-use Neutrino\Support\Str;
 
 /**
  * Class Table
@@ -102,7 +101,7 @@ class Table
         $closure = $this->withStyle() ? '|' : '';
         $line = $closure;
         foreach ($this->columns as $column => $opts) {
-            $line .= ' ' . Helper::strPad(Str::upper($column), $opts['size'], ' ') . ' ' . $closure;
+            $line .= ' ' . Helper::strPad(mb_strtoupper($column), $opts['size'], ' ') . ' ' . $closure;
         }
         $this->output->write($line, true);
     }

@@ -1,21 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support;
 
 /**
- * Class Helper
- *
- * @package Neutrino\Support
+ * Function helpers.
  */
-class Func
+final class Func
 {
     /**
-     * @param mixed    $value
-     * @param \Closure $callback
+     * Call the given callback with the given value then return the value.
      *
-     * @return mixed
+     * @template T
+     *
+     * @param T $value
+     * @param callable(T): mixed $callback
+     *
+     * @return T
      */
-    public static function tap($value, \Closure $callback)
+    public static function tap(mixed $value, callable $callback): mixed
     {
         $callback($value);
 

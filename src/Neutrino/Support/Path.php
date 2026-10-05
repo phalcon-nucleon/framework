@@ -1,36 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support;
 
 /**
- * Class Path
- *
- * @package Neutrino\Support
+ * File path helpers.
  */
-class Path
+final class Path
 {
     /**
-     * @param $path
-     *
-     * @return string
+     * Normalize a path: resolves "." and ".." segments, removes duplicate
+     * separators, and uses DIRECTORY_SEPARATOR. The path is not required to exist.
      */
-    public static function normalize($path)
+    public static function normalize(string $path): string
     {
-        if (empty($path)) {
+        if ($path === '') {
             return '';
         }
 
-        $path = str_replace(DIRECTORY_SEPARATOR, '/', $path);
-
-        $parts = explode('/', $path);
-
+        $parts = explode('/', str_replace(DIRECTORY_SEPARATOR, '/', $path));
         $safe = [];
+
         foreach ($parts as $idx => $part) {
-            if (($idx == 0 && empty($part))) {
+            if ($idx === 0 && $part === '') {
                 $safe[] = '';
-            } elseif (trim($part) == "" || $part == '.') {
-            } elseif ('..' == $part) {
-                if (null === array_pop($safe) || empty($safe)) {
+            } elseif (trim($part) === '' || $part === '.') {
+                continue;
+            } elseif ($part === '..') {
+                if (array_pop($safe) === null || $safe === []) {
                     $safe[] = '';
                 }
             } else {
@@ -38,47 +36,46 @@ class Path
             }
         }
 
-        if (count($safe) === 1 && $safe[0] === '') {
+        if ($safe === ['']) {
             return DIRECTORY_SEPARATOR;
         }
 
         return implode(DIRECTORY_SEPARATOR, $safe);
     }
 
-    public static function findRelative($frompath, $topath)
+    /**
+     * Find the relative path from $fromPath to $toPath.
+     */
+    public static function findRelative(string $fromPath, string $toPath): string
     {
-        $frompath = str_replace(DIRECTORY_SEPARATOR, '/', $frompath);
-        $topath = str_replace(DIRECTORY_SEPARATOR, '/', $topath);
+        $from = explode(DIRECTORY_SEPARATOR, self::normalize(str_replace(DIRECTORY_SEPARATOR, '/', $fromPath)));
+        $to = explode(DIRECTORY_SEPARATOR, self::normalize(str_replace(DIRECTORY_SEPARATOR, '/', $toPath)));
 
-        $from = explode(DIRECTORY_SEPARATOR, self::normalize($frompath)); // Folders/File
-        $to = explode(DIRECTORY_SEPARATOR, self::normalize($topath)); // Folders/File
-        $relpath = '';
+        $relPath = '';
 
         $i = 0;
-        // Find how far the path is the same
-        while (isset($from[$i]) && isset($to[$i])) {
-            if ($from[$i] != $to[$i]) {
+        while (isset($from[$i], $to[$i])) {
+            if ($from[$i] !== $to[$i]) {
                 break;
             }
             $i++;
         }
+
         $j = count($from) - 1;
-        // Add '..' until the path is the same
         while ($i <= $j) {
-            if (!empty($from[$j])) {
-                $relpath .= '..' . '/';
+            if ($from[$j] !== '') {
+                $relPath .= '../';
             }
             $j--;
         }
-        // Go to folder from where it starts differing
+
         while (isset($to[$i])) {
-            if (!empty($to[$i])) {
-                $relpath .= $to[$i] . '/';
+            if ($to[$i] !== '') {
+                $relPath .= $to[$i] . '/';
             }
             $i++;
         }
 
-        // Strip last separator
-        return substr($relpath, 0, -1);
+        return substr($relPath, 0, -1);
     }
 }

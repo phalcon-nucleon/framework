@@ -67,50 +67,7 @@ class Helper
             return $return;
         };
 
-        if (PHP_VERSION_ID < 70000) {
-            $stable_uasort = function (&$array, $sort) use (&$stable_uasort) {
-                if (count($array) < 2) {
-                    return;
-                }
-                $halfway = count($array) / 2;
-                $array1 = array_slice($array, 0, $halfway, true);
-                $array2 = array_slice($array, $halfway, null, true);
-
-                $stable_uasort($array1, $sort);
-                $stable_uasort($array2, $sort);
-                if (call_user_func($sort, end($array1),
-                    reset($array2)) < 1) {
-                    $array = $array1 + $array2;
-                    return;
-                }
-                $array = [];
-                reset($array1);
-                reset($array2);
-                while (current($array1) && current($array2)) {
-                    if (call_user_func($sort, current($array1),
-                        current($array2)) < 1) {
-                        $array[key($array1)] = current($array1);
-                        next($array1);
-                    } else {
-                        $array[key($array2)] = current($array2);
-                        next($array2);
-                    }
-                }
-                while (current($array1)) {
-                    $array[key($array1)] = current($array1);
-                    next($array1);
-                }
-                while (current($array2)) {
-                    $array[key($array2)] = current($array2);
-                    next($array2);
-                }
-                return;
-            };
-
-            $stable_uasort($nested, $sort);
-        } else {
-            uasort($nested, $sort);
-        }
+        uasort($nested, $sort);
 
         return $nested;
     }

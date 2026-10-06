@@ -8,11 +8,10 @@ use Neutrino\Cli\Output\Decorate;
 use Neutrino\Database\Migrations\Prefix\PrefixInterface;
 use Neutrino\Database\Migrations\Storage\StorageInterface;
 use Neutrino\Database\Schema\Builder;
+use Neutrino\Debug\Highlight;
 use Neutrino\Support\Db;
 use Neutrino\Support\Str;
 use RuntimeException;
-use Tempest\Highlight\Highlighter;
-use Tempest\Highlight\Themes\LightTerminalTheme;
 use Throwable;
 
 /**
@@ -388,11 +387,7 @@ class Migrator
      */
     private function highlight(string $sql): string
     {
-        if (!Decorate::hasColorSupport() || !class_exists(Highlighter::class)) {
-            return $sql;
-        }
-
-        return (new Highlighter(new LightTerminalTheme()))->parse($sql, 'sql');
+        return Decorate::hasColorSupport() ? Highlight::terminal($sql, 'sql') : $sql;
     }
 
     /**

@@ -1,76 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
-use Neutrino\Support\Arr;
-use Phalcon\Di;
-use Phalcon\Logger\Formatter;
-use Phalcon\Logger\Formatter\Line as FormatterLine;
+use Neutrino\Providers\Logger as LoggerProvider;
+use Phalcon\Config\ConfigInterface;
+use Phalcon\Di\Di;
+use Phalcon\Logger\LoggerInterface;
 
 /**
- * Class Logger
+ * Writes the errors to the `logger` service, at the level of their type.
  *
- * @package     Neutrino\Error\Writer
+ * `error.formatter` formats the errors with another formatter than the adapters' one (same values as
+ * `log.formatter`): it is set on every adapter for the error only.
  */
-class Logger implements Writable
+final class Logger implements Writable
 {
-
-    /**
-     * @inheritdoc
-     */
-    public function handle(Error $error)
+    public function handle(Error $error): void
     {
         $di = Di::getDefault();
-        if ($di && $di->has(Services::LOGGER)) {
-            /* @var \Phalcon\Logger\Adapter $logger */
-            /* @var \Phalcon\Config $config */
-            $logger = $di->getShared(Services::LOGGER);
+        $logger = $di !== null && $di->has(Services::LOGGER) ? $di->getShared(Services::LOGGER) : null;
 
-            $config = [];
-            if ($di->has(Services::CONFIG)) {
-                $config = $di->getShared(Services::CONFIG);
+        if (!$logger instanceof LoggerInterface) {
+            return;
+        }
+
+        $config = $di->has(Services::CONFIG) ? $di->getShared(Services::CONFIG) : null;
+        $formatter = $config instanceof ConfigInterface ? $config->path('error.formatter') : null;
+
+        if ($formatter === null) {
+            $logger->log($error->logLvl, Helper::format($error));
+
+            return;
+        }
+
+        $formatter = LoggerProvider::formatter('error.formatter', $formatter instanceof ConfigInterface ? $formatter->toArray() : $formatter);
+        $adapters = $logger->getAdapters();
+        $previous = array_map(static fn($adapter) => $adapter->getFormatter(), $adapters);
+
+        try {
+            foreach ($adapters as $adapter) {
+                $adapter->setFormatter($formatter);
             }
 
-            if (Arr::has($config, 'error.formatter')) {
-                $configFormat = Arr::get($config, 'error.formatter');
-                $formatter    = null;
-
-                if ($configFormat instanceof Formatter) {
-                    $formatter = $configFormat;
-                } elseif (is_array($configFormat) || $configFormat instanceof \Phalcon\Config) {
-                    $formatter  = FormatterLine::class;
-                    $format     = null;
-                    $dateFormat = null;
-
-                    if (isset($configFormat['formatter'])) {
-                        $formatter = $configFormat['formatter'];
-                    }
-
-                    if (isset($configFormat['format'])) {
-                        $format = $configFormat['format'];
-                    }
-
-                    if (isset($configFormat['dateFormat'])) {
-                        $dateFormat = $configFormat['dateFormat'];
-                    } elseif (isset($configFormat['date_format'])) {
-                        $dateFormat = $configFormat['date_format'];
-                    } elseif (isset($configFormat['date'])) {
-                        $dateFormat = $configFormat['date'];
-                    }
-
-                    $formatter = new $formatter($format, $dateFormat);
-                }
-
-                if ($formatter) {
-                    $logger->setFormatter($formatter);
-                }
+            $logger->log($error->logLvl, Helper::format($error));
+        } finally {
+            foreach ($adapters as $name => $adapter) {
+                $adapter->setFormatter($previous[$name]);
             }
-
-            $logger->log(Helper::getLogType($error->type), Helper::format($error));
         }
     }
-
 }

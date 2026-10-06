@@ -2,7 +2,7 @@
 
 namespace Test\HttpClient;
 
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Neutrino\HttpClient\Factory;
 use Neutrino\HttpClient\Provider\Curl;
 use Neutrino\HttpClient\Provider\StreamContext;
@@ -12,22 +12,22 @@ class FactoryTest extends TestCase
 {
     public static function tearDownAfterClass()
     {
-        Reflexion::set(Curl::class, 'isAvailable', null);
-        Reflexion::set(StreamContext::class, 'isAvailable', null);
+        Reflection::set(Curl::class, 'isAvailable', null);
+        Reflection::set(StreamContext::class, 'isAvailable', null);
 
         parent::tearDownAfterClass();
     }
 
     public function testCurlAvailable()
     {
-        Reflexion::set(Curl::class, 'isAvailable', true);
+        Reflection::set(Curl::class, 'isAvailable', true);
 
         $this->assertInstanceOf(Curl::class, Factory::makeRequest());
     }
     public function testStreamContextAvailable()
     {
-        Reflexion::set(Curl::class, 'isAvailable', false);
-        Reflexion::set(StreamContext::class, 'isAvailable', true);
+        Reflection::set(Curl::class, 'isAvailable', false);
+        Reflection::set(StreamContext::class, 'isAvailable', true);
 
         $this->assertInstanceOf(StreamContext::class, Factory::makeRequest());
     }
@@ -38,8 +38,8 @@ class FactoryTest extends TestCase
      */
     public function testNoAvailable()
     {
-        Reflexion::set(Curl::class, 'isAvailable', false);
-        Reflexion::set(StreamContext::class, 'isAvailable', false);
+        Reflection::set(Curl::class, 'isAvailable', false);
+        Reflection::set(StreamContext::class, 'isAvailable', false);
 
         Factory::makeRequest();
     }

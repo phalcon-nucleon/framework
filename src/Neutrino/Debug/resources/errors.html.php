@@ -1,269 +1,120 @@
 <?php
-$macro = [];
-if (!isset($macro['renderFileInfo'])) {
-    $macro['renderFileInfo'] = function ($elem) use (&$macro) {
-        if (isset($elem['file'], $elem['line'])) : ?>
-          <ul class="collapsible">
-            <li>
-              <div class="collapsible-header">
-                <small class="grey-text text-darken-3" title="View code">in
-                  : <?= Neutrino\Debug\file_highlight($elem['file']) ?>&nbsp;(line: <?= $elem['line'] ?>)
-                </small>
-              </div>
-              <div class="collapsible-body">
-                  <?= Neutrino\Debug\php_file_part_highlight($elem['file'], $elem['line']); ?>
-              </div>
-            </li>
-          </ul>
-        <?php elseif (isset($elem['file'])) : ?>
-          <small class="grey-text text-darken-3">in : <?= Neutrino\Debug\file_highlight($elem['file']) ?></small>
-        <?php else : ?>
-          <small class="grey-text text-darken-3">[internal function]</small>
-        <?php endif;
-    };
-}
-if (!isset($macro['renderTrace'])) {
-    $macro['renderTrace'] = function ($exception) use (&$macro) {
-        if (empty($exception['traces'])) {
-            return;
-        }
-        ?>
-      <ul class="collection">
-          <?php foreach ($exception['traces'] as $trace) : ?>
-            <li class="collection-item blue-grey lighten-3 white-text">
-              <span class="grey-text text-darken-3"><?= Neutrino\Debug\func_highlight($trace['func']) ?></span>
-              <br/>
-                <?= $macro['renderFileInfo']($trace) ?>
-            </li>
-          <?php endforeach; ?>
-      </ul>
-        <?php
-    };
-}
 
+declare(strict_types=1);
+
+/**
+ * Debug error page, rendered by Neutrino\Debug\Debugger::renderErrorPage().
+ *
+ * @var Neutrino\Error\Error                          $error
+ * @var list<Throwable>                               $exceptions
+ * @var list<Neutrino\Error\Error>                    $phpErrors
+ * @var array{php: string, phalcon: string, nucleon: string} $build
+ */
+
+use Neutrino\Debug\Debugger;
+use Neutrino\Debug\Highlight;
+use Neutrino\Error\Helper;
+use Phalcon\Logger\Enum;
+
+$e = static fn(mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE);
+
+$location = static function (string $file, int $line, bool $open = false) use ($e): string {
+    $where = '<span class="file">' . $e(Debugger::relativePath($file)) . '</span>' . ($line > 0 ? ' <span class="line">line ' . $line . '</span>' : '');
+    $code = $line > 0 ? Highlight::fileFragment($file, $line) : '';
+
+    if ($code === '') {
+        return '<div class="where">' . $where . '</div>';
+    }
+
+    return '<details class="where"' . ($open ? ' open' : '') . '><summary>' . $where . '</summary><pre class="code">' . $code . '</pre></details>';
+};
+
+$severity = static fn(int $level): string => match ($level) {
+    Enum::WARNING => 'warning',
+    Enum::NOTICE  => 'notice',
+    Enum::INFO, Enum::DEBUG => 'info',
+    default       => 'error',
+};
+
+$title = $exceptions === [] ? $error->typeStr : $exceptions[0]::class;
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <title>Error</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:100,300,400"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <style rel="stylesheet">
-.small{font-size:75%}pre.sql{white-space: pre-line; word-break: break-all; font-size: 13px !important;margin:0}pre.sql .string{color:#a5d6a7 !important}pre.sql .table{color:#90caf9 !important}pre.sql .column{color:#ce93d8 !important}pre.sql .func{color:#fdd835 !important}pre.sql .keyw{color:#fb8c00 !important}.php-error{padding:10px 15px;margin-bottom:10px}.php-error.debug{background-color:#4db6ac !important;color:#212121 !important}.php-error.info{background-color:#fff176 !important;color:#212121 !important}.php-error.notice{background-color:#ffd54f !important;color:#212121 !important}.php-error.warning{background-color:#ff8a65 !important;color:#212121 !important}.php-error.error{background-color:#b71c1c !important;color:#f5f5f5 !important}.php-error .type,.php-error .msg{font-family:monospace, monospace}.php-error .msg{margin:3px 0;word-break:break-all;white-space:pre-line}.php-error .file{font-size:80%}.collapsible{-webkit-box-shadow:none;box-shadow:none;border:none;margin:0}.collapsible-header,.collapsible-body{background:transparent;padding:.25rem 0;border:none;color:#424242}.collapsible-header:hover{text-decoration:underline}.collection{word-break:break-all;word-wrap:break-word}pre.pre-block{word-break:break-all;max-width:100%;margin:0;overflow:hidden;white-space:pre-line;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title><?= $e($title) ?></title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1f2328;background:#f6f8fa}
+main{max-width:1200px;margin:0 auto;padding:24px 16px}
+h1{margin:0 0 4px;font-size:20px;color:#cf222e;word-break:break-all}
+h2{margin:32px 0 12px;font-size:16px}
+.card{background:#fff;border:1px solid #d0d7de;border-radius:6px;padding:16px;margin-bottom:16px}
+.meta{color:#656d76;font-size:12px}
+.message{margin:8px 0;font:15px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.where{margin:4px 0;font-size:13px}
+.where summary{cursor:pointer}
+.file{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all}
+.line{color:#656d76}
+pre.code{margin:8px 0;padding:8px 0;overflow-x:auto;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f6f8fa;border-radius:6px}
+ol.trace{margin:12px 0 0;padding:0 0 0 2.5em;font-size:13px}
+ol.trace li{padding:6px 0;border-top:1px solid #eaeef2}
+.func{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all}
+.php-error{border-left:4px solid #cf222e}
+.php-error.warning{border-left-color:#bf8700}
+.php-error.notice{border-left-color:#0969da}
+.php-error.info{border-left-color:#8c959f}
+footer{margin-top:32px;color:#656d76;font-size:12px}
+<?= Highlight::css() ?>
+
+</style>
 </head>
-<body class="grey darken-3 grey-text text-lighten-3">
-
-<div class="row">
-  <div class="col s12">
-    <ul class="tabs grey darken-4">
-      <li class="tab col s3">
-        <a class="active" href="#error">
-            <?php if ($isException) : ?>
-              Exception<?= (Neutrino\Debug\length($exceptions) > 1 ? 's' : '') ?>
-              <span class="chip"><?= Neutrino\Debug\length($exceptions) ?></span>
-            <?php else : ?>
-              Fatal error
-            <?php endif; ?>
-        </a>
+<body>
+<main>
+<?php if ($exceptions === []) : ?>
+  <section class="card">
+    <h1><?= $e($error->typeStr) ?></h1>
+    <div class="meta">Code <?= $e($error->code) ?></div>
+    <div class="message"><?= $e($error->message === '' ? 'No message' : $error->message) ?></div>
+    <?= $location($error->file, $error->line, true) ?>
+  </section>
+<?php else : ?>
+  <?php foreach ($exceptions as $index => $exception) : ?>
+  <section class="card">
+    <?php if ($index > 0) : ?><div class="meta">Previous exception #<?= $index ?></div><?php endif ?>
+    <h1><?= $e($exception::class) ?></h1>
+    <div class="meta">Code <?= $e($exception->getCode()) ?></div>
+    <div class="message"><?= $e($exception->getMessage() === '' ? 'No message' : $exception->getMessage()) ?></div>
+    <?= $location($exception->getFile(), $exception->getLine(), $index === 0) ?>
+    <?php $traces = Helper::formatExceptionTrace($exception) ?>
+    <?php if ($traces !== []) : ?>
+    <ol class="trace" start="0">
+      <?php foreach ($traces as $trace) : ?>
+      <li>
+        <div class="func"><?= Highlight::html($trace['func'], 'php') ?></div>
+        <?= isset($trace['file']) ? $location($trace['file'], $trace['line'] ?? 0) : '<div class="where line">[internal function]</div>' ?>
       </li>
-        <?php if (isset($php_errors)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($php_errors)) ? 'disabled' : '') ?>">
-            <a href="#php-errors">Errors <span class="chip"><?= Neutrino\Debug\length($php_errors) ?></span></a>
-          </li>
-        <?php endif; ?>
-        <?php if (!empty($profilers)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($profilers)) ? 'disabled' : '') ?>">
-            <a href="#profilers">Profilers <span class="chip"><?= Neutrino\Debug\length($profilers) ?></span></a>
-          </li>
-        <?php endif; ?>
-        <?php if (isset($events)) : ?>
-          <li class="tab col s3 <?= (empty(Neutrino\Debug\length($events)) ? 'disabled' : '') ?>">
-            <a href="#events">Events <span class="chip"><?= Neutrino\Debug\length($events) ?></span></a>
-          </li>
-        <?php endif; ?>
-    </ul>
-  </div>
-  <div id="error" class="col s12">
-      <?php if ($error['isException']) : ?>
-          <?php $index = 0 ?>
-          <?php foreach ($exceptions as $exception) : $index++; ?>
-          <div class="card grey lighten-3">
-            <div class="card-content">
-              <span class="card-title red-text text-accent-4">
-                #<?= $index ?> <span title="Exception code [<?= $exception['code'] ?>]"><b><?= $exception['class'] ?></b> <code class="small">[<?= $exception['code'] ?>]</code></span>
-                <br/>
-                <?= $macro['renderFileInfo']($exception) ?>
-                <pre class="pre-block grey-text text-darken-3 small"><?=
-                    htmlspecialchars(empty($error['message']) ? 'no message' : $error['message'])
-                    ?></pre>
-              </span>
-              <div>
-                  <?= $macro['renderTrace']($exception) ?>
-              </div>
-            </div>
-          </div>
-      <?php endforeach; ?>
-      <?php else : ?>
-        <div class="card grey lighten-3">
-          <div class="card-content">
-            <span class="card-title red-text text-accent-4">
-                <span title="Error code [<?= $error['code'] ?>]"><b><?= $error['typeStr'] ?></b> <code class="small">[<?= $error['code'] ?>]</code></span>
-              <br/>
-              <?= $macro['renderFileInfo']($exception) ?>
-              <pre class="pre-block grey-text text-darken-3 small"><?=
-                  htmlspecialchars(empty($error['message']) ? 'no message' : $error['message'])
-                  ?></pre>
-            </span>
-            <div>
-                <?= $macro['renderTrace']($error) ?>
-            </div>
-          </div>
-        </div>
-      <?php endif; ?>
-  </div>
-    <?php if (isset($php_errors)) : ?>
-      <div id="php-errors" class="col s12">
-        <div class="card grey darken-4">
-          <div class="card-content">
-            <div style="margin: 0;padding: 0;">
-                <?php foreach ($php_errors as $error) : ?>
-                    <?php if ($error['logLvl'] === \Phalcon\Logger::DEBUG) : ?>
-                        <?php $color = 'debug'; ?>
-                    <?php elseif ($error['logLvl'] === \Phalcon\Logger::INFO) : ?>
-                        <?php $color = 'info'; ?>
-                    <?php elseif ($error['logLvl'] === \Phalcon\Logger::NOTICE) : ?>
-                        <?php $color = 'notice'; ?>
-                    <?php elseif ($error['logLvl'] === \Phalcon\Logger::WARNING) : ?>
-                        <?php $color = 'warning'; ?>
-                    <?php else : ?>
-                        <?php $color = 'error'; ?>
-                    <?php endif; ?>
-                  <div class="php-error <?= $color ?>">
-                    <span class="type"><?= $error['typeStr'] ?></span> :
-                    <pre class="pre-block"><?= htmlspecialchars(empty($error['message']) ? 'no message' : $error['message']) ?></pre>
-                    <?= $macro['renderFileInfo']($error) ?>
-                  </div>
-                <?php endforeach; ?>
-            </div>
-          </div>
-        </div>
-      </div>
-    <?php endif; ?>
-    <?php if (!empty($profilers)) : ?>
-      <div id="profilers" class="col s12">
-        <div class="card grey darken-4">
-          <div class="col s12">
-            <ul class="tabs grey darken-4">
-                <?php foreach ($profilers as $name => $elements) : ?>
-                    <?php $profiler = $elements['profiler']; ?>
-                    <?php $profiles = (empty($profiler->getProfiles()) ? ([]) : ($profiler->getProfiles())); ?>
-                  <li class="tab col s3">
-                    <a href="#profilers-<?= $name ?>"><?= $name ?> <span class="chip"><?= Neutrino\Debug\length($profiles) ?></span> </a>
-                  </li>
-                <?php endforeach; ?>
-            </ul>
-          </div>
-            <?php foreach ($profilers as $name => $elements) : ?>
-                <?php $profiler = $elements['profiler']; ?>
-                <?php $profiles = (empty($profiler->getProfiles()) ? ([]) : ($profiler->getProfiles())); ?>
-              <div id="profilers-<?= $name ?>">
-                <table style="margin: 0;padding: 0;" class="bordered">
-                  <thead>
-                  <tr class="grey darken-4">
-                    <th style="padding: 5px 10px;border-radius: 0">-</th>
-                    <th style="padding: 5px 10px;border-radius: 0">request</th>
-                    <th style="padding: 5px 10px;border-radius: 0">vars</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <?php foreach ($profiles as $profile) : ?>
-                    <tr class="grey darken-4">
-                      <td style="padding: 5px 10px;border-radius: 0">
-                        <small style="white-space: nowrap;"><?= Neutrino\Debug\human_mtime($profile->getTotalElapsedSeconds()) ?></small>
-                      </td>
-                      <td style="padding: 5px 10px;border-radius: 0">
-                        <pre class="sql"><?= Neutrino\Debug\sql_highlight($profile->getSqlStatement()) ?></pre>
-                      </td>
-                      <td style="padding: 5px 10px;border-radius: 0">
-                          <?php $vars = $profile->getSqlVariables(); ?>
-                          <?php if ($vars != null) : ?>
-                              <?php foreach ($vars as $var => $value) : ?>
-                              <pre>:<?= $var ?> = <?= $value ?></pre>
-                              <?php endforeach; ?>
-                          <?php else : ?>
-                            --
-                          <?php endif; ?>
-                      </td>
-                    </tr>
-                  <?php endforeach; ?>
-                  </tbody>
-                </table>
-              </div>
-            <?php endforeach; ?>
-        </div>
-      </div>
-    <?php endif; ?>
-    <?php if (isset($events)) : ?>
-      <div id="events" class="col s12">
-        <div class="card grey darken-4">
-          <div class="card-content">
-            <table style="margin: 0;padding: 0;" class="bordered">
-                <?php $mt_start = $_SERVER['REQUEST_TIME_FLOAT']; ?>
-              <thead>
-              <tr>
-                <th>-</th>
-                <th>type</th>
-                <th>src</th>
-                <th>data</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr>
-                <td style="padding: 5px 10px">
-                  <small>0 ns</small>
-                </td>
-                <td style="padding: 5px 10px">
-                  <small class="event">
-                    REQUEST_TIME_FLOAT
-                  </small>
-                </td>
-                <td style="padding: 5px 10px">
-                </td>
-                <td style="padding: 5px 10px">
-                </td>
-              </tr>
-              <?php foreach ((empty($events) ? ([]) : ($events)) as $event) : ?>
-                <tr class="grey darken-4" style="padding: 5px 10px">
-                  <td style="padding: 5px 10px;border-radius: 0">
-                    <small style="white-space: nowrap;"><?= Neutrino\Debug\human_mtime(($event['mt'] - $mt_start)) ?></small>
-                  </td>
-                  <td style="padding: 5px 10px;border-radius: 0">
-                    <small style="white-space: nowrap;">
-                      <span class="blue-text text-lighten-3"><?= $event['space'] ?></span>:<span class="purple-text text-lighten-3"><?= $event['type'] ?></span>
-                    </small>
-                  </td>
-                  <td style="padding: 5px 10px;border-radius: 0">
-                    <small><?= $event['src'] ?></small>
-                  </td>
-                  <td style="padding: 5px 10px;border-radius: 0">
-                    <small title="<?= (is_string($event['raw_data']) ? $event['raw_data'] : '') ?>"><?= $event['data'] ?></small>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    <?php endif; ?>
-</div>
+      <?php endforeach ?>
+    </ol>
+    <?php endif ?>
+  </section>
+  <?php endforeach ?>
+<?php endif ?>
 
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+<?php if ($phpErrors !== []) : ?>
+  <h2>PHP errors (<?= count($phpErrors) ?>)</h2>
+  <?php foreach ($phpErrors as $phpError) : ?>
+  <section class="card php-error <?= $severity($phpError->logLvl) ?>">
+    <strong><?= $e($phpError->typeStr) ?></strong>
+    <div class="message"><?= $e($phpError->message === '' ? 'No message' : $phpError->message) ?></div>
+    <?= $location($phpError->file, $phpError->line) ?>
+  </section>
+  <?php endforeach ?>
+<?php endif ?>
+
+  <footer>PHP <?= $e($build['php']) ?> · Phalcon <?= $e($build['phalcon']) ?> · Nucleon <?= $e($build['nucleon']) ?></footer>
+</main>
 </body>
 </html>

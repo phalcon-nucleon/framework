@@ -1,131 +1,122 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Constants\Services;
-use Neutrino\Debug\DebugErrorLogger;
-use Neutrino\Debug\DebugEventsManagerWrapper;
 use Neutrino\Debug\Debugger;
 use Neutrino\Error\Error;
-use Neutrino\Error\Helper;
-use Neutrino\Support\Arr;
-use Phalcon\Di;
-use Phalcon\Http\Response;
+use Phalcon\Config\ConfigInterface;
+use Phalcon\Di\Di;
+use Phalcon\Di\DiInterface;
+use Phalcon\Http\ResponseInterface;
+use Phalcon\Mvc\DispatcherInterface;
+use Phalcon\Mvc\ViewInterface;
 
 /**
- * Class View
+ * Answers a fatal error with a 500 page (HTTP kernel).
  *
- * @package     Neutrino\Error\Writer
+ * In debug mode ({@see Debugger}), the debug error page. Otherwise, by order of preference:
+ * - an error controller: `error.dispatcher.namespace`, `error.dispatcher.controller` and `error.dispatcher.action`;
+ * - an error view: `error.view.path` and `error.view.file`;
+ * - "Whoops. Something went wrong.".
+ *
+ * The controller (in its params) and the view receive the error as `error`.
  */
-class View implements Writable
+final class View implements Writable
 {
+    public const string DEFAULT_MESSAGE = 'Whoops. Something went wrong.';
 
-    /**
-     * @inheritdoc
-     */
-    public function handle(Error $error)
+    public function handle(Error $error): void
     {
-        if (!$error->isFateful()) {
+        if (!$error->isFatal()) {
             return;
         }
 
-        foreach (ob_list_handlers() as $value) {
+        // Drops what was output before the error (the page being rendered).
+        if (ob_get_length() !== false) {
             ob_clean();
         }
 
-        if (Debugger::isEnable()) {
-            $this->debugErrorView($error);
+        $di = Di::getDefault();
+
+        if (Debugger::isEnabled()) {
+            $this->send($di, Debugger::renderErrorPage($error));
+
             return;
         }
 
-        $di = Di::getDefault();
+        $view = $di !== null && $di->has(Services::VIEW) ? $di->getShared(Services::VIEW) : null;
 
-        if (!is_null($di)) {
-            $config = [];
-            if($di->has(Services::CONFIG)){
-                $config = $di->getShared(Services::CONFIG);
-            }
+        if ($di === null || !$view instanceof ViewInterface) {
+            $this->send($di, self::DEFAULT_MESSAGE);
 
-            if ($di->has(Services::VIEW)) {
-                /* @var \Phalcon\Mvc\View $view */
-                $view = $di->getShared(Services::VIEW);
-                $view->start();
-                if (Arr::has($config, 'error.dispatcher.namespace')
-                    && Arr::has($config, 'error.dispatcher.controller')
-                    && Arr::has($config, 'error.dispatcher.action')
-                ) {
-                    /* @var \Phalcon\Mvc\Dispatcher $dispatcher */
-                    $dispatcher = $di->getShared(Services::DISPATCHER);
-                    $dispatcher->setNamespaceName(Arr::get($config, 'error.dispatcher.namespace'));
-                    $dispatcher->setControllerName(Arr::get($config, 'error.dispatcher.controller'));
-                    $dispatcher->setActionName(Arr::get($config, 'error.dispatcher.action'));
-                    $dispatcher->setParams(['error' => $error]);
-                    $dispatcher->dispatch();
-                } elseif (Arr::has($config, 'error.view.path')
-                    && Arr::has($config, 'error.view.file')
-                ) {
-                    $view->render(
-                        Arr::get($config, 'error.view.path'),
-                        Arr::get($config, 'error.view.file'),
-                        ['error' => $error]
-                    );
-                } else {
-                    $view->setContent('Whoops. Something went wrong.');
-                }
-                $view->finish();
-
-                $this->send($view->getContent());
-                return;
-            }
+            return;
         }
 
-        echo 'Whoops. Something went wrong.';
-    }
+        $config = $di->has(Services::CONFIG) ? $di->getShared(Services::CONFIG) : null;
+        $config = $config instanceof ConfigInterface ? $config : null;
+        $controller = self::strings($config, 'error.dispatcher', ['namespace', 'controller', 'action']);
+        $template = self::strings($config, 'error.view', ['path', 'file']);
 
-    private function debugErrorView(Error $error)
-    {
-        $exceptions = [];
+        $view->start();
 
-        if ($isException = $error->isException) {
-            $exception = $error->exception;
-
-            do {
-                $exceptions[] = [
-                  'class' => get_class($exception),
-                  'code' => $exception->getCode(),
-                  'message' => $exception->getMessage(),
-                  'file' => $exception->getFile(),
-                  'line' => $exception->getLine(),
-                  'traces' => Helper::formatExceptionTrace($exception),
-                ];
-            } while ($exception = $exception->getPrevious());
+        if ($controller !== null && ($dispatcher = $di->getShared(Services::DISPATCHER)) instanceof DispatcherInterface) {
+            $dispatcher->setNamespaceName($controller['namespace']);
+            $dispatcher->setControllerName($controller['controller']);
+            $dispatcher->setActionName($controller['action']);
+            $dispatcher->setParams(['error' => $error]);
+            $dispatcher->dispatch();
+        } elseif ($template !== null) {
+            $view->render($template['path'], $template['file'], ['error' => $error]);
+        } else {
+            $view->setContent(self::DEFAULT_MESSAGE);
         }
 
-        $this->send(Debugger::internalRender('errors', [
-          'error' => $error,
-          'isException' => $isException,
-          'exceptions' => $exceptions,
-          'php_errors' => DebugErrorLogger::errors(),
-          'events'     => DebugEventsManagerWrapper::getEvents(),
-          'profilers'  => Debugger::getRegisteredProfilers(),
-          'build'      => Debugger::getBuildInfo()
-        ]));
+        $view->finish();
+
+        $this->send($di, (string) $view->getContent());
     }
 
-    private function send($content)
+    private function send(?DiInterface $di, string $content): void
     {
-        $di = Di::getDefault();
+        $response = $di !== null && $di->has(Services::RESPONSE) ? $di->getShared(Services::RESPONSE) : null;
 
-        if ($di->has(Services::RESPONSE)
-          && ($response = $di->getShared(Services::RESPONSE)) instanceof Response
-          && !$response->isSent()
-        ) {
+        if ($response instanceof ResponseInterface && !$response->isSent()) {
             $response->setStatusCode(500, 'Internal Server Error');
             $response->setContent($content);
             $response->send();
+
             return;
         }
 
         echo $content;
+    }
+
+    /**
+     * The string values of a config section, `null` when one is missing.
+     *
+     * @template K of string
+     *
+     * @param list<K> $keys
+     *
+     * @return array<K, string>|null
+     */
+    private static function strings(?ConfigInterface $config, string $path, array $keys): ?array
+    {
+        $values = [];
+
+        foreach ($keys as $key) {
+            $value = $config?->path($path . '.' . $key);
+
+            if (!is_string($value) || $value === '') {
+                return null;
+            }
+
+            $values[$key] = $value;
+        }
+
+        return $values;
     }
 }

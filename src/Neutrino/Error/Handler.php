@@ -1,115 +1,144 @@
 <?php
-/*
-  +------------------------------------------------------------------------+
-  | Phalcon Framework                                                      |
-  +------------------------------------------------------------------------+
-  | Copyright (c) 2011-2016 Phalcon Team (http://www.phalconphp.com)       |
-  +------------------------------------------------------------------------+
-  | This source file is subject to the New BSD License that is bundled     |
-  | with this package in the file docs/LICENSE.txt.                        |
-  |                                                                        |
-  | If you did not receive a copy of the license and are unable to         |
-  | obtain it through the world-wide-web, please send an email             |
-  | to license@phalconphp.com so we can send you a copy immediately.       |
-  +------------------------------------------------------------------------+
-  | Authors: Andres Gutierrez <andres@phalconphp.com>                      |
-  |          Eduar Carvajal <eduar@phalconphp.com>                         |
-  |          Nikita Vershinin <endeveit@gmail.com>                         |
-  |          Serghei Iakovlev <serghei@phalconphp.com>                     |
-  +------------------------------------------------------------------------+
-*/
+
+declare(strict_types=1);
+
 namespace Neutrino\Error;
 
 use Neutrino\Error\Writer\Phplog;
 use Neutrino\Error\Writer\Writable;
+use Throwable;
 
 /**
- * Class Handler
+ * Error and uncaught exception handler: passes each error to the writers of the kernel (`$errorHandlerLvl`).
  *
- * @package Phalcon\Error
+ * `Foundation\Bootstrap::make()` registers it, unless `error.register` is `false`.
  */
-class Handler
+final class Handler
 {
-    /** @var Writable[] */
-    private static $writers = [Phplog::class => null];
+    /**
+     * The error types that stop the script, reported by the shutdown function.
+     */
+    public const int FATAL = E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_RECOVERABLE_ERROR;
+
+    /** @var array<class-string<Writable>, Writable|null> */
+    private static array $writers = [Phplog::class => null];
+
+    private static bool $registered = false;
+
+    private static bool $shutdown = false;
+
+    private function __construct() {}
 
     /**
-     * @param string $writer
+     * @param class-string<Writable> $writer
      */
-    public static function addWriter($writer)
+    public static function addWriter(string $writer): void
     {
-        self::$writers[$writer] = null;
+        self::$writers[$writer] ??= null;
     }
 
     /**
-     * @param array $writers
+     * @param list<class-string<Writable>> $writers
      */
-    public static function setWriters(array $writers)
+    public static function setWriters(array $writers): void
     {
         self::$writers = array_fill_keys($writers, null);
     }
 
     /**
-     * Registers itself as error and exception handler.
-     *
-     * @return void
+     * @return list<class-string<Writable>>
      */
-    public static function register()
+    public static function getWriters(): array
     {
-        set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-            self::handleError($errno, $errstr, $errfile, $errline);
-        });
-        set_exception_handler(function ($e) {
-            self::handleException($e);
-        });
-        register_shutdown_function(function () {
-            // Handle Fatal error
-            $error = error_get_last();
-            if (isset($error['type']) && $error['type'] === E_ERROR) {
-                self::handleError($error['type'], $error['message'], $error['file'], $error['line']);
-            }
-        });
+        return array_keys(self::$writers);
     }
 
     /**
-     * Handle an php Error
-     *
-     * @param int    $errno
-     * @param string $errstr
-     * @param string $errfile
-     * @param int    $errline
+     * Registers the error handler, the exception handler and the shutdown function (for the fatal errors).
+     * Does nothing when already registered.
      */
-    public static function handleError($errno, $errstr, $errfile, $errline)
+    public static function register(): void
     {
-        if (!($errno & error_reporting())) {
+        if (self::$registered) {
             return;
         }
 
-        static::handle(Error::fromError($errno, $errstr, $errfile, $errline));
+        self::$registered = true;
+
+        set_error_handler(self::handleError(...));
+        set_exception_handler(self::handleException(...));
+
+        if (!self::$shutdown) {
+            self::$shutdown = true;
+            register_shutdown_function(self::handleShutdown(...));
+        }
     }
 
     /**
-     * Handle an Exception non catched
-     *
-     * @param \Error|\Exception|\Throwable $e
+     * Restores the previous error and exception handlers. The shutdown function stays, inactive.
      */
-    public static function handleException($e)
+    public static function unregister(): void
     {
-        static::handle(Error::fromException($e));
+        if (!self::$registered) {
+            return;
+        }
+
+        self::$registered = false;
+
+        restore_error_handler();
+        restore_exception_handler();
+    }
+
+    public static function isRegistered(): bool
+    {
+        return self::$registered;
     }
 
     /**
-     * Logs the error and dispatches an error controller.
-     *
-     * @param  \Neutrino\Error\Error $error
+     * A PHP error. The errors excluded by `error_reporting` (or silenced by `@`) are left to PHP.
      */
-    public static function handle(Error $error)
+    public static function handleError(int $errno, string $errstr, string $errfile = '', int $errline = 0): bool
+    {
+        if (($errno & error_reporting()) === 0) {
+            return false;
+        }
+
+        self::handle(Error::fromError($errno, $errstr, $errfile, $errline));
+
+        return true;
+    }
+
+    public static function handleException(Throwable $exception): void
+    {
+        self::handle(Error::fromException($exception));
+    }
+
+    /**
+     * Reports the fatal error that stopped the script, which the error handler cannot catch.
+     */
+    public static function handleShutdown(): void
+    {
+        $error = error_get_last();
+
+        if (!self::$registered || $error === null || ($error['type'] & self::FATAL) === 0) {
+            return;
+        }
+
+        self::handleError($error['type'], $error['message'], $error['file'], $error['line']);
+    }
+
+    /**
+     * Passes an error to every writer. A failing writer does not prevent the others from running.
+     */
+    public static function handle(Error $error): void
     {
         foreach (self::$writers as $class => $writer) {
-            if (is_null($writer)) {
-                self::$writers[$class] = $writer = new $class();
+            try {
+                $writer ??= self::$writers[$class] = new $class();
+                $writer->handle($error);
+            } catch (Throwable $e) {
+                error_log('Error writer ' . $class . ' failed: ' . $e->getMessage() . ' in ' . $e->getFile() . '(' . $e->getLine() . ')');
             }
-            $writer->handle($error);
         }
     }
 }

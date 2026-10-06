@@ -2,7 +2,7 @@
 
 namespace Test\HttpClient;
 
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Neutrino\Http\Standards\Method;
 use Neutrino\HttpClient\Request;
 use Neutrino\HttpClient\Response;
@@ -182,7 +182,7 @@ class RequestTest extends TestCase
     {
         $request = $this->getRequest();
 
-        $header = Reflexion::get($request, 'header');
+        $header = Reflection::get($request, 'header');
 
         $request->setHeaders([
             'test' => 'value',

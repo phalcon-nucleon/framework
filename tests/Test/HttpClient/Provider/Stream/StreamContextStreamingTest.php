@@ -2,7 +2,7 @@
 
 namespace Test\HttpClient\Provider\Stream;
 
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Neutrino\HttpClient\Provider\StreamContext;
 use Phalcon\Events\Event;
 use Test\HttpClient\Provider\TraitWithLocalServer;
@@ -99,7 +99,7 @@ class StreamContextStreamingTest extends \PHPUnit\Framework\TestCase
 
         $streamCtxStreaming->setBufferSize(2048);
 
-        $bufferSize = Reflexion::get($streamCtxStreaming, 'bufferSize');
+        $bufferSize = Reflection::get($streamCtxStreaming, 'bufferSize');
 
         $this->assertEquals(2048, $bufferSize);
     }

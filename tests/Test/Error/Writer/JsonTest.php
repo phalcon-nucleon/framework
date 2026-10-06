@@ -1,124 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Error\Writer;
 
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
-use Neutrino\Error\Helper;
 use Neutrino\Error\Writer\Json;
 use Test\TestCase\TestCase;
 
-class JsonTest extends TestCase
+final class JsonTest extends TestCase
 {
-    public function dataHandle()
+    public function testFatalErrorAnsweredWith500(): void
     {
-        $error = Error::fromException(new \Exception());
-        $data[] = [true, $error];
+        $response = $this->mockService(Services::RESPONSE, new StubResponse());
+        $error = Error::fromError(E_ERROR, 'fatal', __FILE__, __LINE__);
 
-        $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data[] = [true, $error];
+        (new Json())->handle($error);
 
-        $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
-        $data[] = [null, $error];
-
-        $error = Error::fromError(E_NOTICE, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [null, $error];
-
-        $error = Error::fromError(E_STRICT, 'E_STRICT', __FILE__, __LINE__);
-        $data[] = [null, $error];
-
-        $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [true, $error];
-
-        return $data;
+        $this->assertTrue($response->wasSent);
+        $this->assertSame(500, $response->getStatusCode());
+        $this->assertSame('application/json; charset=UTF-8', $response->getHeaders()->get('Content-Type'));
+        $this->assertSame(
+            ['code' => 500, 'status' => 'Internal Server Error', 'debug' => json_decode((string) json_encode($error), true)],
+            json_decode((string) $response->getContent(), true),
+        );
     }
 
-    /**
-     * @dataProvider dataHandle
-     *
-     * @param $expected
-     * @param $error
-     */
-    public function testHandle($expected, $error)
+    public function testResponseAlreadySent(): void
     {
-        $mock = $this->mockService(Services::RESPONSE, \Phalcon\Http\Response::class, true);
+        $response = $this->mockService(Services::RESPONSE, new StubResponse());
+        $response->wasSent = true;
 
-        if ($expected) {
-            $mock->expects($this->once())
-                ->method('isSent')
-                ->will($this->returnValue(false));
-            $mock->expects($this->once())
-                ->method('setJsonContent')
-                ->with([
-                    'code' => 500,
-                    'status' => 'Internal Server Error',
-                    'debug' => $error
-                ])
-                ->will($this->returnSelf());
-            $mock->expects($this->once())
-                ->method('setStatusCode')
-                ->with(500)
-                ->will($this->returnSelf());
-            $mock->expects($this->once())
-                ->method('send');
-        } else {
-            $mock->expects($this->never())
-                ->method('isSent');
-            $mock->expects($this->never())
-                ->method('setJsonContent');
-            $mock->expects($this->never())
-                ->method('setStatusCode');
-            $mock->expects($this->never())
-                ->method('send');
-        }
+        $this->expectOutputRegex('/^\{"code":500,"status":"Internal Server Error","debug":\{"type":-1,/');
 
-        $writer = new Json();
+        (new Json())->handle(Error::fromException(new \RuntimeException('boom')));
 
-        $writer->handle($error);
+        $this->assertEmpty($response->getContent());
     }
 
-    /**
-     * @dataProvider dataHandle
-     *
-     * @param $expected
-     * @param $error
-     */
-    public function testHandleResponseAlearySent($expected, $error)
+    public function testNonFatalErrorIgnored(): void
     {
-        $mock = $this->mockService(Services::RESPONSE, \Phalcon\Http\Response::class, true);
+        $response = $this->mockService(Services::RESPONSE, new StubResponse());
 
-        if ($expected) {
+        $this->expectOutputString('');
 
-            $mock->expects($this->once())
-                ->method('isSent')
-                ->will($this->returnValue(true));
-
-            $mock->expects($this->never())
-                ->method('setJsonContent');
-            $mock->expects($this->never())
-                ->method('setStatusCode');
-            $mock->expects($this->never())
-                ->method('send');
-
-            $this->expectOutputString(json_encode([
-                'code' => 500,
-                'status' => 'Internal Server Error',
-                'debug' => $error
-            ]));
-
-        } else {
-            $mock->expects($this->never())
-                ->method('isSent');
-            $mock->expects($this->never())
-                ->method('setJsonContent');
-            $mock->expects($this->never())
-                ->method('setStatusCode');
-            $mock->expects($this->never())
-                ->method('send');
+        foreach ([E_WARNING, E_NOTICE, E_DEPRECATED, E_USER_ERROR] as $type) {
+            (new Json())->handle(Error::fromError($type, 'msg'));
         }
 
-        $writer = new Json();
-
-        $writer->handle($error);
+        $this->assertFalse($response->wasSent);
     }
 }

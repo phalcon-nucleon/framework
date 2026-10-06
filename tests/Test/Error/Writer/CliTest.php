@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Error\Writer;
 
 use Neutrino\Cli\Output\Writer;
@@ -7,112 +9,52 @@ use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
 use Neutrino\Error\Writer\Cli;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Test\TestCase\TestCase;
 
-class CliTest extends TestCase
+final class CliTest extends TestCase
 {
-
-    public function dataHandle()
+    /**
+     * @return iterable<string, array{Error, string}>
+     */
+    public static function errors(): iterable
     {
-        $error = Error::fromException(new \Exception());
-        $data['error'] = [Helper::format($error), 'error', $error];
-
-        $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data['E_ERROR'] = [Helper::format($error), 'error', $error];
-
-        $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
-        $data['E_WARNING'] = [Helper::format($error), 'warn', $error];
-
-        $error = Error::fromError(E_NOTICE, 'E_NOTICE', __FILE__, __LINE__);
-        $data['E_NOTICE'] = [Helper::format($error), 'notice', $error];
-
-        $error = Error::fromError(E_STRICT, 'E_STRICT', __FILE__, __LINE__);
-        $data['E_STRICT'] = [Helper::format($error), 'info', $error];
-
-        $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data['E_PARSE'] = [Helper::format($error), 'error', $error];
-
-        $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data['E_USER_ERROR'] = [Helper::format($error), 'error', $error];
-
-        return $data;
+        yield 'exception' => [Error::fromException(new \Exception('boom')), 'error'];
+        yield 'E_ERROR' => [Error::fromError(E_ERROR, 'msg', __FILE__, 1), 'error'];
+        yield 'E_USER_ERROR' => [Error::fromError(E_USER_ERROR, 'msg', __FILE__, 1), 'error'];
+        yield 'E_WARNING' => [Error::fromError(E_WARNING, 'msg', __FILE__, 1), 'warn'];
+        yield 'E_NOTICE' => [Error::fromError(E_NOTICE, 'msg', __FILE__, 1), 'notice'];
+        yield 'E_DEPRECATED' => [Error::fromError(E_DEPRECATED, 'msg', __FILE__, 1), 'info'];
     }
 
-    /**
-     * @dataProvider dataHandle
-     *
-     * @param $expectedMessage
-     * @param $expectedMethod
-     * @param $error
-     */
-    public function testHandle($expectedMessage, $expectedMethod, $error)
+    #[DataProvider('errors')]
+    public function testBlockOfTheSeverity(Error $error, string $style): void
     {
-        $mock = $this->mockService(Services\Cli::OUTPUT, Writer::class, true);
+        $output = $this->mockService(Services\Cli::OUTPUT, Writer::class);
+        $lines = [];
+        $output->expects($this->once())->method('line')->with('');
+        $output->method($style)->willReturnCallback(function (string $line) use (&$lines): void {
+            $lines[] = $line;
+        });
 
-        $with = [];
+        (new Cli())->handle($error);
 
-        if (!empty($expectedMessage)) {
-            $lines = explode("\n", $expectedMessage);
-
-            $maxlen = 0;
-            $rows = [];
-
-            foreach ($lines as $line) {
-                $len = strlen($line);
-
-                if ($len > 100) {
-                    $parts = str_split($line, 100);
-                    $rows = array_merge($rows, $parts);
-                    $maxlen = max($maxlen, 100);
-                } else {
-                    $maxlen = max($maxlen, $len);
-                    $rows[] = $line;
-                }
-            }
-
-            $with[] = [str_repeat(' ', $maxlen + 4)];
-            foreach ($rows as $line) {
-                $with[] = ['  ' . str_pad($line, $maxlen, ' ', STR_PAD_RIGHT) . '  '];
-            }
-            $with[] = [str_repeat(' ', $maxlen + 4)];
-        }
-
-        $mock->expects($this->exactly(count($with)))
-            ->method($expectedMethod)
-            ->withConsecutive(...$with);
-
-        $writer = new Cli();
-
-        $writer->handle($error);
+        // Blank first and last rows, then the lines of the error padded by 2 spaces (split at 100 characters).
+        $this->assertSame('', trim($lines[0]));
+        $this->assertSame('', trim($lines[count($lines) - 1]));
+        $this->assertSame(
+            str_replace("\n", '', Helper::format($error)),
+            implode('', array_map(static fn(string $line): string => rtrim(substr($line, 2)), array_slice($lines, 1, -1))),
+        );
     }
 
-    /**
-     * @dataProvider dataHandle
-     *
-     * @param $expectedMessage
-     * @param $expectedMethod
-     * @param $error
-     */
-    public function testHandleNoService($expectedMessage, $expectedMethod, $error)
+    public function testWithoutOutputService(): void
     {
-        if ($this->getDI()->has(Services\Cli::OUTPUT)) {
-            $outputCli = $this->getDI()->getShared(Services\Cli::OUTPUT);
+        $this->getDI()->remove(Services\Cli::OUTPUT);
+        $error = Error::fromError(E_WARNING, 'msg', __FILE__, 1);
 
-            $this->getDI()->remove(Services\Cli::OUTPUT);
-        }
+        $this->expectOutputString(Helper::format($error) . "\n");
 
-        ob_start();
-
-        $writer = new Cli();
-
-        $writer->handle($error);
-
-        $str = ob_get_clean();
-
-        if (!empty($outputCli)) {
-            $this->getDI()->setShared(Services\Cli::OUTPUT, $outputCli);
-        }
-
-        $this->assertEquals($expectedMessage, $str);
+        (new Cli())->handle($error);
     }
 }

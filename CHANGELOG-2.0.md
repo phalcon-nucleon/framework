@@ -23,6 +23,8 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Migrations: anonymous migrations, connection per migration (`$connection`, `--database`), transactions on PostgreSQL and SQLite (`$withinTransaction`), `migrations.connection`; `Builder::withoutForeignKeyConstraints()`; schema grammars (`Schema\Grammar`); `Db::pretend()` can run the reads.
  - `security.csrf.rotate`, `security.throttle.store`; CSRF token in a JSON body.
  - `app.crypt_signing`; `annotations.adapter` (`memory`, `apcu`, `stream`).
+ - Errors: `Foundation\Bootstrap` registers the error handler (`error.register`); `Handler::unregister()`, `isRegistered()`, `getWriters()`.
+ - Debug: `phalcon/debugbar` integration (suggested), with the queries, cache operations, views and logs of the Nucleon services; `Debug\Highlight` (HTML and terminal, with the suggested `tempest/highlight`); `VarDump::html()` and `text()`, console output, enums and `readonly` properties.
  - Event constants for the Phalcon 5 events: router, di, `db:connectionLost`, dispatcher binding and action calls, micro binding and exceptions, model `prepareSave` and `validation`, view compilation.
 
 ### Changed
@@ -38,6 +40,8 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - CSRF: only POST, PUT, PATCH and DELETE are checked, token in the `X-CSRF-Token` header or the body; the token stays valid for the session.
  - `RateLimiter`: fixed window, PSR-16 cache, atomic increment on Redis, APCu and Memcached; throttle signature `xxh128`.
  - Migrations: typed, schema changes through the Phalcon 5 adapter, native Phalcon 5 column types (`UUID`, `INET`, `MACADDR`, `BYTEA`, `TIME`… on PostgreSQL), `make:migration` writes anonymous migrations, commands declared by `MigrationsServicesProvider` and documented with attributes.
+ - `Error\Error` is a `readonly` value object (`isFatal()`); the error writers are typed and the `Logger` writer formats the errors without changing the adapters' formatter; the debug error page has no CDN dependency anymore.
+ - `Debug\Reflexion` renamed `Support\Reflection`.
  - `crypt`, `security`, `filter` and `escaper` are `Encryption\Crypt`, `Encryption\Security`, `Filter\Filter` and `Html\Escaper`; `crypt` signs by default.
 
 ### Fixed
@@ -56,6 +60,7 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - The rate limiter released a client only when it stopped trying (sliding lifetime).
  - Session provider: the construction error kept the previous exception as its code.
  - Migrations: `migrate:rollback` rolled back one migration of the last batch; `Builder` read the tables of the `dbname` schema (wrong on PostgreSQL); `make:migration --table` wrote a call to a missing `Builder::update()`; `migrate --pretend` reported the introspection queries and missed the modifications; `migrate:fresh` left the tables of the other connections (log, migrations on their own connection).
+ - Errors: the fatal errors other than `E_ERROR` (`E_PARSE`, `E_CORE_ERROR`, `E_COMPILE_ERROR`, `E_RECOVERABLE_ERROR`) were not reported; a failing writer stopped the others; the `Flash` writer output a fatal error before the error page, which lost its 500 status.
  - `route:cache`: route names and hostnames are escaped; routes that cannot be cached are rejected instead of being lost.
 
 ### Removed
@@ -68,4 +73,5 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Volt `{% cache %}` (no output cache in Phalcon 5).
  - `Neutrino\Auth\Manager` (replaced by `Phalcon\Auth\Manager`); CSRF token read from the query string.
  - Migrations: `FileStorage`, `Schema\Dialect\*`, `Schema\DialectInterface`, `Schema\DialectTrait`.
+ - Nucleon debug bar (`DebugToolbar`, `DebugEventsManagerWrapper`, profilers), `Foundation\Middleware\Debug`, `ark4ne/highlight`.
  - Logger adapters `Firelogger`, `Udplogger`, `Multiple`; session adapters `Files` (now `stream`) and `Memcache`.

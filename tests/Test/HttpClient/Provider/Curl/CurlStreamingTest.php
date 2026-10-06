@@ -2,7 +2,7 @@
 
 namespace Test\Provider\Curl;
 
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Neutrino\HttpClient\Provider\Curl;
 use Phalcon\Events\Event;
 use Test\HttpClient\Provider\TraitWithLocalServer;
@@ -107,7 +107,7 @@ class CurlStreamingTest extends \PHPUnit\Framework\TestCase
 
         $curlStream->setBufferSize(2048);
 
-        $bufferSize = Reflexion::get($curlStream, 'bufferSize');
+        $bufferSize = Reflection::get($curlStream, 'bufferSize');
 
         $this->assertEquals(2048, $bufferSize);
     }

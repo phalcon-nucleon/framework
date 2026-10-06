@@ -6,7 +6,7 @@ namespace Test\Middleware;
 
 use Fake\Kernels\Http\Controllers\StubController;
 use Neutrino\Constants\Services;
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Neutrino\Foundation\Middleware\Controller;
 use Test\TestCase\TestCase;
 
@@ -34,7 +34,7 @@ final class MiddlewareControllerTest extends TestCase
 
         $this->assertEquals(
             [],
-            Reflexion::get($controller, 'filter'),
+            Reflection::get($controller, 'filter'),
         );
 
         $this->assertEquals($controller, $controller->only([]));
@@ -43,7 +43,7 @@ final class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => [],
             'except' => [],
-        ], Reflexion::get($controller, 'filter'));
+        ], Reflection::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only(['test']));
         $this->assertEquals($controller, $controller->except(['test']));
@@ -51,7 +51,7 @@ final class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => ['test' => true],
             'except' => ['test' => true],
-        ], Reflexion::get($controller, 'filter'));
+        ], Reflection::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only(null));
         $this->assertEquals($controller, $controller->except(null));
@@ -59,7 +59,7 @@ final class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => ['test' => true],
             'except' => ['test' => true],
-        ], Reflexion::get($controller, 'filter'));
+        ], Reflection::get($controller, 'filter'));
 
         $this->assertEquals($controller, $controller->only([]));
         $this->assertEquals($controller, $controller->except([]));
@@ -67,7 +67,7 @@ final class MiddlewareControllerTest extends TestCase
         $this->assertEquals([
             'only'   => [],
             'except' => [],
-        ], Reflexion::get($controller, 'filter'));
+        ], Reflection::get($controller, 'filter'));
     }
 
     public function testFiltersAddUp(): void
@@ -79,10 +79,10 @@ final class MiddlewareControllerTest extends TestCase
         $this->assertSame([
             'only'   => ['index' => true, 'show' => true],
             'except' => ['a' => true, 'b' => true],
-        ], Reflexion::get($controller, 'filter'));
+        ], Reflection::get($controller, 'filter'));
 
         $controller->only([]);
-        $this->assertSame([], Reflexion::get($controller, 'filter')['only']);
+        $this->assertSame([], Reflection::get($controller, 'filter')['only']);
     }
 
     public static function dataCheck(): array

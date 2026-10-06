@@ -1,6 +1,6 @@
 # E12 — Erreurs & Debug
 
-**Statut** : Rédigé · **Dépend de** : E4 (et E7 pour le Logger) · **Bloque** : E9 (fonction Volt `dump()`), E11 (`--pretend` coloré)
+**Statut** : Terminé · **Dépend de** : E4 (et E7 pour le Logger) · **Bloque** : E9 (fonction Volt `dump()`), E11 (`--pretend` coloré)
 
 ## Objectif
 
@@ -41,7 +41,7 @@ Porter la gestion des erreurs sur PHP 8.3 / Phalcon 5 sans en perdre aucune (y c
   - `Handler` reçoit des `\Throwable` (et non plus seulement des `\Exception`) ;
   - `Error` devient un objet valeur `readonly`.
 - **Les sorties d'erreur sont conservées** : `Phplog`, `Logger`, `Flash`, `View` (contrôleur ou vue d'erreur configurables), `Json` et `Cli`. Elles sont typées et portées sur Phalcon 5 (Logger : formateur par adapter, niveaux `Logger\Enum`).
-- **Barre de debug : remplacée par `phalcon/debugbar`, si l'étude S1 confirme.**
+- **Barre de debug : remplacée par `phalcon/debugbar`** (confirmé par l'étude S1, voir Avancement).
   - Le paquet est mis en `suggest` (outil de développement) et non en `require` : aucune dépendance de production n'est ajoutée.
   - Le Debugger Nucleon se contente de l'enregistrer quand `APP_DEBUG` est vrai et que le paquet est installé.
   - Sont supprimés : `DebugToolbar`, `bar.html.php`, `DebugEventsManagerWrapper`, l'enregistrement des profileurs, et `Foundation\Middleware\Debug`.
@@ -100,3 +100,17 @@ Porter la gestion des erreurs sur PHP 8.3 / Phalcon 5 sans en perdre aucune (y c
 - Une erreur fatale de compilation (`E_COMPILE_ERROR`) est bien transmise aux sorties d'erreur.
 - `composer show --tree` n'indique aucune dépendance de production nouvelle.
 - Mesures : avec `APP_DEBUG` faux, une requête HTTP ne coûte pas plus cher qu'en 1.3 (aucun outil de debug chargé).
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Étude `phalcon/debugbar` | Fait | **Remplacement confirmé.** `phalcon/debugbar` 0.4 (12 600 lignes, une dépendance : `matthiasmullie/minify`) s'installe en `require-dev` et tourne sur Phalcon 5.22 et 6. Ses collecteurs écoutent le gestionnaire d'événements de l'application, que les services Nucleon (connexions `db.<nom>`, stores `cache.<nom>`, vues) n'avaient pas : sans câblage, les panneaux SQL, cache et vues restent vides. Le `Debugger` le leur donne à leur résolution (`di:afterServiceResolve`) et ajoute l'adapter de la barre au `logger`. Vérifié sur une vraie requête (`php-cgi`, `DebuggerHttpTest`) : requête SQL, clé de cache et log présents dans la barre. Limites : pas de barre sur le kernel Micro (le `Provider` exige une `Mvc\Application`) ; la barre lit l'environnement dans une variable (`APP_ENV`), que le `Debugger` renseigne depuis la constante. Avec `APP_DEBUG` faux, aucune classe de debug n'est chargée (vérifié). |
+| S2 · Gestion des erreurs | Fait | `Handler` final : enregistrement idempotent par `Bootstrap::make()` (hors environnement `test`, désactivable par `error.register`), `unregister()`, fonction d'arrêt pour `E_ERROR`, `E_PARSE`, `E_CORE_ERROR`, `E_COMPILE_ERROR` et `E_RECOVERABLE_ERROR`, `\Throwable`, un writer en échec n'empêche pas les suivants. `Error` objet valeur `readonly` (`isFatal()`, code chaîne des `PDOException`). `Helper` typé, niveaux `Logger\Enum`, `E_STRICT` par sa valeur (constante dépréciée en PHP 8.4), énumérations dans les traces. Erreurs testées dans un sous-processus : avertissement, exception, `E_COMPILE_ERROR`, `E_ERROR` (mémoire), `@`, `error_reporting`, enregistrement par le `Bootstrap` et sa désactivation. |
+| S3 · Sorties d'erreur | Fait | Writers finaux et typés. `Logger` : `error.formatter` (mêmes valeurs que `log.formatter`) appliqué aux adapters le temps de l'erreur seulement ; Phalcon 5 écrit les sauts de ligne d'un message en `\x0A`. `Flash` laisse les erreurs fatales à la page d'erreur (son affichage envoyait les en-têtes et la page perdait son statut 500, relevé par la requête réelle). `View` répond en 500 aussi sans service `view`. `Json` sans `setJsonContent()` (absent de `ResponseInterface`). |
+| S4 · Debugger, page d'erreur et barre de debug | Fait | `Debugger` : barre si installée, page d'erreur, `DebugErrorLogger` (erreurs PHP de la requête, transmises aussi à la barre). Page d'erreur autonome (CSS intégré, `<details>`, plus de CDN ni de jQuery) : chaîne d'exceptions, extraits de code numérotés avec la ligne marquée, erreurs PHP, versions. `Debug\Highlight` (HTML, terminal, extrait de fichier) utilisé par la page et `migrate --pretend`. Supprimés : `DebugToolbar`, `bar.html.php`, `DebugEventsManagerWrapper`, `helpers/functions.php`, `Foundation\Middleware\Debug`. |
+| S5 · `VarDump` et `Support\Reflection` | Fait | `VarDump::dump()` (texte en console, HTML sinon), `html()`, `text()` ; énumérations, propriétés `readonly`, non initialisées et dynamiques ; objets déjà affichés en lien (`#id`) ; tableau récursif coupé à 64 niveaux. `Support\Reflection` (`get`, `set`, `invoke`, `properties`, `property`, `method`), membres privés des parents compris ; tests mis à jour. |
+
+Mesures (`bench`, kernel en production, `APP_DEBUG` faux) : l'enregistrement du handler ne coûte pas de temps mesurable (±1 % selon les passes) et environ 2 Kio de mémoire ; la condition sur `APP_ENV` compare la valeur littérale pour ne pas charger `Constants\Env` à chaque requête (seul fichier chargé en plus, relevé par `get_included_files()`).
+
+Suites `Error` et `Debug` activées (92 et 25 tests). 1 178 tests verts sur Phalcon 5.22 ; suites `Error`, `Debug`, `Support` et `Database` vertes sur Phalcon 6 (requêtes `php-cgi` comprises). Baseline PHPStan : 300 entrées en moins.

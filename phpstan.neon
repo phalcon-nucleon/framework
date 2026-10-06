@@ -17,8 +17,6 @@ parameters:
         # Files with errors PHPStan cannot baseline (classes or signatures
         # incompatible with Phalcon 5). Each epic removes its files from this
         # list once ported. Do not add new entries.
-        - src/Neutrino/Debug/DebugEventsManagerWrapper.php           # E12
-        - src/Neutrino/Error/Error.php                               # E12
         - src/Neutrino/HttpClient/*                                  # E13
     # Phalcon classes come from the extension when it is loaded; the stubs
     # cover analysis without it (Phalcon 6 job, editors).

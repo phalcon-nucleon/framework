@@ -1,67 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Cli\Output\Block;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
-use Phalcon\Di;
-use Phalcon\Logger as PhalconLogger;
+use Phalcon\Di\Di;
+use Phalcon\Logger\Enum;
 
 /**
- * Class Cli
- *
- * @package     Neutrino\Error\Writer
+ * Writes the errors to the console output (`cli.output` service), in a block colored by severity.
  */
-class Cli implements Writable
+final class Cli implements Writable
 {
-    /**
-     * @inheritdoc
-     */
-    public function handle(Error $error)
+    public function handle(Error $error): void
     {
         $di = Di::getDefault();
+        $output = $di !== null && $di->has(Services\Cli::OUTPUT) ? $di->getShared(Services\Cli::OUTPUT) : null;
 
-        if ($di && $di->has(Services\Cli::OUTPUT)) {
-            /** @var \Neutrino\Cli\Output\Writer $output */
-            $output = $di->getShared(Services\Cli::OUTPUT);
+        if (!$output instanceof Writer) {
+            echo Helper::format($error), "\n";
 
-            $output->line('');
-
-            $block = new Block($output, $this->getColoration($error), ['padding' => 4]);
-
-            $block->draw(explode("\n", Helper::format($error)));
-        } else {
-            echo Helper::format($error);
+            return;
         }
+
+        $output->line('');
+
+        (new Block($output, self::style($error), ['padding' => 4]))->draw(explode("\n", Helper::format($error)));
     }
 
     /**
-     * @param \Neutrino\Error\Error $error
-     *
-     * @return string
+     * @return 'error'|'warn'|'notice'|'info'
      */
-    protected function getColoration(Error $error)
+    private static function style(Error $error): string
     {
-        if($error->isException){
-            return 'error';
-        }
-
-        switch (Helper::getLogType($error->code)){
-            case PhalconLogger::ALERT:
-            case PhalconLogger::CRITICAL:
-            case PhalconLogger::EMERGENCY:
-            case PhalconLogger::ERROR:
-                return 'error';
-            case PhalconLogger::WARNING:
-                return 'warn';
-            case PhalconLogger::NOTICE:
-                return 'notice';
-            case PhalconLogger::INFO:
-                return 'info';
-            default:
-                return 'error';
-        }
+        return match ($error->logLvl) {
+            Enum::WARNING => 'warn',
+            Enum::NOTICE  => 'notice',
+            Enum::INFO, Enum::DEBUG => 'info',
+            default       => 'error',
+        };
     }
 }

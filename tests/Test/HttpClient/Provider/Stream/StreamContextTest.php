@@ -2,7 +2,7 @@
 
 namespace Test\HttpClient\Provider\Stream;
 
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Neutrino\HttpClient\Provider\StreamContext;
 use Neutrino\Http\Standards\Method;
 use Test\HttpClient\Provider\TraitWithLocalServer;
@@ -117,19 +117,19 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
 
         $streamCtx->setProxy('domain.com');
 
-        Reflexion::invoke($streamCtx, 'buildProxy');
+        Reflection::invoke($streamCtx, 'buildProxy');
 
         $this->assertEquals('tcp://domain.com:8080', $streamCtx->getOptions()['proxy']);
 
         $streamCtx->setProxy('domain.com', 8888);
 
-        Reflexion::invoke($streamCtx, 'buildProxy');
+        Reflection::invoke($streamCtx, 'buildProxy');
 
         $this->assertEquals('tcp://domain.com:8888', $streamCtx->getOptions()['proxy']);
 
         $streamCtx->setProxy('domain.com', 8888, 'user:pass');
 
-        Reflexion::invoke($streamCtx, 'buildProxy');
+        Reflection::invoke($streamCtx, 'buildProxy');
 
         $this->assertEquals('tcp://user:pass@domain.com:8888', $streamCtx->getOptions()['proxy']);
     }
@@ -141,9 +141,9 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
         $streamCtx->setCookie(null, 'biscuit');
         $streamCtx->setCookie(null, 'muffin');
 
-        Reflexion::invoke($streamCtx, 'buildCookies');
+        Reflection::invoke($streamCtx, 'buildCookies');
 
-        $header = Reflexion::get($streamCtx, 'header');
+        $header = Reflection::get($streamCtx, 'header');
 
         $this->assertTrue($header->has('Cookie'));
         $this->assertEquals(implode(';', ['biscuit', 'muffin']), $header->get('Cookie'));
@@ -192,7 +192,7 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
         $streamCtx->on($streamCtx::EVENT_FINISH, $closureFinish);
 
         $emitter = $streamCtx->getEventsManager();
-        $listener = Reflexion::get($emitter, '_events');
+        $listener = Reflection::get($emitter, '_events');
 
         $this->assertArrayHasKey($streamCtx::EVENT_START, $listener);
         $this->assertArrayHasKey($streamCtx::EVENT_PROGRESS, $listener);
@@ -203,17 +203,17 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals([$closureFinish], $listener[$streamCtx::EVENT_FINISH]);
 
         $streamCtx->off($streamCtx::EVENT_START, $closureStart);
-        $listener = Reflexion::get($emitter, '_events');
+        $listener = Reflection::get($emitter, '_events');
 
         $this->assertEquals([], $listener[$streamCtx::EVENT_START]);
 
         $streamCtx->off($streamCtx::EVENT_PROGRESS, $closureProgress);
-        $listener = Reflexion::get($emitter, '_events');
+        $listener = Reflection::get($emitter, '_events');
 
         $this->assertEquals([], $listener[$streamCtx::EVENT_PROGRESS]);
 
         $streamCtx->off($streamCtx::EVENT_FINISH, $closureFinish);
-        $listener = Reflexion::get($emitter, '_events');
+        $listener = Reflection::get($emitter, '_events');
 
         $this->assertEquals([], $listener[$streamCtx::EVENT_FINISH]);
     }
@@ -278,7 +278,7 @@ class StreamContextTest extends \PHPUnit\Framework\TestCase
     {
         $this->expectException(\Neutrino\HttpClient\Provider\Exception::class);
         $this->expectExceptionMessage('Neutrino\HttpClient\Provider\StreamContext HTTP or HTTPS stream wrappers not registered.');
-        Reflexion::set(StreamContext::class, 'isAvailable', false);
+        Reflection::set(StreamContext::class, 'isAvailable', false);
 
         new StreamContext;
     }

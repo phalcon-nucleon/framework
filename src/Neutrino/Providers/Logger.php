@@ -155,7 +155,10 @@ class Logger extends Provider
         return new $class($name, $options);
     }
 
-    private static function formatter(string $key, mixed $config): FormatterInterface
+    /**
+     * @internal Also used by the error writer `Neutrino\Error\Writer\Logger` (`error.formatter`).
+     */
+    public static function formatter(string $key, mixed $config): FormatterInterface
     {
         if ($config instanceof FormatterInterface) {
             return $config;

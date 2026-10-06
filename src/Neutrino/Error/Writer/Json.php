@@ -1,51 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
-use Phalcon\Di;
+use Phalcon\Di\Di;
 use Phalcon\Http\ResponseInterface;
 
 /**
- * Class Json
- *
- * @package     Neutrino\Error\Writer
+ * Answers a fatal error with a JSON 500 response (Micro kernel). The error is detailed in debug mode only.
  */
-class Json implements Writable
+final class Json implements Writable
 {
-
-    /**
-     * @inheritdoc
-     */
-    public function handle(Error $error)
+    public function handle(Error $error): void
     {
-        if (!$error->isFateful()) {
+        if (!$error->isFatal()) {
             return;
         }
 
-        $return = [
-            'code' => 500,
-            'status' => 'Internal Server Error',
-        ];
+        $content = ['code' => 500, 'status' => 'Internal Server Error'];
 
         if (APP_DEBUG) {
-            $return['debug'] = $error;
+            $content['debug'] = $error;
         }
 
+        $json = (string) json_encode($content, JSON_PARTIAL_OUTPUT_ON_ERROR);
         $di = Di::getDefault();
+        $response = $di !== null && $di->has(Services::RESPONSE) ? $di->getShared(Services::RESPONSE) : null;
 
-        if ($di
-            && $di->has(Services::RESPONSE)
-            && ($response = $di->getShared(Services::RESPONSE)) instanceof ResponseInterface
-            && !$response->isSent()
-        ) {
+        if ($response instanceof ResponseInterface && !$response->isSent()) {
             $response
                 ->setStatusCode(500, 'Internal Server Error')
-                ->setJsonContent($return)
+                ->setContentType('application/json', 'UTF-8')
+                ->setContent($json)
                 ->send();
-        } else {
-            echo json_encode($return);
+
+            return;
         }
+
+        echo $json;
     }
 }

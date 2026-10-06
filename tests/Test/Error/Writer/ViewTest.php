@@ -1,208 +1,152 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Error\Writer;
 
+use Neutrino\Config\Config;
 use Neutrino\Constants\Services;
+use Neutrino\Debug\Debugger;
 use Neutrino\Error\Error;
 use Neutrino\Error\Writer\View;
 use Phalcon\Mvc\Dispatcher;
+use Phalcon\Mvc\View as MvcView;
 use Test\TestCase\TestCase;
 
-class ViewTest extends TestCase
+final class ViewTest extends TestCase
 {
+    private StubResponse $response;
 
-    public function dataHandle()
+    protected function setUp(): void
     {
-        $error = Error::fromException(new \Exception());
-        $data[] = [$error];
+        parent::setUp();
 
-        $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data[] = [$error];
+        $this->response = $this->mockService(Services::RESPONSE, new StubResponse());
+    }
 
-        $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [$error];
+    protected function tearDown(): void
+    {
+        self::getConfig()->remove('error');
+        Debugger::reset();
 
-        $withs = [
-            [null, []],
-            ['view.noConfig', []],
-            ['view.config', ['error' => [
-                'view' => [
-                    'path' => 'error.view.path',
-                    'file' => 'error.view.file'
-                ]
-            ]]],
-            ['dispatcher', ['error' => [
-                'dispatcher' => [
-                    'namespace'  => 'error.dispatcher.namespace',
-                    'controller' => 'error.dispatcher.controller',
-                    'action'     => 'error.dispatcher.action',
-                ]
-            ]]],
-        ];
+        parent::tearDown();
+    }
 
-        $handles = [];
-        foreach ($withs as $with) {
-            foreach ($data as $key => $datum) {
-                if ($with[0] != null) {
-                    foreach (['true', 'false'] as $response) {
-                        $handles[$key . '.' . $with[0] . '.' . $response] = array_merge($datum, $with, [$response]);
-                    }
-                } else {
-                    $handles[$key . '.no-with'] = array_merge($datum, $with, ['false']);
-                }
-            }
+    public function testNonFatalErrorIgnored(): void
+    {
+        $view = $this->mockService(Services::VIEW, MvcView::class);
+        $view->expects($this->never())->method('start');
+
+        $this->expectOutputString('');
+
+        foreach ([E_WARNING, E_NOTICE, E_USER_ERROR, E_DEPRECATED] as $type) {
+            (new View())->handle(Error::fromError($type, 'msg'));
         }
 
-        $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $handles[] = [$error, 'nothing', [], 'nothing'];
-        $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
-        $handles[] = [$error, 'nothing', [], 'nothing'];
-        $error = Error::fromError(E_NOTICE, 'E_USER_ERROR', __FILE__, __LINE__);
-        $handles[] = [$error, 'nothing', [], 'nothing'];
-        $error = Error::fromError(E_STRICT, 'E_STRICT', __FILE__, __LINE__);
-        $handles[] = [$error, 'nothing', [], 'nothing'];
+        $this->assertFalse($this->response->wasSent);
+    }
 
-        return $handles;
+    public function testWithoutView(): void
+    {
+        $this->getDI()->remove(Services::VIEW);
+
+        (new View())->handle(Error::fromError(E_ERROR, 'msg'));
+
+        $this->assertSent(View::DEFAULT_MESSAGE);
+    }
+
+    public function testResponseAlreadySent(): void
+    {
+        $this->getDI()->remove(Services::VIEW);
+        $this->response->wasSent = true;
+
+        $this->expectOutputString(View::DEFAULT_MESSAGE);
+
+        (new View())->handle(Error::fromError(E_ERROR, 'msg'));
+    }
+
+    public function testDefaultMessage(): void
+    {
+        $view = $this->view();
+        $view->expects($this->never())->method('render');
+        $view->expects($this->once())->method('setContent')->with(View::DEFAULT_MESSAGE);
+        $view->method('getContent')->willReturn(View::DEFAULT_MESSAGE);
+
+        (new View())->handle(Error::fromException(new \RuntimeException('boom')));
+
+        $this->assertSent(View::DEFAULT_MESSAGE);
+    }
+
+    public function testErrorView(): void
+    {
+        $this->config(['view' => ['path' => 'errors', 'file' => 'http500']]);
+        $error = Error::fromError(E_PARSE, 'msg');
+        $view = $this->view();
+        $view->expects($this->once())->method('render')->with('errors', 'http500', ['error' => $error]);
+        $view->expects($this->never())->method('setContent');
+        $view->method('getContent')->willReturn('error view');
+
+        (new View())->handle($error);
+
+        $this->assertSent('error view');
+    }
+
+    public function testErrorController(): void
+    {
+        $this->config(['dispatcher' => ['namespace' => 'App\Http\Controllers', 'controller' => 'errors', 'action' => 'index']]);
+        $error = Error::fromError(E_ERROR, 'msg');
+        $view = $this->view();
+        $view->expects($this->never())->method('render');
+        $view->method('getContent')->willReturn('error controller');
+        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class);
+        $dispatcher->expects($this->once())->method('setNamespaceName')->with('App\Http\Controllers');
+        $dispatcher->expects($this->once())->method('setControllerName')->with('errors');
+        $dispatcher->expects($this->once())->method('setActionName')->with('index');
+        $dispatcher->expects($this->once())->method('setParams')->with(['error' => $error]);
+        $dispatcher->expects($this->once())->method('dispatch');
+
+        (new View())->handle($error);
+
+        $this->assertSent('error controller');
+    }
+
+    public function testDebugErrorPage(): void
+    {
+        Debugger::register($this->app);
+        $view = $this->mockService(Services::VIEW, MvcView::class);
+        $view->expects($this->never())->method('start');
+
+        (new View())->handle(Error::fromException(new \RuntimeException('debug page')));
+
+        $this->assertSame(500, $this->response->getStatusCode());
+        $this->assertStringContainsString('<h1>RuntimeException</h1>', (string) $this->response->getContent());
+        $this->assertStringContainsString('debug page', (string) $this->response->getContent());
     }
 
     /**
-     * @dataProvider dataHandle
-     *
+     * @param array<string, mixed> $error
      */
-    public function testHandle($error, $with, $config, $response)
+    private function config(array $error): void
     {
-        $config = $this->mockService(Services::CONFIG, new \Phalcon\Config($config), true);
-        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class, true);
-        $view = $this->mockService(Services::VIEW, \Phalcon\Mvc\View::class, true);
+        $this->getDI()->getShared(Services::CONFIG)->merge(new Config(['error' => $error]));
+    }
 
-        switch ($with) {
-            case 'nothing':
+    /**
+     * @return MvcView&\PHPUnit\Framework\MockObject\MockObject
+     */
+    private function view(): MvcView
+    {
+        $view = $this->mockService(Services::VIEW, MvcView::class);
+        $view->expects($this->once())->method('start');
+        $view->expects($this->once())->method('finish');
 
-            case null:
-                if ($this->getDI()->has(Services::DISPATCHER)) {
-                    $this->getDI()->remove(Services::DISPATCHER);
-                }
-                if ($this->getDI()->has(Services::VIEW)) {
-                    $this->getDI()->remove(Services::VIEW);
-                }
-                $dispatcher->expects($this->never())->method('setNamespaceName');
-                $dispatcher->expects($this->never())->method('setControllerName');
-                $dispatcher->expects($this->never())->method('setActionName');
-                $dispatcher->expects($this->never())->method('setParams');
-                $dispatcher->expects($this->never())->method('dispatch');
-                $view->expects($this->never())->method('start');
-                $view->expects($this->never())->method('finish');
-                $view->expects($this->never())->method('setContent');
-                $view->expects($this->never())->method('getContent');
-                $view->expects($this->never())->method('render');
+        return $view;
+    }
 
-                $this->expectOutputString('Whoops. Something went wrong.');
-                break;
-            case 'view.noConfig':
-                $dispatcher->expects($this->never())->method('setNamespaceName');
-                $dispatcher->expects($this->never())->method('setControllerName');
-                $dispatcher->expects($this->never())->method('setActionName');
-                $dispatcher->expects($this->never())->method('setParams');
-                $dispatcher->expects($this->never())->method('dispatch');
-
-                $view->expects($this->never())->method('render');
-                $view->expects($this->once())->method('start');
-                $view->expects($this->once())->method('finish');
-                $view->expects($this->once())->method('setContent')->with('Whoops. Something went wrong.');
-                $view->expects($this->once())->method('getContent')->willReturn('Whoops. Something went wrong.');
-
-                break;
-            case 'view.config':
-                $dispatcher->expects($this->never())->method('setNamespaceName');
-                $dispatcher->expects($this->never())->method('setControllerName');
-                $dispatcher->expects($this->never())->method('setActionName');
-                $dispatcher->expects($this->never())->method('setParams');
-                $dispatcher->expects($this->never())->method('dispatch');
-
-                $view->expects($this->once())->method('render')->with(
-                    $config['error']['view']['path'],
-                    $config['error']['view']['file'],
-                    ['error' => $error]
-                );
-                $view->expects($this->once())->method('start');
-                $view->expects($this->once())->method('finish');
-                $view->expects($this->never())->method('setContent');
-                $view->expects($this->once())->method('getContent')->willReturn('Whoops. Something went wrong.');
-
-                break;
-            case 'dispatcher':
-                $dispatcher->expects($this->once())->method('setNamespaceName')->with($config['error']['dispatcher']['namespace']);
-                $dispatcher->expects($this->once())->method('setControllerName')->with($config['error']['dispatcher']['controller']);
-                $dispatcher->expects($this->once())->method('setActionName')->with($config['error']['dispatcher']['action']);
-                $dispatcher->expects($this->once())->method('setParams')->with(['error' => $error]);
-                $dispatcher->expects($this->once())->method('dispatch');
-
-                $view->expects($this->once())->method('start');
-                $view->expects($this->once())->method('finish');
-                $view->expects($this->never())->method('setContent');
-                $view->expects($this->once())->method('getContent')->willReturn('Whoops. Something went wrong.');
-                break;
-        }
-
-        $mock = $this->mockService(Services::RESPONSE, \Phalcon\Http\Response::class, true);
-
-        switch ($response) {
-            case 'true':
-                $mock->expects($this->once())
-                    ->method('isSent')
-                    ->will($this->returnValue(false));
-
-                $mock->expects($this->once())
-                    ->method('setContent')
-                    ->with('Whoops. Something went wrong.')
-                    ->will($this->returnSelf());
-                $mock->expects($this->once())
-                    ->method('setStatusCode')
-                    ->with(500)
-                    ->will($this->returnSelf());
-                $mock->expects($this->once())
-                    ->method('send');
-
-                $this->expectOutputString(null);
-                break;
-            case 'false':
-                $mock->expects($this->any())
-                    ->method('isSent')
-                    ->will($this->returnValue(true));
-
-                $mock->expects($this->never())
-                    ->method('setContent');
-                $mock->expects($this->never())
-                    ->method('setStatusCode');
-                $mock->expects($this->never())
-                    ->method('send');
-
-                $this->expectOutputString('Whoops. Something went wrong.');
-                break;
-            case 'nothing':
-                $dispatcher->expects($this->never())->method('setNamespaceName');
-                $dispatcher->expects($this->never())->method('setControllerName');
-                $dispatcher->expects($this->never())->method('setActionName');
-                $dispatcher->expects($this->never())->method('setParams');
-                $dispatcher->expects($this->never())->method('dispatch');
-
-                $view->expects($this->never())->method('start');
-                $view->expects($this->never())->method('finish');
-                $view->expects($this->never())->method('setContent');
-                $view->expects($this->never())->method('getContent');
-                $view->expects($this->never())->method('render');
-
-                $mock->expects($this->never())->method('isSent');
-                $mock->expects($this->never())->method('setContent');
-                $mock->expects($this->never())->method('setStatusCode');
-                $mock->expects($this->never())->method('send');
-
-                $this->expectOutputString(null);
-                break;
-        }
-
-        $writer = new View();
-
-        $writer->handle($error);
+    private function assertSent(string $content): void
+    {
+        $this->assertTrue($this->response->wasSent);
+        $this->assertSame(500, $this->response->getStatusCode());
+        $this->assertSame($content, $this->response->getContent());
     }
 }

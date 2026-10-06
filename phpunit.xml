@@ -61,10 +61,6 @@
         </testsuite>
         <testsuite name="Middleware">
             <directory>tests/Test/Middleware</directory>
-            <exclude>tests/Test/Middleware/MiddlewareDebugTest.php</exclude><!-- E12 -->
-        </testsuite>
-        <testsuite name="MiddlewareDebug">
-            <file>tests/Test/Middleware/MiddlewareDebugTest.php</file>
         </testsuite>
         <testsuite name="Models">
             <directory>tests/Test/Models</directory>

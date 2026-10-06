@@ -1,319 +1,193 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Error;
 
-use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Handler;
-use Neutrino\Error\Helper;
-use Neutrino\Error\Writer as ErrorWriter;
-use Neutrino\Http\Controller;
-use Phalcon\Logger;
-use Test\TestCase\TestCase;
+use Neutrino\Error\Writer\Phplog;
+use Neutrino\Error\Writer\Writable;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
-/**
- * Class HandlerTest
- *
- * @package Test\Error
- */
-class HandlerTest extends TestCase
+final class HandlerTest extends TestCase
 {
-    private static $defaultErrorLog;
+    /** @var list<Error> */
+    public static array $handled = [];
 
-    public static function setUpBeforeClass()
+    private string $errorLog = '';
+
+    protected function setUp(): void
     {
-        parent::setUpBeforeClass();
-
-        self::$defaultErrorLog = ini_get('error_log');
+        self::$handled = [];
+        StubFailingWriter::$instances = 0;
+        $this->errorLog = (string) ini_get('error_log');
+        ini_set('error_log', '/dev/null');
     }
 
-    public static function tearDownAfterClass()
+    protected function tearDown(): void
     {
-        parent::tearDownAfterClass();
-
-        ini_set('error_log', self::$defaultErrorLog);
+        Handler::unregister();
+        Handler::setWriters([Phplog::class]);
+        ini_set('error_log', $this->errorLog);
     }
 
-    public function setUp()
+    public function testWriters(): void
     {
-        parent::setUp();
+        Handler::setWriters([Phplog::class, StubWriter::class]);
+        Handler::addWriter(StubWriter::class);
+        Handler::addWriter(StubFailingWriter::class);
 
-        $this->getDI()->getShared(Services::CONFIG)->error = [
-            'formatter'  => [
-                'formatter'  => \Phalcon\Logger\Formatter\Line::class,
-                'format'     => '[%date%][%type%] %message%',
-                'dateFormat' => 'Y-m-d H:i:s O'
-            ],
-            'namespace'  => __NAMESPACE__,
-            'controller' => 'Stuberror',
-            'action'     => 'index',
-        ];
+        $this->assertSame([Phplog::class, StubWriter::class, StubFailingWriter::class], Handler::getWriters());
     }
 
-    public function tearDown()
+    public function testHandleCallsEveryWriterOnce(): void
     {
-        parent::tearDown();
+        Handler::setWriters([StubFailingWriter::class, StubWriter::class]);
+        $error = Error::fromError(E_USER_WARNING, 'msg', __FILE__, __LINE__);
 
-        if (file_exists(__DIR__ . '/error.log')) {
-            unlink(__DIR__ . '/error.log');
+        Handler::handle($error);
+        Handler::handle($error);
+
+        // The failing writer does not prevent the next one; the writers are built once.
+        $this->assertSame([$error, $error], self::$handled);
+        $this->assertSame(1, StubFailingWriter::$instances);
+    }
+
+    public function testHandleException(): void
+    {
+        Handler::setWriters([StubWriter::class]);
+        $exception = new \Error('fatal');
+
+        Handler::handleException($exception);
+
+        $this->assertCount(1, self::$handled);
+        $this->assertSame($exception, self::$handled[0]->exception);
+        $this->assertSame(Error::EXCEPTION, self::$handled[0]->type);
+    }
+
+    public function testHandleErrorRespectsErrorReporting(): void
+    {
+        Handler::setWriters([StubWriter::class]);
+        $level = error_reporting(E_ALL & ~E_USER_NOTICE);
+
+        try {
+            $this->assertFalse(Handler::handleError(E_USER_NOTICE, 'ignored', __FILE__, __LINE__));
+            $this->assertTrue(Handler::handleError(E_USER_WARNING, 'handled', __FILE__, __LINE__));
+        } finally {
+            error_reporting($level);
         }
+
+        $this->assertCount(1, self::$handled);
+        $this->assertSame('handled', self::$handled[0]->message);
     }
 
-    /**
-     * @return array
-     */
-    public function dataLogType()
+    public function testRegister(): void
     {
-        return [
-            'E_PARSE'             => [E_PARSE, Logger::CRITICAL],
-            'E_COMPILE_ERROR'     => [E_COMPILE_ERROR, Logger::EMERGENCY],
-            'E_CORE_ERROR'        => [E_CORE_ERROR, Logger::EMERGENCY],
-            'E_ERROR'             => [E_ERROR, Logger::EMERGENCY],
-            'E_RECOVERABLE_ERROR' => [E_RECOVERABLE_ERROR, Logger::ERROR],
-            'E_USER_ERROR'        => [E_USER_ERROR, Logger::ERROR],
-            'E_WARNING'           => [E_WARNING, Logger::WARNING],
-            'E_USER_WARNING'      => [E_USER_WARNING, Logger::WARNING],
-            'E_CORE_WARNING'      => [E_CORE_WARNING, Logger::WARNING],
-            'E_COMPILE_WARNING'   => [E_COMPILE_WARNING, Logger::WARNING],
-            'E_NOTICE'            => [E_NOTICE, Logger::NOTICE],
-            'E_USER_NOTICE'       => [E_USER_NOTICE, Logger::NOTICE],
-            'E_STRICT'            => [E_STRICT, Logger::INFO],
-            'E_DEPRECATED'        => [E_DEPRECATED, Logger::INFO],
-            'E_USER_DEPRECATED'   => [E_USER_DEPRECATED, Logger::INFO],
-            'null'                => [null, Logger::ERROR],
-        ];
-    }
-
-    /**
-     * @dataProvider dataLogType
-     *
-     * @param $errorType
-     * @param $logType
-     */
-    public function testGetLogType($errorType, $logType)
-    {
-        $this->assertEquals($logType, Helper::getLogType($errorType));
-    }
-
-    public function dataErrorType()
-    {
-        return [
-            '(unknown error bit 1234)'                => [1234, '(unknown error bit 1234)'],
-            'Uncaught exception'  => [-1, 'Uncaught exception'],
-            'E_ERROR'             => [E_ERROR, 'E_ERROR'],
-            'E_WARNING'           => [E_WARNING, 'E_WARNING'],
-            'E_PARSE'             => [E_PARSE, 'E_PARSE'],
-            'E_NOTICE'            => [E_NOTICE, 'E_NOTICE'],
-            'E_CORE_ERROR'        => [E_CORE_ERROR, 'E_CORE_ERROR'],
-            'E_CORE_WARNING'      => [E_CORE_WARNING, 'E_CORE_WARNING'],
-            'E_COMPILE_ERROR'     => [E_COMPILE_ERROR, 'E_COMPILE_ERROR'],
-            'E_COMPILE_WARNING'   => [E_COMPILE_WARNING, 'E_COMPILE_WARNING'],
-            'E_USER_ERROR'        => [E_USER_ERROR, 'E_USER_ERROR'],
-            'E_USER_WARNING'      => [E_USER_WARNING, 'E_USER_WARNING'],
-            'E_USER_NOTICE'       => [E_USER_NOTICE, 'E_USER_NOTICE'],
-            'E_STRICT'            => [E_STRICT, 'E_STRICT'],
-            'E_RECOVERABLE_ERROR' => [E_RECOVERABLE_ERROR, 'E_RECOVERABLE_ERROR'],
-            'E_DEPRECATED'        => [E_DEPRECATED, 'E_DEPRECATED'],
-            'E_USER_DEPRECATED'   => [E_USER_DEPRECATED, 'E_USER_DEPRECATED'],
-        ];
-    }
-
-    /**
-     * @dataProvider dataErrorType
-     *
-     * @param $code
-     * @param $type
-     */
-    public function testGetErrorType($code, $type)
-    {
-        $this->assertEquals($type, Helper::getErrorType($code));
-    }
-
-    public function dataHandleError()
-    {
-        $datas = [
-            'null'                => [null, Logger::ERROR],
-            'E_PARSE'             => [E_PARSE, Logger::CRITICAL],
-            'E_COMPILE_ERROR'     => [E_COMPILE_ERROR, Logger::EMERGENCY],
-            'E_CORE_ERROR'        => [E_CORE_ERROR, Logger::EMERGENCY],
-            'E_ERROR'             => [E_ERROR, Logger::EMERGENCY],
-            'E_RECOVERABLE_ERROR' => [E_RECOVERABLE_ERROR, Logger::ERROR],
-        ];
-
-        return $datas;
-    }
-
-    public function mockLogger($expectedLogger, $expectedMessage)
-    {
-        $logger = $this->mockService(Services::LOGGER, Logger\Adapter\File::class, true);
-
-        $logger->expects($this->once())->method('setFormatter');
-        $logger->expects($this->once())->method('log')->with($expectedLogger, $expectedMessage);
-    }
-
-    /**
-     * @dataProvider dataHandleError
-     */
-    public function testHandleErrorWithoutView($errorCode, $expectedLogger)
-    {
-        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
-
-        $error = new Error([
-            'type'    => is_null($errorCode) ? -1 : $errorCode,
-            'code'    => $errorCode,
-            'message' => __METHOD__,
-            'file'    => __FILE__,
-            'line'    => 120,
-            'isError' => true,
-        ]);
-
-        $expectedMessage = Helper::format($error);
-
-        $this->mockLogger($expectedLogger, $expectedMessage);
-
-        $this->expectOutputString("Whoops. Something went wrong.");
-
-        Handler::handle($error);
-    }
-
-    /**
-     * @dataProvider dataHandleError
-     */
-    public function testHandleErrorWithView($errorCode, $expectedLogger)
-    {
-        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
-
-        $error = new Error([
-            'type'    => is_null($errorCode) ? -1 : $errorCode,
-            'code'    => $errorCode,
-            'message' => __METHOD__,
-            'file'    => __FILE__,
-            'line'    => 120,
-            'isError' => true,
-        ]);
-
-        $expectedMessage = Helper::format($error);
-
-        $this->mockLogger($expectedLogger, $expectedMessage);
-
-        $view = $this->mockService(Services::VIEW, \Phalcon\Mvc\View::class, true);
-
-        $view->expects($this->any())->method('start');
-        $view->expects($this->any())->method('render');
-        $view->expects($this->any())->method('finish');
-        $view->expects($this->any())->method('getContent')->willReturn('Whoops. Something went wrong.');
-
-        $this->expectOutputString('Whoops. Something went wrong.');
-
-        Handler::handle($error);
-    }
-
-    public function dataHandleWarning()
-    {
-        $datas = [
-            'E_WARNING'         => [E_WARNING, Logger::WARNING],
-            'E_USER_WARNING'    => [E_USER_WARNING, Logger::WARNING],
-            'E_CORE_WARNING'    => [E_CORE_WARNING, Logger::WARNING],
-            'E_COMPILE_WARNING' => [E_COMPILE_WARNING, Logger::WARNING],
-            'E_NOTICE'          => [E_NOTICE, Logger::NOTICE],
-            'E_USER_NOTICE'     => [E_USER_NOTICE, Logger::NOTICE],
-            'E_STRICT'          => [E_STRICT, Logger::INFO],
-            'E_DEPRECATED'      => [E_DEPRECATED, Logger::INFO],
-            'E_USER_DEPRECATED' => [E_USER_DEPRECATED, Logger::INFO],
-        ];
-
-        return $datas;
-    }
-
-    /**
-     * @dataProvider dataHandleWarning
-     */
-    public function testHandleWarning($errorCode, $expectedLogger)
-    {
-        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
-
-        $error = new Error([
-            'type'    => $errorCode,
-            'message' => __METHOD__,
-            'file'    => __FILE__,
-            'line'    => 120,
-            'isError' => true,
-        ]);
-
-        $expectedMessage = Helper::format($error);
-
-        $this->mockLogger($expectedLogger, $expectedMessage);
-
-        $this->expectOutputString('');
-
-        Handler::handle($error);
-    }
-
-    public function testHandleException()
-    {
-        Handler::setWriters([ErrorWriter\Logger::class, ErrorWriter\View::class]);
-
-        $e = new \Exception();
-
-        $msg = Helper::format(new Error([
-            'type'        => -1,
-            'code'        => $e->getCode(),
-            'message'     => $e->getMessage(),
-            'file'        => $e->getFile(),
-            'line'        => $e->getLine(),
-            'isException' => true,
-            'exception'   => $e,
-        ]));
-
-        $this->mockLogger(Logger::ERROR, $msg);
-
-        $this->expectOutputString('Whoops. Something went wrong.');
-
-        Handler::handleException($e);
-    }
-
-    public function testTriggerErrorDefaultWriter()
-    {
-        Handler::setWriters([ErrorWriter\Phplog::class]);
-
-        $cur_error_log = ini_get('error_log');
-        ini_set('error_log', __DIR__ . '/error.log');
-
-        $expectedMsg = str_replace(DIRECTORY_SEPARATOR, '/', "E_USER_ERROR\n  Message : msg\n in : " . __FILE__ . '(' . (__LINE__ + 7).')');
-
-        $this->expectOutputString(null);
+        Handler::setWriters([StubWriter::class]);
 
         Handler::register();
+        Handler::register();
 
-        $date = date('d-M-Y H:i:s e');
-        trigger_error('msg', E_USER_ERROR);
+        $this->assertTrue(Handler::isRegistered());
 
-        ini_set('error_log', $cur_error_log);
-        restore_error_handler();
-        restore_exception_handler();
+        $level = error_reporting(E_ALL);
 
-        $r = fopen(__DIR__ . '/error.log', 'r');
-
-        $lines = [];
-        while (!feof($r)) {
-            if (($str = fgets($r)) !== false) {
-                $lines[] = trim($str, "\n\r");
-            }
+        try {
+            trigger_error('caught', E_USER_WARNING);
+        } finally {
+            error_reporting($level);
+            Handler::unregister();
         }
-        fclose($r);
-        unlink(__DIR__ . '/error.log');
-        $this->assertCount(3, $lines);
-        $this->assertEquals('[' . $date . '] ' . $expectedMsg, implode("\n", $lines));
+
+        $this->assertFalse(Handler::isRegistered());
+        $this->assertCount(1, self::$handled);
+        $this->assertSame(E_USER_WARNING, self::$handled[0]->type);
+        $this->assertSame(__FILE__, self::$handled[0]->file);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function processes(): iterable
+    {
+        yield 'warning' => ['register', 'warning', "E_USER_WARNING\n  Message : a warning\n"];
+        yield 'uncaught exception' => ['register', 'exception', "Uncaught exception\n  Class : RuntimeException\n  Code : 0\n  Message : an exception\n"];
+        yield 'compile error' => ['register', 'compile', "E_COMPILE_ERROR\n  Message : Cannot redeclare nucleon_twice()"];
+        yield 'fatal error' => ['register', 'memory', "E_ERROR\n  Message : Allowed memory size of"];
+        yield 'registered by the bootstrap' => ['bootstrap', 'compile', "E_COMPILE_ERROR\n  Message : Cannot redeclare nucleon_twice()"];
+    }
+
+    /**
+     * An error in a process of its own: written by the Cli writer (output) and the Phplog writer (error output).
+     */
+    #[DataProvider('processes')]
+    public function testErrorsInAProcess(string $mode, string $action, string $expected): void
+    {
+        [$output, $errors] = self::runProcess($mode, $action);
+
+        $this->assertSame(1, substr_count($output, $expected), $output);
+        $this->assertSame(1, substr_count($errors, $expected), $errors);
+    }
+
+    public function testErrorsExcludedInAProcess(): void
+    {
+        foreach (['silenced', 'unreported'] as $action) {
+            [$output, $errors] = self::runProcess('register', $action);
+
+            $this->assertSame("\nend of script\n", $output);
+            $this->assertSame('', $errors);
+        }
+    }
+
+    public function testRegistrationDisabledByTheConfig(): void
+    {
+        [$output] = self::runProcess('bootstrap-off', 'warning');
+
+        $this->assertStringNotContainsString('E_USER_WARNING', $output);
+        $this->assertStringContainsString('end of script', $output);
+    }
+
+    /**
+     * @return array{string, string}
+     */
+    private static function runProcess(string $mode, string $action): array
+    {
+        $process = proc_open([PHP_BINARY, __DIR__ . '/fixtures/handler.php', $mode, $action], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+
+        if (!is_resource($process)) {
+            throw new RuntimeException('Cannot run the process.');
+        }
+
+        $output = (string) stream_get_contents($pipes[1]);
+        $errors = (string) stream_get_contents($pipes[2]);
+        proc_close($process);
+
+        return [$output, $errors];
     }
 }
 
-class StuberrorController extends Controller
+final class StubWriter implements Writable
 {
-    protected function onConstruct()
+    public function handle(Error $error): void
     {
+        HandlerTest::$handled[] = $error;
+    }
+}
+
+final class StubFailingWriter implements Writable
+{
+    public static int $instances = 0;
+
+    public function __construct()
+    {
+        self::$instances++;
     }
 
-    public function indexAction()
+    public function handle(Error $error): void
     {
+        throw new RuntimeException('failing writer');
     }
 }

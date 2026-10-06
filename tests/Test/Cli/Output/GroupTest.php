@@ -8,7 +8,7 @@ use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Group;
 use Neutrino\Cli\Output\Writer;
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Test\TestCase\TestCase;
 
 /**
@@ -93,9 +93,9 @@ class GroupTest extends TestCase
 
         $table = new Group($output, $data);
 
-        Reflexion::invoke($table, 'generateGroupData');
+        Reflection::invoke($table, 'generateGroupData');
 
-        $columns = Reflexion::get($table, 'groups');
+        $columns = Reflection::get($table, 'groups');
 
         $this->assertEquals($expected, $columns);
     }
@@ -155,7 +155,7 @@ class GroupTest extends TestCase
 
         $table = new Group($output, $data);
 
-        Reflexion::invoke($table, 'display');
+        Reflection::invoke($table, 'display');
 
         $this->assertEquals($expected, $output->out);
     }

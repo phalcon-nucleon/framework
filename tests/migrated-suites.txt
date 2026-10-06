@@ -5,9 +5,11 @@ Auth
 Cache
 Cli
 Database
+Debug
 Config
 Design
 Dotconst
+Error
 Events
 Facades
 Foundation

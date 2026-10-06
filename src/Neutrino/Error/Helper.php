@@ -1,304 +1,240 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Error;
 
-use Neutrino\Support\Arr;
-use Phalcon\Logger;
+use Phalcon\Logger\Enum;
+use Throwable;
+use UnitEnum;
 
 /**
- * Class Helper
- *
- * @package     Neutrino\Error
+ * Text formatting of the errors, and mapping of the PHP error types.
  */
-class Helper
+final class Helper
 {
-    public static function format(Error $error)
+    /**
+     * `E_STRICT`: the constant is deprecated since PHP 8.4, PHP no longer raises this type.
+     */
+    private const int E_STRICT = 2048;
+
+    private function __construct() {}
+
+    /**
+     * The error as text: type, class and code of the exception, message, place, trace, and the previous exceptions.
+     */
+    public static function format(Error $error): string
     {
         return implode("\n", self::formatLines($error));
     }
 
-    private static function formatLines(Error $error, $pass = 0)
+    /**
+     * The trace of an exception, a line per call.
+     *
+     * @return list<array{id: int, func: string, where: string, file?: string, line?: int}>
+     */
+    public static function formatExceptionTrace(Throwable $exception): array
     {
-        $pass++;
+        $traces = [];
 
-        $lines[] = self::getErrorType($error->type);
-        if ($error->isException) {
-            $lines[] = '  Class : ' . get_class($error->exception);
+        foreach ($exception->getTrace() as $id => $trace) {
+            $func = (isset($trace['class']) ? $trace['class'] . '->' : '') . $trace['function'];
+            $item = ['id' => $id, 'func' => $func . '(' . implode(', ', self::verboseArgs($trace['args'] ?? [])) . ')'];
+
+            if (isset($trace['file'])) {
+                $item['file'] = self::path($trace['file']);
+                $item['where'] = $item['file'];
+
+                if (isset($trace['line'])) {
+                    $item['line'] = $trace['line'];
+                    $item['where'] .= '(' . $trace['line'] . ')';
+                }
+            } else {
+                $item['where'] = '[internal function]';
+            }
+
+            $traces[] = $item;
+        }
+
+        return $traces;
+    }
+
+    /**
+     * @param array<mixed> $args
+     *
+     * @return array<string>
+     */
+    public static function verboseArgs(array $args): array
+    {
+        return array_map(static fn(mixed $arg): string => self::verboseType($arg), $args);
+    }
+
+    /**
+     * A short description of a value, for a trace: scalars are shown, long strings truncated, arrays summed up.
+     */
+    public static function verboseType(mixed $value, int $lvl = 0): string
+    {
+        return match (true) {
+            is_array($value)    => self::verboseArray($value, $lvl),
+            $value instanceof UnitEnum => self::shortClass($value::class) . '::' . $value->name,
+            is_object($value)   => 'object(' . self::shortClass(get_debug_type($value)) . ')',
+            $value === null     => 'null',
+            is_string($value)   => self::verboseString($value),
+            is_resource($value) => 'resource',
+            is_scalar($value)   => var_export($value, true),
+            default             => get_debug_type($value), // closed resource
+        };
+    }
+
+    /**
+     * The name of an error type, as "E_WARNING".
+     */
+    public static function getErrorType(int|string|null $code): string
+    {
+        return match ($code) {
+            Error::EXCEPTION    => 'Uncaught exception',
+            E_ERROR             => 'E_ERROR',
+            E_WARNING           => 'E_WARNING',
+            E_PARSE             => 'E_PARSE',
+            E_NOTICE            => 'E_NOTICE',
+            E_CORE_ERROR        => 'E_CORE_ERROR',
+            E_CORE_WARNING      => 'E_CORE_WARNING',
+            E_COMPILE_ERROR     => 'E_COMPILE_ERROR',
+            E_COMPILE_WARNING   => 'E_COMPILE_WARNING',
+            E_USER_ERROR        => 'E_USER_ERROR',
+            E_USER_WARNING      => 'E_USER_WARNING',
+            E_USER_NOTICE       => 'E_USER_NOTICE',
+            self::E_STRICT      => 'E_STRICT',
+            E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
+            E_DEPRECATED        => 'E_DEPRECATED',
+            E_USER_DEPRECATED   => 'E_USER_DEPRECATED',
+            default             => '(unknown error bit ' . $code . ')',
+        };
+    }
+
+    /**
+     * The severity and the name of an error type, as "Warning [E_WARNING]".
+     */
+    public static function verboseErrorType(int|string|null $code): string
+    {
+        $severity = match ($code) {
+            Error::EXCEPTION => null,
+            E_COMPILE_ERROR, E_CORE_ERROR, E_ERROR, E_PARSE, E_RECOVERABLE_ERROR, E_USER_ERROR => 'Fatal error',
+            E_WARNING, E_USER_WARNING, E_CORE_WARNING, E_COMPILE_WARNING => 'Warning',
+            E_NOTICE, E_USER_NOTICE => 'Notice',
+            self::E_STRICT, E_DEPRECATED, E_USER_DEPRECATED => 'Deprecated',
+            default => false,
+        };
+
+        return match ($severity) {
+            null    => 'Uncaught exception',
+            false   => '(unknown error bit ' . $code . ')',
+            default => $severity . ' [' . self::getErrorType($code) . ']',
+        };
+    }
+
+    /**
+     * The logger level (`Phalcon\Logger\Enum`) of an error type.
+     */
+    public static function getLogType(int|string|null $code): int
+    {
+        return match ($code) {
+            E_PARSE => Enum::CRITICAL,
+            E_COMPILE_ERROR, E_CORE_ERROR, E_ERROR => Enum::EMERGENCY,
+            E_WARNING, E_USER_WARNING, E_CORE_WARNING, E_COMPILE_WARNING => Enum::WARNING,
+            E_NOTICE, E_USER_NOTICE => Enum::NOTICE,
+            self::E_STRICT, E_DEPRECATED, E_USER_DEPRECATED => Enum::INFO,
+            default => Enum::ERROR, // exceptions, E_RECOVERABLE_ERROR, E_USER_ERROR
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function formatLines(Error $error, int $pass = 0): array
+    {
+        $lines = [self::getErrorType($error->type)];
+
+        if ($error->exception !== null) {
+            $lines[] = '  Class : ' . $error->exception::class;
             $lines[] = '  Code : ' . $error->code;
         }
 
         $lines[] = '  Message : ' . $error->message;
+        $lines[] = ' in : ' . self::path($error->file) . '(' . $error->line . ')';
 
-        $lines[] = ' in : ' . str_replace(DIRECTORY_SEPARATOR, '/', $error->file) . '(' . $error->line . ')';
+        if ($error->exception === null) {
+            return $lines;
+        }
 
-        if ($error->isException) {
-            $lines[] = '';
+        $lines[] = '';
 
-            foreach (self::formatExceptionTrace($error->exception) as $trace) {
-                $lines[] = '#' . $trace['id'] . ' ' . $trace['func'];
+        foreach (self::formatExceptionTrace($error->exception) as $trace) {
+            $lines[] = '#' . $trace['id'] . ' ' . $trace['func'];
+            $lines[] = str_repeat(' ', strlen((string) $trace['id']) + 2) . 'in : ' . $trace['where'];
+        }
 
-                $row = str_repeat(' ', strlen($trace['id']) + 2) . 'in : ';
-                if (isset($trace['file'])) {
-                    $row .= str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
-                    if (isset($trace['line'])) {
-                        $row .= '(' . $trace['line'] . ')';
-                    }
-                } else {
-                    $row .= '[internal function]';
-                }
+        $previous = $error->exception->getPrevious();
 
-                $lines[] = $row;
-            }
-
-            $previous = $error->exception->getPrevious();
-
-            if (!is_null($previous)) {
-                $lines[] = '';
-                $lines[] = '# Previous exception : ' . $pass;
-                $lines[] = '';
-
-                $lines = array_merge($lines, self::formatLines(Error::fromException($previous), $pass));
-            }
+        if ($previous !== null) {
+            $pass++;
+            array_push($lines, '', '# Previous exception : ' . $pass, '', ...self::formatLines(Error::fromException($previous), $pass));
         }
 
         return $lines;
     }
 
     /**
-     * @param \Exception $exception
-     *
-     * @return array
+     * @param array<mixed> $value
      */
-    public static function formatExceptionTrace($exception)
+    private static function verboseArray(array $value, int $lvl): string
     {
-        $traces = [];
+        if ($value === [] || $lvl > 0) {
+            return 'array';
+        }
 
-        foreach ($exception->getTrace() as $idx => $trace) {
-            $_trace = [];
+        $types = [];
+        foreach ($value as $item) {
+            $types[get_debug_type($item)] = true;
+        }
 
-            $_trace['id'] = $idx;
+        $count = count($value);
+        $scalars = count($types) === 1 && is_scalar($item ?? null);
 
-            $_trace['func'] = '';
-            if (isset($trace['class'])) {
-                $_trace['func'] = $trace['class'] . '->';
-            }
-            if (isset($trace['function'])) {
-                $_trace['func'] .= $trace['function'];
-            }
-
-            $args = [];
-            if (isset($trace['args'])) {
-                $args = self::verboseArgs((array) $trace['args']);
-            }
-            $_trace['func'] .= '(' . implode(', ', $args) . ')';
-
-            if (isset($trace['file'])) {
-                $_trace['file'] = str_replace(DIRECTORY_SEPARATOR, '/', $trace['file']);
-                $_trace['where'] = $_trace['file'];
-
-                if (isset($trace['line'])) {
-                    $_trace['line'] = $trace['line'];
-                    $_trace['where'] .= '(' . $trace['line'] . ')';
-                }
-            } else {
-                $_trace['where'] = '[internal function]';
+        if ((count($types) === 1 && $count < ($scalars ? 6 : 3)) || (count($types) > 1 && $count < 5)) {
+            $items = [];
+            foreach ($value as $key => $item) {
+                $items[] = (array_is_list($value) ? '' : var_export($key, true) . ' => ') . self::verboseType($item, $lvl + 1);
             }
 
-            $traces[] = $_trace;
+            return 'array(' . implode(', ', $items) . ')';
         }
 
-        return $traces;
+        return count($types) === 1 ? 'array.<' . array_key_first($types) . '>[' . $count . ']' : 'array[' . $count . ']';
     }
 
-    public static function verboseArgs(array $args)
+    private static function verboseString(string $value): string
     {
-        $arguments = [];
-
-        foreach ($args as $key => $arg) {
-            $arguments[$key] = self::verboseType($arg);
+        if (defined('BASE_PATH') && str_starts_with($value, BASE_PATH . '/')) {
+            $value = substr($value, strlen(BASE_PATH) + 1);
         }
 
-        return $arguments;
+        if (strlen($value) > 20) {
+            return "'" . substr($value, 0, 8) . '...' . substr($value, -8) . "'[" . strlen($value) . ']';
+        }
+
+        return "'" . $value . "'";
     }
 
-    public static function verboseType($value, $lvl = 0)
+    private static function shortClass(string $class): string
     {
-        switch ($type = gettype($value)) {
-            case 'array':
-                if (!empty($value) && $lvl === 0) {
-                    $found = [];
-                    foreach ($value as $item) {
-                        $type = gettype($item);
-                        if ($type == 'object') {
-                            $type = get_class($item);
-                        }
-                        $found[$type] = true;
-                    }
+        $position = strrpos($class, '\\');
 
-                    $cfound = count($found);
-                    $cvalue = count($value);
-
-                    if ($cfound === 1 && !is_scalar($item) && $cvalue < 3
-                        || $cfound === 1 && is_scalar($item) && $cvalue < 6
-                        || $cfound > 1 && $cvalue < 5) {
-                        $str = [];
-                        if (Arr::isAssoc($value)) {
-                            foreach ($value as $key => $item) {
-                                $str[] = var_export($key, true) . " => " . self::verboseType($item, $lvl + 1);
-                            }
-                        } else {
-                            foreach ($value as $item) {
-                                $str[] = self::verboseType($item, $lvl + 1);
-                            }
-                        }
-
-                        return 'array(' . implode(', ', $str) . ')';
-                    }
-
-                    if (count($found) === 1) {
-                        return 'array.<' . $type . '>[' . count($value) . ']';
-                    }
-
-                    return 'array[' . count($value) . ']';
-                }
-
-                return 'array';
-            case 'object':
-                $class = explode('\\', get_class($value));
-                return 'object(' . array_pop($class) . ')';
-            case 'NULL':
-                return 'null';
-            case 'unknown type':
-                return '?';
-            case 'resource':
-            case 'resource (closed)':
-                return $type;
-            case 'string':
-                if (constant('BASE_PATH') && $value !== BASE_PATH . '\\') {
-                    $value = str_replace(BASE_PATH . '\\', '', $value);
-                }
-                if (strlen($value) > 20) {
-                    return "'" . substr($value, 0, 8) . '...' . substr($value, -8) . '\'[' . strlen($value) . ']';
-                }
-                return "'" . $value . "'";
-            case 'boolean':
-            case 'integer':
-            case 'double':
-            default:
-                return var_export($value, true);
-        }
+        return $position === false ? $class : substr($class, $position + 1);
     }
 
-    /**
-     * Maps error code to a string.
-     *
-     * @param int|string $code
-     *
-     * @return string
-     */
-    public static function getErrorType($code)
+    private static function path(string $file): string
     {
-        switch ($code) {
-            case -1:
-                return 'Uncaught exception';
-            case E_ERROR:
-                return 'E_ERROR';
-            case E_WARNING:
-                return 'E_WARNING';
-            case E_PARSE:
-                return 'E_PARSE';
-            case E_NOTICE:
-                return 'E_NOTICE';
-            case E_CORE_ERROR:
-                return 'E_CORE_ERROR';
-            case E_CORE_WARNING:
-                return 'E_CORE_WARNING';
-            case E_COMPILE_ERROR:
-                return 'E_COMPILE_ERROR';
-            case E_COMPILE_WARNING:
-                return 'E_COMPILE_WARNING';
-            case E_USER_ERROR:
-                return 'E_USER_ERROR';
-            case E_USER_WARNING:
-                return 'E_USER_WARNING';
-            case E_USER_NOTICE:
-                return 'E_USER_NOTICE';
-            case E_STRICT:
-                return 'E_STRICT';
-            case E_RECOVERABLE_ERROR:
-                return 'E_RECOVERABLE_ERROR';
-            case E_DEPRECATED:
-                return 'E_DEPRECATED';
-            case E_USER_DEPRECATED:
-                return 'E_USER_DEPRECATED';
-        }
-
-        return "(unknown error bit $code)";
-    }
-
-    public static function verboseErrorType($code)
-    {
-        switch ($code) {
-            case -1:
-                return 'Uncaught exception';
-            case E_COMPILE_ERROR:
-            case E_CORE_ERROR:
-            case E_ERROR:
-            case E_PARSE:
-            case E_RECOVERABLE_ERROR:
-            case E_USER_ERROR:
-                return 'Fatal error [' . self::getErrorType($code) . ']';
-            case E_WARNING:
-            case E_USER_WARNING:
-            case E_CORE_WARNING:
-            case E_COMPILE_WARNING:
-                return 'Warning [' . self::getErrorType($code) . ']';
-            case E_NOTICE:
-            case E_USER_NOTICE:
-                return 'Notice [' . self::getErrorType($code) . ']';
-            case E_STRICT:
-            case E_DEPRECATED:
-            case E_USER_DEPRECATED:
-                return 'Deprecated [' . self::getErrorType($code) . ']';
-        }
-
-        return "(unknown error bit $code)";
-    }
-
-    /**
-     * Maps error code to a log type.
-     *
-     * @param  integer $code
-     *
-     * @return integer
-     */
-    public static function getLogType($code)
-    {
-        switch ($code) {
-            case E_PARSE:
-                return Logger::CRITICAL;
-            case E_COMPILE_ERROR:
-            case E_CORE_ERROR:
-            case E_ERROR:
-                return Logger::EMERGENCY;
-            case -1 : // Exception
-            case E_RECOVERABLE_ERROR:
-            case E_USER_ERROR:
-                return Logger::ERROR;
-            case E_WARNING:
-            case E_USER_WARNING:
-            case E_CORE_WARNING:
-            case E_COMPILE_WARNING:
-                return Logger::WARNING;
-            case E_NOTICE:
-            case E_USER_NOTICE:
-                return Logger::NOTICE;
-            case E_STRICT:
-            case E_DEPRECATED:
-            case E_USER_DEPRECATED:
-                return Logger::INFO;
-        }
-
-        return Logger::ERROR;
+        return str_replace(DIRECTORY_SEPARATOR, '/', $file);
     }
 }

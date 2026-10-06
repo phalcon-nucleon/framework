@@ -1,270 +1,125 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Debug;
 
 use Neutrino\Constants\Services;
-use Neutrino\Debug\DebugEventsManagerWrapper;
+use Neutrino\Debug\DebugErrorLogger;
 use Neutrino\Debug\Debugger;
-use Neutrino\Debug\Reflexion;
-use Phalcon\Db\Adapter\Pdo;
-use Phalcon\Db\Profiler;
-use Phalcon\Events\EventsAwareInterface;
+use Neutrino\Debug\Highlight;
+use Neutrino\Error\Error;
+use Neutrino\Error\Handler;
+use Phalcon\DebugBar\Collector\ExceptionsCollector;
+use Phalcon\DebugBar\Collector\MessagesCollector;
+use Phalcon\DebugBar\Debug;
 use Phalcon\Events\Manager;
-use Phalcon\Events\ManagerInterface;
-use Phalcon\Loader;
-use Phalcon\Mvc\View;
+use Phalcon\Logger\Adapter\Noop;
+use Phalcon\Logger\Logger;
 use Test\TestCase\TestCase;
 
-class DebuggerTest extends TestCase
+final class DebuggerTest extends TestCase
 {
-    public function tearDown()
+    protected function tearDown(): void
     {
-        Reflexion::set(Debugger::class, 'viewProfiles', null);
-        Reflexion::set(Debugger::class, 'profilers', null);
-        Reflexion::set(Debugger::class, 'instance', null);
-        Reflexion::set(Debugger::class, 'view', null);
+        self::getConfig()->remove('debug');
+        Debugger::reset();
+        Highlight::$disabled = false;
 
         parent::tearDown();
     }
 
-    public function testRegisterGlobalEventManager()
+    public function testRegister(): void
     {
-        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
+        $this->assertFalse(Debugger::isEnabled());
 
-        Reflexion::set($this->getDI(), '_eventsManager', $dim = new Manager());
-        $this->getDI()->set(Services::EVENTS_MANAGER, $em = new Manager());
-        Reflexion::set($this->app, '_eventsManager', $appm = new Manager());
+        Debugger::register($this->app);
+        Debugger::register($this->app);
 
-        Reflexion::invoke($debugger, 'registerGlobalEventManager');
-
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $this->getDI()->getInternalEventsManager());
-        $this->assertEquals($dim, Reflexion::get($this->getDI()->getInternalEventsManager(), 'manager'));
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $this->getDI()->get(Services::EVENTS_MANAGER));
-        $this->assertEquals($em, Reflexion::get($this->getDI()->get(Services::EVENTS_MANAGER), 'manager'));
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $this->app->getEventsManager());
-        $this->assertEquals($appm, Reflexion::get($this->app->getEventsManager(), 'manager'));
-
-        $this->getDI()->remove(Services::EVENTS_MANAGER);
-        Reflexion::set($this->getDI(), '_eventsManager', null);
-        Reflexion::set($this->app, '_eventsManager', null);
-
-        Reflexion::invoke($debugger, 'registerGlobalEventManager');
-
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $this->getDI()->getInternalEventsManager());
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $this->getDI()->get(Services::EVENTS_MANAGER));
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $this->app->getEventsManager());
+        $this->assertTrue(Debugger::isEnabled());
+        $this->assertSame(1, array_count_values(Handler::getWriters())[DebugErrorLogger::class] ?? 0);
+        $this->assertNotNull(Debug::getBar());
     }
 
-
-    public function testGetGlobalEventsManager()
+    public function testDebugBarDisabledByTheConfig(): void
     {
-        try {
-            Debugger::getGlobalEventsManager();
-        } catch (\Exception $e) {
-        }
-        $this->assertTrue(isset($e));
-        $this->assertEquals('Exception', get_class($e));
-        $this->assertEquals('Debugger wasn\'t registered', $e->getMessage());
+        $this->getDI()->getShared(Services::CONFIG)->merge(new \Neutrino\Config\Config(['debug' => ['bar' => ['enabled' => false]]]));
 
-        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
-        Reflexion::set($debugger, 'instance', $debugger);
-        Reflexion::invoke($debugger, 'registerGlobalEventManager');
+        Debugger::register($this->app);
 
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, Debugger::getGlobalEventsManager());
+        $this->assertTrue(Debugger::isEnabled());
+        $this->assertNull(Debug::getBar());
     }
 
-    public function testRegisterProfiler()
+    public function testServicesResolvedAfterwardsAreInstrumented(): void
     {
-        $profiler = Reflexion::invoke(Debugger::class, 'registerProfiler', 'db');
+        Debugger::register($this->app);
 
-        $this->assertInstanceOf(Profiler::class, $profiler);
+        $this->getDI()->setShared('test.logger', fn(): Logger => new Logger('test', ['main' => new Noop()]));
+        $this->getDI()->setShared('test.aware', fn(): Manager => new Manager());
+        $this->getDI()->setShared('test.view', fn(): \Phalcon\Mvc\View\Simple => new \Phalcon\Mvc\View\Simple());
 
-        $profiler2 = Reflexion::invoke(Debugger::class, 'registerProfiler', 'db');
+        $logger = $this->getDI()->getShared('test.logger');
+        $view = $this->getDI()->getShared('test.view');
 
-        $this->assertEquals($profiler, $profiler2);
+        $this->assertInstanceOf(Logger::class, $logger);
+        $this->assertSame(['main', Debugger::LOGGER_ADAPTER], array_keys($logger->getAdapters()));
+        $this->assertSame($this->app->getEventsManager(), $view->getEventsManager());
     }
 
-    public function testAttachEventsManager()
+    public function testErrorsPassedToTheDebugBar(): void
     {
-        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
+        Debugger::register($this->app);
+        $exception = new \RuntimeException('boom');
 
-        Reflexion::invoke($debugger, 'registerGlobalEventManager');
-        Reflexion::invoke($debugger, 'tryAttachEventsManager', '');
+        (new DebugErrorLogger())->handle(Error::fromError(E_WARNING, 'a warning', BASE_PATH . '/app/file.php', 3));
+        (new DebugErrorLogger())->handle(Error::fromException($exception));
 
-        $dispatcher = $this->getDI()->get(Services::DISPATCHER);
-        Reflexion::set($dispatcher, '_eventsManager', null);
-        Reflexion::invoke($debugger, 'tryAttachEventsManager', $dispatcher);
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $dispatcher->getEventsManager());
+        $bar = Debug::getBar();
+        $this->assertNotNull($bar);
+        $messages = $bar->getCollector(MessagesCollector::NAME)->collect();
+        $exceptions = $bar->getCollector(ExceptionsCollector::NAME)->collect();
 
-        Reflexion::set($dispatcher, '_eventsManager', $em = new Manager());
-        Reflexion::invoke($debugger, 'tryAttachEventsManager', $dispatcher);
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $dispatcher->getEventsManager());
-        $this->assertEquals($em, Reflexion::get($dispatcher->getEventsManager(), 'manager'));
-
-        Reflexion::set($dispatcher, '_eventsManager', $em = new DebugEventsManagerWrapper(new Manager()));
-        Reflexion::invoke($debugger, 'tryAttachEventsManager', $dispatcher);
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $dispatcher->getEventsManager());
-        $this->assertEquals($em, $dispatcher->getEventsManager());
+        $this->assertStringContainsString('Warning [E_WARNING]: a warning in app/file.php(3)', (string) json_encode($messages, JSON_UNESCAPED_SLASHES));
+        $this->assertSame(1, $exceptions['badge'] ?? null);
+        $this->assertCount(2, DebugErrorLogger::errors());
     }
 
-    public function testListenLoader()
+    public function testErrorPageOfAnException(): void
     {
-        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
-        Reflexion::invoke($debugger, 'registerGlobalEventManager');
-        Reflexion::invoke($debugger, 'listenLoader');
+        $exception = new \RuntimeException('outer <b>message</b>', 12, new \LogicException('inner'));
+        (new DebugErrorLogger())->handle($warning = Error::fromError(E_USER_WARNING, 'earlier warning', __FILE__, __LINE__));
 
-        global $loader;
+        $page = Debugger::renderErrorPage(Error::fromException($exception));
 
-        $loader = new Loader();
-        Reflexion::invoke($debugger, 'listenLoader');
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $loader->getEventsManager());
-
-        unset($loader);
+        $this->assertStringContainsString('<title>RuntimeException</title>', $page);
+        $this->assertStringContainsString('outer &lt;b&gt;message&lt;/b&gt;', $page);
+        $this->assertStringContainsString('<h1>LogicException</h1>', $page);
+        $this->assertStringContainsString('Previous exception #1', $page);
+        $this->assertStringContainsString('<h2>PHP errors (1)</h2>', $page);
+        $this->assertStringContainsString('earlier warning', $page);
+        $this->assertStringContainsString('<span class="file">tests/Test/Debug/DebuggerTest.php</span>', str_replace(realpath(BASE_PATH . '/../../..') . '/', '', $page));
+        $this->assertStringContainsString('class="hl-keyword"', $page);
+        $this->assertStringContainsString('PHP ' . PHP_VERSION, $page);
+        $this->assertSame([$warning], DebugErrorLogger::errors());
     }
 
-    public function testListenServices()
+    public function testErrorPageOfAFatalErrorWithoutHighlighting(): void
     {
-        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
-        Reflexion::invoke($debugger, 'registerGlobalEventManager');
-        Reflexion::invoke($debugger, 'listenServices');
-        $gem = Reflexion::get($debugger, 'em');
+        Highlight::$disabled = true;
 
-        $em = Reflexion::get($this->getDI()->getInternalEventsManager(), 'manager');
+        $page = Debugger::renderErrorPage(Error::fromError(E_ERROR, 'out of memory', __FILE__, __LINE__));
 
-        $events = Reflexion::get($em, '_events');
-
-        $this->assertArrayHasKey('di:afterServiceResolve', $events);
-
-        $this->getDI()->set('my-service', $service = new StubService());
-        $this->getDI()->get('my-service');
-        $em = $service->getEventsManager();
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $em);
-
-        $this->getDI()->get('my-service');
-        $this->assertEquals($em, $service->getEventsManager());
-
-        $this->getDI()->set('my-db', $service = Reflexion::getReflectionClass(Pdo\Mysql::class)->newInstanceWithoutConstructor());
-        $this->getDI()->get('my-db');
-        $em = $service->getEventsManager();
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $em);
-        $this->assertInstanceOf(Profiler::class, Reflexion::get(Debugger::class, 'profilers')['db']['profiler']);
-        $this->assertNotEmpty($gem->getListeners('db'));
-
-        $this->getDI()->set('my-view', $service = Reflexion::getReflectionClass(View::class)->newInstanceWithoutConstructor());
-        $this->getDI()->get('my-view');
-        $em = $service->getEventsManager();
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $em);
-        $this->assertNotEmpty($gem->getListeners('view'));
+        $this->assertStringContainsString('<h1>Fatal error [E_ERROR]</h1>', $page);
+        $this->assertStringContainsString('out of memory', $page);
+        $this->assertStringNotContainsString('class="hl-keyword"', $page);
+        $this->assertStringContainsString('<span class="hl-gutter hl-current">', $page);
+        $this->assertStringNotContainsString('<h2>PHP errors', $page);
     }
 
-    public function testDbProfilerRegister()
+    public function testRelativePath(): void
     {
-        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
-        Reflexion::invoke($debugger, 'registerGlobalEventManager');
-        Reflexion::invoke($debugger, 'dbProfilerRegister');
-        /** @var Manager $gem */
-        $gem = Reflexion::get($debugger, 'em');
-        $profiler = Debugger::registerProfiler('db');
-
-        $this->assertNotEmpty($gem->getListeners('db'));
-
-        $db = $this->createMock(Pdo\Mysql::class);
-        $db->expects($this->once())->method('getSQLStatement')->willReturn('SELECT * FROM schema_table WHERE abc = :abc:');
-        $db->expects($this->once())->method('getSqlVariables')->willReturn(['abc' => 'abc']);
-        $db->expects($this->once())->method('getSQLBindTypes')->willReturn(['abc' => 2]);
-        $gem->fire('db:beforeQuery', $db, []);
-
-        $this->assertInstanceOf(\Phalcon\Db\Profiler\Item::class, $profiler->getLastProfile());
-        $this->assertEquals('SELECT * FROM schema_table WHERE abc = :abc:', $profiler->getLastProfile()->getSqlStatement());
-        $this->assertEquals(['abc' => 'abc'], $profiler->getLastProfile()->getSqlVariables());
-        $this->assertEquals(['abc' => 2], $profiler->getLastProfile()->getSqlBindTypes());
-        $this->assertEmpty($profiler->getProfiles());
-
-        $gem->fire('db:afterQuery', $db, []);
-        $this->assertCount(1, $profiler->getProfiles());
-    }
-
-    public function testViewProfilerRegister()
-    {
-        $debugger = Reflexion::getReflectionClass(Debugger::class)->newInstanceWithoutConstructor();
-        Reflexion::invoke($debugger, 'registerGlobalEventManager');
-        Reflexion::invoke($debugger, 'viewProfilerRegister');
-        /** @var Manager $gem */
-        $gem = Reflexion::get($debugger, 'em');
-
-        $view = $this->createStub(View::class);
-        $gem->fire('view:beforeRender', $view, []);
-        $gem->fire('view:beforeRender', $view, []);
-        $gem->fire('view:beforeRenderView', $view, []);
-        $gem->fire('view:beforeRenderView', $view, []);
-        $gem->fire('view:notFoundView', $view, []);
-        $gem->fire('view:afterRenderView', $view, []);
-        $gem->fire('view:afterRenderView', $view, []);
-        $gem->fire('view:afterRender', $view, []);
-        $gem->fire('view:afterRender', $view, []);
-
-        $profiles = Reflexion::get($debugger, 'viewProfiles');
-        $this->assertNotEmpty($gem->getListeners('view'));
-        $this->assertEmpty($profiles['__render']);
-        $this->assertEmpty($profiles['__renderViews']);
-        $this->assertCount(2, $profiles['render']);
-        $this->assertCount(2, $profiles['renderViews']);
-        $this->assertCount(1, $profiles['notFoundView']);
-
-        foreach ($profiles['render'] as $profile) {
-            $this->assertArrayHasKey('initialTime', $profile);
-            $this->assertArrayHasKey('finalTime', $profile);
-            $this->assertArrayHasKey('elapsedTime', $profile);
-        }
-        foreach ($profiles['renderViews'] as $profile) {
-            $this->assertArrayHasKey('initialTime', $profile);
-            $this->assertArrayHasKey('finalTime', $profile);
-            $this->assertArrayHasKey('elapsedTime', $profile);
-        }
-    }
-
-    public function testRegister()
-    {
-        global $loader;
-        $loader = new Loader();
-        Debugger::register();
-
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $loader->getEventsManager());
-
-        $gem = Debugger::getGlobalEventsManager();
-        $em = Reflexion::get($gem, 'manager');
-        $events = Reflexion::get($em, '_events');
-
-        $this->assertArrayHasKey('di:afterServiceResolve', $events);
-        $this->assertArrayHasKey('kernel:terminate', $events);
-        $this->assertInstanceOf(DebugEventsManagerWrapper::class, $loader->getEventsManager());
-
-        unset($loader);
-        Reflexion::set($em, '_events', []);
-    }
-}
-
-class StubService implements EventsAwareInterface
-{
-    protected $em;
-
-    /**
-     * Sets the events manager
-     *
-     * @param ManagerInterface $eventsManager
-     */
-    public function setEventsManager(ManagerInterface $eventsManager)
-    {
-        $this->em = $eventsManager;
-    }
-
-    /**
-     * Returns the internal event manager
-     *
-     * @return ManagerInterface
-     */
-    public function getEventsManager()
-    {
-        return $this->em;
+        $this->assertSame('app/Http/Kernel.php', Debugger::relativePath(BASE_PATH . '/app/Http/Kernel.php'));
+        $this->assertSame('/other/file.php', Debugger::relativePath('/other/file.php'));
     }
 }

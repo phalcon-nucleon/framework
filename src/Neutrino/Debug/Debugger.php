@@ -1,323 +1,191 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Debug;
 
-use Neutrino\Constants\Events;
 use Neutrino\Constants\Services;
+use Neutrino\Error\Error;
 use Neutrino\Error\Handler;
-use Phalcon\Cli\Console;
-use Phalcon\Db\Adapter;
-use Phalcon\Db\Profiler;
-use Phalcon\Di;
-use Phalcon\Events\Event;
+use Neutrino\Interfaces\Kernelable;
+use Neutrino\Version;
+use Phalcon\Config\ConfigInterface;
+use Phalcon\DebugBar\Debug;
+use Phalcon\DebugBar\DebugBar;
+use Phalcon\DebugBar\Logger\Adapter as DebugBarLogger;
+use Phalcon\DebugBar\Provider;
+use Phalcon\Di\Di;
+use Phalcon\Di\DiInterface;
+use Phalcon\Events\EventInterface;
 use Phalcon\Events\EventsAwareInterface;
-use Phalcon\Events\Manager;
-use Phalcon\Mvc\View;
+use Phalcon\Events\ManagerInterface;
+use Phalcon\Logger\Logger;
+use Phalcon\Mvc\Application;
+use Throwable;
 
 /**
- * Class DebugProvider
+ * Debug mode, registered by `Foundation\Bootstrap` when `APP_DEBUG` is true (outside tests and the console):
+ * - the fatal errors are shown on the debug error page ({@see self::renderErrorPage()}), with the PHP errors of the request;
+ * - with `phalcon/debugbar` installed (a suggested dependency), the debug bar is added to the HTML pages of the HTTP kernel.
  *
- * Neutrino
+ * The bar is configured by `debug.bar` (the options of `Phalcon\DebugBar\Provider`): `['enabled' => false]` disables it.
  */
-class Debugger
+final class Debugger
 {
-    /** @var array */
-    private static $viewProfiles;
+    /**
+     * The name of the bar's adapter, added to the `logger` service.
+     */
+    public const string LOGGER_ADAPTER = 'debugbar';
 
-    /** @var Profiler[] */
-    private static $profilers;
+    private static bool $enabled = false;
 
-    /** @var self */
-    private static $instance;
+    private function __construct() {}
 
-    /** @var View\Simple */
-    private static $view;
-
-    /** @var \Neutrino\Debug\DebugEventsManagerWrapper */
-    private $em;
-
-    private function __construct()
+    public static function register(Kernelable $kernel): void
     {
-        self::$instance = $this;
-
-        $di = Di::getDefault();
-
-        if ($di->get(Services::APP) instanceof Console) {
+        if (self::$enabled) {
             return;
         }
+
+        self::$enabled = true;
 
         Handler::addWriter(DebugErrorLogger::class);
 
-        $this->registerGlobalEventManager();
+        if ($kernel instanceof Application && class_exists(Provider::class)) {
+            self::registerDebugBar($kernel);
+        }
+    }
 
-        $this->listenLoader();
-
-        $this->listenServices();
-
-        DebugToolbar::register();
+    public static function isEnabled(): bool
+    {
+        return self::$enabled;
     }
 
     /**
-     * @return \Phalcon\Events\Manager
+     * Leaves the debug mode (tests). The error writer and the debug bar stay registered on their kernel.
+     *
+     * @internal
      */
-    private function registerGlobalEventManager()
+    public static function reset(): void
     {
-        /** @var Di $di */
-        $di = Di::getDefault();
+        self::$enabled = false;
+        DebugErrorLogger::reset();
 
-        if ($di->has(Services::EVENTS_MANAGER)) {
-            $di->setShared(Services::EVENTS_MANAGER, $gem = new DebugEventsManagerWrapper($di->get(Services::EVENTS_MANAGER)));
-        } else {
-            $di->setShared(Services::EVENTS_MANAGER, $gem = new DebugEventsManagerWrapper(new Manager()));
-        }
-
-        $app = $di->get(Services::APP);
-        $em = $app->getEventsManager();
-        if (is_null($em)) {
-            $app->setEventsManager($gem);
-        } else {
-            $app->setEventsManager($gem = new DebugEventsManagerWrapper($em));
-        }
-
-        $em = $di->getInternalEventsManager();
-        if (is_null($em)) {
-            $di->setInternalEventsManager($gem);
-        } else {
-            $di->setInternalEventsManager($gem = new DebugEventsManagerWrapper($em));
-        }
-
-        return $this->em = $gem;
-    }
-
-    private function listenLoader()
-    {
-        global $loader;
-
-        /** @var \Phalcon\Loader $loader */
-        if (isset($loader)) {
-            $this->attachEventsManager($loader);
-        }
-    }
-
-    private function listenServices()
-    {
-        $this->em->attach('di:afterServiceResolve', function ($ev, $src, $data) {
-            static $resolved;
-
-            if (isset($resolved[$data['name']])) {
-                return;
-            }
-
-            $resolved[$data['name']] = true;
-
-            $this->tryAttachEventsManager($data['instance']);
-
-            if ($data['instance'] instanceof Adapter\Pdo) {
-                $this->dbProfilerRegister();
-            }
-            if ($data['instance'] instanceof View) {
-                try {
-                    $engines = (array)Reflexion::get($data['instance'], '_engines');
-                } catch (\Exception $e) {
-                    $engines = [];
-                }
-                foreach ($engines as $engine) {
-                    $this->tryAttachEventsManager($engine);
-                }
-                $this->viewProfilerRegister();
-            }
-        });
-    }
-
-    private function tryAttachEventsManager($service)
-    {
-        if ($service instanceof EventsAwareInterface
-          || (method_exists($service, 'getEventsManager') && method_exists($service, 'setEventsManager'))) {
-            $this->attachEventsManager($service);
+        if (class_exists(Debug::class)) {
+            Debug::setBar(null);
         }
     }
 
     /**
-     * @param EventsAwareInterface $service
+     * The debug error page: the error or the chain of exceptions with their code and trace, and the PHP errors
+     * of the request. The code is highlighted with `tempest/highlight` when installed.
      */
-    private function attachEventsManager($service)
+    public static function renderErrorPage(Error $error): string
     {
-        $em = $service->getEventsManager();
-        if ($em) {
-            if (!($em instanceof DebugEventsManagerWrapper)) {
-                $service->setEventsManager(new DebugEventsManagerWrapper($em));
-            }
-        } else {
-            $service->setEventsManager($this->em);
+        $exceptions = [];
+        for ($exception = $error->exception; $exception !== null; $exception = $exception->getPrevious()) {
+            $exceptions[] = $exception;
         }
+
+        $phpErrors = array_values(array_filter(DebugErrorLogger::errors(), static fn(Error $logged): bool => $logged !== $error));
+
+        return self::render(__DIR__ . '/resources/errors.html.php', [
+            'error'      => $error,
+            'exceptions' => $exceptions,
+            'phpErrors'  => $phpErrors,
+            'build'      => self::getBuildInfo(),
+        ]);
     }
 
     /**
-     * Register db profiler
+     * @return array{php: string, phalcon: string, nucleon: string}
      */
-    private function dbProfilerRegister()
+    public static function getBuildInfo(): array
     {
-        $profiler = self::registerProfiler('db', '<i class="nuc db"></i>');
-
-        $this->em->attach(
-          Events::DB,
-          function (Event $event, Adapter\Pdo $connection) use ($profiler) {
-              $eventType = $event->getType();
-              if ($eventType === 'beforeQuery') {
-                  // Start a profile with the active connection
-                  $profiler->startProfile(
-                    $connection->getSQLStatement(),
-                    $connection->getSqlVariables(),
-                    $connection->getSQLBindTypes()
-                  );
-              }
-              if ($eventType === 'afterQuery') {
-                  // Stop the active profile
-                  $profiler->stopProfile();
-              }
-          }
-        );
+        return [
+            'php'     => PHP_VERSION,
+            'phalcon' => (new \Phalcon\Support\Version())->get(),
+            'nucleon' => Version::get(),
+        ];
     }
 
     /**
-     * Register view profiler
+     * A path relative to the application (`BASE_PATH`).
      */
-    private function viewProfilerRegister()
+    public static function relativePath(string $file): string
     {
-        $this->em->attach(
-          Events::VIEW,
-          function (Event $event, $src, $data) {
-              $eventType = $event->getType();
-              if ($eventType === 'beforeRender') {
-                  self::$viewProfiles['render'][] = self::$viewProfiles['__render'][] = [
-                    'initialTime' => microtime(true)
-                  ];
-              } elseif ($eventType === 'beforeRenderView') {
-                  self::$viewProfiles['__renderViews'][] = self::$viewProfiles['renderViews'][] = [
-                    'file' => $data,
-                    'initialTime' => microtime(true)
-                  ];
-              } elseif ($eventType === 'afterRenderView') {
-                  $profile = array_pop(self::$viewProfiles['__renderViews']);
-                  $profile['finalTime'] = microtime(true);
-                  $profile['elapsedTime'] = $profile['finalTime'] - $profile['initialTime'];
+        $file = str_replace('\\', '/', $file);
+        $base = defined('BASE_PATH') ? str_replace('\\', '/', BASE_PATH) . '/' : null;
 
-                  self::$viewProfiles['renderViews'][count(self::$viewProfiles['__renderViews'])] = $profile;
-              } elseif ($eventType === 'notFoundView') {
-                  self::$viewProfiles['notFoundView'][] = $data;
-              } elseif ($eventType === 'afterRender') {
-                  $profile = array_pop(self::$viewProfiles['__render']);
-                  $profile['finalTime'] = microtime(true);
-                  $profile['elapsedTime'] = $profile['finalTime'] - $profile['initialTime'];
-
-                  self::$viewProfiles['render'][count(self::$viewProfiles['__render'])] = $profile;
-              }
-          }
-        );
+        return $base !== null && str_starts_with($file, $base) ? substr($file, strlen($base)) : $file;
     }
 
-    public static function register()
+    /**
+     * Boots the debug bar on the application, and gives the application's events manager to the services
+     * resolved afterwards (connections, cache stores, views…): the bar collects their events.
+     */
+    private static function registerDebugBar(Application $app): void
     {
-        if (self::isEnable()) {
+        $di = $app->getDI();
+        $config = $di->has(Services::CONFIG) ? $di->getShared(Services::CONFIG) : null;
+        $options = $config instanceof ConfigInterface ? $config->path('debug.bar') : null;
+        $options = $options instanceof ConfigInterface ? $options->toArray() : (is_array($options) ? $options : []);
+
+        // The bar reads the environment in a variable (APP_ENV by default), Nucleon in a constant.
+        $env = $options['env'] ?? null;
+        $variable = is_array($env) && is_string($env['var'] ?? null) ? $env['var'] : 'APP_ENV';
+        if (getenv($variable) === false && !isset($_ENV[$variable]) && !isset($_SERVER[$variable])) {
+            $_ENV[$variable] = APP_ENV;
+        }
+
+        (new Provider($app, $options))->boot(); // @phpstan-ignore argument.type (options of the config, checked by the bar)
+
+        $bar = Debug::getBar();
+        $eventsManager = $app->getEventsManager();
+
+        if ($bar === null || $eventsManager === null || !$di instanceof Di) {
             return;
         }
 
-        new self;
-    }
-
-    public static function isEnable()
-    {
-        return isset(self::$instance);
-    }
-
-    public static function getGlobalEventsManager()
-    {
-        if (!isset(self::$instance)) {
-            throw new \Exception("Debugger wasn't registered");
+        $internal = $di->getInternalEventsManager();
+        if ($internal === null) {
+            $di->setInternalEventsManager($internal = $eventsManager);
         }
 
-        return self::$instance->em;
+        $internal->attach('di:afterServiceResolve', static function (EventInterface $event, DiInterface $di, mixed $data) use ($eventsManager, $bar): void {
+            self::instrument(is_array($data) ? $data['instance'] ?? null : null, $eventsManager, $bar);
+        });
     }
 
-    public static function getBuildInfo()
+    private static function instrument(mixed $service, ManagerInterface $eventsManager, DebugBar $bar): void
     {
-        $build = [
-          'php' => [
-            'version' => PHP_VERSION,
-          ],
-          'zend' => [
-            'version' => zend_version(),
-          ],
-          'phalcon' => [
-            'version' => \Phalcon\Version::get(),
-          ],
-          'neutrino' => [
-            'version' => \Neutrino\Version::get(),
-          ],
-        ];
-
-        foreach (get_loaded_extensions(true) as $extension) {
-            $build['zend']['extensions'][$extension] = phpversion($extension);
-        }
-        foreach (get_loaded_extensions(false) as $extension) {
-            $build['php']['extensions'][$extension] = phpversion($extension);
+        if ($service instanceof EventsAwareInterface && $service->getEventsManager() === null) {
+            $service->setEventsManager($eventsManager);
         }
 
-        $build['phalcon']['ini'] = ini_get_all('phalcon');
-
-        return $build;
+        if ($service instanceof Logger && !array_key_exists(self::LOGGER_ADAPTER, $service->getAdapters())) {
+            $service->addAdapter(self::LOGGER_ADAPTER, new DebugBarLogger($bar));
+        }
     }
 
     /**
-     * @return array
+     * @param array<string, mixed> $vars
      */
-    public static function getViewProfiles()
+    private static function render(string $template, array $vars): string
     {
-        return self::$viewProfiles;
-    }
+        ob_start();
 
-    public static function getRegisteredProfilers()
-    {
-        return self::$profilers;
-    }
+        try {
+            (static function (string $__template, array $__vars): void {
+                extract($__vars);
+                require $__template;
+            })($template, $vars);
+        } catch (Throwable $e) {
+            ob_end_clean();
 
-    /**
-     * @param string $file
-     * @param array $params
-     *
-     * @return string|null
-     */
-    public static function internalRender($file, array $params = [])
-    {
-        if(!isset(self::$view)){
-            include __DIR__ . '/helpers/functions.php';
-            $view = new View\Simple();
-            $view->setDI(new Di());
-            $view->setViewsDir(__DIR__ . '/resources/');
-            $view->registerEngines(['.html.php' => View\Engine\Php::class]);
-            self::$view = $view;
+            throw $e;
         }
 
-        return self::$view->setVars($params)->render($file);
-    }
-
-    /**
-     * @param string $name
-     * @param string|null $icon
-     *
-     * @return \Phalcon\Db\Profiler
-     */
-    public static function registerProfiler($name, $icon = null)
-    {
-        if (isset(self::$profilers[$name])) {
-            return self::$profilers[$name]['profiler'];
-        }
-
-        self::$profilers[$name] = [
-          'icon' => $icon,
-          'profiler' => $profiler = new Profiler()
-        ];
-
-        return $profiler;
+        return (string) ob_get_clean();
     }
 }

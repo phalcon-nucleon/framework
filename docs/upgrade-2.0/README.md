@@ -39,6 +39,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | API du cache | PSR-16 (`Phalcon\Cache\CacheInterface`), sans couche de compatibilité avec l'ancienne API. | E7 |
 | Stockage des migrations | `FileStorage` supprimé, seul `DatabaseStorage` reste. | E11 |
 | Précompilation Volt | Nouvelle tâche `view:cache`, exécutée au déploiement. | E9 |
+| Barre de debug | `phalcon/debugbar` en `suggest` / `require-dev`, branchée par le `Debugger` sur les services Nucleon (étude E12-S1). Notre barre est supprimée ; page d'erreur et `VarDump` conservés. | E12 |
 | Coloration syntaxique (debug) | `tempest/highlight` en `suggest` / `require-dev` (HTML et terminal, aucune dépendance), à la place d'`ark4ne/highlight`. | E12 |
 | Requêtes HTTP parallèles | Pas dans la 2.0 (synchrone). L'API permet de les ajouter dans la 2.x sans changement cassant. | E13 |
 | Config Rector de migration | Livrée avec la 2.0 (`resources/rector/upgrade-2.0.php`). | E15 |
@@ -53,9 +54,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 
 ## Points à trancher (portés par les epics)
 
-| Sujet | Question | Epic |
-|---|---|---|
-| Debug | Remplacement de notre barre de debug par `phalcon/debugbar` (en `suggest`, sans dépendance de production), à confirmer par l'étude E12-S1. On garde notre page d'erreur et `VarDump`. | E12 |
+Aucun pour l'instant.
 
 ## Epics
 
@@ -73,7 +72,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | E9 | [Vues & Volt](epics/E09-vues.md) | Terminé | E4 |
 | E10 | [Données](epics/E10-donnees.md) | Terminé | E7 |
 | E11 | [Migrations](epics/E11-migrations.md) | Terminé | E6, E10 |
-| E12 | [Erreurs & Debug](epics/E12-erreurs-debug.md) | Rédigé | E4 |
+| E12 | [Erreurs & Debug](epics/E12-erreurs-debug.md) | Terminé | E4 |
 | E13 | [HttpClient v2](epics/E13-httpclient.md) | Rédigé | E0 |
 | E14 | [Process](epics/E14-process.md) | Rédigé | E0 |
 | E15 | [Release 2.0](epics/E15-release.md) | Rédigé | tous |

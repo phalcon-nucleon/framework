@@ -1,50 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
-use Phalcon\Di;
-use Phalcon\Logger as Phogger;
+use Phalcon\Di\Di;
+use Phalcon\Flash\FlashInterface;
+use Phalcon\Logger\Enum;
 
 /**
- * Class Flash
+ * Shows the non-fatal errors in a flash message (`flash` service), in debug mode only.
  *
- * @package     Neutrino\Error\Writer
+ * The fatal errors are left to the error page (`View` writer): a flash message output before it would
+ * send the headers, and the page would lose its 500 status.
  */
-class Flash implements Writable
+final class Flash implements Writable
 {
-    /**
-     * @inheritdoc
-     */
-    public function handle(Error $error)
+    public function handle(Error $error): void
     {
-        if (!APP_DEBUG) {
+        if (!APP_DEBUG || $error->isFatal()) {
             return;
         }
 
         $di = Di::getDefault();
 
-        if (!is_null($di) && $di->has(Services::FLASH)) {
-            /** @var \Phalcon\Flash\Direct $flash */
-
-            $flash = $di->getShared(Services::FLASH);
-
-            switch (Helper::getLogType($error->type)) {
-                case Phogger::CRITICAL:
-                case Phogger::EMERGENCY:
-                case Phogger::ERROR:
-                    $flash->error(Helper::format($error));
-                    break;
-                case Phogger::WARNING:
-                    $flash->warning(Helper::format($error));
-                    break;
-                case Phogger::NOTICE:
-                case Phogger::INFO:
-                    $flash->notice(Helper::format($error));
-                    break;
-            }
+        if ($di === null || !$di->has(Services::FLASH) || !($flash = $di->getShared(Services::FLASH)) instanceof FlashInterface) {
+            return;
         }
+
+        match ($error->logLvl) {
+            Enum::WARNING         => $flash->warning(Helper::format($error)),
+            Enum::NOTICE, Enum::INFO, Enum::DEBUG => $flash->notice(Helper::format($error)),
+            default               => $flash->error(Helper::format($error)),
+        };
     }
 }

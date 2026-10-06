@@ -2,7 +2,7 @@
 
 namespace Test\HttpClient;
 
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Neutrino\HttpClient\Uri;
 
 class UriTest extends \PHPUnit\Framework\TestCase
@@ -84,7 +84,7 @@ class UriTest extends \PHPUnit\Framework\TestCase
     {
         $uri = new Uri($url);
 
-        $parts = Reflexion::get($uri, 'parts');
+        $parts = Reflection::get($uri, 'parts');
 
         $this->assertEquals($expectedParts, $parts);
 
@@ -94,27 +94,27 @@ class UriTest extends \PHPUnit\Framework\TestCase
 
             $uri->$key = 'test';
 
-            $parts = Reflexion::get($uri, 'parts');
+            $parts = Reflection::get($uri, 'parts');
             $this->assertEquals('test', $parts[$key]);
             $this->assertEquals('test', $uri->$key);
 
             unset($uri->$key);
 
-            $parts = Reflexion::get($uri, 'parts');
+            $parts = Reflection::get($uri, 'parts');
             $this->assertArrayNotHasKey($key, $parts);
             $this->assertFalse(isset($uri->$key));
         }
 
         $uri->test = 'test';
 
-        $parts = Reflexion::get($uri, 'parts');
+        $parts = Reflection::get($uri, 'parts');
         $this->assertArrayHasKey('test', $parts);
         $this->assertEquals('test', $parts['test']);
         $this->assertEquals('test', $uri->test);
 
         unset($uri->test);
 
-        $parts = Reflexion::get($uri, 'parts');
+        $parts = Reflection::get($uri, 'parts');
         $this->assertArrayNotHasKey('test', $parts);
         $this->assertFalse(isset($uri->test));
     }

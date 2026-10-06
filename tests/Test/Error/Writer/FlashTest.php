@@ -1,58 +1,56 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Error\Writer;
 
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
 use Neutrino\Error\Writer\Flash;
+use Phalcon\Flash\Direct;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Test\TestCase\TestCase;
 
-class FlashTest extends TestCase
+final class FlashTest extends TestCase
 {
-    public function dataHandle()
+    /**
+     * @return iterable<array{int, string}>
+     */
+    public static function types(): iterable
     {
-        $error = Error::fromException(new \Exception());
-        $data[] = [Helper::format($error), 'error', $error];
-
-        $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'error', $error];
-
-        $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'warning', $error];
-
-        $error = Error::fromError(E_NOTICE, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'notice', $error];
-
-        $error = Error::fromError(E_STRICT, 'E_STRICT', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'notice', $error];
-
-        $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'error', $error];
-
-        $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), 'error', $error];
-
-        return $data;
+        yield [E_USER_ERROR, 'error'];
+        yield [E_WARNING, 'warning'];
+        yield [E_NOTICE, 'notice'];
+        yield [E_DEPRECATED, 'notice'];
     }
 
-    /**
-     * @dataProvider dataHandle
-     *
-     * @param $expectedMessage
-     * @param $expectedMethod
-     * @param $error
-     */
-    public function testHandle($expectedMessage, $expectedMethod, $error)
+    #[DataProvider('types')]
+    public function testHandle(int $type, string $method): void
     {
-        $mock = $this->mockService(Services::FLASH, \Phalcon\Flash\Direct::class, true);
+        $error = Error::fromError($type, 'msg', __FILE__, __LINE__);
+        $flash = $this->mockService(Services::FLASH, Direct::class);
+        $flash->expects($this->once())->method($method)->with(Helper::format($error));
 
-        $mock->expects($this->once())
-            ->method($expectedMethod)
-            ->with($expectedMessage);
+        (new Flash())->handle($error);
+    }
 
-        $writer = new Flash();
+    public function testFatalErrorsLeftToTheErrorPage(): void
+    {
+        $flash = $this->mockService(Services::FLASH, Direct::class);
+        $flash->expects($this->never())->method($this->anything());
 
-        $writer->handle($error);
+        (new Flash())->handle(Error::fromException(new \RuntimeException('boom')));
+        (new Flash())->handle(Error::fromError(E_ERROR, 'fatal'));
+        (new Flash())->handle(Error::fromError(E_PARSE, 'fatal'));
+    }
+
+    public function testWithoutFlashService(): void
+    {
+        $this->getDI()->remove(Services::FLASH);
+
+        $this->expectOutputString('');
+
+        (new Flash())->handle(Error::fromError(E_WARNING, 'msg'));
     }
 }

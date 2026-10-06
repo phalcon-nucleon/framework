@@ -2,7 +2,7 @@
 
 namespace Test\HttpClient\Provider\Stream;
 
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Neutrino\HttpClient\Provider\Curl;
 use Neutrino\Http\Standards\Method;
 use Test\HttpClient\Provider\TraitWithLocalServer;
@@ -110,7 +110,7 @@ class CurlTest extends \PHPUnit\Framework\TestCase
 
         $curl->setProxy('domain.com');
 
-        Reflexion::invoke($curl, 'buildProxy');
+        Reflection::invoke($curl, 'buildProxy');
 
         $options = $curl->getOptions();
         $this->assertArrayHasKey(CURLOPT_PROXY, $options);
@@ -121,7 +121,7 @@ class CurlTest extends \PHPUnit\Framework\TestCase
 
         $curl->setProxy('domain.com', 8888);
 
-        Reflexion::invoke($curl, 'buildProxy');
+        Reflection::invoke($curl, 'buildProxy');
 
         $options = $curl->getOptions();
         $this->assertArrayHasKey(CURLOPT_PROXY, $options);
@@ -132,7 +132,7 @@ class CurlTest extends \PHPUnit\Framework\TestCase
 
         $curl->setProxy('domain.com', 8888, 'user:pass');
 
-        Reflexion::invoke($curl, 'buildProxy');
+        Reflection::invoke($curl, 'buildProxy');
 
         $options = $curl->getOptions();
         $this->assertArrayHasKey(CURLOPT_PROXY, $options);
@@ -150,7 +150,7 @@ class CurlTest extends \PHPUnit\Framework\TestCase
         $curl->setCookie(null, 'biscuit');
         $curl->setCookie(null, 'muffin');
 
-        Reflexion::invoke($curl, 'buildCookies');
+        Reflection::invoke($curl, 'buildCookies');
 
         $options = $curl->getOptions();
         $this->assertArrayHasKey(CURLOPT_COOKIE, $options);
@@ -204,7 +204,7 @@ class CurlTest extends \PHPUnit\Framework\TestCase
 
         $emitter = $curl->getEventsManager();
 
-        $listener = Reflexion::get($emitter, '_events');
+        $listener = Reflection::get($emitter, '_events');
 
         $this->assertArrayHasKey($curl::EVENT_START, $listener);
         $this->assertArrayHasKey($curl::EVENT_PROGRESS, $listener);
@@ -215,17 +215,17 @@ class CurlTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals([$closureFinish], $listener[$curl::EVENT_FINISH]);
 
         $curl->off($curl::EVENT_START, $closureStart);
-        $listener = Reflexion::get($emitter, '_events');
+        $listener = Reflection::get($emitter, '_events');
 
         $this->assertEquals([], $listener[$curl::EVENT_START]);
 
         $curl->off($curl::EVENT_PROGRESS, $closureProgress);
-        $listener = Reflexion::get($emitter, '_events');
+        $listener = Reflection::get($emitter, '_events');
 
         $this->assertEquals([], $listener[$curl::EVENT_PROGRESS]);
 
         $curl->off($curl::EVENT_FINISH, $closureFinish);
-        $listener = Reflexion::get($emitter, '_events');
+        $listener = Reflection::get($emitter, '_events');
 
         $this->assertEquals([], $listener[$curl::EVENT_FINISH]);
     }
@@ -291,7 +291,7 @@ class CurlTest extends \PHPUnit\Framework\TestCase
     {
         $this->expectException(\Neutrino\HttpClient\Provider\Exception::class);
         $this->expectExceptionMessage('Neutrino\HttpClient\Provider\Curl require curl extension.');
-        Reflexion::set(Curl::class, 'isAvailable', false);
+        Reflection::set(Curl::class, 'isAvailable', false);
 
         new Curl;
     }

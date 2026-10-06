@@ -1,6 +1,6 @@
 # E13 — HttpClient v2
 
-**Statut** : Rédigé · **Dépend de** : E0 (E2 pour le provider et la Facade) · **Bloque** : —
+**Statut** : Terminé · **Dépend de** : E0 (E2 pour le provider et la Facade) · **Bloque** : —
 
 ## Objectif
 
@@ -130,3 +130,15 @@ foreach ($client->request('GET', '/export', ['buffer' => false])->chunks() as $c
 - `composer.json` ne gagne aucune dépendance.
 - Taille du module ≤ 1 500 lignes (hors commentaires).
 - Les cas de sécurité (protocole `file://`, redirection vers un autre hôte avec `Authorization`, certificat invalide) sont couverts par des tests.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Contrats, options et réponse | Fait | `HttpClientInterface`, `ResponseInterface`, `Transport` (un échange : il produit la tête puis les morceaux du corps ; arrêter le générateur interrompt l'échange). `Options` : valeurs par défaut, fusion (`headers` et `query` fusionnés), option inconnue refusée, résolution d'URL RFC 3986 (exemples de la RFC en test), `query`, `json`, `body` (chaîne, formulaire, ressource et itérable lus en mémoire), `auth_*`, pas d'injection d'en-tête. `Request` et `Head` en objets valeurs. `Response` : envoi au premier accès (ou à la destruction d'une réponse jamais lue, erreurs ignorées), redirections suivies par le client (303, et 301/302 sur un POST, deviennent GET ; 307/308 gardent méthode et corps), `max_duration` sur toute la chaîne, `on_progress`, `user_data`, `getInfo()`. Exceptions `TransportException`, `RedirectionException`, `ClientException`, `ServerException`, `DecodingException`, `InvalidArgumentException` sous `HttpClientExceptionInterface`. |
+| S2 · `CurlTransport` | Fait | `curl_multi` pour lire le corps au fil de l'eau, `CURLOPT_PROTOCOLS` limité à http(s), pas de `FOLLOWLOCATION` (le client suit), délai d'inactivité par `LOW_SPEED_*`, proxy (et aucun proxy d'environnement sinon), TLS, HTTP/1.0, 1.1, 2. Pas de `curl_close()` (déprécié en PHP 8.5). |
+| S3 · `StreamTransport` | Fait | Wrapper `http` avec `follow_location` désactivé, `ignore_errors`, `connection: close`, délai d'inactivité et durée maximale à la lecture, proxy (`request_fulluri`, authentification), contrôles TLS. Mêmes tests que cURL (`TransportTest`, data provider) contre deux serveurs `php -S` (deux origines) et un serveur TLS au certificat autosigné généré par le test : GET, corps JSON/formulaire/brut, HEAD, statuts, redirections, en-têtes sensibles non transmis à une autre origine, `file://` refusé (requête et redirection), délai, durée maximale, connexion refusée, flux reçu progressivement, gros corps, HTTP/1.0, proxy et `no_proxy`, certificat invalide refusé puis accepté par `verify_*` ou `cafile`. |
+| S4 · `MockTransport`, provider et Facade | Fait | `MockTransport` (liste de `MockResponse` ou callback, `getRequests()`), `MockResponse` (corps en morceaux, `json()`, `error()`). `Providers\HttpClient` (`httpClient`, alias `HttpClientInterface` et `HttpClient`, config `http_client` avec `transport`), Facade `Http` (ajoutée aux IDE helpers). Exemple de test d'app dans `UPGRADING-2.0.md`, joué par `ProviderTest`. |
+| S5 · Taille et performances | Fait | `SizeTest` (suite `HttpClient`, donc en CI) : 942 lignes de code hors commentaires et lignes vides (limite 1 500). Mesures (`bench/tools/http-client.php`, 100 GET sur un serveur local, médiane de 7 séries) : 2.x curl 69 µs et stream 62 µs par requête (PHP 8.3), 1.3 curl 61 µs et stream 50 µs (PHP 7.3). Sur le même PHP 8.3, appels bruts : `curl_exec` 55 µs, `curl_multi` 63 µs, `file_get_contents` 50 µs ; le client ajoute environ 10 µs (résolution des options, générateur), plus 8 µs pour `curl_multi` côté cURL, prix de la lecture en flux et de l'exécution parallèle future. Négligeable devant la latence d'un appel réel. |
+
+Suite `HttpClient` activée (113 tests, environ 4 s : délais et flux réels). 1 294 tests verts sur Phalcon 5.22 ; suite `HttpClient` verte sur Phalcon 6. PHPStan : l'exclusion de `src/Neutrino/HttpClient` est retirée, plus aucun fichier exclu. Aucune dépendance ajoutée.

@@ -433,6 +433,49 @@ protected static function routes(): array
 - `mockService(string $service, string|object $class, bool $shared = true)`.
 - A test case fails (instead of being skipped) when Phalcon is not available.
 
+## HTTP client
+
+`Neutrino\HttpClient` is rewritten, with an API inspired by `symfony/http-client` (same option names). The 1.3 `Request`, `Provider\Curl`, `Provider\StreamContext`, `Factory`, `Response`, `Header`, `Uri`, parsers and streaming events are removed.
+
+```php
+// Kernels: the `httpClient` service (and the `Http` Facade)
+protected array $providers = [
+    // ...
+    Neutrino\Providers\HttpClient::class,
+];
+
+// config/http_client.php: default options of the requests
+'transport' => 'curl',                          // optional: curl (default with ext-curl), stream, or a Transport class
+'base_uri'  => 'https://api.example.com',
+'timeout'   => 10,
+
+// 2.0
+$response = Http::request('GET', '/users', ['query' => ['page' => 2], 'auth_bearer' => $token]);
+$response->getStatusCode();
+$response->toArray();
+```
+
+| 1.3 | 2.0 |
+|---|---|
+| `(new Curl())->get($uri, $params)->send()` | `$client->request('GET', $uri, ['query' => $params])` |
+| `->post($uri, $params)` / with `['json' => true]` | `request('POST', $uri, ['body' => $params])` / `['json' => $params]` |
+| `setHeaders([...])`, `setHeader($name, $value)` | `['headers' => [...]]` |
+| `setProxy($host, $port, $access)` | `['proxy' => 'http://access@host:port']`, `no_proxy` |
+| `setTimeout($s)`, `setConnectTimeout($s)` | `['timeout' => $s]` (idle), `['max_duration' => $s]` (total) |
+| `disableSsl()` | `['verify_peer' => false, 'verify_host' => false]` |
+| `setCookies([...])` | `['headers' => ['cookie' => 'a=1; b=2']]` |
+| `$response->getCode()`, `getBody()`, `getHeader()` | `getStatusCode()`, `getContent()`, `getHeaders()` |
+| `isOk()`, `isFail()`, `getError()` | exceptions (below), or `getStatusCode()` with `$throw = false` |
+| `parse(Json::class)` / `parse(JsonArray::class)` | `toArray()` |
+| `parse(Xml::class)` | `simplexml_load_string($response->getContent())` |
+| streaming events (`stream:start`, `progress`, `finish`) | `['buffer' => false]` + `foreach ($response->chunks() as $chunk)`, `on_progress` |
+
+- **HTTP errors throw**: `getHeaders()`, `getContent()`, `toArray()` and `chunks()` throw `RedirectionException`, `ClientException` or `ServerException` on a 3xx, 4xx or 5xx status (`$throw = false` returns them). Network errors throw `TransportException`. All implement `Exception\HttpClientExceptionInterface`.
+- **Safe defaults**: TLS checked (1.3 `StreamContext::disableSsl()` did not disable anything); only `http` and `https` URLs, also on redirections; `Authorization`, `Cookie` and `Proxy-Authorization` are not sent to another origin on a redirection; 20 redirections at most.
+- The request is sent when the response is first read; a response never read is sent when it is destroyed (its errors are ignored).
+- `body` given as a resource or an iterable is read in memory before sending.
+- Tests: `new HttpClient([], new MockTransport([new MockResponse('...'), MockResponse::json([...], 201), MockResponse::error('...')]))`, or a callback building the response from the `Request`; `getRequests()` returns the requests sent. With the Facade: `Http::swap(new HttpClient([], $transport))`.
+
 ## Removed
 
 - `Neutrino\Assets` and the `assets:js` / `assets:sass` tasks.

@@ -15,6 +15,7 @@ Facades
 Foundation
 Helpers
 Http
+HttpClient
 Micro
 Middleware
 Models

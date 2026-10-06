@@ -25,6 +25,7 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - `app.crypt_signing`; `annotations.adapter` (`memory`, `apcu`, `stream`).
  - Errors: `Foundation\Bootstrap` registers the error handler (`error.register`); `Handler::unregister()`, `isRegistered()`, `getWriters()`.
  - Debug: `phalcon/debugbar` integration (suggested), with the queries, cache operations, views and logs of the Nucleon services; `Debug\Highlight` (HTML and terminal, with the suggested `tempest/highlight`); `VarDump::html()` and `text()`, console output, enums and `readonly` properties.
+ - HTTP client rewritten (`Neutrino\HttpClient`): `request()` / `withOptions()` with the `symfony/http-client` option names, typed exceptions, body chunks, cURL and stream transports, `MockTransport` for the tests; `httpClient` provider and `Http` Facade.
  - Event constants for the Phalcon 5 events: router, di, `db:connectionLost`, dispatcher binding and action calls, micro binding and exceptions, model `prepareSave` and `validation`, view compilation.
 
 ### Changed
@@ -61,6 +62,7 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Session provider: the construction error kept the previous exception as its code.
  - Migrations: `migrate:rollback` rolled back one migration of the last batch; `Builder` read the tables of the `dbname` schema (wrong on PostgreSQL); `make:migration --table` wrote a call to a missing `Builder::update()`; `migrate --pretend` reported the introspection queries and missed the modifications; `migrate:fresh` left the tables of the other connections (log, migrations on their own connection).
  - Errors: the fatal errors other than `E_ERROR` (`E_PARSE`, `E_CORE_ERROR`, `E_COMPILE_ERROR`, `E_RECOVERABLE_ERROR`) were not reported; a failing writer stopped the others; the `Flash` writer output a fatal error before the error page, which lost its 500 status.
+ - HTTP client: `StreamContext::disableSsl()` left the certificate check on; any protocol was accepted (`file://`, `gopher://`…); `Authorization` was sent to the host of a redirection.
  - `route:cache`: route names and hostnames are escaped; routes that cannot be cached are rejected instead of being lost.
 
 ### Removed
@@ -74,4 +76,5 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - `Neutrino\Auth\Manager` (replaced by `Phalcon\Auth\Manager`); CSRF token read from the query string.
  - Migrations: `FileStorage`, `Schema\Dialect\*`, `Schema\DialectInterface`, `Schema\DialectTrait`.
  - Nucleon debug bar (`DebugToolbar`, `DebugEventsManagerWrapper`, profilers), `Foundation\Middleware\Debug`, `ark4ne/highlight`.
+ - HTTP client: `Request`, `Provider\{Curl, StreamContext}`, `Factory`, `Header`, `Uri`, parsers (`Json`, `JsonArray`, `Xml`, `XmlArray`), streaming events.
  - Logger adapters `Firelogger`, `Udplogger`, `Multiple`; session adapters `Files` (now `stream`) and `Memcache`.

@@ -20,6 +20,7 @@ final class AllFacadeTest extends TestCase
         yield [Facades\Auth::class, Services::AUTH];
         yield [Facades\Cache::class, Services::CACHE];
         yield [Facades\Flash::class, Services::FLASH];
+        yield [Facades\Http::class, Services::HTTP_CLIENT];
         yield [Facades\Log::class, Services::LOGGER];
         yield [Facades\Request::class, Services::REQUEST];
         yield [Facades\Response::class, Services::RESPONSE];

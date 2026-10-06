@@ -43,6 +43,7 @@ final class Generator
         Facades\Auth::class,
         Facades\Cache::class,
         Facades\Flash::class,
+        Facades\Http::class,
         Facades\Log::class,
         Facades\Micro\Router::class,
         Facades\Request::class,

@@ -73,7 +73,7 @@ Aucun pour l'instant.
 | E10 | [Données](epics/E10-donnees.md) | Terminé | E7 |
 | E11 | [Migrations](epics/E11-migrations.md) | Terminé | E6, E10 |
 | E12 | [Erreurs & Debug](epics/E12-erreurs-debug.md) | Terminé | E4 |
-| E13 | [HttpClient v2](epics/E13-httpclient.md) | Rédigé | E0 |
+| E13 | [HttpClient v2](epics/E13-httpclient.md) | Terminé | E0 |
 | E14 | [Process](epics/E14-process.md) | Rédigé | E0 |
 | E15 | [Release 2.0](epics/E15-release.md) | Rédigé | tous |
 

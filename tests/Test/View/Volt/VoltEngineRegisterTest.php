@@ -1,82 +1,80 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\View\Volt;
 
-use Neutrino\View\Engines\Volt;
+use Neutrino\View\Engines\Volt\Compiler\FunctionExtend;
+use Neutrino\View\Engines\Volt\VoltEngineRegister;
 use Phalcon\Mvc\View;
-use Test\TestCase\TestCase;
+use Phalcon\Mvc\View\Engine\Volt;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Test\View\ViewTestCase;
 
-/**
- * Class VoltEngineRegisterTest
- *
- * @package Test\View\Volt
- */
-class VoltEngineRegisterTest extends TestCase
+final class VoltEngineRegisterTest extends ViewTestCase
 {
-
-    public static function setUpBeforeClass()
+    public function testRegisterClosure(): void
     {
-        parent::setUpBeforeClass();
+        $engine = VoltEngineRegister::getRegisterClosure()(new View(), $this->di);
 
-        self::setConfig([
-          'view' => [
-            'compiled_path' => __DIR__,
-            'extensions' => [
-              Volt\Compiler\Extensions\PhpFunctionExtension::class,
-              Volt\Compiler\Extensions\StrExtension::class,
-            ],
-            'filters' => [
-              'round' => Volt\Compiler\Filters\RoundFilter::class,
-              'merge' => Volt\Compiler\Filters\MergeFilter::class,
-              'slice' => Volt\Compiler\Filters\SliceFilter::class,
-              'split' => Volt\Compiler\Filters\SplitFilter::class,
-            ],
-            'functions' => [
-              'stub' => StupFunctionExtension::class
-            ]
-          ]
-        ]);
+        $this->assertInstanceOf(Volt::class, $engine);
+        $this->assertSame(['path' => $this->dir . '/compiled/', 'separator' => '_', 'always' => APP_ENV === 'development' || APP_DEBUG], $engine->getOptions());
     }
 
-    public function testRegister()
+    /**
+     * @return iterable<string, array{array<string, mixed>, array<string, mixed>}>
+     */
+    public static function options(): iterable
     {
-        $closure = Volt\VoltEngineRegister::getRegisterClosure();
+        yield 'defaults' => [['compiled_path' => '/c/'], ['path' => '/c/', 'separator' => '_', 'always' => APP_ENV === 'development' || APP_DEBUG]];
+        yield 'Volt 5 names' => [['compiled_path' => '/c/', 'options' => ['always' => false, 'stat' => false]], ['path' => '/c/', 'separator' => '_', 'always' => false, 'stat' => false]];
+        yield '1.3 names' => [
+            ['options' => ['compiledPath' => '/p/', 'compiledSeparator' => '%', 'compiledExtension' => '.php', 'compileAlways' => false]],
+            ['separator' => '%', 'always' => false, 'path' => '/p/', 'extension' => '.php'],
+        ];
+    }
 
-        /** @var View\Engine\Volt $engine */
-        $engine = $closure(new View(), $this->getDI());
+    /**
+     * @param array<string, mixed> $view
+     * @param array<string, mixed> $expected
+     */
+    #[DataProvider('options')]
+    public function testOptions(array $view, array $expected): void
+    {
+        $this->assertEquals($expected, VoltEngineRegister::options($view));
+    }
 
-        $this->assertEquals([
-          'compiledPath' => __DIR__,
-          'compiledSeparator' => '_',
-          'compileAlways' => true,
-        ], $engine->getOptions());
+    public function testNoDeprecatedOption(): void
+    {
+        $this->container(['options' => ['compileAlways' => true]]);
 
-        $compiler = $engine->getCompiler();
-        $this->assertCount(2, $compiler->getExtensions());
-        $this->assertCount(4, $compiler->getFilters());
-        $this->assertCount(2, $compiler->getFunctions());
+        set_error_handler(static fn(int $errno, string $error): bool => throw new \ErrorException($error));
+        try {
+            $this->compiler()->compileString('{{ 1 }}');
+        } finally {
+            restore_error_handler();
+        }
 
-        $this->assertEquals('<?= Neutrino\Debug\VarDump::dump(1.25) ?>', $compiler->compileString("{{ dump(1.25) }}"));
-        $this->assertEquals('<?= Neutrino\Support\Str::ascii(\'abc\') ?>', $compiler->compileString("{{ str_ascii('abc') }}"));
-        $this->assertEquals('<?= str_replace(\'abc\') ?>', $compiler->compileString("{{ str_replace('abc') }}"));
-        $this->assertEquals('<?= array_merge([1, 2, 3], [4, 5]) ?>', $compiler->compileString("{{ [1, 2, 3] | merge([4, 5]) }}"));
-        $this->assertEquals("<?= str_split('str', 1) ?>", $compiler->compileString("{{ 'str' | split }}"));
-        $this->assertEquals('<?= array_slice([1, 2, 3], 1, 3) ?>', $compiler->compileString("{{ [1, 2, 3] | slice(1, 3) }}"));
-        $this->assertEquals('<?= round(1.25, 0) ?>', $compiler->compileString("{{ 1.25 | round }}"));
-        $this->assertEquals('<?= stub_fn_extends(1.25) ?>', $compiler->compileString("{{ stub(1.25) }}"));
+        $this->addToAssertionCount(1);
+    }
+
+    public function testExtensionsFiltersAndFunctions(): void
+    {
+        $this->container(['functions' => ['route' => \Neutrino\View\Engines\Volt\Compiler\Functions\RouteFunction::class, 'stub' => StubFunction::class]]);
+        $compiler = $this->compiler();
+
+        $this->assertCount(3, $compiler->getExtensions());
+        $this->assertSame(['round', 'merge', 'split'], array_keys($compiler->getFilters()));
+        $this->assertSame(['dump', 'route', 'stub'], array_keys($compiler->getFunctions()));
+        $this->assertSame('<?= stub_fn(1.25) ?>', $compiler->compileString('{{ stub(1.25) }}'));
+        $this->assertSame('<?= \Neutrino\Debug\VarDump::dump(1) ?>', $compiler->compileString('{{ dump(1) }}'));
     }
 }
 
-class StupFunctionExtension extends Volt\Compiler\FunctionExtend
+final class StubFunction extends FunctionExtend
 {
-    /**
-     * @param string $resolvedArgs
-     * @param array $exprArgs
-     *
-     * @return string|null
-     */
-    public function compileFunction($resolvedArgs, $exprArgs)
+    public function compileFunction(string $resolvedArgs, ?array $exprArgs): string
     {
-        return 'stub_fn_extends(' . $resolvedArgs . ')';
+        return 'stub_fn(' . $resolvedArgs . ')';
     }
 }

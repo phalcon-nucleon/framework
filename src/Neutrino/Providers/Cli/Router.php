@@ -32,6 +32,7 @@ class Router extends Provider implements ProvidesTasks
             'route:list'     => Tasks\RouteListTask::class,
             'route:cache'    => Tasks\RouteCacheTask::class,
             'view:clear'     => Tasks\ViewClearTask::class,
+            'view:cache'     => Tasks\ViewCacheTask::class,
             'server:run'     => Tasks\ServerTask::class,
             'ide-helper'     => Tasks\IdeHelperTask::class,
         ];

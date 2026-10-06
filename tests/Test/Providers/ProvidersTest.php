@@ -90,7 +90,7 @@ final class ProvidersTest extends ProvidersTestCase
 
         $di = $kernel->getDI();
 
-        foreach ([Services::CACHE, 'cache.memory', 'cache.file', Services::SESSION, Services::LOGGER, Services::FLASH_SESSION, Services::CRYPT, Services::SECURITY, Services::FILTER, Services::ESCAPER, Services::ANNOTATIONS, Services::AUTH] as $service) {
+        foreach ([Services::CACHE, 'cache.memory', 'cache.file', Services::SESSION, Services::LOGGER, Services::FLASH_SESSION, Services::CRYPT, Services::SECURITY, Services::FILTER, Services::ESCAPER, Services::ANNOTATIONS, Services::AUTH, Services::VIEW, Services::TAG, Services::ASSETS] as $service) {
             $this->assertTrue($di->has($service), $service);
             $this->assertFalse($di->getService($service)->isResolved(), "$service is built at boot.");
         }
@@ -111,6 +111,7 @@ final class StubKernelWithInfrastructure extends HttpKernel
         Providers\Escaper::class,
         Providers\Annotations::class,
         Providers\Auth::class,
+        Providers\View::class,
     ];
 
     public function registerRoutes(): void {}

@@ -286,6 +286,29 @@ The `auth` service is a `Phalcon\Auth\Manager` (also registered as `Phalcon\Auth
 
 `Middleware\Throttle` subclasses declare `protected string $name`; the request signature is an `xxh128` hash (1.3: `crc32`), so the 1.3 counters are not read again.
 
+## Views and Volt
+
+```php
+// config/view.php
+'views_dir'     => BASE_PATH . '/resources/views/',
+'compiled_path' => BASE_PATH . '/storage/views/',
+'engines'       => ['.volt' => VoltEngineRegister::class],
+'options'       => ['stat' => false],   // Volt options: path, separator, extension, always, stat
+'extensions'    => [CsrfExtension::class, StrExtension::class, PhpFunctionExtension::class],
+'filters'       => ['merge' => MergeFilter::class, 'split' => SplitFilter::class, 'round' => RoundFilter::class],
+'functions'     => ['route' => RouteFunction::class],
+'php_functions' => ['allow' => [], 'deny' => [...]], // optional, see below
+```
+
+- Volt options: the 1.3 names `compiledPath`, `compiledSeparator`, `compiledExtension` and `compileAlways` are converted to `path`, `separator`, `extension` and `always` (Phalcon 5 deprecates the old names).
+- `{% cache %}` no longer compiles (the output cache is gone from Phalcon 5): remove it, or cache the data with the `cache` service.
+- The `tag` service is a `Phalcon\Html\TagFactory` (also `tagFactory`), as in the Phalcon 5 `FactoryDefault`: Volt compiles `link_to()`, `form()`… on it. `Phalcon\Tag` stays resolvable by its class. `assets` is built with the `TagFactory`.
+- `csrf_field()` writes the field itself (`<input type="hidden" name="_csrf_token" value="…">`, escaped), with the session token of `Csrf::token()`.
+- `PhpFunctionExtension` refuses the functions of `PhpFunctionExtension::DENY` (commands, files, `ini_set`, `putenv`, callbacks such as `call_user_func` or `array_map`…). `view.php_functions.allow` allows some of them again, `view.php_functions.deny` replaces the list.
+- `SliceFilter` (`array_slice(offset, length)`) differs from the native Volt `slice(start, end)` (inclusive end, strings too): without `'slice' => SliceFilter::class` in `filters`, `slice` is the Volt one.
+- Custom extensions, functions and filters: `ExtensionExtend::compileFunction(string $name, string $arguments, ?array $funcArguments)` (and `compileFilter()`, `resolveExpression(array)`, `compileStatement(array)`, now optional), `FunctionExtend::compileFunction(string $resolvedArgs, ?array $exprArgs)`, `FilterExtend::compileFilter(string $resolvedArgs, ?array $exprArgs)`. `$exprArgs` is `null` when the filter has no parentheses. `EngineRegister::register(ViewBaseInterface $view, DiInterface $di)`.
+- New `view:cache` command (run by `optimize`): compiles every template, so that the production can set `stat` to `false`.
+
 ## Tests (`Neutrino\Test`)
 
 PHPUnit 11 is required: `setUp(): void`, `tearDown(): void`, `setUpBeforeClass(): void`, attributes instead of annotations.

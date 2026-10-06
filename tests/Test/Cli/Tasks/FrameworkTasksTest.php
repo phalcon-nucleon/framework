@@ -132,6 +132,7 @@ final class FrameworkTasksTest extends CliTestCase
         $this->assertStringContainsString('Generating configuration cache          Success', $output);
         $this->assertStringContainsString('Generating dotconst cache               Success', $output);
         $this->assertStringContainsString('Generating http-routes cache            Success', $output);
+        $this->assertStringContainsString('Compiling views                         Success', $output);
         $this->assertStringNotContainsString('preload', $output);
     }
 
@@ -159,6 +160,27 @@ final class FrameworkTasksTest extends CliTestCase
         $this->assertSame([], glob($dir . '/*'));
         $this->assertDirectoryExists($dir);
         rmdir($dir);
+    }
+
+    public function testViewCache(): void
+    {
+        $dir = sys_get_temp_dir() . '/nucleon-view-cache-' . bin2hex(random_bytes(4));
+        mkdir($dir . '/views/users', 0777, true);
+        mkdir($dir . '/compiled');
+        file_put_contents($dir . '/views/index.volt', '{{ content() }}');
+        file_put_contents($dir . '/views/users/show.volt', '{{ name|e }}');
+        file_put_contents($dir . '/views/users/notes.txt', 'not a template');
+        $this->getDI()->getShared(Services::CONFIG)->merge(['view' => ['views_dir' => $dir . '/views/', 'compiled_path' => $dir . '/compiled/']]);
+
+        try {
+            $this->assertStringContainsString('Compiling views                         Success (2)', $this->runCommand('view:cache'));
+
+            $compiled = glob($dir . '/compiled/*.php') ?: [];
+            $this->assertCount(2, $compiled);
+            $this->assertStringContainsString('$this->escaper->html($name)', (string) file_get_contents((string) end($compiled)));
+        } finally {
+            exec('rm -rf ' . escapeshellarg($dir));
+        }
     }
 
     public function testIdeHelper(): void

@@ -42,6 +42,7 @@ final class Services
     public const string SESSION_BAG         = 'sessionBag';
     public const string SECURITY            = 'security';
     public const string TAG                 = 'tag';
+    public const string TAG_FACTORY         = 'tagFactory';
     public const string URL                 = 'url';
     public const string VIEW                = 'view';
 }

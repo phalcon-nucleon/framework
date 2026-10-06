@@ -1,62 +1,90 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 use Neutrino\Interfaces\Providable;
+use Neutrino\View\Engines\EngineRegister;
 use Phalcon\Assets\Manager as AssetsManager;
+use Phalcon\Config\Config;
 use Phalcon\Di\Injectable;
-use Phalcon\DiInterface;
+use Phalcon\Di\Service;
+use Phalcon\Html\Escaper\EscaperInterface;
+use Phalcon\Html\TagFactory;
+use Phalcon\Mvc\View as MvcView;
 use Phalcon\Tag;
 
 /**
- * Class View
+ * The `view` service, configured by `config/view.php` (`views_dir`, `partials_dir`, `layouts_dir`, `engines`),
+ * and the services used by the templates: `tag` (and its alias `tagFactory`, a `Phalcon\Html\TagFactory`, as in
+ * the `FactoryDefault` of Phalcon 5) and `assets`.
  *
- * @package Neutrino\Foundation\Bootstrap
+ * `engines` maps an extension to an {@see EngineRegister} class, or to any definition accepted by
+ * `View::registerEngines()`. The engines are built on the first render that needs them.
  */
 class View extends Injectable implements Providable
 {
-    /**
-     * @inheritdoc
-     */
     public function registering(): void
     {
         $di = $this->getDI();
 
-        $di->setShared(Services::TAG, Tag::class);
-        $di->setShared(Tag::class, Tag::class);
-        $di->setShared(Services::ASSETS, AssetsManager::class);
-        $di->setShared(AssetsManager::class, AssetsManager::class);
+        // Phalcon\Tag (static, deprecated by Phalcon), still resolvable by its class.
+        $di->setService(Tag::class, new Service(Tag::class, true));
 
-        $di->setShared(Services::VIEW, function () {
-            /** @var DiInterface $this */
+        $tagFactory = new Service(function () use ($di): TagFactory {
+            /** @var EscaperInterface $escaper */
+            $escaper = $di->getShared(Services::ESCAPER);
 
-            $view = new \Phalcon\Mvc\View();
+            return new TagFactory($escaper);
+        }, true);
+        // Volt 5 compiles the tag functions (`link_to()`, `form()`…) on the `tag` service, as a TagFactory.
+        $di->setService(Services::TAG, $tagFactory);
+        $di->setService(Services::TAG_FACTORY, $tagFactory);
+        $di->setService(TagFactory::class, $tagFactory);
 
-            $configView = $this->getShared(Services::CONFIG)->view;
-            if (isset($configView->views_dir)) {
-                $view->setViewsDir($configView->views_dir);
+        $assets = new Service(function () use ($di): AssetsManager {
+            /** @var TagFactory $tagFactory */
+            $tagFactory = $di->getShared(Services::TAG_FACTORY);
+
+            return new AssetsManager($tagFactory);
+        }, true);
+        $di->setService(Services::ASSETS, $assets);
+        $di->setService(AssetsManager::class, $assets);
+
+        $view = new Service(function () use ($di): MvcView {
+            /** @var Config $config */
+            $config = $di->getShared(Services::CONFIG);
+            $settings = $config->path('view');
+            $settings = $settings instanceof Config ? $settings : new Config();
+
+            $view = new MvcView();
+            $view->setDI($di);
+
+            $viewsDir = $settings->get('views_dir');
+            if (is_string($viewsDir) || $viewsDir instanceof Config) {
+                $view->setViewsDir($viewsDir instanceof Config ? $viewsDir->toArray() : $viewsDir);
             }
-            if (isset($configView->partials_dir)) {
-                $view->setPartialsDir($configView->partials_dir);
+            if (is_string($partialsDir = $settings->get('partials_dir'))) {
+                $view->setPartialsDir($partialsDir);
             }
-            if (isset($configView->layouts_dir)) {
-                $view->setLayoutsDir($configView->layouts_dir);
-            }
-
-            $engines = $configView->engines;
-            $registerEngines = [];
-            foreach ($engines as $type => $engine) {
-                if(method_exists($engine, 'getRegisterClosure')){
-                    $registerEngines[$type] = $engine::getRegisterClosure();
-                } else {
-                    $registerEngines[$type] = $engine;
-                }
+            if (is_string($layoutsDir = $settings->get('layouts_dir'))) {
+                $view->setLayoutsDir($layoutsDir);
             }
 
-            $view->registerEngines($registerEngines);
+            $engines = [];
+            $configured = $settings->get('engines');
+            foreach ($configured instanceof Config ? $configured->toArray() : [] as $extension => $engine) {
+                $engines[(string) $extension] = is_string($engine) && is_subclass_of($engine, EngineRegister::class)
+                    ? $engine::getRegisterClosure()
+                    : $engine;
+            }
+            $view->registerEngines($engines);
 
             return $view;
-        });
+        }, true);
+        $di->setService(Services::VIEW, $view);
+        $di->setService(MvcView::class, $view);
     }
 }

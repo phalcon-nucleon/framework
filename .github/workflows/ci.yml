@@ -91,8 +91,8 @@ jobs:
       - name: Install Phalcon 6 (pure PHP) instead of the extension
         run: |
           composer config platform.ext-phalcon 5.22.1
-          # The ORM of Phalcon 6 parses PHQL with a separate package.
-          composer require --no-interaction --no-progress "phalcon/phalcon:^6.0@RC" "phalcon/phql:1.0.x-dev"
+          # Phalcon 6 parses PHQL (ORM), Volt templates and annotations with separate packages.
+          composer require --no-interaction --no-progress "phalcon/phalcon:^6.0@RC" "phalcon/phql:1.0.x-dev" "phalcon/volt:1.0.x-dev" "phalcon/annotations:1.0.x-dev"
           php -r 'require "vendor/autoload.php"; echo (new Phalcon\Support\Version())->get(), PHP_EOL;'
       - name: PHPUnit (migrated suites)
         run: php bin/phpunit-migrated

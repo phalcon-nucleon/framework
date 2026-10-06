@@ -17,6 +17,7 @@ noise evenly.
 | `micro` | full Micro request |
 | `cli` | full CLI task |
 | `service` | first resolution of a provider-registered shared service |
+| `view`, `view-nostat` | render of a compiled Volt page (layouts + 2 partials), with and without `stat` |
 | `cache`, `cache-100` | resolution of the `cache` service, then 1 and 100 set + get on the `memory` store |
 
 ## Running

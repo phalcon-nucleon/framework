@@ -16,4 +16,6 @@ Thumbs.db
 /bench/.current/composer.lock
 /bench/app/bootstrap/
 /bench/.legacy/app/bootstrap/
+/bench/app/storage/
+/bench/.legacy/app/storage/
 /bench/.legacy/app/vendor

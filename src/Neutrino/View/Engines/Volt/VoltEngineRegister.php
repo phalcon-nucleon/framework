@@ -1,70 +1,101 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt;
 
 use Neutrino\Constants\Env;
 use Neutrino\Constants\Services;
 use Neutrino\View\Engines\EngineRegister;
+use Neutrino\View\Engines\Volt\Compiler\FilterExtend;
+use Neutrino\View\Engines\Volt\Compiler\FunctionExtend;
+use Phalcon\Config\Config;
+use Phalcon\Di\DiInterface;
 use Phalcon\Mvc\View\Engine\Volt;
+use Phalcon\Mvc\ViewBaseInterface;
 
 /**
- * Class VoltEngineRegister
- *
- * @package Neutrino\View\Engines\Volt
+ * The Volt engine, configured by `config/view.php`:
+ * - `compiled_path`: directory of the compiled templates;
+ * - `options`: Volt options (`path`, `separator`, `always`, `stat`, `extension`…). The Nucleon 1.3 names
+ *   (`compiledPath`, `compiledSeparator`, `compiledExtension`, `compileAlways`), deprecated by Phalcon 5,
+ *   are converted. `always` defaults to `true` in development or debug;
+ * - `extensions` (list of classes), `functions` and `filters` (`name => class`).
  */
 class VoltEngineRegister extends EngineRegister
 {
-
     /**
-     * @param $view
-     * @param $di
+     * Volt options renamed by Phalcon 4.
      *
-     * @return \Phalcon\Mvc\View\Engine
+     * @var array<string, string>
      */
-    public function register($view, $di)
+    private const array RENAMED_OPTIONS = [
+        'compiledPath'      => 'path',
+        'compiledSeparator' => 'separator',
+        'compiledExtension' => 'extension',
+        'compileAlways'     => 'always',
+    ];
+
+    public function register(ViewBaseInterface $view, DiInterface $di): Volt
     {
-        /* @var \Phalcon\Di $di */
         $volt = new Volt($view, $di);
 
-        $config = $di->getShared(Services::CONFIG)->view;
+        /** @var Config $config */
+        $config = $di->getShared(Services::CONFIG);
+        $settings = $config->path('view');
+        $settings = $settings instanceof Config ? $settings->toArray() : [];
 
-        $options = array_merge(
-            [
-                'compiledPath' => $config->compiled_path,
-                'compiledSeparator' => '_',
-                'compileAlways' => APP_ENV === Env::DEVELOPMENT || APP_DEBUG,
-            ],
-            isset($config->options) ? (array)$config->options : []
-        );
-
-        $volt->setOptions($options);
+        $volt->setOptions(self::options($settings));
 
         $compiler = $volt->getCompiler();
 
-        $extensions = isset($config->extensions) ? $config->extensions : [];
-        foreach ($extensions as $extension) {
+        foreach (self::list($settings['extensions'] ?? []) as $extension) {
             $compiler->addExtension(new $extension($compiler));
         }
 
-        $filters = isset($config->filters) ? $config->filters : [];
-        foreach ($filters as $name => $filter) {
-            $filter = new $filter($compiler);
-            $compiler->addFilter($name, function ($resolvedArgs, $exprArgs) use ($filter) {
-                /* @var \Neutrino\View\Engines\Volt\Compiler\FilterExtend $filter */
-                return $filter->compileFilter($resolvedArgs, $exprArgs);
-            });
+        foreach (self::list($settings['filters'] ?? []) as $name => $class) {
+            /** @var FilterExtend $filter */
+            $filter = new $class($compiler);
+            $compiler->addFilter((string) $name, static fn(string $resolvedArgs, ?array $exprArgs): string => (string) $filter->compileFilter($resolvedArgs, $exprArgs));
         }
 
-        $compiler->addFunction('dump', 'Neutrino\Debug\VarDump::dump');
-        $functions = isset($config->functions) ? $config->functions : [];
-        foreach ($functions as $name => $function) {
-            $function = new $function($compiler);
-            $compiler->addFunction($name, function ($resolvedArgs, $exprArgs) use ($function) {
-                /* @var \Neutrino\View\Engines\Volt\Compiler\FunctionExtend $function */
-                return $function->compileFunction($resolvedArgs, $exprArgs);
-            });
+        $compiler->addFunction('dump', '\Neutrino\Debug\VarDump::dump');
+
+        foreach (self::list($settings['functions'] ?? []) as $name => $class) {
+            /** @var FunctionExtend $function */
+            $function = new $class($compiler);
+            $compiler->addFunction((string) $name, static fn(string $resolvedArgs, ?array $exprArgs): string => (string) $function->compileFunction($resolvedArgs, $exprArgs));
         }
 
         return $volt;
+    }
+
+    /**
+     * @param array<mixed> $view
+     *
+     * @return array<string, mixed>
+     */
+    public static function options(array $view): array
+    {
+        $options = [
+            'path'      => $view['compiled_path'] ?? null,
+            'separator' => '_',
+            'always'    => APP_ENV === Env::DEVELOPMENT || APP_DEBUG,
+        ];
+
+        foreach (is_array($view['options'] ?? null) ? $view['options'] : [] as $name => $value) {
+            $options[self::RENAMED_OPTIONS[$name] ?? (string) $name] = $value;
+        }
+
+        return array_filter($options, static fn(mixed $value): bool => $value !== null);
+    }
+
+    /**
+     * @return array<int|string, class-string>
+     */
+    private static function list(mixed $classes): array
+    {
+        /** @var array<int|string, class-string> */
+        return is_array($classes) ? array_filter($classes, 'is_string') : [];
     }
 }

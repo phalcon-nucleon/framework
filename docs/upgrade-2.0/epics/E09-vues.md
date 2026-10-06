@@ -1,6 +1,6 @@
 # E9 — Vues & Volt
 
-**Statut** : Rédigé · **Dépend de** : E4 (et E7 pour Escaper/Security, E8-S4 pour le nom du champ CSRF) · **Bloque** : —
+**Statut** : Terminé · **Dépend de** : E4 (et E7 pour Escaper/Security, E8-S4 pour le nom du champ CSRF) · **Bloque** : —
 
 ## Objectif
 
@@ -87,3 +87,36 @@ Porter le service View et le moteur Volt sur Phalcon 5, avec les extensions Nucl
 
 - La suite `View` est activée et passe, y compris sur le job Phalcon 6.
 - Mesures : le rendu d'une page Volt n'est pas moins bon que celui de la 1.3.
+
+## Vérifications S1 (Phalcon 5.22, et Phalcon 6 avec `phalcon/volt`)
+
+- **Options** : `compiledPath`, `compiledSeparator`, `compiledExtension` et `compileAlways` restent lues mais déclenchent un `E_DEPRECATED` à chaque compilation ; les noms sont `path`, `separator`, `extension`, `always` (et `stat`). `VoltEngineRegister` convertit les anciens noms (testé : aucune dépréciation).
+- **`{% cache %}`** : erreur de compilation « Unknown statement ». Supprimé, documenté.
+- **Doublons** : Volt 5 a un `slice(start, end)` natif, mais sa fin est inclusive et il coupe aussi les chaînes : `[1, 2, 3, 4]|slice(0, 2)` donne `1, 2, 3` avec Volt, `1, 2` avec le `SliceFilter` de Nucleon (`array_slice`). Ce n'est pas un doublon : `SliceFilter` est gardé, déclaré ou non dans `filters`. `merge`, `split` et `round` n'existent pas dans Volt 5.
+- **Service `tag`** : Volt 5 compile les fonctions de tag (`link_to()`…) et teste les fonctions inconnues sur `$this->tag`, qu'il attend en `Html\TagFactory` (c'est le `tag` du `FactoryDefault` de Phalcon 5). Écart avec la décision : `tag` est donc le `TagFactory` (alias `tagFactory`), et `Phalcon\Tag` reste résolvable par sa classe.
+- **Moteur** : Phalcon 5 lie la closure d'un moteur au conteneur et ne lui passe que la vue : `getRegisterClosure()` n'est plus statique, capture la classe du register (`static` y désignerait le conteneur) et prend le conteneur de la vue.
+- **Arguments** : Volt passe `null` comme arguments d'un filtre sans parenthèses (`{{ x|round }}`).
+- **Phalcon 6** : l'analyseur Volt (`phalcon/volt`) et celui des annotations (`phalcon/annotations`) sont des paquets séparés, ajoutés au job CI avec `phalcon/phql`.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Vérifications | Fait | Voir plus haut. |
+| S2 · Provider et moteurs | Fait | Provider typé, `views_dir` (chaîne ou liste), `partials_dir`, `layouts_dir`, moteurs (`EngineRegister` ou toute définition de Phalcon). Services `view` (alias `Phalcon\Mvc\View`), `tag` / `tagFactory`, `assets` (construit avec le `TagFactory`), tous à la demande. Facade `View` documentée. Tests : rendu avec layouts et 2 partials, moteur PHP, fonctions de tag, IDE helpers. |
+| S3 · Extensions, fonctions, filtres | Fait | Classes de base typées (paramètres seulement, pour les sous-classes des apps) ; méthodes d'extension optionnelles. `csrf_field()` écrit le champ échappé avec `Csrf::token()` (E8). `PhpFunctionExtension` : liste de refus (commandes, fichiers, configuration, fonctions à callback qui permettraient de la contourner), `view.php_functions.allow` / `deny`. Filtres et `route()` acceptent des variables en argument (la 1.3 ne lisait que les littéraux). `view:cache` (lancé par `optimize`). Chaque extension, fonction et filtre est testé au rendu. |
+| S4 · Mesures | Fait | Voir plus bas. |
+
+Suite `View` activée (54 tests). 699 tests verts sur Phalcon 5.22 et 6. Baseline PHPStan : 112 entrées en moins.
+
+### Mesures (`bench/compare.sh --optimize`, 150 itérations)
+
+Rendu d'une page Volt déjà compilée (layout de controller, layout `page`, 2 partials, une boucle), après le boot :
+
+| Scénario | 1.3 | 2.0 | Δ temps | Δ mémoire |
+|---|---|---|---|---|
+| `view` (`stat` actif) | 174 µs | 209 µs | +35 µs (+20 %) | −33 % |
+| `view-nostat` | 171 µs | 216 µs | +44 µs (+26 %) | −32 % |
+
+**Critère non atteint, à cause de Phalcon 5.** Le même rendu en Phalcon pur, sans Nucleon : premier rendu d'un processus 193 µs en 5.22 contre 122 µs en 3.4 (+70 µs, classes Zephir de la vue et de Volt initialisées à froid), deuxième rendu 50 µs contre 55 µs. Avec Nucleon, l'écart est deux fois plus petit que celui de Phalcon pur : la couche Nucleon de la 2.0 coûte moins que celle de la 1.3. Désactiver `stat` ne mesure pas de gain ici.
+

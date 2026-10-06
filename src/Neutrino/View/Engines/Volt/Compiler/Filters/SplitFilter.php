@@ -1,44 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt\Compiler\Filters;
 
 use Neutrino\View\Engines\Volt\Compiler\FilterExtend;
 
 /**
- * Class SplitFilter
- *
- * @package Neutrino\View\Engines\Volt\Compiler\Filters
+ * `{{ s|split(',') }}` (`explode()`), `{{ s|split(',', 2) }}` (limit), `{{ s|split }}` / `{{ s|split('', 3) }}`
+ * (`str_split()`, chunks of 1 or 3 characters).
  */
 class SplitFilter extends FilterExtend
 {
-
-    /**
-     * @param string $resolvedArgs
-     * @param array  $exprArgs
-     *
-     * @return string|null
-     */
-    public function compileFilter($resolvedArgs, $exprArgs)
+    public function compileFilter(string $resolvedArgs, ?array $exprArgs): string
     {
-        $value = isset($exprArgs[0]['expr']['value']) ? $exprArgs[0]['expr']['value'] : $resolvedArgs;
+        $value = $this->compileArgument($exprArgs, 0) ?? $resolvedArgs;
+        $separator = $this->compileArgument($exprArgs, 1) ?? "''";
+        $limit = $this->compileArgument($exprArgs, 2);
 
-        $separator = isset($exprArgs[1]['expr']['value'])
-            ? $exprArgs[1]['expr']['value']
-            : '';
-
-        if (empty($separator)) {
-
-            $length = isset($exprArgs[2]['expr']['value'])
-                ? $exprArgs[2]['expr']['value']
-                : '1';
-
-            return 'str_split(' . $value . ', ' . intval($length) . ')';
+        if ($separator === "''" || $separator === '""') {
+            return 'str_split(' . $value . ', ' . ($limit ?? '1') . ')';
         }
 
-        if(isset($exprArgs[2]['expr']['value'])){
-            return 'explode(' . var_export($separator, true) . ', ' . $value . ', ' . intval($exprArgs[2]['expr']['value']) . ')';
-        }
-
-        return 'explode(' . var_export($separator, true) . ', ' . $value . ')';
+        return 'explode(' . $separator . ', ' . $value . ($limit === null ? '' : ', ' . $limit) . ')';
     }
 }

@@ -1,19 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt\Compiler;
 
 /**
- * Class FunctionExtend
- *
- * @package Neutrino\View\Engine\Extending
+ * A Volt function (`view.functions`, `name => class`).
  */
 abstract class FunctionExtend extends Extending
 {
     /**
-     * @param string $resolvedArgs
-     * @param array  $exprArgs
+     * @param string       $resolvedArgs Compiled arguments
+     * @param array<mixed>|null $exprArgs Arguments, as parsed by Volt (`null` without parentheses)
      *
-     * @return string|null
+     * @return string The PHP expression
      */
-    abstract public function compileFunction($resolvedArgs, $exprArgs);
+    abstract public function compileFunction(string $resolvedArgs, ?array $exprArgs);
 }

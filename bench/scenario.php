@@ -14,6 +14,7 @@ use Bench\Kernels\CacheKernel;
 use Bench\Kernels\CliKernel;
 use Bench\Kernels\HttpKernel;
 use Bench\Kernels\MicroKernel;
+use Bench\Kernels\ViewKernel;
 use Neutrino\Config\Loader as ConfigLoader;
 use Neutrino\Dotconst;
 use Neutrino\Foundation\Bootstrap;
@@ -43,6 +44,9 @@ $start = hrtime(true);
 // Compiled constants are used when the application was optimized, as in production.
 Dotconst::load($app, $app . '/bootstrap/compile');
 $config = ConfigLoader::load(BASE_PATH);
+if ($scenario === 'view-nostat') {
+    $config->view->options = ['stat' => false];
+}
 if ($scenario === 'http-throttle-redis') {
     $config->merge(new Phalcon\Config\Config(['security' => ['throttle' => ['store' => 'redis']]]));
 }
@@ -68,7 +72,10 @@ switch ($scenario) {
     case 'http-throttle-redis':
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = $scenario === 'http' ? '/hello' : '/hello-' . substr($scenario, 5);
-        if ($scenario === 'http-throttle-redis') {
+        if ($scenario === 'view-nostat') {
+    $config->view->options = ['stat' => false];
+}
+if ($scenario === 'http-throttle-redis') {
             $_SERVER['REQUEST_URI'] = '/hello-throttle';
         }
         ob_start();
@@ -126,6 +133,27 @@ switch ($scenario) {
                 fwrite(STDERR, "Unexpected cache value\n");
                 exit(1);
             }
+        }
+        break;
+
+    case 'view':
+    case 'view-nostat':
+        // Render of a compiled Volt page: layouts + 2 partials (the warmup compiles the templates).
+        if (!is_dir(BASE_PATH . '/storage/views')) {
+            mkdir(BASE_PATH . '/storage/views', 0777, true);
+        }
+        $kernel = $bootstrap->make(ViewKernel::class);
+        $kernel->boot();
+        $start = hrtime(true);
+        $view = $kernel->getDI()->getShared('view');
+        $view->setTemplateAfter('page');
+        $view->setVars(['title' => 'Nucleon', 'body' => 'Hello <world>', 'links' => ['/a', '/b', '/c']]);
+        $view->start();
+        $view->render('page', 'show');
+        $view->finish();
+        if (strpos($view->getContent(), '<p>Hello &lt;world&gt;</p>') === false) {
+            fwrite(STDERR, "Unexpected view output: " . $view->getContent() . "\n");
+            exit(1);
         }
         break;
 

@@ -1,19 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt\Compiler;
 
 /**
- * Class FilterExtend
- *
- * @package Neutrino\View\Engine\Extending
+ * A Volt filter (`view.filters`, `name => class`).
  */
 abstract class FilterExtend extends Extending
 {
     /**
-     * @param string $resolvedArgs
-     * @param array  $exprArgs
+     * @param string       $resolvedArgs Compiled arguments, the filtered value first
+     * @param array<mixed>|null $exprArgs Arguments, as parsed by Volt (`null` without parentheses)
      *
-     * @return string|null
+     * @return string The PHP expression
      */
-    abstract public function compileFilter($resolvedArgs, $exprArgs);
+    abstract public function compileFilter(string $resolvedArgs, ?array $exprArgs);
 }

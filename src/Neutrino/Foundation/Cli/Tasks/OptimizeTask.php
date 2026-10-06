@@ -19,9 +19,10 @@ final class OptimizeTask extends Task
         ConfigCacheTask::class,
         DotconstCacheTask::class,
         RouteCacheTask::class,
+        ViewCacheTask::class,
     ];
 
-    #[Description('Runs all optimizations: authoritative Composer classmap, configuration, dotconst and routes caches, OPcache preload script.')]
+    #[Description('Runs all optimizations: authoritative Composer classmap, configuration, dotconst and routes caches, compiled views, OPcache preload script.')]
     #[Option('-f, --force', 'Force optimization in debug mode.')]
     #[Option('--no-dump', 'Do not run `composer dump-autoload`.')]
     #[Option('--apcu', 'Use APCu to cache the Composer class lookups.')]

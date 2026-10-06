@@ -1,38 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt\Compiler\Extensions;
 
+use Neutrino\Http\Middleware\Csrf;
 use Neutrino\View\Engines\Volt\Compiler\ExtensionExtend;
 
 /**
- * Class CsrfExtension
- *
- * @package Neutrino\View\Engines\Volt\Compiler\Extensions
+ * `{{ csrf_field() }}`: `<input type="hidden" name="_csrf_token" value="…">`, and `{{ csrf_token() }}`: the CSRF
+ * token of the session ({@see Csrf::token()}), checked by the {@see Csrf} middleware.
  */
 class CsrfExtension extends ExtensionExtend
 {
-
-    public function compileFunction($name, $arguments, $funcArguments)
+    public function compileFunction(string $name, string $arguments, ?array $funcArguments): ?string
     {
-        if ($name === 'csrf_field') {
-            return '$this->tag->hiddenField(["_csrf_token", \'id\' => null, \'value\' => $this->security->getSessionToken() ?: $this->security->getToken()])';
-        }
-        if ($name === 'csrf_token') {
-            return '$this->security->getSessionToken() ?: $this->security->getToken()';
-        }
+        $token = '\\' . Csrf::class . '::token($this->getDI())';
 
-        return null;
-    }
-
-    public function compileFilter($name, $arguments, $funcArguments)
-    {
-    }
-
-    public function resolveExpression($expr)
-    {
-    }
-
-    public function compileStatement($statement)
-    {
+        return match ($name) {
+            'csrf_field' => "'<input type=\"hidden\" name=\"" . Csrf::FIELD . "\" value=\"' . \$this->escaper->attributes($token) . '\">'",
+            'csrf_token' => $token,
+            default      => null,
+        };
     }
 }

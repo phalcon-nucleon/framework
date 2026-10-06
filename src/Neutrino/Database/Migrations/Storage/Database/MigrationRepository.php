@@ -11,5 +11,5 @@ use Neutrino\Repositories\Repository;
  */
 class MigrationRepository extends Repository
 {
-    protected $modelClass = MigrationModel::class;
+    protected ?string $modelClass = MigrationModel::class;
 }

@@ -17,7 +17,8 @@ use Neutrino\Support\Facades\Facade;
 
 const PORTED = '/^Neutrino\\\\(Foundation\\\\(Bootstrap|Kernelize|ProviderRegistrar|Http\\\\|Micro\\\\|Cli\\\\|Middleware\\\\(Application|Controller|Dispatcher))'
     . '|Support\\\\(Provider|SimpleProvider|Facades|Path|Arr|Str|AtomicFile|DesignPatterns)|Constants|Dotconst|Config\\\\(Config|Loader)|Events|Interfaces'
-    . '|Providers\\\\(Url|Cookies|Http|Cli|Micro|Cache|Logger|Session|Flash|Crypt|Security|Filter|Escaper|Annotations)'
+    . '|Providers\\\\(Url|Cookies|Http|Cli|Micro|Cache|Logger|Session|Flash|Crypt|Security|Filter|Escaper|Annotations|Auth|View|Database|Model)'
+    . '|Model|Model\\\\|Repositories\\\\|Support\\\\(Db|Model\\\\)|View\\\\|Auth\\\\|Security\\\\'
     . '|Cache\\\\|Error\\\\Handler|Http\\\\|Micro\\\\|Cli\\\\|Version|Module)/';
 
 $root = dirname(__DIR__);

@@ -18,6 +18,7 @@ noise evenly.
 | `cli` | full CLI task |
 | `service` | first resolution of a provider-registered shared service |
 | `view`, `view-nostat` | render of a compiled Volt page (layouts + 2 partials), with and without `stat` |
+| `model-load`, `model-find-first`, `model-find-100` | first model (meta-data), `findFirst` by primary key, `find` of 100 rows on SQLite in memory; `-attr` (2.x): model described by attributes; `BENCH_METADATA=stream` (2.x): cached meta-data |
 | `cache`, `cache-100` | resolution of the `cache` service, then 1 and 100 set + get on the `memory` store |
 
 ## Running

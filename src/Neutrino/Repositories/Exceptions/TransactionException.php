@@ -1,10 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Repositories\Exceptions;
 
-use Phalcon\Exception;
+use RuntimeException;
 
-class TransactionException extends Exception
-{
-
-}
+class TransactionException extends RuntimeException {}

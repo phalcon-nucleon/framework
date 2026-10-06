@@ -238,6 +238,51 @@ The `session` service is a `Phalcon\Session\Manager` (also registered as `Phalco
 
 `flash` and `flashSession` use the container's `escaper`; `flashSession` reads the session when a message is stored or output.
 
+## Models and database
+
+```php
+// config/database.php: unchanged, `adapter` by name or by class
+'default'     => 'main',
+'connections' => [
+    'main'    => ['adapter' => 'mysql', 'config' => [...]],      // or Phalcon\Db\Adapter\Pdo\Mysql::class
+    'reports' => ['adapter' => 'postgresql', 'config' => [...]],
+],
+```
+
+- **`DatabaseStrategy` is removed.** `db` is the default connection, each connection is `db.<name>` (built on first use). A model uses another connection with `setConnectionService('db.reports')` (or `setReadConnectionService()` / `setWriteConnectionService()`); `Db::connection('reports')` returns it. The 1.3 `db` service with several connections forwarded to the default one: same behaviour.
+- **Model description.** `primary()`, `column()`, `timestampable()`, `timestamps()`, `softDeletable()` and `softDelete()` are kept (typed). The description reaches Phalcon through `Neutrino\Model\MetaDataStrategy`, set on `modelsMetadata` by the `Model` or `ModelsMetaData` provider: register one of them. `Neutrino\Model` no longer has `metaData()` / `columnMap()` methods; a model that overrode them describes its columns with the methods or the new attributes:
+
+```php
+#[Timestamps]
+#[SoftDelete]
+class User extends Model
+{
+    #[Primary] public ?int $id = null;
+    #[Column(Column::TYPE_VARCHAR)] public ?string $email = null;
+    #[Column(Column::TYPE_VARCHAR, name: 'full_name', nullable: true)] public ?string $name = null;
+}
+```
+
+- `timestamps()`: `updated_at` is nullable (null until the first update). `softDelete()`: the column defaults to `false`.
+- `models.metadata.adapter` (`memory` by default, `apcu`, `stream`, `redis`, `libmemcached`): keep `memory` for Nucleon models, whose description costs less than a cache read. `model:cache` warms a shared cache (stream, redis, memcached) for introspected models.
+- `Model::findFirst()` returns `null` (Phalcon 5), no longer `false`.
+
+## Repositories
+
+```php
+// 1.3
+protected $modelClass = User::class;
+
+// 2.0
+protected ?string $modelClass = User::class;
+```
+
+- **A string value is an equality**: `find(['name' => 'Ada'])` is `name = 'Ada'` (1.3: `LIKE`, where `%` and `_` were wildcards). Ask `LIKE` explicitly: `['name' => ['operator' => 'LIKE', 'value' => 'Ad%']]`. `null` is `IS NULL`.
+- **Names are checked**: the keys of `$params` and `$order` must be attributes of the model (attribute names, mapped names for mapped columns), the operators one of `=`, `!=`, `<>`, `<`, `<=`, `>`, `>=`, `LIKE`, `NOT LIKE`, `IN`, `NOT IN`, `IS NULL`, `IS NOT NULL`, the directions `ASC` or `DESC`. Anything else throws an `InvalidArgumentException`: in 1.3 they were written as is in the PHQL (injection when they came from the request).
+- Methods typed: `count(?array $params = null): int`, `find(array $params = [], ?array $order = null, ?int $limit = null, ?int $offset = null)`, `first(): ?ModelInterface`, `create/save/update/delete(ModelInterface|array $value, bool $withTransaction = true): bool`, `each(): Generator`. `TransactionException` extends `RuntimeException` (`Phalcon\Exception` no longer exists).
+- `each()` and `Eachable::each()` stop on the first partial page (one query less) and honour `$end` exactly.
+- `Support\Db::getQueries()` / `pretend()` return the statements as sent (placeholders, not the bound values), and restore the events manager of the connection.
+
 ## Authentication
 
 The `auth` service is a `Phalcon\Auth\Manager` (also registered as `Phalcon\Auth\Manager::class`): `Neutrino\Auth\Manager` is removed.

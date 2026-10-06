@@ -183,6 +183,30 @@ final class FrameworkTasksTest extends CliTestCase
         }
     }
 
+    public function testModelCache(): void
+    {
+        $dir = sys_get_temp_dir() . '/nucleon-model-cache-' . bin2hex(random_bytes(4));
+        mkdir($dir . '/models/Sub', 0777, true);
+        mkdir($dir . '/meta');
+        file_put_contents($dir . '/models/Post.php', "<?php\nnamespace CacheTest\\Models;\nclass Post extends \\Neutrino\\Model { public function initialize() { parent::initialize(); \$this->setSource('posts'); \$this->primary('id', 0); } }\n");
+        file_put_contents($dir . '/models/Sub/Tag.php', "<?php\nnamespace CacheTest\\Models\\Sub;\nfinal class Tag extends \\Neutrino\\Model { public function initialize() { parent::initialize(); \$this->primary('id', 0); \$this->column('name', 2); } }\n");
+        file_put_contents($dir . '/models/Helper.php', "<?php\nnamespace CacheTest\\Models;\nfinal class Helper { }\n");
+        foreach (['models/Post.php', 'models/Sub/Tag.php', 'models/Helper.php'] as $file) {
+            require_once $dir . '/' . $file;
+        }
+
+        $di = $this->getDI();
+        $di->getShared(Services::CONFIG)->merge(['models' => ['paths' => [$dir . '/models'], 'metadata' => ['adapter' => 'stream', 'options' => ['metaDataDir' => $dir . '/meta/']]]]);
+        \Neutrino\Foundation\ProviderRegistrar::register($di, [\Neutrino\Providers\Model::class]);
+
+        try {
+            $this->assertStringContainsString('Caching models meta-data                Success (2)', $this->runCommand('model:cache'));
+            $this->assertCount(4, glob($dir . '/meta/*.php') ?: [], 'Meta-data and column map of 2 models.');
+        } finally {
+            exec('rm -rf ' . escapeshellarg($dir));
+        }
+    }
+
     public function testIdeHelper(): void
     {
         $dir = sys_get_temp_dir() . '/nucleon-ide-' . bin2hex(random_bytes(4));

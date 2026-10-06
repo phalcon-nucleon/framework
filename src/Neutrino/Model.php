@@ -1,274 +1,188 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino;
 
+use Neutrino\Model\Attribute;
+use Neutrino\Model\Description;
+use Neutrino\Model\MetaDataStrategy;
 use Phalcon\Db\Column;
 use Phalcon\Mvc\Model\Behavior\SoftDelete;
 use Phalcon\Mvc\Model\Behavior\Timestampable;
-use Phalcon\Mvc\Model\MetaData;
+use ReflectionClass;
+use RuntimeException;
 
 /**
- * Class Model
+ * A model described without database introspection, in `initialize()` or with attributes:
  *
- *  @package Neutrino
+ * ```php
+ * #[Timestamps]
+ * class User extends Model
+ * {
+ *     #[Primary] public ?int $id = null;
+ *     #[Column(Column::TYPE_VARCHAR)] public string $email;
+ *
+ *     public function initialize()
+ *     {
+ *         parent::initialize();
+ *         $this->setSource('users');
+ *         $this->column('name', Column::TYPE_VARCHAR, ['nullable' => true]);
+ *     }
+ * }
+ * ```
+ *
+ * The description reaches Phalcon through {@see MetaDataStrategy}, set on the `modelsMetadata` service by the
+ * `Model` / `ModelsMetaData` providers. It is built in `initialize()`, once per request and model: about 10 µs
+ * more with attributes (reflection) than with the methods.
+ *
+ * @extends \Phalcon\Mvc\Model<mixed>
  */
 abstract class Model extends \Phalcon\Mvc\Model
 {
-    /**
-     * @var array
-     */
-    protected static $metaDatasClass = [];
+    /** @var array<class-string, Description> */
+    private static array $descriptions = [];
 
     /**
-     * @var array
-     */
-    protected static $columnsMapClass = [];
-
-    /**
-     * Initializes metaDatas & columnsMap if they are not.
+     * Starts the description of the model: overrides call it first.
+     *
+     * Not typed on the return: the 1.3 models override it untyped.
+     *
+     * @return void
      */
     public function initialize()
     {
-        static::$metaDatasClass[static::class] = [
-            MetaData::MODELS_ATTRIBUTES               => [],
-            MetaData::MODELS_PRIMARY_KEY              => [],
-            MetaData::MODELS_NON_PRIMARY_KEY          => [],
-            MetaData::MODELS_NOT_NULL                 => [],
-            MetaData::MODELS_DATA_TYPES               => [],
-            MetaData::MODELS_DATA_TYPES_NUMERIC       => [],
-            MetaData::MODELS_DATE_AT                  => [],
-            MetaData::MODELS_DATE_IN                  => [],
-            MetaData::MODELS_IDENTITY_COLUMN          => false,
-            MetaData::MODELS_DATA_TYPES_BIND          => [],
-            MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT => [],
-            MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE => [],
-            MetaData::MODELS_DEFAULT_VALUES           => [],
-            MetaData::MODELS_EMPTY_STRING_VALUES      => []
-        ];
+        self::$descriptions[static::class] = new Description();
+
+        $this->describeFromAttributes();
+    }
+
+    public static function description(): Description
+    {
+        return self::$descriptions[static::class] ?? throw new RuntimeException(static::class . ' is not described: call parent::initialize() first.');
     }
 
     /**
-     * Return the metaData
-     *
-     * @return array
+     * @param array{map?: string, identity?: bool, autoIncrement?: bool} $options
      */
-    public function metaData()
+    protected function primary(string $name, ?int $type, array $options = []): void
     {
-        return static::$metaDatasClass[static::class];
+        static::description()->primary($name, $type, $options);
     }
 
     /**
-     * Return the columnMap
-     *
-     * @return array
+     * @param array{map?: string, nullable?: bool, default?: mixed, autoInsert?: bool, autoUpdate?: bool} $options
      */
-    public function columnMap()
+    protected function column(string $name, ?int $type, array $options = []): void
     {
-        return static::$columnsMapClass[static::class];
+        static::description()->column($name, $type, $options);
     }
 
     /**
-     * Define the primary column
+     * A column set on create (`insert`) and/or on update (`update`), with the Timestampable behavior.
      *
-     * @param string $name
-     * @param int    $type
-     * @param array  $options
+     * @param array{type?: int, format?: string, insert?: bool, update?: bool, default?: mixed, nullable?: bool, map?: string, autoInsert?: bool, autoUpdate?: bool} $options
      */
-    protected function primary($name, $type, array $options = [])
+    protected function timestampable(string $name, array $options = []): void
     {
-        static::addColumn($name, $type, isset($options['map']) ? $options['map'] : $name);
-
-        static::$metaDatasClass[static::class][MetaData::MODELS_PRIMARY_KEY][] = $name;
-        static::$metaDatasClass[static::class][MetaData::MODELS_NOT_NULL][] = $name;
-
-        if (
-            (!isset($options['identity']) || $options['identity']) &&
-            (!isset($options['multiple']) || !$options['multiple'])
-        ) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_IDENTITY_COLUMN] = $name;
-        }
-        if (
-            (!isset($options['autoIncrement']) || $options['autoIncrement']) &&
-            (!isset($options['multiple']) || !$options['multiple'])
-        ) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT][$name] = true;
-        }
-    }
-
-    /**
-     * Define a column
-     *
-     * @param string $name
-     * @param int    $type
-     * @param array  $options
-     */
-    protected function column($name, $type, array $options = [])
-    {
-        static::addColumn($name, $type, isset($options['map']) ? $options['map'] : $name);
-
-        static::$metaDatasClass[static::class][MetaData::MODELS_NON_PRIMARY_KEY][] = $name;
-
-        if (isset($options['nullable']) && $options['nullable']) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_EMPTY_STRING_VALUES][$name] = true;
-        } else {
-            static::$metaDatasClass[static::class][MetaData::MODELS_NOT_NULL][] = $name;
+        if (($options['autoInsert'] ?? false) || ($options['autoUpdate'] ?? false)) {
+            throw new RuntimeException('Model: a timestampable field can\'t have autoInsert or autoUpdate.');
         }
 
-        if (isset($options['default'])) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DEFAULT_VALUES][$name] = $options['default'];
-        }
-
-        if (isset($options['autoInsert']) && $options['autoInsert']) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_AUTOMATIC_DEFAULT_INSERT][$name] = true;
-        }
-
-        if (isset($options['autoUpdate']) && $options['autoUpdate']) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_AUTOMATIC_DEFAULT_UPDATE][$name] = true;
-        }
-    }
-
-    /**
-     * Define a timestampable column.
-     * Automatically add the Timestampable behavior.
-     *
-     * @param string $name
-     * @param array  $options
-     */
-    protected function timestampable($name, array $options = [])
-    {
-        if ((isset($options['autoInsert']) && $options['autoInsert']) ||
-            (isset($options['autoUpdate']) && $options['autoUpdate'])
-        ) {
-            throw new \RuntimeException('Model: A timestampable field can\'t have autoInsert or autoUpdate.');
-        }
-
-        self::column($name, isset($options['type']) ? $options['type'] : Column::TYPE_DATETIME, $options);
-
+        $format = $options['format'] ?? DATE_ATOM;
         $params = [];
 
-        if (!isset($options['default']) && isset($options['insert']) && $options['insert']) {
-            $params['beforeValidationOnCreate'] = [
-                'field'  => $name,
-                'format' => isset($options['format']) ? $options['format'] : DATE_ATOM
-            ];
+        if (!isset($options['default']) && ($options['insert'] ?? false)) {
+            $params['beforeValidationOnCreate'] = ['field' => $name, 'format' => $format];
+        }
+        if ($options['update'] ?? false) {
+            $params['beforeValidationOnUpdate'] = ['field' => $name, 'format' => $format];
+        }
+        if ($params === []) {
+            throw new RuntimeException('Model: a timestampable field needs to have at least insert or update.');
         }
 
-        if (isset($options['update']) && $options['update']) {
-            $params['beforeValidationOnUpdate'] = [
-                'field'  => $name,
-                'format' => isset($options['format']) ? $options['format'] : DATE_ATOM
-            ];
-        }
-
-        if(empty($params)){
-            throw new \RuntimeException('Model: A timestampable field needs to have at least insert or update.');
-        }
+        $this->column($name, $options['type'] ?? Column::TYPE_DATETIME, array_intersect_key($options, ['map' => 1, 'nullable' => 1, 'default' => 1]));
 
         $this->addBehavior(new Timestampable($params));
     }
 
     /**
-     * Add <created_at> & <updated_at> columns with  Timestampable behavior.
+     * `created_at` (set on create) and `updated_at` (set on update, null until then) columns.
      */
-    protected function timestamps()
+    protected function timestamps(string $createdAt = 'created_at', string $updatedAt = 'updated_at', string $format = DATE_ATOM): void
     {
-        $this->timestampable('created_at', ['insert' => true]);
-        $this->timestampable('updated_at', ['update' => true]);
+        $this->timestampable($createdAt, ['insert' => true, 'format' => $format]);
+        $this->timestampable($updatedAt, ['update' => true, 'format' => $format, 'nullable' => true]);
     }
 
     /**
-     * Define a softDeleted column.
-     * Automatically add the SoftDelete behavior.
+     * A column marking the row as deleted, with the SoftDelete behavior.
      *
-     * @param string $name
-     * @param array  $options
+     * @param array{type?: int, value?: mixed, default?: mixed, nullable?: bool, map?: string, autoInsert?: bool, autoUpdate?: bool} $options
      */
-    protected function softDeletable($name, array $options = [])
+    protected function softDeletable(string $name, array $options = []): void
     {
-        if ((isset($options['autoInsert']) && $options['autoInsert']) ||
-            (isset($options['autoUpdate']) && $options['autoUpdate'])
-        ) {
-            throw new \RuntimeException('Model: A timestampable field can\'t have autoInsert or autoUpdate.');
+        if (($options['autoInsert'] ?? false) || ($options['autoUpdate'] ?? false)) {
+            throw new RuntimeException('Model: a soft delete field can\'t have autoInsert or autoUpdate.');
         }
 
-        self::column($name, isset($options['type']) ? $options['type'] : Column::TYPE_BOOLEAN, $options);
+        $type = $options['type'] ?? Column::TYPE_BOOLEAN;
+        // Not deleted by default: the column is not null.
+        $options += ['default' => $type === Column::TYPE_BOOLEAN ? false : null];
 
-        $this->addBehavior(new SoftDelete([
-            'field' => $name,
-            'value' => isset($options['value']) ? $options['value'] : true
-        ]));
+        $this->column($name, $type, array_intersect_key($options, ['map' => 1, 'nullable' => 1, 'default' => 1]));
+
+        $this->addBehavior(new SoftDelete(['field' => $name, 'value' => $options['value'] ?? true]));
     }
 
     /**
-     * Add <deleted> column with SoftDelete behavior.
+     * A `deleted` soft delete column.
      */
-    protected function softDelete()
+    protected function softDelete(string $name = 'deleted'): void
     {
-        $this->softDeletable('deleted');
+        $this->softDeletable($name);
     }
 
-    /**
-     * Add column type
-     *
-     * @param string $name
-     * @param int    $type
-     * @param string $map
-     */
-    private static function addColumn($name, $type, $map)
+    private function describeFromAttributes(): void
     {
-        static::$columnsMapClass[static::class][$name] = $map;
+        $class = new ReflectionClass($this);
 
-        static::$metaDatasClass[static::class][MetaData::MODELS_ATTRIBUTES][] = $name;
-        static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES][$name] = $type;
+        foreach ($class->getProperties() as $property) {
+            // The properties of Phalcon\Mvc\Model (about 25) never carry a column.
+            if ($property->class === \Phalcon\Mvc\Model::class) {
+                continue;
+            }
 
-        static::describeColumnType($name, $type);
-    }
+            foreach ($property->getAttributes(Attribute\Primary::class) as $attribute) {
+                $primary = $attribute->newInstance();
+                $this->primary($primary->name ?? $property->getName(), $primary->type, [
+                    'map'           => $property->getName(),
+                    'identity'      => $primary->identity,
+                    'autoIncrement' => $primary->autoIncrement,
+                ]);
+            }
 
-    /**
-     * Define a column type
-     *
-     * @param string $name
-     * @param int    $type
-     */
-    private static function describeColumnType($name, $type)
-    {
-        if ($type === null) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_BIND][$name] = Column::BIND_PARAM_NULL;
-        } elseif (
-            $type === Column::TYPE_BIGINTEGER ||
-            $type === Column::TYPE_INTEGER ||
-            $type === Column::TYPE_TIMESTAMP
-        ) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_BIND][$name] = Column::BIND_PARAM_INT;
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_NUMERIC][$name] = true;
-        } elseif (
-            $type === Column::TYPE_DECIMAL ||
-            $type === Column::TYPE_FLOAT ||
-            $type === Column::TYPE_DOUBLE
-        ) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_BIND][$name] = Column::BIND_PARAM_DECIMAL;
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_NUMERIC][$name] = true;
-        } elseif (
-            $type === Column::TYPE_JSON ||
-            $type === Column::TYPE_TEXT ||
-            $type === Column::TYPE_CHAR ||
-            $type === Column::TYPE_VARCHAR ||
-            $type === Column::TYPE_DATE ||
-            $type === Column::TYPE_DATETIME
-        ) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_BIND][$name] = Column::BIND_PARAM_STR;
-        } elseif (
-            $type === Column::TYPE_BLOB ||
-            $type === Column::TYPE_JSONB ||
-            $type === Column::TYPE_MEDIUMBLOB ||
-            $type === Column::TYPE_TINYBLOB ||
-            $type === Column::TYPE_LONGBLOB
-        ) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_BIND][$name] = Column::BIND_PARAM_BLOB;
-        } elseif ($type === Column::TYPE_BOOLEAN) {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_BIND][$name] = Column::BIND_PARAM_BOOL;
-        } else {
-            static::$metaDatasClass[static::class][MetaData::MODELS_DATA_TYPES_BIND][$name] = Column::BIND_SKIP;
+            foreach ($property->getAttributes(Attribute\Column::class) as $attribute) {
+                $column = $attribute->newInstance();
+                $this->column($column->name ?? $property->getName(), $column->type, [
+                    'map'        => $property->getName(),
+                    'nullable'   => $column->nullable,
+                    'default'    => $column->default,
+                    'autoInsert' => $column->autoInsert,
+                    'autoUpdate' => $column->autoUpdate,
+                ]);
+            }
+        }
+
+        foreach ($class->getAttributes(Attribute\Timestamps::class) as $attribute) {
+            $timestamps = $attribute->newInstance();
+            $this->timestamps($timestamps->createdAt, $timestamps->updatedAt, $timestamps->format);
+        }
+
+        foreach ($class->getAttributes(Attribute\SoftDelete::class) as $attribute) {
+            $softDelete = $attribute->newInstance();
+            $this->softDeletable($softDelete->column, ['value' => $softDelete->value]);
         }
     }
 }

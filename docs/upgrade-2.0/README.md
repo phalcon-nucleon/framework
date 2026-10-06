@@ -57,6 +57,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | Debug | Remplacement de notre barre de debug par `phalcon/debugbar` (en `suggest`, sans dépendance de production), à confirmer par l'étude E12-S1. On garde notre page d'erreur et `VarDump`. | E12 |
 | Performance de la requête HTTP | En production (`optimize`), la requête complète est 19 % plus lente que la 1.3 (+45 µs), le boot 11 % plus rapide, la mémoire 34 % plus basse. L'écart vient de Phalcon 5 (`dispatch()` et premier `Router::handle()` plus lents à froid). Accepter, ou chercher à contourner le dispatcher ? Voir E4. | E4 |
 | Performance du rendu Volt | Premier rendu d'une page : +35 µs (+20 %), mémoire −33 %. Phalcon 5 pur coûte +70 µs sur ce rendu : Nucleon en compense la moitié. Accepter ? Voir E9. | E9 |
+| Performance des modèles | Premier modèle +12 µs (+23 %), `findFirst` +80 µs (+33 %), `find` de 100 lignes +257 µs (+35 %), mémoire −30 %. Phalcon 5 pur coûte +108 µs sur `findFirst`. Accepter ? Voir E10. | E10 |
 | Performance du cache | Résolution + 1 set/get sur `memory` : +26 µs (+30 %) ; chaque set + get suivant : +3,5 µs ; mémoire −35 %. L'écart vient de Phalcon 5 (`Phalcon\Cache` 4 à 5 fois plus lent que le backend de Phalcon 3). Accepter, ou fournir un store `memory` en PHP pur ? Voir E7. | E7 |
 
 ## Epics
@@ -73,7 +74,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | E7 | [Services d'infrastructure](epics/E07-services-infrastructure.md) | Terminé | E3 |
 | E8 | [Auth & sécurité](epics/E08-auth-securite.md) | Terminé | E4, E7 |
 | E9 | [Vues & Volt](epics/E09-vues.md) | Terminé | E4 |
-| E10 | [Données](epics/E10-donnees.md) | Rédigé | E7 |
+| E10 | [Données](epics/E10-donnees.md) | Terminé | E7 |
 | E11 | [Migrations](epics/E11-migrations.md) | Rédigé | E6, E10 |
 | E12 | [Erreurs & Debug](epics/E12-erreurs-debug.md) | Rédigé | E4 |
 | E13 | [HttpClient v2](epics/E13-httpclient.md) | Rédigé | E0 |

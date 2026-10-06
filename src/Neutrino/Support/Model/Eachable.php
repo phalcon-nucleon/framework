@@ -1,72 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\Model;
 
+use Generator;
+
 /**
- * Trait Eachable
+ * `foreach (User::each(['active = 1']) as $user)`: iterates over the models, `$pad` rows per query, from the row
+ * `$start` to `$end`.
  *
- * @package Neutrino\Support\Model
+ * @mixin \Phalcon\Mvc\Model<mixed>
  */
 trait Eachable
 {
     /**
-     * Use as :
-     * foreach(Model::each() as $model){
-     *     // ... do some stuff
-     * }
+     * @param array<int|string, mixed>|null $criteria Criteria of `find()`; its `limit` replaces `$pad`
      *
-     * @param array    $criteria
-     * @param null|int $start
-     * @param null|int $end
-     * @param int      $pad
-     *
-     * @return \Generator|\Neutrino\Model[]|\Phalcon\Mvc\Model[]|self[]
+     * @return Generator<int, static>
      */
-    public static function each(array $criteria = null, $start = null, $end = null, $pad = 100)
+    public static function each(?array $criteria = null, ?int $start = null, ?int $end = null, int $pad = 100): Generator
     {
-        /** @var \Neutrino\Model $this */
+        $criteria ??= [];
+        $start ??= 0;
+        $pad = isset($criteria['limit']) && is_int($criteria['limit']) ? $criteria['limit'] : $pad;
 
-        if (is_null($start)) {
-            $start = 0;
-        }
-
-        if (is_null($end)) {
-            $end = INF;
-        }
-
-        if ($start >= $end) {
+        if ($pad < 1 || ($end !== null && $start >= $end)) {
             return;
         }
 
-        if (empty($criteria['limit'])) {
-            $criteria['limit'] = $pad;
-        } else {
-            $pad = $criteria['limit'];
+        $index = 0;
+
+        for ($offset = $start; $end === null || $offset < $end; $offset += $pad) {
+            $criteria['limit'] = $end === null ? $pad : min($pad, $end - $offset);
+            $criteria['offset'] = $offset;
+            $count = 0;
+
+            foreach (static::find($criteria) as $model) {
+                $count++;
+
+                /** @var static $model */
+                yield $index++ => $model;
+            }
+
+            // A partial page is the last one.
+            if ($count < $criteria['limit']) {
+                return;
+            }
         }
-
-        $nb = ceil(($end - $start) / $pad);
-        $idx = 0;
-        $page = 0;
-        do {
-            $finish = true;
-
-            $criteria['offset'] = $start + ($pad * $page);
-
-            $models = self::find($criteria);
-
-            foreach ($models as $model) {
-                $finish = false;
-
-                yield $idx => $model;
-
-                $idx++;
-            }
-
-            $page++;
-
-            if ($page >= $nb) {
-                $finish = true;
-            }
-        } while (!$finish);
     }
 }

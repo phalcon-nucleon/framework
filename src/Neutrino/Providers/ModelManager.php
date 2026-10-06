@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
-
 use Neutrino\Support\SimpleProvider;
 use Phalcon\Mvc\Model\Manager;
 
 /**
- * Class ModelManager
- *
- *  @package Neutrino\Providers
+ * The `modelsManager` service.
  */
 class ModelManager extends SimpleProvider
 {

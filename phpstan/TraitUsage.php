@@ -7,6 +7,7 @@ namespace Neutrino\PHPStan;
 use Neutrino\Support\DesignPatterns\Strategy;
 use Neutrino\Support\DesignPatterns\Strategy\MagicCallStrategyTrait;
 use Neutrino\Support\Traits\InjectionAwareTrait;
+use Neutrino\Support\Model\Eachable;
 use Neutrino\Support\Traits\Macroable;
 
 // PHPStan analyses a trait only in the context of a class that uses it:
@@ -25,4 +26,9 @@ final class MacroableUsage
 final class MagicCallStrategyUsage extends Strategy
 {
     use MagicCallStrategyTrait;
+}
+
+final class EachableUsage extends \Neutrino\Model
+{
+    use Eachable;
 }

@@ -1,6 +1,6 @@
 # E10 — Données
 
-**Statut** : Rédigé · **Dépend de** : E7 · **Bloque** : E11
+**Statut** : Terminé · **Dépend de** : E7 · **Bloque** : E11
 
 ## Objectif
 
@@ -108,3 +108,42 @@ Porter la couche de données sur Phalcon 5 en gardant ce qui fait la performance
 - Les suites `Models` et `Repositories`, ainsi que les tests des providers de données, sont activées et passent, y compris sur le job Phalcon 6.
 - Aucun modèle Nucleon ne déclenche de requête d'introspection (`DESCRIBE`, `information_schema`, `PRAGMA`).
 - Mesures : le chargement d'un modèle et `findFirst` ne sont pas moins bons que ceux de la 1.3.
+
+## Vérifications S1
+
+- **`metaData()`** : Phalcon 5.22 lit toujours une méthode `metaData()` du modèle (et `columnMap()`), sans requête d'introspection ; Phalcon 6 aussi pour `metaData()`, mais la carte des colonnes y passe par la stratégie. Une app 1.3 et 2.0 peuvent donc coexister le temps de la migration. La 2.0 passe par `StrategyInterface` (décision), et `Neutrino\Model` n'a plus ces méthodes : Phalcon appelle la stratégie seulement quand le modèle ne les a pas.
+- **Constantes** : les 14 index `MODELS_*` de la 1.3 sont inchangés (0 à 13). `MODELS_COLUMN_MAP` (0) et `MODELS_REVERSE_COLUMN_MAP` (1) indexent le tableau des cartes de colonnes, pas celui des métadonnées.
+- **Phalcon 5** : `findFirst()` renvoie `null` (1.3 : `false`) ; le `beforeQuery` d'un `execute()` précède la mise à jour de `getRealSQLStatement()` (on lit `getSQLStatement()`) ; une colonne `NOT NULL` sans valeur par défaut est exigée à l'enregistrement (d'où `updated_at` nullable et `deleted` à `false` par défaut).
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Métadonnées | Fait | Voir plus haut. |
+| S2 · `Model` et `MetaDataStrategy` | Fait | `Neutrino\Model\Description` (métadonnées et cartes de colonnes, types Phalcon 5 : entiers courts, `TIME`, `ENUM`, `UUID`, binaires), `MetaDataStrategy` (repli sur l'introspection pour les autres modèles, construit à la demande), attributs `Primary`, `Column`, `Timestamps`, `SoftDelete`. API par méthodes conservée et typée. Tests sur SQLite : description complète, CRUD avec colonnes renommées, timestamps, soft delete, attributs, aucune requête d'introspection (listener `db:beforeQuery`), introspection des modèles Phalcon. `Foundation\Auth\User` (E8) vérifié sur `Neutrino\Model`. |
+| S3 · Providers | Fait | `db.<nom>` à la demande, `db` = connexion par défaut, adapter par nom ou par classe, clé `config` (ou `options`). `ModelsMetaData` : adapter configurable + stratégie. `DatabaseStrategy` supprimé. Tests : une ou plusieurs connexions, modèle sur une autre connexion, lecture et écriture séparées, métadonnées en cache APCu relues sans la stratégie. |
+| S4 · `Repository` | Fait | Typé ; noms vérifiés contre les attributs du modèle (noms d'attributs, renommés compris), opérateurs en liste blanche, `ASC` / `DESC` ; valeurs liées sous des noms générés (`p0`, `p1`…) ; une chaîne donne `=`, `null` donne `IS NULL`. Tests d'injection (colonne, colonne de base au lieu de l'attribut, opérateur, colonne et sens de tri), transactions avec annulation et messages. `MigrationRepository` (E11) : propriété typée, sinon fatale. |
+| S5 · `Eachable`, `Support\Db` | Fait | Générateurs typés, arrêt sur la première page partielle, `$end` respecté à la ligne près. `Db::connection()`, `getQueries()` et `pretend()` détachent leur listener même en cas d'exception et rendent la connexion dans son état (sans gestionnaire d'événements si elle n'en avait pas). |
+| S6 · Mesures | Fait | Voir plus bas. Tâche `model:cache`. |
+
+Suites `Models` et `Repositories` activées, tests des providers de données dans `Providers`. 772 tests verts sur Phalcon 5.22 et 6. Baseline PHPStan : 151 entrées en moins.
+
+### Mesures (`bench/compare.sh --optimize`, 150 à 200 itérations, SQLite en mémoire)
+
+| Scénario | 1.3 | 2.0 | Δ temps | Δ mémoire |
+|---|---|---|---|---|
+| `model-load` : premier modèle, métadonnées | 52 µs | 63 µs | +12 µs (+23 %) | −34 % |
+| `model-find-first` : `findFirst` par clé | 240 µs | 320 µs | +80 µs (+33 %) | −30 % |
+| `model-find-100` : `find` de 100 lignes | 734 µs | 991 µs | +257 µs (+35 %) | −32 % |
+
+**Critère non atteint.** Phalcon pur, même modèle décrit par `metaData()` : chargement +4 µs, `findFirst` +108 µs entre la 3.4 et la 5.22 (PHQL et hydratation plus lents à froid). Avec Nucleon, `findFirst` coûte donc moins que l'écart de Phalcon ; le chargement ajoute environ 8 µs côté Nucleon (réflexion des attributs, même sans attribut). Variantes 2.0 (mêmes options PHP, médiane de 120) :
+
+| Variante | `model-load` | `model-find-first` |
+|---|---|---|
+| méthodes, `memory` | 59 µs | 306 µs |
+| attributs, `memory` | 69 µs | 296 µs |
+| méthodes, `stream` (métadonnées en cache) | 79 µs | 323 µs |
+| attributs, `stream` | 93 µs | 322 µs |
+
+Un cache de métadonnées est **plus lent** que la description d'un modèle Nucleon : lire deux fichiers coûte plus que construire la description. Écart avec la décision : `memory` reste recommandé pour les modèles Nucleon ; `model:cache` et un adapter persistant servent aux modèles lus par introspection.
+

@@ -13,6 +13,7 @@ noise evenly.
 | `boot-http`, `boot-cli`, `boot-micro` | Dotconst + config + `Bootstrap::make()` + `boot()` |
 | `http` | full HTTP request: route → controller → response sent |
 | `http-mw1`, `http-mw3` | same request, with 1 and 3 route middlewares |
+| `http-throttle`, `http-throttle-redis` | same request, with `ThrottleRequest` (counters in the `memory` store, or in Redis: 2.x only) |
 | `micro` | full Micro request |
 | `cli` | full CLI task |
 | `service` | first resolution of a provider-registered shared service |

@@ -42,7 +42,11 @@ $start = hrtime(true);
 
 // Compiled constants are used when the application was optimized, as in production.
 Dotconst::load($app, $app . '/bootstrap/compile');
-$bootstrap = new Bootstrap(ConfigLoader::load(BASE_PATH));
+$config = ConfigLoader::load(BASE_PATH);
+if ($scenario === 'http-throttle-redis') {
+    $config->merge(new Phalcon\Config\Config(['security' => ['throttle' => ['store' => 'redis']]]));
+}
+$bootstrap = new Bootstrap($config);
 
 switch ($scenario) {
     case 'boot-http':
@@ -60,10 +64,15 @@ switch ($scenario) {
     case 'http':
     case 'http-mw1':
     case 'http-mw3':
+    case 'http-throttle':
+    case 'http-throttle-redis':
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = $scenario === 'http' ? '/hello' : '/hello-' . substr($scenario, 5);
+        if ($scenario === 'http-throttle-redis') {
+            $_SERVER['REQUEST_URI'] = '/hello-throttle';
+        }
         ob_start();
-        $bootstrap->run($bootstrap->make(HttpKernel::class));
+        $bootstrap->run($bootstrap->make(strpos($scenario, 'throttle') !== false ? CacheKernel::class : HttpKernel::class));
         $output = ob_get_clean();
         if ($output !== 'Hello') {
             fwrite(STDERR, "Unexpected HTTP output: $output\n");

@@ -1,151 +1,180 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Http;
 
-use Fake\Kernels\Http\Controllers\StubController;
+use Fake\Kernels\Http\Controllers;
 use Neutrino\Constants\Services;
 use Neutrino\Http\Middleware\Csrf;
 use Neutrino\Http\Standards\StatusCode;
-use Phalcon\Security;
-use Phalcon\Session\Adapter;
-use Phalcon\Version;
+use Phalcon\Encryption\Security;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Test\TestCase\ArraySession;
 use Test\TestCase\TestCase;
 
-class CsrfTest extends TestCase
+final class CsrfTest extends TestCase
 {
+    private Security $security;
 
-    public function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
-        StubController::$middlewares[] = [
+        $di = $this->getDI();
+        $di->remove(Services::SESSION);
+        $di->setShared(Services::SESSION, new ArraySession());
+        $this->security = $di->getShared(Services::SECURITY);
+
+        $this->app->useImplicitView(false);
+        $this->app->router->add('/form', [
+            'namespace'  => Controllers::class,
+            'controller' => 'Stub',
+            'action'     => 'index',
             'middleware' => Csrf::class,
-            'params'     => [
-                'only' => ['index']
-            ]
-        ];
-
-        $mock = $this->mockService(Services::SESSION, Adapter\Files::class, true);
-
-        $mock->expects($this->any())->method('start')->willReturn(true);
-        $mock->expects($this->any())->method('isStarted')->willReturn(true);
-        $mock->expects($this->any())->method('regenerateId')->willReturnSelf();
-        $mock->expects($this->any())->method('setOptions');
-        $mock->expects($this->any())->method('setName');
-        $mock->expects($this->any())->method('getName')->willReturn("PHPUNIT_NEUTRINO_SESSION");
+        ]);
     }
 
-    public function tearDown()
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unsafeMethods(): iterable
     {
-        parent::tearDown();
-
-        StubController::$middlewares = [];
-        StubController::$registerMiddlewares = [];
+        yield 'POST' => ['POST'];
+        yield 'PUT' => ['PUT'];
+        yield 'PATCH' => ['PATCH'];
+        yield 'DELETE' => ['DELETE'];
     }
 
-    public function assertResponseStatusCode($expected)
+    #[DataProvider('unsafeMethods')]
+    public function testTokenInTheHeader(string $method): void
     {
-        $msg = StatusCode::message($expected);
-        if (Version::getPart(Version::VERSION_MEDIUM) >= 2) {
-            $status = $expected;
-        } else {
-            $status = $expected . ' ' . $msg;
+        $this->dispatch('/form', $method, [], [Csrf::HEADER => (string) $this->security->getToken()]);
+
+        $this->assertAllowed();
+    }
+
+    #[DataProvider('unsafeMethods')]
+    public function testMissingToken(string $method): void
+    {
+        $this->security->getToken();
+
+        $this->dispatch('/form', $method);
+
+        $this->assertResponseCode(StatusCode::FORBIDDEN);
+    }
+
+    #[DataProvider('unsafeMethods')]
+    public function testWrongToken(string $method): void
+    {
+        $this->security->getToken();
+
+        $this->dispatch('/form', $method, [Csrf::FIELD => 'wrong'], [Csrf::HEADER => 'wrong']);
+
+        $this->assertResponseCode(StatusCode::FORBIDDEN);
+    }
+
+    public function testTokenInTheBody(): void
+    {
+        $this->dispatch('/form', 'POST', [Csrf::FIELD => (string) $this->security->getToken()]);
+
+        $this->assertAllowed();
+    }
+
+    public function testTokenInAJsonBody(): void
+    {
+        $this->dispatch('/form', 'POST', [], [], [Csrf::FIELD => (string) $this->security->getToken()]);
+
+        $this->assertAllowed();
+    }
+
+    public function testNoSessionToken(): void
+    {
+        $this->dispatch('/form', 'POST', [Csrf::FIELD => ''], [Csrf::HEADER => '']);
+
+        $this->assertResponseCode(StatusCode::FORBIDDEN);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function safeMethods(): iterable
+    {
+        yield 'GET' => ['GET'];
+        yield 'HEAD' => ['HEAD'];
+        yield 'OPTIONS' => ['OPTIONS'];
+    }
+
+    #[DataProvider('safeMethods')]
+    public function testSafeMethodsAreNotChecked(string $method): void
+    {
+        $this->dispatch('/form', $method);
+
+        $this->assertAllowed();
+        $this->assertFalse($this->getDI()->getService(Services::SESSION)->isResolved() && $this->security->getSessionToken() !== null, 'No token is created.');
+    }
+
+    public function testTokenStaysValidForSuccessiveRequests(): void
+    {
+        $token = (string) $this->security->getToken();
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->dispatch('/form', 'POST', [], [Csrf::HEADER => $token]);
+            $this->assertAllowed();
         }
-
-        $this->assertEquals($status, $this->getDI()->get('response')->getStatusCode());
     }
 
-    public function testCsrfFail_Get()
+    public function testTheTokenOfTheSessionSurvivesTheNextRequests(): void
     {
-        /** @var \PHPUnit\Framework\MockObject\MockObject $security */
-        $security = $this->mockService(Services::SECURITY, Security::class, true);
+        $di = $this->getDI();
+        $first = Csrf::token($di);
 
-        $security->expects($this->any())->method('getSessionToken')->willReturn(true);
-        $security->expects($this->any())->method('getToken')->willReturn("token");
-        $security->expects($this->any())->method('getTokenKey')->willReturn("tokenKey");
-        $security->expects($this->any())->method('checkToken')->willReturn(false);
+        // Next request: a new security service on the same session, rendering another form.
+        $di->remove(Services::SECURITY);
+        $di->setShared(Services::SECURITY, new Security());
 
-        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
-        $session = $this->getDI()->getShared(Services::SESSION);
+        $this->assertSame($first, Csrf::token($di));
 
-        $session->expects($this->any())->method('get')->willReturn(false);
-
-        $this->dispatch('/');
-
-        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
+        // The form of the first tab is still accepted.
+        $this->dispatch('/form', 'POST', [Csrf::FIELD => $first]);
+        $this->assertAllowed();
     }
 
-    public function testCsrfFail_Post()
+    public function testGetTokenOfPhalconReplacesTheTokenOfTheSession(): void
     {
-        $this->dispatch('/', 'POST');
+        $di = $this->getDI();
+        $first = Csrf::token($di);
 
-        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
+        $di->remove(Services::SECURITY);
+        $di->setShared(Services::SECURITY, new Security());
+
+        $this->assertNotSame($first, $di->getShared(Services::SECURITY)->getToken(), 'Why Csrf::token() exists.');
     }
 
-    public function testCsrfOk_Get()
+    public function testRotation(): void
     {
-        /** @var \Phalcon\Security $security */
-        $security = $this->getDI()->getShared(Services::SECURITY);
-        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
-        $session = $this->getDI()->getShared(Services::SESSION);
+        $this->getDI()->getShared(Services::CONFIG)->merge(['security' => ['csrf' => ['rotate' => true]]]);
+        $token = (string) $this->security->getToken();
 
-        $session->expects($this->any())->method('get')->willReturn($security->getToken());
+        $this->dispatch('/form', 'POST', [], [Csrf::HEADER => $token]);
+        $this->assertAllowed();
 
-        $this->dispatch('/', 'GET', ['_csrf_token' => $security->getToken()]);
-
-        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
+        $this->resetResponse();
+        $this->dispatch('/form', 'POST', [], [Csrf::HEADER => $token]);
+        $this->assertResponseCode(StatusCode::FORBIDDEN);
     }
 
-    public function testCsrfOk_Post()
+    /**
+     * The action ran: no status was set by the middleware.
+     */
+    private function assertAllowed(): void
     {
-        /** @var \Phalcon\Security $security */
-        $security = $this->getDI()->getShared(Services::SECURITY);
-        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
-        $session = $this->getDI()->getShared(Services::SESSION);
-
-        $session->expects($this->any())->method('get')->willReturn($security->getToken());
-
-        $this->dispatch('/', 'POST', ['_csrf_token' => $security->getToken()]);
-
-        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
+        $this->assertNull($this->getDI()->getShared(Services::RESPONSE)->getStatusCode());
     }
 
-    public function testCsrfOk_Ajax()
+    private function resetResponse(): void
     {
-        /** @var \Phalcon\Security $security */
-        $security = $this->getDI()->getShared(Services::SECURITY);
-        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
-        $session = $this->getDI()->getShared(Services::SESSION);
-
-        $session->expects($this->any())->method('get')->willReturn($security->getToken());
-
-        $_SERVER["HTTP_X_REQUESTED_WITH"]              = "XMLHttpRequest";
-        $_SERVER['HTTP_X_CSRF_TOKEN'] = $security->getToken();
-
-        $this->dispatch('/', 'POST', []);
-
-        $this->assertEquals(null, $this->getDI()->get('response')->getStatusCode());
-    }
-
-    public function testCsrfFail_Ajax()
-    {
-        /** @var \PHPUnit\Framework\MockObject\MockObject $security */
-        $security = $this->mockService(Services::SECURITY, Security::class, true);
-
-        $security->expects($this->any())->method('getSessionToken')->willReturn(true);
-        $security->expects($this->any())->method('getToken')->willReturn("token");
-        $security->expects($this->any())->method('getTokenKey')->willReturn("tokenKey");
-        $security->expects($this->any())->method('checkToken')->willReturn(false);
-
-        /** @var \PHPUnit\Framework\MockObject\MockObject $session */
-        $session = $this->getDI()->getShared(Services::SESSION);
-
-        $session->expects($this->any())->method('get')->willReturn(null);
-
-        $_SERVER["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest";
-
-        $this->dispatch('/', 'POST', []);
-
-        $this->assertResponseStatusCode(StatusCode::FORBIDDEN);
+        $this->getDI()->remove(Services::RESPONSE);
+        $this->getDI()->setShared(Services::RESPONSE, new \Phalcon\Http\Response());
     }
 }

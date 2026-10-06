@@ -17,6 +17,8 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Cache stores `rediscluster` and `weak`, serializer `msgpack`, custom adapters; `Providers\Cache::makeStore()`.
  - Logger: several adapters (`log.adapters`), `log.level`, `line` or `json` formatter.
  - Session: `noop` adapter and any `\SessionHandlerInterface`; session name per store.
+ - Authentication on `Phalcon\Auth` (guards, access, `Auth::id()`, `validate()`, `guard()`); `Authenticate` redirection.
+ - `security.csrf.rotate`, `security.throttle.store`; CSRF token in a JSON body.
  - `app.crypt_signing`; `annotations.adapter` (`memory`, `apcu`, `stream`).
  - Event constants for the Phalcon 5 events: router, di, `db:connectionLost`, dispatcher binding and action calls, micro binding and exceptions, model `prepareSave` and `validation`, view compilation.
 
@@ -27,6 +29,9 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - The `Str` helpers use the PHP 8 string functions; `Str::slug` is 6 times faster.
  - Cache: PSR-16 API (`Phalcon\Cache\CacheInterface`), stores configured with `adapter`, `serializer` and `options`.
  - Session: `Phalcon\Session\Manager` on an adapter; `sessionBag` takes a name.
+ - `auth` is a `Phalcon\Auth\Manager`; `Auth::attempt()` returns a `bool`.
+ - CSRF: only POST, PUT, PATCH and DELETE are checked, token in the `X-CSRF-Token` header or the body; the token stays valid for the session.
+ - `RateLimiter`: fixed window, PSR-16 cache, atomic increment on Redis, APCu and Memcached; throttle signature `xxh128`.
  - `crypt`, `security`, `filter` and `escaper` are `Encryption\Crypt`, `Encryption\Security`, `Filter\Filter` and `Html\Escaper`; `crypt` signs by default.
 
 ### Fixed
@@ -39,6 +44,8 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Micro: a Before middleware returning `false` stops the request (Phalcon 5 ignores the returned value).
  - `Micro\Router::add()` returns the route; the controller of a Micro route is built once per request.
  - CLI: `help <command>` and `help` alone; task options no longer break actions without parameters; a task run twice in a process reads its current options; `route:list` and `route:cache` no longer replace the console router; output blocks honour their padding.
+ - Remember-me: token stored hashed and bound to the user agent, revoked at logout, cookie limited to one year; malformed cookies are ignored.
+ - The rate limiter released a client only when it stopped trying (sliding lifetime).
  - Session provider: the construction error kept the previous exception as its code.
  - `route:cache`: route names and hostnames are escaped; routes that cannot be cached are rejected instead of being lost.
 
@@ -48,4 +55,5 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Collection (ODM) and Volt event constants, `Model::NOT_SAVE(D)`.
  - `Micro\Router` methods that threw an exception, `Micro\Middleware::ON_*` constants.
  - Cache: output cache (`start`/`stop`), `queryKeys`, `save`/`exists`; backends `Memcache`, `Mongo`, `Database`, `Aerospike`, `Wincache`, `Xcache`; frontend `Output`.
+ - `Neutrino\Auth\Manager` (replaced by `Phalcon\Auth\Manager`); CSRF token read from the query string.
  - Logger adapters `Firelogger`, `Udplogger`, `Multiple`; session adapters `Files` (now `stream`) and `Memcache`.

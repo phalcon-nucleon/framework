@@ -1,160 +1,239 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Security;
 
-use Neutrino\Cache\CacheStrategy;
+use Neutrino\Config\Config;
 use Neutrino\Constants\Services;
+use Neutrino\Foundation\ProviderRegistrar;
+use Neutrino\Providers\Cache;
 use Neutrino\Security\RateLimiter;
-use Test\TestCase\TestCase;
+use Phalcon\Di\Di;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
-/**
- * Class RateLimiterTest
- *
- * @package Test\Security
- */
-class RateLimiterTest extends TestCase
+final class RateLimiterTest extends TestCase
 {
-    /**
-     * @return array
-     */
-    public function dataAttemps()
+    private int $now = 1_000_000;
+
+    private string $dir = '';
+
+    private string $prefix = '';
+
+    private Di $di;
+
+    protected function setUp(): void
     {
-        return [
-            [null, 0],
-            [1, 1],
+        $this->dir = sys_get_temp_dir() . '/nucleon-throttle-' . getmypid();
+        $this->prefix = 'nucleon-test-' . getmypid() . '-' . bin2hex(random_bytes(3)) . '-';
+        @mkdir($this->dir);
+
+        $stores = [
+            'memory' => ['adapter' => 'memory'],
+            'stream' => ['adapter' => 'stream', 'options' => ['storageDir' => $this->dir]],
+            'apcu'   => ['adapter' => 'apcu', 'options' => ['prefix' => $this->prefix]],
         ];
+        if (is_string(getenv('REDIS_HOST')) && getenv('REDIS_HOST') !== '') {
+            $stores['redis'] = ['adapter' => 'redis', 'options' => ['host' => getenv('REDIS_HOST'), 'prefix' => $this->prefix]];
+        }
+
+        $this->di = new Di();
+        Di::setDefault($this->di);
+        $this->di->setShared(Services::CONFIG, new Config(['cache' => ['default' => 'memory', 'stores' => $stores]]));
+        ProviderRegistrar::register($this->di, [Cache::class]);
+    }
+
+    protected function tearDown(): void
+    {
+        exec('rm -rf ' . escapeshellarg($this->dir));
+        Di::reset();
     }
 
     /**
-     * @dataProvider dataAttemps
-     *
-     * @param $cacheValue
-     * @param $excepted
+     * @return iterable<string, array{string}>
      */
-    public function testAttemps($cacheValue, $excepted)
+    public static function stores(): iterable
     {
-        $mock = $this->mockService(Services::CACHE, CacheStrategy::class, true);
+        yield 'memory' => ['memory'];
+        yield 'stream' => ['stream'];
+        yield 'apcu' => ['apcu'];
+        yield 'redis' => ['redis'];
+    }
 
-        $mock->expects($this->any())
-            ->method('get')
-            ->will($this->returnValue($cacheValue));
+    #[DataProvider('stores')]
+    public function testFixedWindow(string $store): void
+    {
+        $limiter = $this->limiter($store);
 
-        $rateLimiter = new RateLimiter('testing');
+        $this->assertSame(0, $limiter->attempts('key'));
+        $this->assertSame(3, $limiter->retriesLeft('key', 3));
+        $this->assertSame(0, $limiter->availableIn('key'));
 
-        $this->assertEquals($excepted, $rateLimiter->attempts('', 1));
+        $this->assertSame(1, $limiter->hit('key', 60));
+        $this->now += 30;
+        $this->assertSame(2, $limiter->hit('key', 60));
+        $this->assertSame(3, $limiter->hit('key', 60));
+
+        $this->assertSame(3, $limiter->attempts('key'));
+        $this->assertTrue($limiter->tooManyAttempts('key', 3));
+        $this->assertFalse($limiter->tooManyAttempts('key', 4));
+        $this->assertSame(0, $limiter->retriesLeft('key', 3));
+        $this->assertSame(30, $limiter->availableIn('key'), 'The hits do not extend the window (1.3: 60).');
+        $this->assertSame(0, $limiter->attempts('other'));
+
+        // End of the window: counted from zero again, even if a client keeps hitting.
+        $this->now += 30;
+        $this->assertSame(0, $limiter->attempts('key'));
+        $this->assertFalse($limiter->tooManyAttempts('key', 3));
+        $this->assertSame(1, $limiter->hit('key', 60));
+        $this->assertSame(60, $limiter->availableIn('key'));
+    }
+
+    #[DataProvider('stores')]
+    public function testResetAndClear(string $store): void
+    {
+        $limiter = $this->limiter($store);
+        $limiter->hit('key', 60);
+        $limiter->hit('key', 60);
+
+        $this->assertTrue($limiter->resetAttempts('key'));
+        $this->assertSame(0, $limiter->attempts('key'));
+        $this->assertSame(60, $limiter->availableIn('key'), 'The window is kept.');
+        $this->assertSame(1, $limiter->hit('key', 60));
+
+        $limiter->clear('key');
+        $this->assertSame(0, $limiter->attempts('key'));
+        $this->assertSame(0, $limiter->availableIn('key'));
+    }
+
+    public function testNamesAndKeysAreSeparated(): void
+    {
+        $a = new RateLimiter('a', 'memory', fn(): int => $this->now);
+        $b = new RateLimiter('b', 'memory', fn(): int => $this->now);
+
+        $a->hit('user@example.com {}()/\\@:', 60);
+
+        $this->assertSame(1, $a->attempts('user@example.com {}()/\\@:'), 'Any key is accepted (hashed).');
+        $this->assertSame(0, $b->attempts('user@example.com {}()/\\@:'));
+    }
+
+    public function testDedicatedStore(): void
+    {
+        $this->di->getShared(Services::CONFIG)->merge(new Config(['security' => ['throttle' => ['store' => 'stream']]]));
+
+        (new RateLimiter('name', clock: fn(): int => $this->now))->hit('key', 60);
+
+        $this->assertNotSame([], glob($this->dir . '/*') ?: [], 'Counted in the stream store.');
+        $this->assertSame(0, (new RateLimiter('name', 'memory'))->attempts('key'));
+    }
+
+    public function testNoStore(): void
+    {
+        $this->di->remove(Services::CONFIG);
+        $this->di->setShared(Services::CONFIG, new Config([]));
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('RateLimiter: no cache store');
+
+        (new RateLimiter('name'))->attempts('key');
+    }
+
+    public function testConcurrentHitsOnRedis(): void
+    {
+        $this->requireStore('redis');
+        $host = (string) getenv('REDIS_HOST');
+
+        // The window exists: the processes only increment.
+        $this->limiter('redis', real: true)->hit('key', 60);
+        $limiter = new RateLimiter('concurrent', 'redis');
+        $limiter->hit('key', 60);
+
+        $processes = [];
+        for ($i = 0; $i < 4; $i++) {
+            $processes[] = proc_open([PHP_BINARY, __DIR__ . '/fixtures/hit.php', $host, $this->prefix, '50'], [], $pipes);
+        }
+        foreach ($processes as $process) {
+            $this->assertIsResource($process);
+            $this->assertSame(0, proc_close($process));
+        }
+
+        $this->assertSame(201, $limiter->attempts('key'));
+        $limiter->clear('key');
+    }
+
+    public function testConcurrentAttemptsOnRedis(): void
+    {
+        $this->requireStore('redis');
+        $host = (string) getenv('REDIS_HOST');
+        $start = $this->dir . '/start';
+
+        // The window exists: the processes only increment. 1 attempt counted, 5 left.
+        $limiter = new RateLimiter('concurrent', 'redis');
+        $this->assertSame(5, $limiter->attempt('key', 6));
+
+        $processes = [];
+        for ($i = 0; $i < 20; $i++) {
+            $processes[] = proc_open([PHP_BINARY, __DIR__ . '/fixtures/attempt.php', $host, $this->prefix, '6', $start], [1 => ['pipe', 'w']], $pipes[$i]);
+        }
+        usleep(300_000);
+        touch($start);
+
+        $accepted = 0;
+        foreach ($processes as $i => $process) {
+            $this->assertIsResource($process);
+            $accepted += (int) stream_get_contents($pipes[$i][1]);
+            proc_close($process);
+        }
+
+        $this->assertSame(5, $accepted, 'Exactly the attempts left are accepted.');
+        $limiter->clear('key');
     }
 
     /**
-     * @return array
+     * @return iterable<string, array{string}>
      */
-    public function dataAvailableIn()
+    public static function atomicStores(): iterable
     {
-        return [
-            [1, 1],
-            [50, 50],
-        ];
+        yield 'apcu' => ['apcu'];
+        yield 'redis' => ['redis'];
     }
 
-    /**
-     * @dataProvider dataAvailableIn
-     *
-     * @param $remaining
-     * @param $excepted
-     */
-    public function testAvailableIn($remaining, $excepted)
+    #[DataProvider('atomicStores')]
+    public function testCounterRecreatedAfterAResetExpires(string $store): void
     {
-        $mock = $this->mockService(Services::CACHE, CacheStrategy::class, true);
+        $limiter = $this->limiter($store, real: true);
+        $limiter->hit('key', 60);
+        $limiter->resetAttempts('key');
 
-        $mock->expects($this->any())
-            ->method('get')
-            ->will($this->returnValue(time() + $remaining));
+        $this->assertSame(1, $limiter->hit('key', 60));
 
-        $rateLimiter = new RateLimiter('testing');
+        $counter = (new \ReflectionMethod(RateLimiter::class, 'keys'))->invoke($limiter, 'key')[0];
+        $ttl = $store === 'redis'
+            // The Redis client of Phalcon adds the prefix itself.
+            ? $this->di->getShared(Services::CACHE . '.redis')->getAdapter()->getAdapter()->ttl($counter)
+            : (apcu_key_info($this->prefix . $counter)['ttl'] ?? 0);
 
-        $this->assertEquals($excepted, $rateLimiter->availableIn('', 1));
+        $this->assertGreaterThan(0, $ttl, 'The counter expires with the window.');
+        $this->assertLessThanOrEqual(60, $ttl);
+        $limiter->clear('key');
     }
 
-    /**
-     * @return array
-     */
-    public function dataRetriesLeft()
+    private function limiter(string $store, bool $real = false): RateLimiter
     {
-        return [
-            [1, 10, 9],
-            [10, 10, 0],
-            [5, 10, 5],
-            [0, 10, 10],
-        ];
+        $this->requireStore($store);
+
+        return new RateLimiter('name', $store, $real ? null : fn(): int => $this->now);
     }
 
-    /**
-     * @dataProvider dataRetriesLeft
-     *
-     * @param $cache
-     * @param $max
-     * @param $excepted
-     */
-    public function testRetriesLeft($cache, $max, $excepted)
+    private function requireStore(string $store): void
     {
-        $mock = $this->mockService(Services::CACHE, CacheStrategy::class, true);
-
-        $mock->expects($this->any())
-            ->method('get')
-            ->willReturn($cache);
-
-        $rateLimiter = new RateLimiter('testing');
-
-        $this->assertEquals($excepted, $rateLimiter->retriesLeft('', $max, 1));
-    }
-
-    public function testHit()
-    {
-        $mock = $this->mockService(Services::CACHE, CacheStrategy::class, true);
-
-        $mock->expects($this->any())
-            ->method('exists')
-            ->will($this->returnValue(false));
-
-        $mock->expects($this->any())
-            ->method('save')
-            ->withConsecutive(
-                ['testing', 0],
-                ['testing', 1]
-            );
-
-        $mock->expects($this->any())
-            ->method('get')
-            ->willReturn(0);
-
-        $rateLimiter = new RateLimiter('testing');
-
-        $this->assertEquals(1, $rateLimiter->hit('', 1));
-    }
-
-    public function testTooManyAttempts()
-    {
-        $mock = $this->mockService(Services::CACHE, CacheStrategy::class, true);
-
-        $mock->expects($this->any())
-            ->method('exists')
-            ->will($this->onConsecutiveCalls(true, false, false));
-
-        $mock->expects($this->any())
-            ->method('get')
-            ->will($this->onConsecutiveCalls(0, 10));
-
-        $mock->expects($this->once())
-            ->method('save');
-
-        $mock->expects($this->once())
-            ->method('delete');
-
-        $rateLimiter = new RateLimiter('testing');
-
-        $this->assertEquals(true, $rateLimiter->tooManyAttempts('', 10, 1));
-
-        $this->assertEquals(false, $rateLimiter->tooManyAttempts('', 10, 1));
-
-        $this->assertEquals(true, $rateLimiter->tooManyAttempts('', 10, 1));
+        if ($store === 'apcu' && (!extension_loaded('apcu') || !apcu_enabled())) {
+            $this->markTestSkipped('APCu is not available.');
+        }
+        if ($store === 'redis' && (!extension_loaded('redis') || !$this->di->has(Services::CACHE . '.redis'))) {
+            $this->markTestSkipped('No Redis server (REDIS_HOST) or no redis extension.');
+        }
     }
 }

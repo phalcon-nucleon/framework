@@ -1,18 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Interfaces\Auth;
 
-use Phalcon\Acl\Role;
+use Phalcon\Acl\RoleInterface;
 
-/**
- * interface Authorizable
- *
- *  @package Neutrino\Auth
- */
 interface Authorizable
 {
-    /**
-     * @return Role
-     */
-    public function getRole();
+    public function getRole(): RoleInterface;
 }

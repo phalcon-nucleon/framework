@@ -238,6 +238,54 @@ The `session` service is a `Phalcon\Session\Manager` (also registered as `Phalco
 
 `flash` and `flashSession` use the container's `escaper`; `flashSession` reads the session when a message is stored or output.
 
+## Authentication
+
+The `auth` service is a `Phalcon\Auth\Manager` (also registered as `Phalcon\Auth\Manager::class`): `Neutrino\Auth\Manager` is removed.
+
+```php
+// 1.3: config/auth.php (and session.id)
+'auth' => ['model' => App\Models\User::class],
+
+// 2.0: still accepted, converted to the guard below
+'auth' => [
+    'guards' => [
+        'web' => [
+            'type'    => 'session',
+            'default' => true,
+            'adapter' => ['name' => 'model', 'options' => ['model' => App\Models\User::class]],
+            'options' => ['name' => 'auth', 'rememberName' => 'remember_me', 'rememberTtl' => 1209600],
+        ],
+    ],
+    'access' => [], // optional: Phalcon\Auth access classes
+],
+```
+
+- `Auth::user()`, `check()`, `guest()`, `attempt()`, `login()`, `loginUsingId()`, `logout()` remain on the Facade. `attempt()` returns a `bool` (1.3: the user or `null`): read the user with `Auth::user()`. `guest()`, `login()` and `loginUsingId()` are Facade methods: on the service, use `!$auth->check()` and `$auth->guard()->login($user)`. New: `Auth::id()`, `validate()`, `guard()`.
+- The user model implements `Neutrino\Interfaces\Auth\Authenticable` (`Phalcon\Contracts\Auth\AuthUser` and `AuthRemember`). With `Foundation\Auth\User` or the `Neutrino\Auth\Authenticable` trait, nothing to do. The trait methods are typed; `getRememberToken()` / `setRememberToken()` are replaced by `getRememberToken(string $token)` and `createRememberToken(string $token, ?string $userAgent)` (contracts of `Phalcon\Auth`) and `forgetRememberToken()`.
+- The session keeps the 1.3 identifier (`getAuthIdentifierName()`, `email` by default) under the same key (`session.id`): open sessions stay valid.
+- **Remember-me**: the token is stored hashed (SHA-256), bound to the user agent, revoked at logout, and the cookie lasts one year by default (`rememberTtl`, 1.3: 100 years), `HttpOnly` and `Secure` (`rememberSecure`). The cookie format changes: the 1.3 remember-me cookies are ignored, these users log in again. The `remember_token` column holds 64 characters. One token per user, as in 1.3; for one token per device, implement `AuthRemember` with a table of tokens.
+- `Authenticate` answers 401, or redirects: `'middleware' => [Authenticate::class => '/login']`.
+
+## CSRF
+
+`Http\Middleware\Csrf` checks POST, PUT, PATCH and DELETE only. The token is read from the `X-CSRF-Token` header or the `_csrf_token` field of the body (form, or JSON), no longer from the query string: GET and DELETE requests carrying the token in the URL must send it in the header. Render the token with `Csrf::token()`, not `$this->security->getToken()`: Phalcon 5 creates a new token at the first `getToken()` of each request, which would invalidate the forms open in other tabs. `Csrf::token()` reuses the token of the session, valid for the session (Phalcon 5 would also destroy it after each check); `security.csrf.rotate = true` renews it after each valid request. `Csrf::FIELD` and `Csrf::HEADER` hold the names.
+
+## Rate limiting
+
+`Security\RateLimiter` counts in a fixed window: the first hit opens the window for `$decaySeconds`, later hits no longer extend it (1.3: each hit restarted the lifetime, a client that kept trying was never released). The counters go to the cache store `security.throttle.store`, else the default store; the increment is atomic on Redis, APCu and Memcached.
+
+| 1.3 | 2.0 |
+|---|---|
+| `new RateLimiter($name)` | `new RateLimiter(string $name = '', ?string $store = null)` |
+| `tooManyAttempts($key, $max, $decay)` | `tooManyAttempts(string $key, int $max)` |
+| `attempts($key, $decay)` | `attempts(string $key)` |
+| `retriesLeft($key, $max, $decay)` | `retriesLeft(string $key, int $max)` |
+| `availableIn($key, $decay)` | `availableIn(string $key)` |
+| `hit($key, $decay)` | `hit(string $key, int $decaySeconds = 60)` |
+| | `attempt(string $key, int $max, int $decaySeconds = 60): ?int`: counts and checks after the increment, safe under concurrency |
+
+`Middleware\Throttle` subclasses declare `protected string $name`; the request signature is an `xxh128` hash (1.3: `crc32`), so the 1.3 counters are not read again.
+
 ## Tests (`Neutrino\Test`)
 
 PHPUnit 11 is required: `setUp(): void`, `tearDown(): void`, `setUpBeforeClass(): void`, attributes instead of annotations.

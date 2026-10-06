@@ -19,7 +19,7 @@ use UnexpectedValueException;
  * - `'middleware' => [Throttle::class => [10, 60], Ajax::class]` (constructor parameters)
  *
  * @property-read \Neutrino\Foundation\Http\Kernel $application
- * @property-read \Neutrino\Auth\Manager           $auth
+ * @property-read \Phalcon\Auth\Manager           $auth
  * @property-read \Phalcon\Config\Config           $config
  */
 abstract class Controller extends \Phalcon\Mvc\Controller

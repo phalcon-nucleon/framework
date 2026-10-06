@@ -21,7 +21,6 @@ parameters:
         - src/Neutrino/Database/Schema/Dialect/*                     # E11
         - src/Neutrino/Debug/DebugEventsManagerWrapper.php           # E12
         - src/Neutrino/Error/Error.php                               # E12
-        - src/Neutrino/Exceptions/TokenMismatchException.php         # E8
         - src/Neutrino/HttpClient/*                                  # E13
         - src/Neutrino/Repositories/Exceptions/TransactionException.php  # E10
     # Phalcon classes come from the extension when it is loaded; the stubs

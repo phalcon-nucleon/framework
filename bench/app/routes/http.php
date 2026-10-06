@@ -21,3 +21,10 @@ Router::addGet('/hello-mw3', [
     'action'     => 'hello',
     'middleware' => [\Bench\Middlewares\Noop::class, \Bench\Middlewares\Noop::class, \Bench\Middlewares\Noop::class],
 ]);
+
+Router::addGet('/hello-throttle', [
+    'namespace'  => 'Bench\Controllers',
+    'controller' => 'index',
+    'action'     => 'hello',
+    'middleware' => [\Neutrino\Http\Middleware\ThrottleRequest::class => [1000, 60]],
+]);

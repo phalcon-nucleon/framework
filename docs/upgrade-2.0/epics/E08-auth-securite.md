@@ -1,6 +1,6 @@
 # E8 — Auth & sécurité
 
-**Statut** : Rédigé · **Dépend de** : E4, E7 · **Bloque** : —
+**Statut** : Terminé · **Dépend de** : E4, E7 · **Bloque** : —
 
 ## Objectif
 
@@ -110,3 +110,42 @@ En revanche, **il ne fait pas de limitation de débit**. `RateLimiter` et les mi
 - Les suites `Auth`, `Security` et `Middleware` (Throttle et Csrf compris) sont activées et passent, y compris sur le job Phalcon 6.
 - Chaque faiblesse listée dans l'état des lieux est couverte par un test qui échoue sur l'implémentation 1.3.
 - Aucun service d'authentification n'est construit au boot (vérifié par test).
+
+## Étude S1 · `Phalcon\Auth` (conclusion : adoption)
+
+Lue dans le code de `Phalcon\Auth` (paquet PHP de Phalcon 6, même logique que la 5.22) et vérifiée par les tests.
+
+1. **Jeton remember-me.** `Phalcon\Auth` génère le jeton (60 caractères hexadécimaux aléatoires) mais délègue son stockage au modèle (`AuthRemember::createRememberToken()` / `getRememberToken()`). Le hachage est donc à notre charge : le trait `Authenticable` stocke `sha256(jeton, user agent)`, compare avec `hash_equals()`, et révoque la colonne. Le guard lie le jeton au user agent (comparé au user agent courant), le révoque au logout (`RememberToken::delete()`), régénère l'id de session à la connexion et à la déconnexion. Cookie : `HttpOnly`, `Secure` par défaut, un an par défaut. Un cookie mal formé est ignoré (décodage JSON protégé). Le modèle adapter brûle un hachage quand l'utilisateur n'existe pas (temps constant).
+2. **Coût.** Le `Manager` n'est construit qu'à la première utilisation du service `auth` : environ 75 µs la première fois dans un processus (classes Zephir initialisées à froid), 20 µs ensuite. Il construit aussi la session, la requête et les cookies, que le guard prend dans le conteneur : la session démarre avec l'authentification.
+3. **`Phalcon\Di\Di` sans autowiring.** `ManagerFactory` reçoit le conteneur ; le guard `session` y lit `request`, `cookies` et `session` sous leur nom court (ou leur interface). Rien à préenregistrer de plus que nos providers.
+4. **Middlewares.** Notre `Authenticate` appelle `check()` ; les listeners d'accès de Phalcon (`AuthDispatcherListener`) restent utilisables à côté, configurés par `auth.access`.
+5. **Phalcon 6.** Présent. L'ORM de Phalcon 6 a besoin du paquet séparé `phalcon/phql` (ajouté au job CI).
+
+Écart avec la décision initiale : l'identifiant reste celui de la 1.3 (`getAuthIdentifierName()`, `email` par défaut), utilisé comme `idColumn` du modèle adapter. Les sessions ouvertes avant la migration restent donc valides ; seuls les cookies remember-me de la 1.3 (format `id|jeton`) sont ignorés.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Étude | Fait | Adoption, voir plus haut. |
+| S2 · Provider, Facade, modèle | Fait | Provider `Auth` : `ManagerFactory` sur `auth.guards` / `auth.access` ; forme 1.3 (`auth.model`, `session.id`) convertie en guard `web` avec le cookie `remember_me` ; `idColumn` déduit du modèle. Facade : méthodes du `Manager` plus `guest()`, `login()`, `loginUsingId()` (clé primaire lue dans les métadonnées et liée : `findFirst($id)` lirait une chaîne comme des conditions PHQL). `Authenticable` et `Foundation\Auth\User` implémentent `AuthUser` et `AuthRemember` ; `Neutrino\Auth\RememberToken`. `Neutrino\Auth\Manager` supprimé. Tests de bout en bout sur SQLite en mémoire (vraie table, vrai modèle) avec une session en mémoire. `Foundation\Auth\User` étend `Neutrino\Model`, porté en E10 : les tests utilisent un modèle Phalcon avec le trait. |
+| S3 · `Authenticate` | Fait | 401, ou redirection (`[Authenticate::class => '/login']`). Le service `auth` n'est construit que sur les routes protégées (testé). |
+| S4 · CSRF | Fait | POST, PUT, PATCH, DELETE ; en-tête `X-CSRF-Token`, champ `_csrf_token` (formulaire ou JSON) ; jeton gardé pour la session (`security.csrf.rotate`). Le middleware ne crée plus de jeton sur les requêtes sûres (la session ne démarre pas). `Csrf::token()` rend le jeton de la session : `getToken()` de Phalcon 5 en crée un nouveau à chaque requête, ce qui invaliderait les formulaires des autres onglets (testé). `TokenMismatchException` typée. |
+| S5 · `RateLimiter` et Throttle | Fait | Fenêtre fixe (fin de fenêtre stockée, donc indépendante du respect du TTL par l'adapter : `memory` n'expire pas), clés hachées (`xxh128`, compatibles PSR-16), incrément atomique Redis / APCu / Memcached, store dédié. `RateLimiter::attempt()` décide sur le compte après l'incrément : sur un store atomique, des requêtes concurrentes ne dépassent pas la limite (20 processus lancés ensemble pour 5 tentatives restantes : exactement 5 acceptées, contre 18 en vérifiant avant de compter). Un compteur recréé par l'incrément (après `resetAttempts()` ou une éviction) reprend l'expiration de la fenêtre. Throttle : signature `xxh128`, en-têtes calculés avec le résultat de `attempt()` (moins d'allers-retours vers le store). Test de concurrence : 4 processus × 50 hits en parallèle sur Redis ajoutent exactement 200 au compteur. |
+
+Suites `Auth` et `Security` activées, `CsrfTest` et `ThrottleTest` réintégrés dans `Http` et `Middleware`. 644 tests verts sur Phalcon 5.22 et 6 (avec `phalcon/phql`). Baseline PHPStan : 52 entrées en moins.
+
+Faiblesses de la 1.3 couvertes par un test qui échoue sur la 1.3 : jeton haché (`testRememberMe`), révocation au logout (`testLogoutRevokesTheRememberToken`), durée du cookie (`testRememberMe`), cookie mal formé (`testMalformedRememberCookie`), interface plutôt que `Foundation\Auth\User` (le modèle des tests n'en hérite pas), signature (`hash('xxh128')`, `testRoutesAreCountedSeparately`), fenêtre fixe (`testFixedWindow`), API PSR-16 (`RateLimiterTest`), CSRF sur GET et jeton détruit (`testSafeMethodsAreNotChecked`, `testTokenStaysValidForSuccessiveRequests`).
+
+### Mesures
+
+`bench/compare.sh --optimize`, 150 itérations, requête complète avec `ThrottleRequest` (store `memory`) :
+
+| Scénario | 1.3 | 2.0 |
+|---|---|---|
+| `http` | 232 µs | 295 µs |
+| `http-throttle` | 430 µs | 471 µs |
+| Surcoût du throttle | +198 µs | **+176 µs** |
+
+Sur Redis (2.x seul, autoloader simple) : environ +480 µs de plus que sur `memory`, surtout la connexion à Redis ouverte par chaque processus du bench ; en PHP-FPM, `persistent => true` la réutilise.
+

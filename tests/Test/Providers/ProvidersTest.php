@@ -82,6 +82,7 @@ final class ProvidersTest extends ProvidersTestCase
             'session' => ['adapter' => 'noop'],
             'log'     => ['adapters' => ['noop']],
             'app'     => ['key' => 'key'],
+            'auth'    => ['model' => \Neutrino\Foundation\Auth\User::class],
         ]);
 
         $kernel = (new Bootstrap($config))->make(StubKernelWithInfrastructure::class);
@@ -89,7 +90,7 @@ final class ProvidersTest extends ProvidersTestCase
 
         $di = $kernel->getDI();
 
-        foreach ([Services::CACHE, 'cache.memory', 'cache.file', Services::SESSION, Services::LOGGER, Services::FLASH_SESSION, Services::CRYPT, Services::SECURITY, Services::FILTER, Services::ESCAPER, Services::ANNOTATIONS] as $service) {
+        foreach ([Services::CACHE, 'cache.memory', 'cache.file', Services::SESSION, Services::LOGGER, Services::FLASH_SESSION, Services::CRYPT, Services::SECURITY, Services::FILTER, Services::ESCAPER, Services::ANNOTATIONS, Services::AUTH] as $service) {
             $this->assertTrue($di->has($service), $service);
             $this->assertFalse($di->getService($service)->isResolved(), "$service is built at boot.");
         }
@@ -109,6 +110,7 @@ final class StubKernelWithInfrastructure extends HttpKernel
         Providers\Filter::class,
         Providers\Escaper::class,
         Providers\Annotations::class,
+        Providers\Auth::class,
     ];
 
     public function registerRoutes(): void {}

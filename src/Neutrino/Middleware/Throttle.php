@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Middleware;
 
 use Neutrino\Constants\Services;
@@ -9,173 +11,122 @@ use Neutrino\Interfaces\Middleware\AfterInterface;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Neutrino\Security\RateLimiter;
 use Phalcon\Events\Event;
+use RuntimeException;
 
 /**
- * Class Throttle
+ * Limits the requests of a client to `$max` per window of `$decay` seconds ({@see RateLimiter}), and sends the
+ * `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `Retry-After` headers.
  *
- * @package Neutrino\Middleware
+ * A request is identified by its route (module, namespace, controller, action), host, URI and client address.
  */
 abstract class Throttle extends ControllerMiddleware implements BeforeInterface, AfterInterface
 {
     /**
-     * Name of the throttle limiter.
-     *
-     * @var string
+     * Name of the rate limiter: separates the counters of each kind of throttle.
      */
-    protected $name;
+    protected string $name;
+
+    private ?RateLimiter $limiter = null;
+
+    private ?string $signature = null;
 
     /**
-     * Number of max request by $decay
-     *
-     * @var int
+     * Requests left, known after the hit of this request: the headers do not read the counter again.
      */
-    private $max;
+    private ?int $remaining = null;
 
     /**
-     * Decay time (seconds)
-     *
-     * @var int
+     * @param int $max   Requests allowed per window
+     * @param int $decay Length of the window, in seconds
      */
-    private $decay;
-
-    /**
-     * The Rate Limiter
-     *
-     * @var \Neutrino\Security\RateLimiter
-     */
-    private $limiter;
-
-    /**
-     * Throttle constructor.
-     *
-     * @param string $controllerClass
-     * @param int    $max   Number of max request by $decay
-     * @param int    $decay Decay time (seconds)
-     */
-    public function __construct($controllerClass, $max, $decay = 60)
+    public function __construct(string $controllerClass, private readonly int $max, private readonly int $decay = 60)
     {
         parent::__construct($controllerClass);
 
-        if (!isset($this->name)) {
-            throw new \RuntimeException(static::class . '->name is empty.');
+        if (!isset($this->name) || $this->name === '') {
+            throw new RuntimeException(static::class . '->name is empty.');
         }
-
-        $this->max = $max;
-        $this->decay = $decay;
     }
 
-    /**
-     * Called before the execution of handler
-     *
-     * @param \Phalcon\Events\Event|mixed $event
-     * @param \Phalcon\Dispatcher|mixed   $source
-     * @param mixed|null                  $data
-     *
-     * @throws \Exception
-     * @return bool
-     */
-    public function before(Event $event, $source, $data = null)
+    public function before(Event $event, object $source, mixed $data = null)
     {
         $signature = $this->resolveRequestSignature();
-
         $limiter = $this->getLimiter();
 
-        if ($limiter->tooManyAttempts($signature, $this->max, $this->decay)) {
-            $this->addHeader($signature, true);
+        // The count after the increment decides: concurrent requests cannot all pass a check made before it.
+        $this->remaining = $limiter->attempt($signature, $this->max, $this->decay);
+
+        if ($this->remaining === null) {
+            $this->addHeaders($signature, true);
 
             return false;
         }
 
-        $limiter->hit($signature, $this->decay);
+        $this->addHeaders($signature, false);
 
-        $this->addHeader($this->resolveRequestSignature(), false);
+        return true;
+    }
+
+    public function after(Event $event, object $source, mixed $data = null)
+    {
+        $this->addHeaders($this->resolveRequestSignature(), false);
 
         return true;
     }
 
     /**
-     * Called after the execution of handler
-     *
-     * @param \Phalcon\Events\Event|mixed $event
-     * @param \Phalcon\Dispatcher|mixed   $source
-     * @param mixed|null                  $data
-     *
-     * @throws \Exception
-     * @return bool
+     * Signature of the request: module, namespace, controller, action | host | URI | client address.
      */
-    public function after(Event $event, $source, $data = null)
+    protected function resolveRequestSignature(): string
     {
-        $this->addHeader($this->resolveRequestSignature(), false);
+        if ($this->signature !== null) {
+            return $this->signature;
+        }
 
-        return true;
-    }
-
-    /**
-     * Resolve the request signature based on :
-     *  Module : Namespace : Controller : Action | HOST | URI | ClientIP
-     *
-     * @return string
-     */
-    protected function resolveRequestSignature()
-    {
         /** @var \Phalcon\Http\Request $request */
         $request = $this->getDI()->getShared(Services::REQUEST);
         /** @var \Phalcon\Mvc\Router $router */
         $router = $this->getDI()->getShared(Services::ROUTER);
 
-        return crc32(
-            $router->getModuleName() .
-            ':' . $router->getNamespaceName() .
-            ':' . $router->getControllerName() .
-            ':' . $router->getActionName() .
-            '|' . $request->getHttpHost() .
-            '|' . $request->getURI() .
-            '|' . $request->getClientAddress()
-        );
+        return $this->signature = hash('xxh128', implode("\0", [
+            $router->getModuleName(),
+            $router->getNamespaceName(),
+            $router->getControllerName(),
+            $router->getActionName(),
+            $request->getHttpHost(),
+            $request->getURI(),
+            (string) $request->getClientAddress(),
+        ]));
     }
 
-    /**
-     * Add the limit header information to the response.
-     *
-     * @param string $signature
-     * @param bool   $tooManyAttempts Bind specific values when there are too many attempts
-     */
-    protected function addHeader($signature, $tooManyAttempts = false)
+    protected function addHeaders(string $signature, bool $tooManyAttempts): void
     {
         /** @var \Phalcon\Http\Response $response */
         $response = $this->getDI()->getShared(Services::RESPONSE);
-
         $limiter = $this->getLimiter();
 
-        $response->setHeader('X-RateLimit-Limit', $this->max);
-        if ($tooManyAttempts) {
-            $msg = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
+        $response->setHeader('X-RateLimit-Limit', (string) $this->max);
 
-            $response
-                ->setContent($msg)
-                ->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $msg)
-                ->setHeader('X-RateLimit-Remaining', 0)
-                ->setHeader(
-                'Retry-After',
-                $limiter->availableIn($signature, $this->decay)
-            );
-        } else {
-            $response->setHeader(
-                'X-RateLimit-Remaining',
-                $limiter->retriesLeft($signature, $this->max, $this->decay)
-            );
+        if (!$tooManyAttempts) {
+            $response->setHeader('X-RateLimit-Remaining', (string) ($this->remaining ?? $limiter->retriesLeft($signature, $this->max)));
+
+            return;
         }
+
+        $message = (string) StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
+
+        $response
+            ->setContent($message)
+            ->setStatusCode(StatusCode::TOO_MANY_REQUESTS, $message)
+            ->setHeader('X-RateLimit-Remaining', '0')
+            ->setHeader('Retry-After', (string) $limiter->availableIn($signature));
     }
 
-    /**
-     * Bind and return the limiter instance.
-     *
-     * @return \Neutrino\Security\RateLimiter
-     */
-    protected function getLimiter()
+    protected function getLimiter(): RateLimiter
     {
-        if (!isset($this->limiter)) {
-            $this->limiter = $this->getDI()->get(RateLimiter::class, [$this->name]);
+        if ($this->limiter === null) {
+            $this->limiter = new RateLimiter($this->name);
+            $this->limiter->setDI($this->getDI());
         }
 
         return $this->limiter;

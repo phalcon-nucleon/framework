@@ -13,6 +13,7 @@ use Phalcon\Di\DiInterface;
 use Phalcon\Http\ResponseInterface;
 use Phalcon\Mvc\DispatcherInterface;
 use Phalcon\Mvc\ViewInterface;
+use Throwable;
 
 /**
  * Answers a fatal error with a 500 page (HTTP kernel).
@@ -22,7 +23,8 @@ use Phalcon\Mvc\ViewInterface;
  * - an error view: `error.view.path` and `error.view.file`;
  * - "Whoops. Something went wrong.".
  *
- * The controller (in its params) and the view receive the error as `error`.
+ * The controller (in its params) and the view receive the error as `error`. When the error page fails too,
+ * the default message is sent, in 500 as well.
  */
 final class View implements Writable
 {
@@ -40,19 +42,38 @@ final class View implements Writable
         }
 
         $di = Di::getDefault();
+        $level = ob_get_level();
 
+        try {
+            $content = $this->render($di, $error);
+        } catch (Throwable $e) {
+            // The error page failed too (layout that does not compile, error controller that queries a database
+            // down…): the default message, still in 500.
+            while (ob_get_level() > $level) {
+                ob_end_clean();
+            }
+
+            error_log('Error page failed: ' . $e::class . ': ' . $e->getMessage() . ' in ' . $e->getFile() . '(' . $e->getLine() . ')');
+
+            $content = self::DEFAULT_MESSAGE;
+        }
+
+        $this->send($di, $content);
+    }
+
+    /**
+     * The content of the error page.
+     */
+    private function render(?DiInterface $di, Error $error): string
+    {
         if (Debugger::isEnabled()) {
-            $this->send($di, Debugger::renderErrorPage($error));
-
-            return;
+            return Debugger::renderErrorPage($error);
         }
 
         $view = $di !== null && $di->has(Services::VIEW) ? $di->getShared(Services::VIEW) : null;
 
         if ($di === null || !$view instanceof ViewInterface) {
-            $this->send($di, self::DEFAULT_MESSAGE);
-
-            return;
+            return self::DEFAULT_MESSAGE;
         }
 
         $config = $di->has(Services::CONFIG) ? $di->getShared(Services::CONFIG) : null;
@@ -76,7 +97,7 @@ final class View implements Writable
 
         $view->finish();
 
-        $this->send($di, (string) $view->getContent());
+        return (string) $view->getContent();
     }
 
     private function send(?DiInterface $di, string $content): void

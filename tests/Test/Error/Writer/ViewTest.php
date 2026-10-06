@@ -110,6 +110,32 @@ final class ViewTest extends TestCase
         $this->assertSent('error controller');
     }
 
+    public function testFailingErrorController(): void
+    {
+        $this->config(['dispatcher' => ['namespace' => 'App\Http\Controllers', 'controller' => 'errors', 'action' => 'index']]);
+        $view = $this->bufferedView();
+        $view->expects($this->never())->method('finish');
+        $dispatcher = $this->mockService(Services::DISPATCHER, Dispatcher::class);
+        $dispatcher->method('dispatch')->willThrowException(new \RuntimeException('database down'));
+
+        $log = $this->handleWithLog(Error::fromError(E_ERROR, 'msg'));
+
+        $this->assertSent(View::DEFAULT_MESSAGE);
+        $this->assertStringContainsString('Error page failed: RuntimeException: database down in ', $log);
+    }
+
+    public function testFailingErrorView(): void
+    {
+        $this->config(['view' => ['path' => 'errors', 'file' => 'http500']]);
+        $view = $this->bufferedView();
+        $view->method('render')->willThrowException(new \Phalcon\Mvc\View\Exception('layout does not compile'));
+
+        $log = $this->handleWithLog(Error::fromException(new \RuntimeException('boom')));
+
+        $this->assertSent(View::DEFAULT_MESSAGE);
+        $this->assertStringContainsString('Error page failed: Phalcon\Mvc\View\Exception: layout does not compile', $log);
+    }
+
     public function testDebugErrorPage(): void
     {
         Debugger::register($this->app);
@@ -141,6 +167,45 @@ final class ViewTest extends TestCase
         $view->expects($this->once())->method('finish');
 
         return $view;
+    }
+
+    /**
+     * A view whose `start()` opens an output buffer, as Phalcon's.
+     *
+     * @return MvcView&\PHPUnit\Framework\MockObject\MockObject
+     */
+    private function bufferedView(): MvcView
+    {
+        $view = $this->mockService(Services::VIEW, MvcView::class);
+        $view->expects($this->once())->method('start')->willReturnCallback(static function () use ($view): MvcView {
+            ob_start();
+            echo 'partial page';
+
+            return $view;
+        });
+
+        return $view;
+    }
+
+    /**
+     * Handles the error, and returns what was written to the PHP log. Asserts that the output buffers opened
+     * by the error page are closed.
+     */
+    private function handleWithLog(Error $error): string
+    {
+        $log = self::$cache_dir . 'php.log';
+        $previous = ini_set('error_log', $log);
+        $level = ob_get_level();
+
+        try {
+            (new View())->handle($error);
+        } finally {
+            ini_set('error_log', (string) $previous);
+        }
+
+        $this->assertSame($level, ob_get_level());
+
+        return (string) file_get_contents($log);
     }
 
     private function assertSent(string $content): void

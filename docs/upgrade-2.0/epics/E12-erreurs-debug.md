@@ -113,4 +113,6 @@ Porter la gestion des erreurs sur PHP 8.3 / Phalcon 5 sans en perdre aucune (y c
 
 Mesures (`bench`, kernel en production, `APP_DEBUG` faux) : l'enregistrement du handler ne coûte pas de temps mesurable (±1 % selon les passes) et environ 2 Kio de mémoire ; la condition sur `APP_ENV` compare la valeur littérale pour ne pas charger `Constants\Env` à chaque requête (seul fichier chargé en plus, relevé par `get_included_files()`).
 
-Suites `Error` et `Debug` activées (92 et 25 tests). 1 178 tests verts sur Phalcon 5.22 ; suites `Error`, `Debug`, `Support` et `Database` vertes sur Phalcon 6 (requêtes `php-cgi` comprises). Baseline PHPStan : 300 entrées en moins.
+Revue de code : quand la page d'erreur échoue elle aussi (contrôleur d'erreur ou vue qui lève une exception, que `Handler` intercepte désormais), `View` referme les tampons ouverts, journalise l'échec et envoie le message par défaut en 500 (la réponse partait vide en 200).
+
+Suites `Error` et `Debug` activées (94 et 25 tests). 1 180 tests verts sur Phalcon 5.22 ; suites `Error`, `Debug`, `Support` et `Database` vertes sur Phalcon 6 (requêtes `php-cgi` comprises). Baseline PHPStan : 300 entrées en moins.

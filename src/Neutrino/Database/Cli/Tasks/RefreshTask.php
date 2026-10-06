@@ -1,66 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Cli\Tasks;
 
-/**
- * Class ResfreshTask
- *
- * @package Neutrino\Database\Cli\Tasks
- */
-class RefreshTask extends BaseTask
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
+
+final class RefreshTask extends BaseTask
 {
-    /**
-     * @description Reset and re-run all migrations.
-     *
-     * @option      -f, --force : Force the operation to run when in production.
-     * @option      --path : The path of migrations files to be executed.
-     * @option      --step : The number of migrations to be reverted & re-run.
-     * @option      --pretend : Dump the SQL queries that would be run.
-     */
-    public function mainAction()
+    #[Description('Reset (or roll back) and re-run the migrations.')]
+    #[Option('--database={name}', 'Connection of the migrations that do not declare theirs.')]
+    #[Option('-f, --force', 'Force the operation to run in production.')]
+    #[Option('--path={path}', 'Path of the migrations, relative to the application.')]
+    #[Option('--step={n}', 'Number of migrations to roll back and re-run (all otherwise).')]
+    public function mainAction(): void
     {
         if (!$this->confirmToProceed()) {
             return;
         }
 
-        $step = $this->getOption('step') ?: 0;
+        $this->prepareStorage();
 
-        if ($step > 0) {
-            $this->runRollback();
-        } else {
-            $this->runReset();
-        }
+        $paths = $this->getMigrationPaths();
+        $migrator = $this->migrator();
+        $steps = RollbackTask::steps($this->getOption('step'));
 
-        $this->runMigrate();
-    }
+        $steps > 0 ? $migrator->rollback($paths, ['step' => $steps]) : $migrator->reset($paths);
+        $this->writeNotes();
 
-    /**
-     * Run the rollback command.
-     *
-     * @return void
-     */
-    protected function runRollback()
-    {
-        $this->callTask(RollbackTask::class, 'main', $this->arguments, $this->options);
-    }
-
-    /**
-     * Run the reset command.
-     *
-     * @return void
-     */
-    protected function runReset()
-    {
-        $this->callTask(ResetTask::class, 'main', $this->arguments, $this->options);
-    }
-
-    /**
-     * Run the migrate command.
-     *
-     * @return void
-     */
-    protected function runMigrate()
-    {
-        $this->callTask(MigrateTask::class, 'main', $this->arguments, $this->options);
+        $migrator->run($paths);
+        $this->writeNotes();
     }
 }

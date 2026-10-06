@@ -174,6 +174,26 @@ final class DatabaseProvidersTest extends DatabaseTestCase
         $this->assertSame($manager, $db->getEventsManager(), 'The events manager is kept.');
     }
 
+    public function testPretendRunningTheReads(): void
+    {
+        $db = $this->db();
+        $db->execute("INSERT INTO plain (name) VALUES ('a')");
+        $read = null;
+
+        $pretended = Db::pretend(static function () use ($db, &$read): void {
+            $read = $db->tableExists('plain');
+            $db->describeColumns('plain');
+            $db->fetchColumn('SELECT COUNT(*) FROM plain');
+            $db->execute('PRAGMA foreign_keys = OFF');
+            $db->execute('DELETE FROM plain');
+        }, null, true);
+
+        $this->assertTrue($read, 'The reads of the schema run.');
+        // Any other SELECT may change the database (setval(), locks): it is only listed.
+        $this->assertSame(['SELECT COUNT(*) FROM plain', 'PRAGMA foreign_keys = OFF', 'DELETE FROM plain'], $pretended);
+        $this->assertSame(1, (int) $db->fetchColumn('SELECT COUNT(*) FROM plain'));
+    }
+
     public function testGetQueriesRestoresAConnectionWithoutEventsManager(): void
     {
         $this->container();

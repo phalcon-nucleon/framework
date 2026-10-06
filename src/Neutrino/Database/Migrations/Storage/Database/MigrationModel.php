@@ -1,38 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Migrations\Storage\Database;
 
+use Neutrino\Constants\Services;
 use Neutrino\Model;
-use Phalcon\Db\Column;
+use Neutrino\Model\Attribute\Column;
+use Neutrino\Model\Attribute\Primary;
+use Phalcon\Config\Config;
+use Phalcon\Db\Column as Type;
 
 /**
- * Class MigrationModel
- *
- * @package Neutrino\Database\Migrations\Storage\Database
+ * A row of the `migrations` table, on the `migrations.connection` connection (the default one otherwise).
  */
 class MigrationModel extends Model
 {
-    public $id;
+    #[Primary]
+    public ?int $id = null;
 
-    public $migration;
+    #[Column(Type::TYPE_VARCHAR)]
+    public ?string $migration = null;
 
-    public $batch;
+    #[Column(Type::TYPE_INTEGER)]
+    public ?int $batch = null;
 
-    /**
-     * Initializes metaDatas & columnsMap if they are not.
-     */
     public function initialize()
     {
         parent::initialize();
 
         $this->setSource('migrations');
 
-        $this->primary('id', Column::TYPE_INTEGER, [
-            'unsigned'      => true,
-            'autoIncrement' => true
-        ]);
+        $config = $this->getDI()->has(Services::CONFIG) ? $this->getDI()->getShared(Services::CONFIG) : null;
+        $connection = $config instanceof Config ? $config->path('migrations.connection') : null;
 
-        $this->column('migration', Column::TYPE_VARCHAR);
-        $this->column('batch', Column::TYPE_INTEGER);
+        if (is_string($connection) && $connection !== '') {
+            $this->setConnectionService(Services::DB . '.' . $connection);
+        }
     }
 }

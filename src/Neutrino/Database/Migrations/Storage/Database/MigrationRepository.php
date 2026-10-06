@@ -1,13 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Migrations\Storage\Database;
 
 use Neutrino\Repositories\Repository;
 
 /**
- * Class MigrationRepository
- *
- * @package     Neutrino\Database\Migrations\Storage\Database
+ * Queries of the `migrations` table.
  */
 class MigrationRepository extends Repository
 {

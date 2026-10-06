@@ -72,7 +72,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | E8 | [Auth & sécurité](epics/E08-auth-securite.md) | Terminé | E4, E7 |
 | E9 | [Vues & Volt](epics/E09-vues.md) | Terminé | E4 |
 | E10 | [Données](epics/E10-donnees.md) | Terminé | E7 |
-| E11 | [Migrations](epics/E11-migrations.md) | Rédigé | E6, E10 |
+| E11 | [Migrations](epics/E11-migrations.md) | Terminé | E6, E10 |
 | E12 | [Erreurs & Debug](epics/E12-erreurs-debug.md) | Rédigé | E4 |
 | E13 | [HttpClient v2](epics/E13-httpclient.md) | Rédigé | E0 |
 | E14 | [Process](epics/E14-process.md) | Rédigé | E0 |

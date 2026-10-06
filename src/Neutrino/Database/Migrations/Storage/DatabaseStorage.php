@@ -1,163 +1,130 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Migrations\Storage;
 
-use Neutrino\Constants\Services;
 use Neutrino\Database\Migrations\Storage\Database\MigrationModel;
 use Neutrino\Database\Migrations\Storage\Database\MigrationRepository;
 use Neutrino\Database\Schema\Blueprint;
 use Neutrino\Database\Schema\Builder;
-use Neutrino\Support\Arr;
-use Phalcon\Di;
-use Phalcon\Mvc\Model;
+use Phalcon\Db\Adapter\AdapterInterface;
+use Phalcon\Di\Di;
+use Phalcon\Di\DiInterface;
+use Phalcon\Mvc\Model\ResultsetInterface;
+use RuntimeException;
 
 /**
- * Class DatabaseRepository
+ * The `migrations` table (`id`, `migration`, `batch`), on the `migrations.connection` connection (the default
+ * one otherwise).
  *
- * @package Neutrino\Database\Migrations
+ * @phpstan-import-type MigrationRow from StorageInterface
  */
 class DatabaseStorage implements StorageInterface
 {
-    protected $table = 'migrations';
+    protected string $table = 'migrations';
 
-    /**
-     * @var \Neutrino\Repositories\Repository
-     */
-    protected $repository;
+    protected MigrationRepository $repository;
 
-    public function __construct()
+    protected DiInterface $di;
+
+    public function __construct(?DiInterface $di = null, ?MigrationRepository $repository = null)
     {
-        $this->repository = Di::getDefault()->get(MigrationRepository::class);
+        $this->di = $di ?? Di::getDefault() ?? throw new RuntimeException(static::class . ': no container.');
+        $this->repository = $repository ?? new MigrationRepository();
+        $this->repository->setDI($this->di);
     }
 
-    /**
-     * Get the ran migrations.
-     *
-     * @return array
-     */
-    public function getRan()
+    public function getRan(): array
     {
-        $data = $this->repository->find([], [
-            'batch'     => 'ASC',
-            'migration' => 'ASC'
-        ])->toArray();
-
-        return Arr::pluck($data, 'migration');
+        return array_column($this->rows($this->repository->find([], ['batch' => 'ASC', 'migration' => 'ASC'])), 'migration');
     }
 
-    /**
-     * Get list of migrations.
-     *
-     * @param int $steps
-     *
-     * @return array
-     */
-    public function getMigrations($steps)
+    public function getMigrations(int $steps): array
     {
-        return $this->repository->find(
-            [
-                'batch' => [
-                    'operator' => '>=',
-                    'value'    => 1
-                ]
-            ],
-            [
-                'batch'     => 'DESC',
-                'migration' => 'DESC'
-            ],
-            $steps
-        )->toArray();
+        return $this->rows($this->repository->find(['batch' => ['operator' => '>=', 'value' => 1]], ['batch' => 'DESC', 'migration' => 'DESC'], $steps));
     }
 
-    /**
-     * Get the last migration batch.
-     *
-     * @return array
-     */
-    public function getLast()
+    public function getLast(): array
     {
-        $result = $this->repository->first(['batch' => $this->getLastBatchNumber()], ['migration' => 'DESC']);
-
-        if ($result instanceof Model) {
-            return [$result->toArray()];
-        }
-
-        return [];
+        return $this->rows($this->repository->find(['batch' => $this->getLastBatchNumber()], ['migration' => 'DESC']));
     }
 
-    /**
-     * Log that a migration was run.
-     *
-     * @param string $migration Migration Name
-     * @param int    $batch     Batch number
-     *
-     * @throws \Exception
-     * @return void
-     */
-    public function log($migration, $batch)
+    public function log(string $migration, int $batch): void
     {
-        $migration = new MigrationModel([
-            'migration' => $migration,
-            'batch'     => $batch
-        ]);
+        $model = new MigrationModel();
+        $model->migration = $migration;
+        $model->batch = $batch;
 
-        if (!$this->repository->create($migration)) {
-            $messages = array_map(function ($message) {
-                return (string)$message;
-            }, $this->repository->getMessages());
-
-            throw new \Exception(implode(PHP_EOL, $messages));
+        // No transaction of the transaction manager: the log joins the transaction of the migration, if any.
+        if (!$this->repository->create($model, false)) {
+            throw new RuntimeException("Migration \"$migration\" not logged: " . $this->messages());
         }
     }
 
-    public function delete($migration)
+    public function delete(string $migration): void
     {
-        $migration = $this->repository->first(['migration' => $migration]);
+        $model = $this->repository->first(['migration' => $migration]);
 
-        if (!$this->repository->delete($migration)) {
-            $messages = array_map(function ($message) {
-                return (string)$message;
-            }, $this->repository->getMessages());
-
-            throw new \Exception(implode(PHP_EOL, $messages));
+        if ($model !== null && !$this->repository->delete($model, false)) {
+            throw new RuntimeException("Migration \"$migration\" not removed from the log: " . $this->messages());
         }
     }
 
-    /**
-     * @return int
-     */
-    public function getLastBatchNumber()
+    public function getLastBatchNumber(): int
     {
-        return (int)$this->repository->maximum('batch');
+        $max = $this->repository->maximum('batch');
+
+        return is_numeric($max) ? (int) $max : 0;
     }
 
-    /**
-     * @return int
-     */
-    public function getNextBatchNumber()
+    public function getNextBatchNumber(): int
     {
         return $this->getLastBatchNumber() + 1;
     }
 
-    /**
-     * @return bool
-     */
-    public function createStorage()
+    public function createStorage(): bool
     {
-        (new Builder())->create($this->table, function (Blueprint $blueprint) {
-            $blueprint->increments('id')->primary();
-            $blueprint->string('migration', 256);
-            $blueprint->integer('batch')->unsigned();
+        (new Builder($this->connection()))->create($this->table, function (Blueprint $table): void {
+            $table->increments('id');
+            $table->string('migration');
+            $table->integer('batch');
         });
 
         return true;
     }
 
-    /**
-     * @return bool
-     */
-    public function storageExist()
+    public function storageExist(): bool
     {
-        return Di::getDefault()->get(Services::DB)->tableExists($this->table);
+        return $this->connection()->tableExists($this->table);
+    }
+
+    /**
+     * The connection of the table.
+     */
+    public function connection(): AdapterInterface
+    {
+        return (new MigrationModel())->getWriteConnection();
+    }
+
+    /**
+     * @return list<MigrationRow>
+     */
+    private function rows(ResultsetInterface $resultset): array
+    {
+        $rows = [];
+
+        foreach ($resultset->toArray() as $row) {
+            if (is_array($row) && is_scalar($row['migration'] ?? null) && is_numeric($row['batch'] ?? null)) {
+                $rows[] = ['migration' => (string) $row['migration'], 'batch' => (int) $row['batch']];
+            }
+        }
+
+        return $rows;
+    }
+
+    private function messages(): string
+    {
+        return implode(PHP_EOL, array_map(strval(...), $this->repository->getMessages()));
     }
 }

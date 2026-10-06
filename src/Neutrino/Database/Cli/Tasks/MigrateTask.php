@@ -1,56 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Cli\Tasks;
 
-/**
- * Class MigrateTask
- *
- * @package Neutrino\Database\Cli\Tasks
- */
-class MigrateTask extends BaseTask
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
+
+final class MigrateTask extends BaseTask
 {
-    /**
-     * @description Run the database migrations.
-     *
-     * option      --database= : The database connection to use.
-     * @option      --force : Force the operation to run when in production.
-     * @option      --path= : The path of migrations files to be executed.
-     * @option      --step : Force the migrations to be run so they can be rolled back individually.
-     * @option      --pretend : Dump the SQL queries that would be run.
-     */
-    public function mainAction()
+    #[Description('Run the database migrations.')]
+    #[Option('--database={name}', 'Connection of the migrations that do not declare theirs.')]
+    #[Option('-f, --force', 'Force the operation to run in production.')]
+    #[Option('--path={path}', 'Path of the migrations, relative to the application.')]
+    #[Option('--step', 'One batch per migration, so that they can be rolled back one by one.')]
+    #[Option('--pretend', 'Dump the SQL queries that would be run.')]
+    public function mainAction(): void
     {
         if (!$this->confirmToProceed()) {
             return;
         }
 
-        $this->prepareDatabase();
+        $this->prepareStorage();
 
-        // Next, we will check to see if a path option has been defined. If it has
-        // we will use the path relative to the root of this installation folder
-        // so that migrations may be run for any path within the applications.
-        $this->migrator->run($this->getMigrationPaths(), [
-            'step'    => (int)$this->getOption('step'),
-            'pretend' => $this->getOption('pretend') ?: false
+        $this->migrator()->run($this->getMigrationPaths(), [
+            'step'    => $this->hasOption('step'),
+            'pretend' => $this->pretending(),
         ]);
 
-        // Once the migrator has run we will grab the note output and send it out to
-        // the console screen, since the migrator itself functions without having
-        // any instances of the OutputInterface contract passed into the class.
-        foreach ($this->migrator->getNotes() as $note) {
-            $this->line($note);
-        }
-    }
-
-    /**
-     * Prepare the migration database for running.
-     *
-     * @return void
-     */
-    protected function prepareDatabase()
-    {
-        if (!$this->migrator->storageExist()) {
-            $this->callTask(InstallTask::class, 'main', $this->arguments, $this->options);
-        }
+        $this->writeNotes();
     }
 }

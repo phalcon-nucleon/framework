@@ -1,6 +1,6 @@
 # E11 — Migrations
 
-**Statut** : Rédigé · **Dépend de** : E6 (enregistrement des tâches), E10 (modèles, connexions, `Support\Db`) · **Bloque** : —
+**Statut** : Terminé · **Dépend de** : E6 (enregistrement des tâches), E10 (modèles, connexions, `Support\Db`) · **Bloque** : —
 
 ## Objectif
 
@@ -99,3 +99,18 @@ Pour rappel, `phalcon/migrations` a été écarté : il est déclaratif (une cla
 - Les suites `Database/Cli`, `Database/Migrations`, `Database/Providers` et `Database/Schema` sont activées et passent sur MySQL 8, PostgreSQL 16 et SQLite, y compris sur le job Phalcon 6.
 - Les migrations de `tests/.fake` (nommées, 1.3) et une migration anonyme s'exécutent, reviennent en arrière et s'affichent correctement dans `migrate:status`.
 - `migrate --pretend` affiche le SQL sans rien exécuter (vérifié par un listener `db:beforeQuery`).
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Grammaires et types | Fait | Interface `Schema\Grammar`, base `Grammar\BaseGrammar` sur les types natifs `Db\Column` 5.x, `Grammar\{Mysql,Postgresql,Sqlite}` pour ce que chaque dialecte Phalcon ne fait pas. Dialectes, `WrapperTrait`, `Wrapper`, `Factory`, `DialectTrait` et `DialectInterface` supprimés. Contournements de Phalcon 5 relevés aux sondes : `ON UPDATE` et précision de `CURRENT_TIMESTAMP` non écrits (MySQL) ; booléen `false` écrit `''` (MySQL, SQLite) ; pas de `TIME`, de précision, de fuseau, de `DOUBLE`, de `SMALLSERIAL`, ni de changement de taille dans `modifyColumn()` (PostgreSQL, d'où `Grammar::modifyColumn()`) ; `NUMERIC(p,s)` écrit mais illisible par `describeColumns()` (SQLite, écrit `DECIMAL(p,s)`) ; index non uniques perdus à la création (SQLite) ; clé primaire composite nommée `PRIMARY` (PostgreSQL, colonnes marquées primaires). `GrammarTest` : SQL de chaque type et de chaque commande sur les trois dialectes. |
+| S2 · `Builder` et `Blueprint` | Fait | Typés. `Builder` final, connexion et grammaire injectables (`db` et grammaire du dialecte par défaut), `withoutForeignKeyConstraints()`. `Blueprint` : la table, sa clé primaire et ses clés étrangères sont créées ensemble, les autres index après ; erreurs de commande en `CommandException` (commande, table, cause). `renameColumn()` en `RENAME COLUMN`, plus d'introspection. `BuilderTest` exécuté sur SQLite, MySQL 8.4 et PostgreSQL 16 : tous les types, valeurs par défaut, enum contrôlé, index, clés étrangères (`CASCADE`), modification, renommage, clés primaires composites, suppression, `dropAllTables()` avec clés étrangères, SQL brut, table temporaire, options MySQL, `ON UPDATE`. |
+| S3 · Migrator et migrations | Fait | Migrations anonymes ou nommées (1.3), connexion par migration et `--database`, transaction par migration (migration + journal) quand le SGBD annule le DDL. `rollback` annule tout le dernier batch (la 1.3 n'en annulait qu'une migration). `--pretend` via `Db::pretend(…, runReads: true)` : l'introspection s'exécute, les écritures sont listées (vérifié par un listener `db:afterQuery`). SQL coloré par `tempest/highlight` s'il est installé, en attendant le helper `Debug\Highlight` d'E12. `MigrationCreator` : stubs anonymes, nom validé, répertoire créé. |
+| S4 · Stockage | Fait | `StorageInterface` typée, `DatabaseStorage` sur `MigrationModel` (attributs E10) et `MigrationRepository`, table sur `migrations.connection` ou la connexion par défaut. `FileStorage` supprimé (erreur explicite s'il est configuré). |
+| S5 · Provider et tâches | Fait | `MigrationsServicesProvider` implémente `ProvidesTasks` ; services paresseux, préfixe `TimestampPrefix` et stockage `DatabaseStorage` par défaut. Tâches finales, documentées par attributs, `--database`, `--step`, `--pretend`, `--path`, `--force`. Tests en ligne de commande réelle (kernel `StubKernelCliMigrations`, SQLite) : `list`, `help`, `migrate`, `--step`, `--pretend`, `status`, `install`, `rollback`, `reset`, `refresh`, `fresh`, `--database`, `make:migration`. |
+
+Revue de code : `migrate:fresh` vide aussi la connexion du journal et celles des migrations ; dans `table()`, `increments()` ajoute la colonne avec sa clé (MySQL refuse un `AUTO_INCREMENT` sans clé) et ne recrée pas une clé primaire existante (PostgreSQL : `SERIAL` remplacé par l'entier dans `ALTER COLUMN TYPE`) ; `rename()` passe après les autres changements ; SQLite ignore `PRAGMA foreign_keys` dans une transaction, les contraintes y sont différées (`defer_foreign_keys`) ; `--pretend` n'exécute plus que les lectures du schéma (un `SELECT setval()` est listé).
+
+Suite `Database` activée (281 tests, sur SQLite, MySQL et PostgreSQL ; ceux de MySQL et PostgreSQL sont ignorés sans serveur ni pilote PDO, comme sur le job Phalcon 6 de la CI). 1 054 tests verts sur Phalcon 5.22 ; suite `Database` verte sur Phalcon 6 avec les trois SGBD. Baseline PHPStan : 320 entrées en moins.
+

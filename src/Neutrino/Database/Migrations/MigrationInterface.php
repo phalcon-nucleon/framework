@@ -1,20 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Migrations;
 
 use Neutrino\Database\Schema\Builder;
 
 /**
- * Interface MigrationInterface
+ * A migration: `up()` applies a change to the schema, `down()` reverts it.
  *
- * @package Neutrino\Database\Schema
+ * The methods are not typed on their return: the 1.3 migrations declare them untyped.
  */
 interface MigrationInterface
 {
     /**
      * Run the migrations.
-     *
-     * @param \Neutrino\Database\Schema\Builder $schema
      *
      * @return void
      */
@@ -22,8 +22,6 @@ interface MigrationInterface
 
     /**
      * Reverse the migrations.
-     *
-     * @param \Neutrino\Database\Schema\Builder $schema
      *
      * @return void
      */

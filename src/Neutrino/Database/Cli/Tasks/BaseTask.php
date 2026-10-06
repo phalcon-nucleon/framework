@@ -1,100 +1,114 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Cli\Tasks;
 
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Env;
+use Neutrino\Constants\Services;
 use Neutrino\Database\Migrations\MigrationCreator;
 use Neutrino\Database\Migrations\Migrator;
 use Neutrino\Database\Migrations\Storage\StorageInterface;
+use Phalcon\Config\Config;
 
 /**
- * Class BaseTask
- *
- * @package Neutrino\Database\Cli\Tasks
+ * Base of the migration commands: services, paths (`--path`), connection (`--database`) and confirmation in
+ * production (`--force`).
  */
 abstract class BaseTask extends Task
 {
-    /**
-     * The migrator instance.
-     *
-     * @var \Neutrino\Database\Migrations\Migrator
-     */
-    protected $migrator;
-
-    /**
-     * The Storage instance
-     *
-     * @var \Neutrino\Database\Migrations\Storage\StorageInterface
-     */
-    protected $storage;
-
-    /**
-     * The migration creator instance.
-     *
-     * @var \Neutrino\Database\Migrations\MigrationCreator
-     */
-    protected $creator;
-
-    protected function onConstruct()
+    protected function migrator(): Migrator
     {
-        parent::onConstruct();
+        /** @var Migrator $migrator */
+        $migrator = $this->getDI()->getShared(Migrator::class);
+        $database = $this->getOption('database');
+        $migrator->setConnection(is_string($database) && $database !== '' ? $database : null);
 
-        $this->migrator = $this->getDI()->get(Migrator::class);
-        $this->storage = $this->getDI()->get(StorageInterface::class);
-        $this->creator = $this->getDI()->get(MigrationCreator::class);
+        return $migrator;
+    }
+
+    protected function storage(): StorageInterface
+    {
+        /** @var StorageInterface */
+        return $this->getDI()->getShared(StorageInterface::class);
+    }
+
+    protected function creator(): MigrationCreator
+    {
+        /** @var MigrationCreator */
+        return $this->getDI()->getShared(MigrationCreator::class);
     }
 
     /**
-     * @return bool
+     * In production, asks for a confirmation, unless `--force`.
      */
-    protected function confirmToProceed()
+    protected function confirmToProceed(): bool
     {
-        if (APP_ENV === Env::PRODUCTION) {
-            $this->warn("You will run migration on production environnement");
-
-            if ($this->hasOption('f', 'force')) {
-                return true;
-            }
-
-            return $this->confirm("Are you sure you want to run migration ?", false);
+        if (APP_ENV !== Env::PRODUCTION || $this->hasOption('f', 'force')) {
+            return true;
         }
 
-        return true;
+        $this->warn('You will run migration on production environment');
+
+        return $this->confirm('Are you sure you want to run migration ?', false);
+    }
+
+    /**
+     * Creates the migration storage if it does not exist.
+     */
+    protected function prepareStorage(): void
+    {
+        if (!$this->storage()->storageExist()) {
+            $this->storage()->createStorage();
+
+            $this->info('Migration table created successfully.');
+        }
     }
 
     /**
      * Get migration path (either specified by '--path' option or default location).
-     *
-     * @return string
      */
-    protected function getMigrationPath()
+    protected function getMigrationPath(): string
     {
-        if (!is_null($targetPath = $this->getOption('path'))) {
-            return BASE_PATH . '/' . $targetPath;
+        $path = $this->getOption('path');
+
+        if (is_string($path) && $path !== '') {
+            return BASE_PATH . '/' . ltrim($path, '/');
         }
 
-        return $this->config->migrations->path;
+        $config = $this->getDI()->getShared(Services::CONFIG);
+        $path = $config instanceof Config ? $config->path('migrations.path') : null;
+
+        return is_string($path) && $path !== '' ? $path : BASE_PATH . '/migrations';
     }
 
     /**
-     * Get all of the migration paths.
+     * Get all of the migration paths: `--path`, or the default one and those registered on the migrator.
      *
-     * @return array
+     * @return list<string>
      */
-    protected function getMigrationPaths()
+    protected function getMigrationPaths(): array
     {
-        // Here, we will check to see if a path option has been defined. If it has we will
-        // use the path relative to the root of the installation folder so our database
-        // migrations may be run for any customized path from within the application.
-        if ($this->hasOption('path') && $this->getOption('path')) {
-            return array_map(function ($path) {
-                return BASE_PATH . '/' . $path;
-            }, (array)$this->getOption('path'));
+        if (is_string($this->getOption('path')) && $this->getOption('path') !== '') {
+            return [$this->getMigrationPath()];
         }
 
-        return array_merge(
-            [$this->getMigrationPath()], $this->migrator->paths()
-        );
+        return array_values(array_unique([$this->getMigrationPath(), ...$this->migrator()->paths()]));
+    }
+
+    protected function pretending(): bool
+    {
+        return $this->hasOption('pretend');
+    }
+
+    /**
+     * Writes the notes of the migrator.
+     */
+    protected function writeNotes(): void
+    {
+        foreach ($this->migrator()->getNotes() as $note) {
+            $this->line($note);
+        }
     }
 }

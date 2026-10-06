@@ -1,45 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Schema\Exception;
 
-use Exception;
-use Neutrino\Error\Helper;
 use Neutrino\Support\Fluent;
+use RuntimeException;
 use Throwable;
 
 /**
- * Class CommandException
- *
- * @package Neutrino\Database\Schema
+ * A {@see \Neutrino\Database\Schema\Blueprint} command failed.
  */
-class CommandException extends Exception
+class CommandException extends RuntimeException
 {
-    public $command;
-
-    /**
-     * CommandException constructor.
-     *
-     * @param \Neutrino\Support\Fluent $command
-     * @param \Throwable|null          $previous
-     */
-    public function __construct(Fluent $command, Throwable $previous = null)
+    public function __construct(public readonly Fluent $command, ?Throwable $previous = null, string $table = '')
     {
-        $this->command = $command;
+        $name = $command->get('name');
 
-        parent::__construct(null, 0, $previous);
+        parent::__construct(
+            'Schema command "' . (is_string($name) ? $name : '?') . '"' . ($table === '' ? '' : " on \"$table\"")
+            . ($previous === null ? ' failed.' : ': ' . $previous->getMessage()),
+            0,
+            $previous,
+        );
     }
 
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
-        $str = static::class . PHP_EOL;
+        $str = static::class . PHP_EOL . 'Command Properties : ' . PHP_EOL;
 
-        $str .= "Command Properties : " . PHP_EOL;
-
-        foreach ($this->command as $key => $value) {
-            $str .= "  - $key : " . Helper::verboseType($value) . PHP_EOL;
+        foreach ($this->command->getAttributes() as $key => $value) {
+            $str .= "  - $key : " . (is_scalar($value) || $value === null ? var_export($value, true) : get_debug_type($value)) . PHP_EOL;
         }
 
         return $str . PHP_EOL . parent::__toString();

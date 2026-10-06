@@ -283,6 +283,44 @@ protected ?string $modelClass = User::class;
 - `each()` and `Eachable::each()` stop on the first partial page (one query less) and honour `$end` exactly.
 - `Support\Db::getQueries()` / `pretend()` return the statements as sent (placeholders, not the bound values), and restore the events manager of the connection.
 
+## Migrations
+
+```php
+// Kernels\Cli\Kernel: the migration commands come with their provider (no longer declared by the CLI router)
+protected array $providers = [
+    // ...
+    Neutrino\Providers\Database::class,
+    Neutrino\Providers\Model::class,
+    Neutrino\Database\Providers\MigrationsServicesProvider::class,
+];
+
+// config/migrations.php
+'path'       => BASE_PATH . '/migrations',
+'prefix'     => TimestampPrefix::class,   // default; DatePrefix::class
+'storage'    => DatabaseStorage::class,   // default
+'connection' => null,                     // connection of the `migrations` table, the default one otherwise
+```
+
+- **The 1.3 migrations run as they are** (a class named after the file, `up()` / `down()` untyped). `make:migration` now writes a file returning an anonymous class: no class name to keep unique.
+
+```php
+return new class extends Migration {
+    protected ?string $connection = 'reports'; // optional: a db.<name> connection
+    protected bool $withinTransaction = true;  // default
+
+    public function up(Builder $schema): void { ... }
+    public function down(Builder $schema): void { ... }
+};
+```
+
+- **Transactions**: on PostgreSQL and SQLite, each migration and its log run in a transaction: a migration that fails leaves no half-applied change. MySQL commits each DDL statement: no effect there. `protected bool $withinTransaction = false;` opts a migration out. SQLite ignores `PRAGMA foreign_keys` in a transaction: there, `disableForeignKeyConstraints()` / `withoutForeignKeyConstraints()` defer the checks to the commit (`PRAGMA defer_foreign_keys`).
+- **`FileStorage` is removed**: before upgrading, run your migrations with `DatabaseStorage` (or create the `migrations` table and insert the rows of `migrations/.migrations.dat`). Configuring it throws an explicit error.
+- **`Schema\Dialect\*` and `Schema\DialectInterface` are replaced by `Schema\Grammar\{Mysql, Postgresql, Sqlite}`** (interface `Schema\Grammar`), chosen from the dialect of the connection. Only apps that extended a dialect are concerned: a grammar holds the column types and the statements Phalcon does not generate; the rest goes through the Phalcon adapter. `new Builder(?AdapterInterface $connection = null, ?Grammar $grammar = null)`.
+- `migrate:rollback` rolls back **the whole last batch** (1.3: one migration of it). `--step=N` rolls back the last N migrations.
+- New options: `--database=<name>` (connection of the migrations that do not declare theirs; `migrate:fresh` empties it, the connections the migrations declare and that of the `migrations` table), `--pretend` also on `migrate:rollback` and `migrate:reset`. `migrate:fresh` no longer accepts `--pretend` (it dropped the tables anyway).
+- Schema: `renameColumn()` uses `RENAME COLUMN` (MySQL 8, MariaDB 10.5, SQLite 3.25); `getColumnType()` returns the Phalcon type (`Column::TYPE_*`); `decimal()` is `DECIMAL(10, 0)` by default and takes the precision as third argument; `enum()` is a `CHECK` constraint on PostgreSQL and SQLite; `uuid()`, `ipAddress()`, `macAddress()` use `UUID`, `INET`, `MACADDR` on PostgreSQL; `time()` and `timeTz()` take a precision. Indexes other than the primary key are created after the table. In `$schema->table()`, `rename()` runs after the other changes; `increments()` adds the column with its primary key, or only modifies a column that already is the primary key. SQLite cannot modify a column nor add or drop a primary or foreign key on an existing table: the command fails with a `CommandException`.
+- The errors of a schema command are `Schema\Exception\CommandException` (command, table and cause).
+
 ## Authentication
 
 The `auth` service is a `Phalcon\Auth\Manager` (also registered as `Phalcon\Auth\Manager::class`): `Neutrino\Auth\Manager` is removed.

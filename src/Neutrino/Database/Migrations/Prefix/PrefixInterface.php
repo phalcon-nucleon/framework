@@ -1,28 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Migrations\Prefix;
 
 /**
- * Interface PrefixInterface
- *
- * @package Neutrino\Database\Migrations\Prefix
+ * Prefix of the migration files, which orders them.
  */
 interface PrefixInterface
 {
     /**
-     * Return a prefix to append
-     *
-     * @return string
+     * A new prefix.
      */
-    public function getPrefix();
+    public function getPrefix(): string;
 
     /**
-     * Remove a prefix from a given str
-     *
-     * @param string $str
-     * @param string $delimiter
-     *
-     * @return mixed
+     * The name without its prefix.
      */
-    public function deletePrefix($str, $delimiter = '_');
+    public function deletePrefix(string $str, string $delimiter = '_'): string;
 }

@@ -1,166 +1,84 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Migrations;
 
 use InvalidArgumentException;
 use Neutrino\Database\Migrations\Prefix\PrefixInterface;
-use Neutrino\Support\Str;
+use RuntimeException;
 
 /**
- * Class MigrationCreator
- *
- * @package Neutrino\Database\Migrations
+ * Writes a new migration file, returning an anonymous class (stubs `blank`, `create`, `update`).
  */
 class MigrationCreator
 {
-    /**
-     * @var \Neutrino\Database\Migrations\Prefix\PrefixInterface
-     */
-    protected $prefix;
-
-    /**
-     * MigrationCreator constructor.
-     *
-     * @param $prefix
-     */
-    public function __construct(PrefixInterface $prefix)
-    {
-        $this->prefix = $prefix;
-    }
+    public function __construct(protected PrefixInterface $prefix) {}
 
     /**
      * Create a new migration at the given path.
      *
-     * @param  string $name
-     * @param  string $path
-     * @param  string $table
-     * @param  bool   $create
+     * @param bool $create `true`: creates `$table`; `false`: modifies it
      *
-     * @return string
-     * @throws \Exception
+     * @return string The path of the file
      */
-    public function create($name, $path, $table = null, $create = false)
+    public function create(string $name, string $path, ?string $table = null, bool $create = false): string
     {
+        if (preg_match('/^\w+$/', $name) !== 1) {
+            throw new InvalidArgumentException("Invalid migration name \"$name\": letters, digits and underscores only.");
+        }
+
         $this->ensureMigrationDoesntAlreadyExist($name, $path);
 
-        $stub = $this->getStubContent($table, $create);
+        if (!is_dir($path) && !mkdir($path, 0777, true) && !is_dir($path)) {
+            throw new RuntimeException("Cannot create the directory $path.");
+        }
 
-        $populatedStub = $this->populateStub($name, $stub, $table);
+        $file = $this->getPath($name, $path);
 
-        $path = $this->getPath($name, $path);
+        if (file_put_contents($file, $this->populateStub($this->getStubContent($table, $create), $table)) === false) {
+            throw new RuntimeException("Cannot write $file.");
+        }
 
-        file_put_contents($path, $populatedStub);
+        return $file;
+    }
 
-        return $path;
+    /**
+     * Get the path to the stubs.
+     */
+    public function stubsPath(): string
+    {
+        return __DIR__ . '/stubs';
     }
 
     /**
      * Ensure that a migration with the given name doesn't already exist.
      *
-     * @param  string $name
-     * @param  string $path
-     *
-     * @return void
-     *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    protected function ensureMigrationDoesntAlreadyExist($name, $path)
+    protected function ensureMigrationDoesntAlreadyExist(string $name, string $path): void
     {
-        if (class_exists($className = $this->getClassName($name))) {
-            throw new InvalidArgumentException("A {$className} class already exists.");
-        }
-
-        // TODO Review check for version 2.0
-        if(!empty($files = glob($path . '/*_*.php'))){
-            foreach ($files as $file) {
-                $file = str_replace('.php', '', basename($file));
-
-                $migration = $this->prefix->deletePrefix($file);
-
-                if($className === $this->getClassName($migration)){
-                    throw new InvalidArgumentException("A {$className} class already exists.");
-                }
+        foreach (glob(rtrim($path, '/') . '/*_*.php') ?: [] as $file) {
+            if (strcasecmp($this->prefix->deletePrefix(basename($file, '.php')), $name) === 0) {
+                throw new InvalidArgumentException("A migration \"$name\" already exists: " . basename($file) . '.');
             }
         }
     }
 
-    /**
-     * Get the migration stub file.
-     *
-     * @param  string $table
-     * @param  bool   $create
-     *
-     * @return string
-     */
-    protected function getStubContent($table, $create)
+    protected function getStubContent(?string $table, bool $create): string
     {
-        if (is_null($table)) {
-            $file = $this->stubsPath() . '/blank.stub';
-        } else {
-            $stub = $create ? 'create.stub' : 'update.stub';
+        $stub = $table === null ? 'blank' : ($create ? 'create' : 'update');
 
-            $file = $this->stubsPath() . '/' . $stub;
-        }
-
-        return file_get_contents($file);
+        return (string) file_get_contents($this->stubsPath() . "/$stub.stub");
     }
 
-    /**
-     * Populate the place-holders in the migration stub.
-     *
-     * @param  string $name
-     * @param  string $stub
-     * @param  string $table
-     *
-     * @return string
-     */
-    protected function populateStub($name, $stub, $table)
+    protected function populateStub(string $stub, ?string $table): string
     {
-        $stub = str_replace('{class}', $this->getClassName($name), $stub);
-
-        if (!is_null($table)) {
-            $stub = str_replace('{table}', $table, $stub);
-        }
-
-        return $stub;
+        return $table === null ? $stub : str_replace('{table}', str_replace(['\\', "'"], ['\\\\', "\\'"], $table), $stub);
     }
 
-    /**
-     * Get the class name of a migration name.
-     *
-     * @param  string $name
-     *
-     * @return string
-     */
-    protected function getClassName($name)
+    protected function getPath(string $name, string $path): string
     {
-        return Str::studly($name);
-    }
-
-    /**
-     * Get the full path to the migration.
-     *
-     * @param  string $name
-     * @param  string $path
-     *
-     * @return string
-     */
-    protected function getPath($name, $path)
-    {
-        if (!is_null($prefix = $this->prefix->getPrefix())) {
-            $prefix .= '_';
-        }
-
-        return $path . '/' . $prefix . $name . '.php';
-    }
-
-    /**
-     * Get the path to the stubs.
-     *
-     * @return string
-     */
-    public function stubsPath()
-    {
-        return __DIR__ . '/stubs';
+        return rtrim($path, '/') . '/' . $this->prefix->getPrefix() . '_' . $name . '.php';
     }
 }

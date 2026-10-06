@@ -4,6 +4,7 @@ Assert
 Auth
 Cache
 Cli
+Database
 Config
 Design
 Dotconst

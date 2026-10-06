@@ -1,32 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Migrations\Prefix;
 
 /**
- * Class TimestampPrefix
- *
- * @package Neutrino\Database\Migrations\Prefix
+ * `1511357112_create_users_table`.
  */
-class TimestampPrefix implements PrefixInterface
+final class TimestampPrefix implements PrefixInterface
 {
-    /**
-     * @return string
-     */
-    public function getPrefix()
+    public function getPrefix(): string
     {
-        return (string)time();
+        return (string) time();
     }
 
-    /**
-     * Remove a prefix from a given str
-     *
-     * @param string $str
-     * @param string $delimiter
-     *
-     * @return mixed
-     */
-    public function deletePrefix($str, $delimiter = '_')
+    public function deletePrefix(string $str, string $delimiter = '_'): string
     {
+        if ($delimiter === '') {
+            return $str;
+        }
+
         return implode($delimiter, array_slice(explode($delimiter, $str), 1));
     }
 }

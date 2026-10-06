@@ -118,5 +118,5 @@ Rendu d'une page Volt déjà compilée (layout de controller, layout `page`, 2 p
 | `view` (`stat` actif) | 174 µs | 209 µs | +35 µs (+20 %) | −33 % |
 | `view-nostat` | 171 µs | 216 µs | +44 µs (+26 %) | −32 % |
 
-**Critère non atteint, à cause de Phalcon 5.** Le même rendu en Phalcon pur, sans Nucleon : premier rendu d'un processus 193 µs en 5.22 contre 122 µs en 3.4 (+70 µs, classes Zephir de la vue et de Volt initialisées à froid), deuxième rendu 50 µs contre 55 µs. Avec Nucleon, l'écart est deux fois plus petit que celui de Phalcon pur : la couche Nucleon de la 2.0 coûte moins que celle de la 1.3. Désactiver `stat` ne mesure pas de gain ici.
+**Critère non atteint, à cause de Phalcon 5 ; écart accepté pour l'instant (6 octobre 2026).** Le même rendu en Phalcon pur, sans Nucleon : premier rendu d'un processus 193 µs en 5.22 contre 122 µs en 3.4 (+70 µs, classes Zephir de la vue et de Volt initialisées à froid), deuxième rendu 50 µs contre 55 µs. Avec Nucleon, l'écart est deux fois plus petit que celui de Phalcon pur : la couche Nucleon de la 2.0 coûte moins que celle de la 1.3. Désactiver `stat` ne mesure pas de gain ici.
 

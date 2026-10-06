@@ -176,5 +176,5 @@ Suites `Cache` et `Providers` activées (`ProvideDatabaseTest` sorti dans la sui
 
 **Critère non atteint, à cause de Phalcon 5.** Mesuré sans Nucleon : le premier objet de chaque classe Zephir coûte 25 à 35 µs (`SerializerFactory`, adapter `Memory`), puis un `set` + `get` sur `Phalcon\Cache\Cache` coûte environ 4,5 µs contre 0,9 µs avec le backend `Memory` de Phalcon 3 ; l'adapter seul, sans sérialisation, en coûte encore 2,7 µs. La couche Nucleon (`CacheStrategy`, Facade) ajoute environ 0,1 µs par appel (mesuré : 0,15 à 0,35 µs par set + get). Sur un store réseau (Redis, Memcached), l'aller-retour (plusieurs dizaines de µs) domine cet écart.
 
-**À trancher** : accepter l'écart, ou fournir un store `memory` en PHP pur (tableau, TTL, copie par sérialisation) qui serait plus rapide que la 1.3, au prix d'un adapter maison qui n'est pas un adapter Phalcon (`getAdapter()` ne renverrait plus un `Phalcon\Cache\Adapter\Memory`).
+**Accepté pour l'instant** (6 octobre 2026). Piste si le besoin apparaît : un store `memory` en PHP pur (tableau, TTL, copie par sérialisation) qui serait plus rapide que la 1.3, au prix d'un adapter maison qui n'est pas un adapter Phalcon (`getAdapter()` ne renverrait plus un `Phalcon\Cache\Adapter\Memory`).
 

@@ -136,7 +136,7 @@ Suites `Models` et `Repositories` activées, tests des providers de données dan
 | `model-find-first` : `findFirst` par clé | 240 µs | 320 µs | +80 µs (+33 %) | −30 % |
 | `model-find-100` : `find` de 100 lignes | 734 µs | 991 µs | +257 µs (+35 %) | −32 % |
 
-**Critère non atteint.** Phalcon pur, même modèle décrit par `metaData()` : chargement +4 µs, `findFirst` +108 µs entre la 3.4 et la 5.22 (PHQL et hydratation plus lents à froid). Avec Nucleon, `findFirst` coûte donc moins que l'écart de Phalcon ; le chargement ajoute environ 8 µs côté Nucleon (réflexion des attributs, même sans attribut). Variantes 2.0 (mêmes options PHP, médiane de 120) :
+**Critère non atteint ; écart accepté pour l'instant (6 octobre 2026).** Phalcon pur, même modèle décrit par `metaData()` : chargement +4 µs, `findFirst` +108 µs entre la 3.4 et la 5.22 (PHQL et hydratation plus lents à froid). Avec Nucleon, `findFirst` coûte donc moins que l'écart de Phalcon ; le chargement ajoute environ 8 µs côté Nucleon (réflexion des attributs, même sans attribut). Variantes 2.0 (mêmes options PHP, médiane de 120) :
 
 | Variante | `model-load` | `model-find-first` |
 |---|---|---|

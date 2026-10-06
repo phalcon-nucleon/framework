@@ -139,4 +139,4 @@ Autoloaders Composer simples, sans cache : boot +14 %, requête +20 %, middlewar
 
 Le surcoût de la requête vient de Phalcon 5, mesuré sans Nucleon (une requête MVC à froid, Phalcon 3.4 contre 5.22) : `Router::handle()` +20 µs (index des routes construit à la première requête), `Dispatcher::dispatch()` +50 µs, `Response::send()` +6 µs, soit +92 µs sur `handle()` de bout en bout. Avec Nucleon, l'écart sur `handle()` est de +71 µs : Nucleon n'ajoute rien, et gagne au boot. Le coût d'un middleware de route est le même qu'en 1.3 (+30 à +40 µs pour le premier).
 
-**À trancher** : le critère « pas moins bon que la 1.3 » n'est pas atteint sur la requête complète (+19 % en production), à cause de Phalcon 5. Le boot et la mémoire sont meilleurs.
+**Accepté pour l'instant** (6 octobre 2026) : le critère « pas moins bon que la 1.3 » n'est pas atteint sur la requête complète (+19 % en production), à cause de Phalcon 5. Le boot et la mémoire sont meilleurs.

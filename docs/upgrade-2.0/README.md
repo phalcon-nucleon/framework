@@ -47,6 +47,7 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | Config | `Neutrino\Config\Config extends Phalcon\Config\Config`, lectures directes du tableau interne : 7 à 9 fois plus rapide en lecture que la config de Phalcon 5, qui l'est jusqu'à 18 fois moins que celle de Phalcon 3. | E2 |
 | Handlers Micro | Closure Nucleon conservée (middlewares de controller) ; la `Collection` paresseuse de Phalcon ne gagne qu'environ 1 µs par route. | E5 |
 | Auth | `Phalcon\Auth` adopté (étude E8-S1) ; Nucleon garde le provider, la Facade, `Authenticate` et le trait `Authenticable`, qui stocke le jeton remember-me haché. L'identifiant de la 1.3 est conservé : les sessions ouvertes restent valides. | E8 |
+| Écarts de performance dus à Phalcon 5 | Acceptés pour l'instant (décision du 6 octobre 2026). Mesurés en production, mémoire −30 % partout : requête HTTP +45 µs (E4), cache `memory` +26 µs puis +3,5 µs par set + get (E7), rendu Volt +35 µs (E9), modèles +12 µs au chargement et +80 µs sur `findFirst` (E10). L'essentiel vient de Phalcon 5 ; des éléments spécifiques (store `memory` en PHP pur, lecture des attributs de modèle à la demande, contournement du dispatcher) seront écrits plus tard si le besoin apparaît. | E4, E7, E9, E10 |
 | Données chiffrées par la 1.3 | Lisibles par Phalcon 5 avec `app.crypt_signing = false` (la 1.3 ne signait pas) ; la signature reste activée par défaut. Procédure de migration dans `UPGRADING-2.0.md`. | E7 |
 | Dotconst compilé | `const NAME = ...;` plutôt que `define()` (légèrement plus rapide), sauf `@php/env`. | E2 |
 
@@ -55,10 +56,6 @@ Ce dossier pilote la refonte du framework, de la 1.3 (Phalcon 3, PHP 5.6 – 7.3
 | Sujet | Question | Epic |
 |---|---|---|
 | Debug | Remplacement de notre barre de debug par `phalcon/debugbar` (en `suggest`, sans dépendance de production), à confirmer par l'étude E12-S1. On garde notre page d'erreur et `VarDump`. | E12 |
-| Performance de la requête HTTP | En production (`optimize`), la requête complète est 19 % plus lente que la 1.3 (+45 µs), le boot 11 % plus rapide, la mémoire 34 % plus basse. L'écart vient de Phalcon 5 (`dispatch()` et premier `Router::handle()` plus lents à froid). Accepter, ou chercher à contourner le dispatcher ? Voir E4. | E4 |
-| Performance du rendu Volt | Premier rendu d'une page : +35 µs (+20 %), mémoire −33 %. Phalcon 5 pur coûte +70 µs sur ce rendu : Nucleon en compense la moitié. Accepter ? Voir E9. | E9 |
-| Performance des modèles | Premier modèle +12 µs (+23 %), `findFirst` +80 µs (+33 %), `find` de 100 lignes +257 µs (+35 %), mémoire −30 %. Phalcon 5 pur coûte +108 µs sur `findFirst`. Accepter ? Voir E10. | E10 |
-| Performance du cache | Résolution + 1 set/get sur `memory` : +26 µs (+30 %) ; chaque set + get suivant : +3,5 µs ; mémoire −35 %. L'écart vient de Phalcon 5 (`Phalcon\Cache` 4 à 5 fois plus lent que le backend de Phalcon 3). Accepter, ou fournir un store `memory` en PHP pur ? Voir E7. | E7 |
 
 ## Epics
 

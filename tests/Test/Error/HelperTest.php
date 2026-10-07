@@ -118,7 +118,14 @@ final class HelperTest extends TestCase
 
     public function testFormatExceptionTrace(): void
     {
-        $traces = Helper::formatExceptionTrace(self::exception('arg', 12));
+        // The arguments are in the trace unless zend.exception_ignore_args (on in production).
+        $previous = ini_set('zend.exception_ignore_args', '0');
+
+        try {
+            $traces = Helper::formatExceptionTrace(self::exception('arg', 12));
+        } finally {
+            ini_set('zend.exception_ignore_args', (string) $previous);
+        }
 
         $this->assertSame(0, $traces[0]['id']);
         $this->assertSame(self::class . "->exception('arg', 12)", $traces[0]['func']);

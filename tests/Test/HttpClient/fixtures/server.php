@@ -55,6 +55,10 @@ switch (true) {
 
     case $path === '/stream':
         header('Content-Type: text/plain');
+        // flush() does not empty the output buffers (output_buffering in production).
+        while (ob_get_level() > 0) {
+            ob_end_flush();
+        }
         for ($i = 1; $i <= 5; $i++) {
             echo "chunk $i\n";
             flush();

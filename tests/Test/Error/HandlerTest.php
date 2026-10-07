@@ -115,9 +115,10 @@ final class HandlerTest extends TestCase
     {
         yield 'warning' => ['register', 'warning', "E_USER_WARNING\n  Message : a warning\n"];
         yield 'uncaught exception' => ['register', 'exception', "Uncaught exception\n  Class : RuntimeException\n  Code : 0\n  Message : an exception\n"];
-        yield 'compile error' => ['register', 'compile', "E_COMPILE_ERROR\n  Message : Cannot redeclare nucleon_twice()"];
+        // PHP 8.4: "Cannot redeclare function nucleon_twice()".
+        yield 'compile error' => ['register', 'compile', "E_COMPILE_ERROR\n  Message : Cannot redeclare "];
         yield 'fatal error' => ['register', 'memory', "E_ERROR\n  Message : Allowed memory size of"];
-        yield 'registered by the bootstrap' => ['bootstrap', 'compile', "E_COMPILE_ERROR\n  Message : Cannot redeclare nucleon_twice()"];
+        yield 'registered by the bootstrap' => ['bootstrap', 'compile', "E_COMPILE_ERROR\n  Message : Cannot redeclare "];
     }
 
     /**

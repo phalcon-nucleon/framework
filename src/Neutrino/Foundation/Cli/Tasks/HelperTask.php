@@ -75,7 +75,7 @@ final class HelperTask extends Task
         }
 
         $this->line('Description :');
-        $this->line("\t" . str_replace(PHP_EOL, PHP_EOL . "\t", (string) ($infos['description'] ?? $infos['__exception'] ?? '')));
+        $this->line("\t" . str_replace(PHP_EOL, PHP_EOL . "\t", $infos['description'] ?? $infos['__exception']));
 
         if (!empty($infos['arguments'])) {
             $this->line('Arguments :');

@@ -22,8 +22,8 @@ final class Options
      * - `body`: a string, an array (form encoded), a resource or an iterable of strings (read in memory);
      * - `json`: a value sent as JSON (with `content-type: application/json`);
      * - `auth_basic`: "user:password" or `[user, password]`; `auth_bearer`: a token;
-     * - `timeout`: idle timeout in seconds (`default_socket_timeout` when `null`); `max_duration`: maximum
-     *   duration of the request in seconds (0: none);
+     * - `timeout`: idle timeout in seconds (0: none; `default_socket_timeout` when `null`, none when it is
+     *   negative); `max_duration`: maximum duration of the request in seconds (0: none);
      * - `max_redirects`: redirections followed (0: none);
      * - `proxy`: "http://host:port"; `no_proxy`: hosts, comma separated or a list (`*`: all);
      * - `verify_peer`, `verify_host`, `cafile`: TLS checks;
@@ -120,7 +120,7 @@ final class Options
             $url,
             $headers,
             $body,
-            self::seconds('timeout', $options['timeout'] ?? ini_get('default_socket_timeout')),
+            $options['timeout'] === null ? max(0.0, (float) ini_get('default_socket_timeout')) : self::seconds('timeout', $options['timeout']),
             self::seconds('max_duration', $options['max_duration']),
             $proxy === null ? null : self::string('proxy', $proxy),
             (bool) $options['verify_peer'],

@@ -273,6 +273,15 @@ final class HttpClientTest extends TestCase
         $this->assertSame('http://example.com/x', $response->getInfo('redirect_url'));
     }
 
+    public function testRedirectionNotFollowedToAnotherProtocol(): void
+    {
+        $response = (new HttpClient(['max_redirects' => 0], new MockTransport(new MockResponse('moved', 302, ['location' => 'ftp://example.com/file']))))->request('GET', 'http://example.com');
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('moved', $response->getContent(false));
+        $this->assertNull($response->getInfo('redirect_url'));
+    }
+
     public function testRedirectionToAnotherProtocolRefused(): void
     {
         $response = (new HttpClient([], new MockTransport(new MockResponse('', 302, ['location' => 'file:///etc/passwd']))))->request('GET', 'http://example.com');

@@ -231,6 +231,36 @@ final class TransportTest extends TestCase
         $this->assertSame('/echo', $direct['uri']);
     }
 
+    /**
+     * The answer of the proxy to CONNECT is not the head of the response.
+     */
+    #[DataProvider('transports')]
+    public function testHttpsThroughAProxy(Transport $transport): void
+    {
+        [$url, $certificate] = LocalServer::tls();
+
+        $response = (new HttpClient(['proxy' => LocalServer::connectProxy(), 'cafile' => $certificate, 'timeout' => 5], $transport))->request('GET', $url . '/x');
+
+        $this->assertSame(201, $response->getStatusCode());
+        $this->assertSame(['ok'], $response->getHeaders()['x-tls'] ?? null);
+        $this->assertSame('tls ok', $response->getContent());
+    }
+
+    #[DataProvider('transports')]
+    public function testWithoutTimeout(Transport $transport): void
+    {
+        $this->assertSame('slow', self::client($transport, ['timeout' => 0])->request('GET', '/slow?ms=100')->getContent());
+
+        $previous = ini_set('default_socket_timeout', '-1');
+
+        try {
+            $client = new HttpClient(['base_uri' => LocalServer::url()], $transport);
+            $this->assertSame('slow', $client->request('GET', '/slow?ms=100')->getContent());
+        } finally {
+            ini_set('default_socket_timeout', (string) $previous);
+        }
+    }
+
     #[DataProvider('transports')]
     public function testInvalidCertificate(Transport $transport): void
     {

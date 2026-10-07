@@ -34,8 +34,7 @@ final class CurlTransport implements Transport
             CURLOPT_HEADERFUNCTION => static function (CurlHandle $handle, string $line) use (&$headerLines, &$headComplete): int {
                 if (rtrim($line, "\r\n") === '') {
                     // The end of a head: an interim response (1xx) is followed by another.
-                    $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
-                    $headComplete = $status >= 200 || $status === 0;
+                    $headComplete = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE) >= 200;
                 } else {
                     $headerLines[] = $line;
                 }
@@ -112,15 +111,20 @@ final class CurlTransport implements Transport
             CURLOPT_HTTP_VERSION   => self::HTTP_VERSIONS[$request->httpVersion] ?? CURL_HTTP_VERSION_1_1,
             CURLOPT_SSL_VERIFYPEER => $request->verifyPeer,
             CURLOPT_SSL_VERIFYHOST => $request->verifyHost ? 2 : 0,
-            CURLOPT_CONNECTTIMEOUT_MS => (int) ceil($request->timeout * 1000),
-            // Idle timeout: less than one byte per second during `timeout`.
-            CURLOPT_LOW_SPEED_LIMIT => 1,
-            CURLOPT_LOW_SPEED_TIME => max(1, (int) ceil($request->timeout)),
             CURLOPT_TIMEOUT_MS     => (int) ceil($request->maxDuration * 1000),
             CURLOPT_PROXY          => $request->proxy() ?? '',
+            // The answer of the proxy to CONNECT (https) is not the head of the response.
+            CURLOPT_SUPPRESS_CONNECT_HEADERS => true,
             CURLOPT_NOPROXY        => '',
             CURLOPT_NOSIGNAL       => true,
         ];
+
+        if ($request->timeout > 0) {
+            $options[CURLOPT_CONNECTTIMEOUT_MS] = (int) ceil($request->timeout * 1000);
+            // Idle timeout: less than one byte per second during `timeout`.
+            $options[CURLOPT_LOW_SPEED_LIMIT] = 1;
+            $options[CURLOPT_LOW_SPEED_TIME] = max(1, (int) ceil($request->timeout));
+        }
 
         if ($request->method === 'HEAD') {
             $options[CURLOPT_NOBODY] = true;

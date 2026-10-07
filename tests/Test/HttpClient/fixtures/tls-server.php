@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * A TLS server answering "tls ok" to every request, with a self-signed certificate for 127.0.0.1.
+ * A TLS server answering "tls ok" (201, `x-tls: ok`) to every request, with a self-signed certificate for 127.0.0.1.
  *
  * php tls-server.php <port> <certificate file>: the certificate is written to the file (for `cafile`),
  * then "ready" is printed.
@@ -49,6 +49,6 @@ while (true) {
         $line = fgets($client);
     } while ($line !== false && rtrim($line) !== '');
 
-    fwrite($client, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 6\r\nConnection: close\r\n\r\ntls ok");
+    fwrite($client, "HTTP/1.1 201 Created\r\nX-Tls: ok\r\nContent-Length: 6\r\nConnection: close\r\n\r\ntls ok");
     fclose($client);
 }

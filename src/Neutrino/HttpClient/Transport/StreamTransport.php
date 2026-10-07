@@ -50,17 +50,22 @@ final class StreamTransport implements Transport
             yield Head::parse(is_array($meta['wrapper_data']) ? array_filter($meta['wrapper_data'], is_string(...)) : []);
 
             while (!feof($stream)) {
-                $remaining = $request->maxDuration > 0 ? $request->maxDuration - (microtime(true) - $start) : $request->timeout;
+                $remaining = $request->maxDuration > 0 ? $request->maxDuration - (microtime(true) - $start) : 0.0;
 
-                if ($remaining <= 0) {
+                if ($request->maxDuration > 0 && $remaining <= 0) {
                     throw new TransportException('Max duration reached for "' . $request->url . '".');
                 }
 
-                stream_set_timeout($stream, (int) min($request->timeout, $remaining), (int) (fmod(min($request->timeout, $remaining), 1) * 1e6));
+                $timeout = self::timeout($request, $remaining);
+
+                if ($timeout > 0) {
+                    stream_set_timeout($stream, (int) $timeout, (int) (fmod($timeout, 1) * 1e6));
+                }
+
                 $chunk = fread($stream, self::CHUNK_SIZE);
 
                 if (stream_get_meta_data($stream)['timed_out']) {
-                    throw new TransportException('Idle timeout reached for "' . $request->url . '".');
+                    throw new TransportException('Timeout reached for "' . $request->url . '".');
                 }
 
                 if ($chunk === false) {
@@ -77,6 +82,16 @@ final class StreamTransport implements Transport
     }
 
     /**
+     * The read timeout: the idle timeout, bounded by the remaining duration; -1 when there is none.
+     */
+    private static function timeout(Request $request, float $remaining): float
+    {
+        $timeouts = array_filter([$request->timeout, $remaining], static fn(float $timeout): bool => $timeout > 0);
+
+        return $timeouts === [] ? -1.0 : min($timeouts);
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     private function context(Request $request): array
@@ -87,7 +102,7 @@ final class StreamTransport implements Transport
             'protocol_version' => $request->httpVersion === '1.0' ? 1.0 : 1.1,
             'ignore_errors'    => true,
             'follow_location'  => 0,
-            'timeout'          => $request->maxDuration > 0 ? min($request->timeout, $request->maxDuration) : $request->timeout,
+            'timeout'          => self::timeout($request, $request->maxDuration),
         ];
 
         if (!isset($request->headers['connection'])) {
@@ -109,7 +124,8 @@ final class StreamTransport implements Transport
             }
 
             $http['proxy'] = 'tcp://' . $parts['host'] . ':' . ($parts['port'] ?? 80);
-            $http['request_fulluri'] = true;
+            // An https request goes through a CONNECT tunnel, with a relative URI.
+            $http['request_fulluri'] = str_starts_with($request->url, 'http://');
 
             if (isset($parts['user'])) {
                 $headers[] = 'proxy-authorization: Basic ' . base64_encode(urldecode($parts['user']) . ':' . urldecode($parts['pass'] ?? ''));

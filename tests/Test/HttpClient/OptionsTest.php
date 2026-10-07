@@ -124,6 +124,22 @@ final class OptionsTest extends TestCase
         $this->assertTrue($request->verifyHost);
     }
 
+    public function testTimeoutOfTheIni(): void
+    {
+        $previous = ini_set('default_socket_timeout', '-1');
+
+        try {
+            // -1: no timeout.
+            $this->assertSame(0.0, Options::prepare('GET', 'http://example.com', [])->timeout);
+
+            ini_set('default_socket_timeout', '30');
+            $this->assertSame(30.0, Options::prepare('GET', 'http://example.com', [])->timeout);
+            $this->assertSame(0.0, Options::prepare('GET', 'http://example.com', ['timeout' => 0])->timeout);
+        } finally {
+            ini_set('default_socket_timeout', (string) $previous);
+        }
+    }
+
     /**
      * @return iterable<string, array{mixed, string, string|null}>
      */

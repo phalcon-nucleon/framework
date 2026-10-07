@@ -461,7 +461,7 @@ $response->toArray();
 | `->post($uri, $params)` / with `['json' => true]` | `request('POST', $uri, ['body' => $params])` / `['json' => $params]` |
 | `setHeaders([...])`, `setHeader($name, $value)` | `['headers' => [...]]` |
 | `setProxy($host, $port, $access)` | `['proxy' => 'http://access@host:port']`, `no_proxy` |
-| `setTimeout($s)`, `setConnectTimeout($s)` | `['timeout' => $s]` (idle), `['max_duration' => $s]` (total) |
+| `setTimeout($s)`, `setConnectTimeout($s)` | `['timeout' => $s]` (idle; 0 for none, `default_socket_timeout` by default), `['max_duration' => $s]` (total) |
 | `disableSsl()` | `['verify_peer' => false, 'verify_host' => false]` |
 | `setCookies([...])` | `['headers' => ['cookie' => 'a=1; b=2']]` |
 | `$response->getCode()`, `getBody()`, `getHeader()` | `getStatusCode()`, `getContent()`, `getHeaders()` |

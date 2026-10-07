@@ -59,6 +59,25 @@ final class LocalServer
         return ['https://127.0.0.1:' . self::$servers['tls'][1], $certificate];
     }
 
+    /**
+     * The URL of the proxy for https requests (CONNECT).
+     */
+    public static function connectProxy(): string
+    {
+        if (!isset(self::$servers['proxy'])) {
+            $port = self::freePort();
+            $process = proc_open([PHP_BINARY, __DIR__ . '/fixtures/connect-proxy.php', (string) $port], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+
+            self::$servers['proxy'] = [self::started($process), $port];
+
+            if (trim((string) fgets($pipes[1])) !== 'ready') {
+                throw new RuntimeException('The proxy did not start: ' . stream_get_contents($pipes[2]));
+            }
+        }
+
+        return 'http://127.0.0.1:' . self::$servers['proxy'][1];
+    }
+
     public static function stopAll(): void
     {
         foreach (self::$servers as [$process]) {

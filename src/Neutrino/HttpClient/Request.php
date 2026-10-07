@@ -11,7 +11,7 @@ final readonly class Request
 {
     /**
      * @param array<string, list<string>> $headers By lower-case name
-     * @param float                       $timeout Idle timeout, in seconds
+     * @param float                       $timeout Idle timeout, in seconds (0: none)
      * @param float                       $maxDuration Maximum duration of the exchange, in seconds (0: none)
      * @param string|null                 $proxy   The configured proxy (see {@see self::proxy()})
      * @param list<string>                $noProxy Hosts reached without the proxy (`*` for all)

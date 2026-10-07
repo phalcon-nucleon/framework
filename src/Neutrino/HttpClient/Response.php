@@ -234,15 +234,22 @@ final class Response implements ResponseInterface
                 return $this->head = $head;
             }
 
+            if ($this->redirectCount >= $this->maxRedirects) {
+                // Not followed: the response is returned, with the location when it is a valid http(s) URL.
+                try {
+                    $this->redirectUrl = Options::resolve($location, $this->request->url);
+                } catch (InvalidArgumentException) {
+                    $this->redirectUrl = null;
+                }
+
+                return $this->head = $head;
+            }
+
             try {
-                $this->redirectUrl = $next = Options::resolve($location, $this->request->url);
+                $next = Options::resolve($location, $this->request->url);
             } catch (InvalidArgumentException $e) {
                 // file://, gopher://… sent by the server.
                 throw new TransportException('Redirection of "' . $this->url . '" refused: ' . $e->getMessage(), 0, $e);
-            }
-
-            if ($this->redirectCount >= $this->maxRedirects) {
-                return $this->head = $head;
             }
 
             $this->exchange = null; // aborts the exchange

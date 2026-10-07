@@ -74,7 +74,7 @@ Aucun pour l'instant.
 | E11 | [Migrations](epics/E11-migrations.md) | Terminé | E6, E10 |
 | E12 | [Erreurs & Debug](epics/E12-erreurs-debug.md) | Terminé | E4 |
 | E13 | [HttpClient v2](epics/E13-httpclient.md) | Terminé | E0 |
-| E14 | [Process](epics/E14-process.md) | Rédigé | E0 |
+| E14 | [Process](epics/E14-process.md) | Terminé | E0 |
 | E15 | [Release 2.0](epics/E15-release.md) | Rédigé | tous |
 
 E4 à E7 peuvent avancer en parallèle une fois E3 terminé. E13 et E14 ne dépendent que d'E0.

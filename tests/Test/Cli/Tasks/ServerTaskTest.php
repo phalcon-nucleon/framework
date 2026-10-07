@@ -16,8 +16,11 @@ final class ServerTaskTest extends CliTestCase
     {
         parent::setUp();
 
-        $this->process = new FakeProcess();
-        $this->mockService(Process::class, $this->process);
+        $process = $this->process = new FakeProcess();
+        // Not static: the container binds its closures.
+        $this->getDI()->set(Process::class, function (array|string $command, ?string $cwd = null) use ($process): FakeProcess {
+            return $process($command, $cwd);
+        });
     }
 
     public function testServerOnTheFirstFreePort(): void
@@ -27,7 +30,13 @@ final class ServerTaskTest extends CliTestCase
         $this->assertMatchesRegularExpression('#\[OK\] http://127\.0\.0\.1:80\d\d#', $output);
         $this->assertStringContainsString('started', $output);
         $this->assertStringContainsString('[ERR] server suddenly stopped', $output);
-        $this->assertSame(['start', 'watch', 'close'], $this->process->calls);
+        $this->assertSame(['start', 'watch'], $this->process->calls);
+        // A list: run without shell.
+        $this->assertIsArray($this->process->command);
+        [$php, $option, $address, $script] = $this->process->command;
+        $this->assertSame([PHP_BINARY, '-S', 'app_dev.php'], [$php, $option, $script]);
+        $this->assertStringContainsString('[OK] http://' . $address, $output);
+        $this->assertSame(BASE_PATH . '/public', $this->process->cwd);
     }
 
     public function testServerOnAGivenHostAndPort(): void
@@ -71,26 +80,40 @@ final class ServerTaskTest extends CliTestCase
 }
 
 /**
- * Stands for Neutrino\Process\Process (ported in E14).
+ * A process that is not run: records the calls of the task.
  */
-class FakeProcess
+final class FakeProcess extends Process
 {
     /** @var list<string> */
     public array $calls = [];
 
-    public function start(): void
+    /** @var list<string>|string */
+    public array|string $command = [];
+
+    public ?string $cwd = null;
+
+    public function __construct() {}
+
+    public function __invoke(array|string $command, ?string $cwd = null): self
     {
-        $this->calls[] = 'start';
+        $this->command = $command;
+        $this->cwd = $cwd;
+
+        return $this;
     }
 
-    public function watch(callable $callback): void
+    public function start(): static
+    {
+        $this->calls[] = 'start';
+
+        return $this;
+    }
+
+    public function watch(callable $callback, ?float $timeout = null): int
     {
         $this->calls[] = 'watch';
         $callback("started\n", '');
-    }
 
-    public function close(): void
-    {
-        $this->calls[] = 'close';
+        return 0;
     }
 }

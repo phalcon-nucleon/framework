@@ -67,25 +67,22 @@ final class ServerTask extends Task
 
     private function run(string $host, int $port): void
     {
-        $cmd = PHP_BINARY . ' -S ' . $host . ':' . $port . ' app_dev.php';
-
         /** @var Process $process */
-        $process = $this->getDI()->get(Process::class, [$cmd, BASE_PATH . '/public']);
+        $process = $this->getDI()->get(Process::class, [[PHP_BINARY, '-S', $host . ':' . $port, 'app_dev.php'], BASE_PATH . '/public']);
         $process->start();
 
         $this->block(['[OK] http://' . $host . ':' . $port], 'info');
 
-        $process->watch(function (mixed $stdout, mixed $stderr): void {
-            if (is_string($stdout) && $stdout !== '') {
-                $this->line(trim($stdout, "\n\r"));
+        $process->watch(function (string $output, string $errorOutput): void {
+            if ($output !== '') {
+                $this->line(trim($output, "\n\r"));
             }
-            if (is_string($stderr) && $stderr !== '') {
-                $this->error(trim($stderr, "\n\r"));
+            if ($errorOutput !== '') {
+                $this->error(trim($errorOutput, "\n\r"));
             }
         });
 
         $this->block(['[ERR] server suddenly stopped'], 'error');
-        $process->close();
     }
 
     private function acquirePort(string $host): int

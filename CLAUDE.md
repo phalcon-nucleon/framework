@@ -23,7 +23,7 @@ docker compose run --rm php8 vendor/bin/php-cs-fixer fix --dry-run --diff
 PHP_VERSION=8.4 docker compose build php8                          # other PHP version
 ```
 
-Porting a module (see `CONVENTIONS.md`): add `declare(strict_types=1)` (this opts the file into PHP-CS-Fixer), remove its entries from `phpstan-baseline.neon` / `excludePaths` in `phpstan.neon`, and add its suite to `tests/migrated-suites.txt` once green. `rector.php` holds the mechanical upgrade rules; it is never applied in CI.
+All modules are ported (E0–E14): PHPStan runs at level `max` without baseline (only the `Debug/resources` templates are excluded), and every test suite is listed in `tests/migrated-suites.txt` (the `TestCase` suite holds no test, only test helpers). `rector.php` holds the mechanical upgrade rules; it is never applied in CI.
 
 The constraints below describe the 1.3 code (`master`).
 

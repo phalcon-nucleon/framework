@@ -476,6 +476,35 @@ $response->toArray();
 - `body` given as a resource or an iterable is read in memory before sending.
 - Tests: `new HttpClient([], new MockTransport([new MockResponse('...'), MockResponse::json([...], 201), MockResponse::error('...')]))`, or a callback building the response from the `Request`; `getRequests()` returns the requests sent. With the Facade: `Http::swap(new HttpClient([], $transport))`.
 
+## Process
+
+```php
+// 1.3
+$process = new Process('git status', $cwd);
+$process->exec(5000);                       // ms, returned nothing
+$process->getError();
+
+// 2.0
+$process = new Process(['git', 'status'], $cwd, env: ['LANG' => 'C'], timeout: 5.0);
+$code = $process->run();                    // the exit code
+$process->getErrorOutput();
+$process->mustRun();                        // throws ProcessFailedException when the code is not 0
+```
+
+| 1.3 | 2.0 |
+|---|---|
+| `exec($timeoutMs)` | `run()` (returns the exit code), timeout in the constructor, in seconds |
+| `wait($timeoutMs)` | `wait(?float $timeout)`: returns the exit code, throws `ProcessTimedOutException` |
+| `watch(Closure $callback, $timeoutMs)` | `watch(callable $callback, ?float $timeout)`: returns the exit code |
+| `stop($timeoutMs)`, `close()` | `stop(float $timeout = 10.0, int $signal = 15)`: SIGTERM, then SIGKILL; returns the exit code |
+| `getError()`, `pid()`, `readStatus()` | `getErrorOutput()`, `getPid()`, `isRunning()` / `getExitCode()` |
+| `Exception`, `Timeout` | `Exception\ProcessException`, `Exception\ProcessTimedOutException`, `Exception\ProcessFailedException` |
+
+- **All the durations are in seconds** (`float`), not milliseconds. 1.3 mixed the units: `wait()` returned at once, and `stop()` waited 1 000 times too long.
+- A command given as a list runs without shell: prefer it, a string goes through the shell (never put external data in it). With a string, the signals of `stop()` reach the shell, not the commands it runs.
+- New: `setInput()` (string or stream), `waitUntil()`, `getExitCode()`, `isSuccessful()`, incremental outputs, environment variables (added to PHP's, `null` removes one).
+- A process still running when its object is destroyed is stopped.
+
 ## Removed
 
 - `Neutrino\Assets` and the `assets:js` / `assets:sass` tasks.

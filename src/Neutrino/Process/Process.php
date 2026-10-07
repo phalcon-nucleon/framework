@@ -1,299 +1,438 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Process;
 
-use Neutrino\Error\Error;
+use Neutrino\Process\Exception\ProcessException;
+use Neutrino\Process\Exception\ProcessFailedException;
+use Neutrino\Process\Exception\ProcessTimedOutException;
 
 /**
- * Class Process
+ * A system process (`proc_open`). The durations are in seconds.
  *
- * Neutrino\Process
+ * ```php
+ * $code = (new Process(['git', 'status']))->run();
+ * (new Process(['composer', 'dump-autoload']))->mustRun();
+ *
+ * $server = new Process([PHP_BINARY, '-S', '127.0.0.1:8000'], cwd: $dir, env: ['APP_ENV' => 'test']);
+ * $server->start();
+ * $server->waitUntil(fn (string $output, string $errorOutput): bool => str_contains($errorOutput, 'started'), 5.0);
+ * $server->stop(2.0); // SIGTERM, then SIGKILL after 2 s
+ * ```
+ *
+ * The outputs are written to temporary files: a process writing a lot never blocks.
  */
 class Process
 {
-    private $proc;
+    public const int SIGTERM = 15;
 
-    private $cmd;
+    public const int SIGKILL = 9;
 
-    private $spec = [];
+    /** Polling interval of the waits, in microseconds */
+    private const int POLL = 10000;
 
-    private $pipes = [];
+    /** @var resource|null */
+    private $process = null;
 
-    private $cwd;
+    /** @var array{1: resource, 2: resource}|null The outputs of the process, read */
+    private ?array $streams = null;
 
-    private $options;
+    /** @var resource|string|null */
+    private mixed $input = null;
 
-    private $status;
+    private ?int $pid = null;
 
-    private $content = '';
+    private ?int $exitCode = null;
 
-    private $error = '';
+    private string $output = '';
 
-    public function __construct($cmd, $cwd = null, array $options = null)
-    {
-        $this->cmd = $cmd;
-        $this->cwd = $cwd;
-        $this->options = $options;
-    }
+    private string $errorOutput = '';
 
-    /**
-     * Start a process
-     *
-     * @return $this
-     * @throws Exception
-     */
-    public function start()
-    {
-        $this->spec = [
-            // 0 => ['pipe', 'w+'],
-          1 => fopen('php://temp/maxmemory:' . (1024 * 1024), 'w+'),
-          2 => fopen('php://temp/maxmemory:' . (1024 * 1024), 'w+'),
-        ];
+    private int $incrementalOutput = 0;
 
-        if ('\\' === DIRECTORY_SEPARATOR) {
-            $this->options = array_merge(['bypass_shell' => true], (array)$this->options);
-        }
-
-        /** @var Error $error */
-        $error = null;
-
-        set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$error) {
-            $error = Error::fromError($errno, $errstr, $errfile, $errline);
-        });
-
-        $this->proc = proc_open($this->cmd, $this->spec, $this->pipes, $this->cwd, null, $this->options);
-
-        restore_error_handler();
-
-        $this->pipes = $this->spec;
-
-        if (!is_null($error)) {
-            throw new Exception('Can\'t create process', 0, new Exception($error->message, $error->code));
-        }
-        if (!$this->isRunning()) {
-            throw new Exception('Can\'t create process');
-        }
-
-        return $this;
-    }
+    private int $incrementalErrorOutput = 0;
 
     /**
-     * Wait until process end or wait time
-     *
-     * @param int|null $timeout in ms
-     * @param int $step in ms
+     * @param list<string>|string       $command A list: run without shell (recommended). A string: run by the shell,
+     *                                           never with external data in it (command injection)
+     * @param array<string, string|null> $env    Variables added to the environment of PHP (`null` removes one)
+     * @param float|null                 $timeout Timeout of {@see self::run()}
      */
-    public function wait($timeout = null, $step = 1000)
-    {
-        $withTimeout = false === is_null($timeout);
-
-        if ($withTimeout) {
-            $start = microtime(true);
-            if ($timeout < $step) {
-                $step = $timeout;
-            }
-        }
-
-        while ($this->isRunning()) {
-            usleep($step * 1000);
-
-            if ($withTimeout && ($start + $timeout) > microtime(true)) {
-                return;
-            }
-        }
-    }
-
-    /**
-     * @param \Closure $callback
-     * @param int|null $timeout in ms
-     * @param int      $step    in ms
-     */
-    public function watch(\Closure $callback, $timeout = null, $step = 1000)
-    {
-        $withTimeout = false === is_null($timeout);
-
-        if ($withTimeout) {
-            $start = microtime(true);
-            if ($timeout < $step) {
-                $step = $timeout;
-            }
-        }
-
-        while ($this->isRunning()) {
-            $output = $this->readOutput();
-            $error = $this->readError();
-
-            if (!empty($output) || !empty($error)) {
-                $callback($output, $error);
-            }
-
-            usleep($step * 1000);
-
-            if ($withTimeout && ($start + $timeout) > microtime(true)) {
-                break;
-            }
-        }
-
-        $output = $this->readOutput();
-        $error = $this->readError();
-
-        if (!empty($output) || !empty($error)) {
-            $callback($output, $error);
-        }
-    }
-
-    /**
-     * Stop a process
-     *
-     * @param int $timeout in ms
-     *
-     * @return $this
-     */
-    public function stop($timeout = 1000)
-    {
-        $timeout = microtime(true) + ($timeout * 1000);
-
-        if ($this->isRunning()) {
-            proc_terminate($this->proc);
-        }
-        while ($this->isRunning() && microtime(true) < $timeout) {
-            usleep(1000);
-        }
-
-        $this->readOutput();
-        $this->readError();
-
-        return $this;
-    }
-
-    /**
-     * Stop & Close the resources
-     */
-    public function close()
-    {
-        $this->stop(0);
-
-        if (is_resource($this->proc)) {
-            proc_close($this->proc);
-        }
-
-        foreach ($this->pipes as $pipe) {
-            if (is_resource($pipe)) {
-                fclose($pipe);
-            }
-        }
-    }
-
-    /**
-     * Execute a process
-     *
-     * @param int|null $timeout in ms
-     *
-     * @throws Exception
-     */
-    public function exec($timeout = null)
-    {
-        try {
-            $this->start();
-            $this->wait($timeout, 500);
-            if ($this->isRunning()) {
-                throw new Timeout;
-            }
-        } finally {
-            $this->close();
-        }
-    }
-
-    /**
-     * Check if is running
-     *
-     * @return bool
-     */
-    public function isRunning()
-    {
-        return true === is_resource($this->proc) && true === $this->readStatus()['running'];
-    }
-
-    /**
-     * @return string
-     */
-    public function getOutput()
-    {
-        $this->readOutput();
-
-        return $this->content;
-    }
-
-    /**
-     * @return string
-     */
-    public function getError()
-    {
-        $this->readError();
-
-        return $this->error;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function pid()
-    {
-        return $this->readStatus()['pid'];
-    }
-
-    /**
-     * @return array|bool
-     */
-    public function readStatus()
-    {
-        if (is_resource($this->proc)) {
-            $this->status = proc_get_status($this->proc);
-        }
-
-        return $this->status;
-    }
-
-    private function readOutput()
-    {
-        $readed = null;
-
-        if (isset($this->pipes[1])) {
-            $this->content .= $readed = $this->read($this->pipes[1], strlen($this->content));
-        }
-
-        return $readed;
-    }
-
-    private function readError()
-    {
-        $readed = null;
-
-        if (isset($this->pipes[2])) {
-            $this->error .= $readed = $this->read($this->pipes[2], strlen($this->error));
-        }
-
-        return $readed;
-    }
-
-    private function read($pipe, $offset = 0)
-    {
-        if (!is_resource($pipe)) {
-            return '';
-        }
-
-        fseek($pipe, $offset);
-        $read = '';
-        do {
-            $data = fread($pipe, 2 * 1024);
-            $read .= $data;
-        } while (!empty($data) && !isset($data[2 * 1024 - 1]));
-
-        return $read;
-    }
+    public function __construct(
+        private readonly array|string $command,
+        private readonly ?string $cwd = null,
+        private readonly ?array $env = null,
+        private readonly ?float $timeout = null,
+    ) {}
 
     public function __destruct()
     {
-        $this->close();
+        $this->stop(0);
+    }
+
+    /**
+     * The input of the process: a string, or a stream read up to its end.
+     *
+     * @param resource|string|null $input
+     */
+    public function setInput(mixed $input): static
+    {
+        if ($this->process !== null) {
+            throw new ProcessException('The input must be set before the process starts.');
+        }
+
+        if ($input !== null && !is_string($input) && !is_resource($input)) {
+            throw new ProcessException('The input of a process is a string or a stream.');
+        }
+
+        $this->input = $input;
+
+        return $this;
+    }
+
+    public function start(): static
+    {
+        if ($this->process !== null) {
+            throw new ProcessException('The process "' . $this->getCommandLine() . '" is already started.');
+        }
+
+        $input = fopen('php://temp/maxmemory:' . (1024 * 1024), 'w+') ?: throw new ProcessException('Cannot open a temporary stream.');
+
+        if (is_string($this->input)) {
+            fwrite($input, $this->input);
+        } elseif (is_resource($this->input)) {
+            stream_copy_to_stream($this->input, $input);
+        }
+        rewind($input);
+
+        // The process appends to its own descriptors of the files: a read of the parent cannot move its writes.
+        $files = [1 => self::temporaryFile(), 2 => self::temporaryFile()];
+        $descriptors = [0 => $input, 1 => ['file', $files[1], 'a'], 2 => ['file', $files[2], 'a']];
+
+        $error = null;
+        set_error_handler(static function (int $type, string $message) use (&$error): bool {
+            $error = $message;
+
+            return true;
+        });
+
+        try {
+            $process = proc_open($this->command, $descriptors, $pipes, $this->cwd, $this->environment(), ['bypass_shell' => true]);
+            $streams = [1 => fopen($files[1], 'r'), 2 => fopen($files[2], 'r')];
+        } finally {
+            restore_error_handler();
+            fclose($input);
+            // Kept by the open descriptors (unix).
+            @unlink($files[1]);
+            @unlink($files[2]);
+        }
+
+        if (!is_resource($process) || $streams[1] === false || $streams[2] === false) {
+            array_map(static fn(mixed $stream): bool => is_resource($stream) && fclose($stream), $streams);
+
+            throw new ProcessException('Cannot start the process "' . $this->getCommandLine() . '"' . ($error === null ? '.' : ': ' . $error), 0, $error === null ? null : new ProcessException($error));
+        }
+
+        $this->process = $process;
+        $this->streams = $streams;
+        $this->pid = proc_get_status($process)['pid'];
+
+        return $this;
+    }
+
+    /**
+     * Starts the process and waits for its end; `$onOutput` receives the new output and error output.
+     *
+     * @param (callable(string, string): mixed)|null $onOutput
+     *
+     * @return int The exit code
+     *
+     * @throws ProcessTimedOutException Beyond the timeout of the process (it is stopped)
+     */
+    public function run(?callable $onOutput = null): int
+    {
+        $this->start();
+
+        try {
+            return $onOutput === null ? $this->wait($this->timeout) : $this->watch($onOutput, $this->timeout);
+        } catch (ProcessTimedOutException $e) {
+            $this->stop(0);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Like {@see self::run()}, but throws when the exit code is not 0.
+     *
+     * @param (callable(string, string): mixed)|null $onOutput
+     *
+     * @throws ProcessFailedException
+     */
+    public function mustRun(?callable $onOutput = null): static
+    {
+        if ($this->run($onOutput) !== 0) {
+            throw new ProcessFailedException($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Waits for the end of the process.
+     *
+     * @return int The exit code
+     *
+     * @throws ProcessTimedOutException The process is still running after `$timeout` (it is not stopped)
+     */
+    public function wait(?float $timeout = null): int
+    {
+        return $this->watch(static fn(): null => null, $timeout);
+    }
+
+    /**
+     * Waits until a condition on the outputs (all of them so far) is true.
+     *
+     * @param callable(string, string): bool $condition
+     *
+     * @return bool `false` when the process ended before
+     *
+     * @throws ProcessTimedOutException The condition is still false after `$timeout`
+     */
+    public function waitUntil(callable $condition, ?float $timeout = null): bool
+    {
+        $this->assertStarted();
+        $deadline = self::deadline($timeout);
+
+        while (true) {
+            $running = $this->isRunning();
+
+            if ($condition($this->getOutput(), $this->getErrorOutput())) {
+                return true;
+            }
+
+            if (!$running) {
+                return false;
+            }
+
+            $this->checkTimeout($deadline, (float) $timeout);
+            usleep(self::POLL);
+        }
+    }
+
+    /**
+     * Calls `$callback` with each new output and error output, until the end of the process.
+     *
+     * @param callable(string, string): mixed $callback
+     *
+     * @return int The exit code
+     *
+     * @throws ProcessTimedOutException The process is still running after `$timeout` (it is not stopped)
+     */
+    public function watch(callable $callback, ?float $timeout = null): int
+    {
+        $this->assertStarted();
+        $deadline = self::deadline($timeout);
+
+        while (true) {
+            $running = $this->isRunning();
+            $output = $this->getIncrementalOutput();
+            $errorOutput = $this->getIncrementalErrorOutput();
+
+            if ($output !== '' || $errorOutput !== '') {
+                $callback($output, $errorOutput);
+            }
+
+            if (!$running) {
+                return (int) $this->exitCode;
+            }
+
+            $this->checkTimeout($deadline, (float) $timeout);
+            usleep(self::POLL);
+        }
+    }
+
+    /**
+     * Stops the process: `$signal`, then SIGKILL if it is still running after `$timeout`.
+     *
+     * @return int|null The exit code, `null` when the process was not started
+     */
+    public function stop(float $timeout = 10.0, int $signal = self::SIGTERM): ?int
+    {
+        $process = $this->process;
+
+        if ($process === null) {
+            return null;
+        }
+
+        if ($this->isRunning()) {
+            proc_terminate($process, $signal);
+            $deadline = microtime(true) + $timeout;
+
+            while ($this->isRunning() && microtime(true) < $deadline) {
+                usleep(self::POLL);
+            }
+
+            if ($this->isRunning()) {
+                proc_terminate($process, self::SIGKILL);
+
+                while ($this->isRunning()) {
+                    usleep(self::POLL);
+                }
+            }
+        }
+
+        return $this->exitCode;
+    }
+
+    public function isStarted(): bool
+    {
+        return $this->process !== null;
+    }
+
+    /**
+     * @phpstan-impure
+     */
+    public function isRunning(): bool
+    {
+        $process = $this->process;
+
+        if ($process === null || $this->exitCode !== null) {
+            return false;
+        }
+
+        $status = proc_get_status($process);
+
+        if ($status['running']) {
+            return true;
+        }
+
+        // Given once by proc_get_status(): kept. A process killed by a signal gets 128 + the signal.
+        $this->exitCode = $status['signaled'] ? 128 + $status['termsig'] : $status['exitcode'];
+        $this->readOutputs();
+        proc_close($process);
+
+        return false;
+    }
+
+    public function isSuccessful(): bool
+    {
+        return $this->getExitCode() === 0;
+    }
+
+    /**
+     * The exit code, `null` while the process runs.
+     */
+    public function getExitCode(): ?int
+    {
+        $this->isRunning();
+
+        return $this->exitCode;
+    }
+
+    public function getPid(): ?int
+    {
+        return $this->pid;
+    }
+
+    public function getCommandLine(): string
+    {
+        return is_string($this->command) ? $this->command : implode(' ', array_map(escapeshellarg(...), $this->command));
+    }
+
+    public function getOutput(): string
+    {
+        $this->readOutputs();
+
+        return $this->output;
+    }
+
+    public function getErrorOutput(): string
+    {
+        $this->readOutputs();
+
+        return $this->errorOutput;
+    }
+
+    /**
+     * The output since the previous call.
+     */
+    public function getIncrementalOutput(): string
+    {
+        $output = substr($this->getOutput(), $this->incrementalOutput);
+        $this->incrementalOutput += strlen($output);
+
+        return $output;
+    }
+
+    /**
+     * The error output since the previous call.
+     */
+    public function getIncrementalErrorOutput(): string
+    {
+        $output = substr($this->getErrorOutput(), $this->incrementalErrorOutput);
+        $this->incrementalErrorOutput += strlen($output);
+
+        return $output;
+    }
+
+    private function readOutputs(): void
+    {
+        if ($this->streams === null) {
+            return;
+        }
+
+        $this->output .= self::read($this->streams[1], strlen($this->output));
+        $this->errorOutput .= self::read($this->streams[2], strlen($this->errorOutput));
+    }
+
+    /**
+     * Reads what the process wrote after `$offset`. An explicit seek: at the end of the stream, PHP would not
+     * read again from the same position (`stream_get_contents()` with an offset skips the seek).
+     *
+     * @param resource $stream
+     */
+    private static function read(mixed $stream, int $offset): string
+    {
+        fseek($stream, $offset);
+
+        return (string) stream_get_contents($stream);
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    private function environment(): ?array
+    {
+        if ($this->env === null) {
+            return null;
+        }
+
+        return array_filter($this->env + getenv(), static fn(?string $value): bool => $value !== null);
+    }
+
+    private function assertStarted(): void
+    {
+        if ($this->process === null) {
+            throw new ProcessException('The process "' . $this->getCommandLine() . '" is not started.');
+        }
+    }
+
+    private function checkTimeout(?float $deadline, float $timeout): void
+    {
+        if ($deadline !== null && microtime(true) >= $deadline) {
+            throw new ProcessTimedOutException($this, $timeout);
+        }
+    }
+
+    private static function deadline(?float $timeout): ?float
+    {
+        return $timeout === null ? null : microtime(true) + $timeout;
+    }
+
+    private static function temporaryFile(): string
+    {
+        return tempnam(sys_get_temp_dir(), 'nucleon-process') ?: throw new ProcessException('Cannot create a temporary file.');
     }
 }

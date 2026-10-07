@@ -1,6 +1,6 @@
 # E14 — Process
 
-**Statut** : Rédigé · **Dépend de** : E0 · **Bloque** : E6-S5 (`server:run`), E12-S2 (test d'erreur fatale), E13-S2 (serveur de test local)
+**Statut** : Terminé · **Dépend de** : E0 · **Bloque** : E6-S5 (`server:run`), E12-S2 (test d'erreur fatale), E13-S2 (serveur de test local)
 
 ## Objectif
 
@@ -87,3 +87,14 @@ Phalcon 5 n'a pas de composant pour lancer des processus (vérifié dans l'index
 - La suite `Process` est activée et passe sur Linux (CI) et macOS (poste de développement), y compris sur le job Phalcon 6.
 - Les trois bugs de la 1.3 sont couverts par des tests qui échouent sur la 1.3.
 - Taille du module ≤ 400 lignes. Aucune dépendance ni extension requise en plus de `proc_open`.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Cœur | Fait | Commande en liste (sans shell) ou en chaîne (shell), `cwd`, `env` (ajouté à celui de PHP, `null` retire une variable), `timeout` de `run()`. Code de sortie mémorisé au premier statut « terminé » (128 + signal pour un processus tué). Erreur de `proc_open` (programme introuvable, répertoire invalide) en `ProcessException`, avec l'erreur PHP en exception précédente. |
+| S2 · Attente, arrêt et délais | Fait | Durées en secondes. `wait()`, `waitUntil()` (sur toutes les sorties reçues), `watch()` renvoient le code de sortie ou lèvent `ProcessTimedOutException` sans arrêter le processus ; `run()` l'arrête à son délai. `stop()` : signal, attente, puis SIGKILL (valeurs numériques, sans `pcntl`). Tests des trois bugs de la 1.3 : `wait()` avec délai, unités de `watch()`, `stop()` sur un processus qui ignore SIGTERM (`trap '' TERM`). Un processus encore en cours est arrêté à la destruction de son objet. |
+| S3 · Entrées et sorties | Fait | Entrée (chaîne ou flux) passée par un flux temporaire ; sorties écrites par le processus dans des fichiers temporaires ouverts en ajout, lus par le parent avec ses propres descripteurs. Constat : en partageant le descripteur (la 1.3 donnait le même flux `php://temp` à l'enfant), chaque `fseek()` du parent déplaçait aussi la position d'écriture de l'enfant, qui écrasait des données (3 Mo écrits, 2,8 Mo lus). Tests : 3 Mo sur chaque sortie, entrée lue par l'enfant, arguments avec espaces et métacaractères shell non interprétés, sorties incrémentales. |
+| S4 · Utilisateurs du framework | Fait | `ServerTask` lance `php -S` en commande liste, sans `close()`. Les serveurs de test d'E13 (`LocalServer`) passent par `Process` et `waitUntil()` sur leur message de démarrage, au lieu de sonder le port. |
+
+Taille : 294 lignes de code hors commentaires (502 avec la documentation), contrôlées par `SizeTest`. Suite `Process` activée (18 tests), verte sur Linux (Docker), macOS (PHP 8.5) et Phalcon 6. La baseline PHPStan, vide, est supprimée : tout le code est analysé au niveau `max`. 1 318 tests verts.

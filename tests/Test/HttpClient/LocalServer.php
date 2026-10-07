@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Test\HttpClient;
 
+use Neutrino\Process\Process;
 use RuntimeException;
 
 /**
- * Test servers run in processes of their own: `php -S` on fixtures/server.php, and the TLS server.
+ * Test servers run in processes of their own: `php -S` on fixtures/server.php, the TLS server and the proxy.
  */
 final class LocalServer
 {
-    /** @var array<string, array{resource, int}> */
+    /** @var array<string, array{Process, int}> */
     private static array $servers = [];
 
     /**
@@ -19,21 +20,12 @@ final class LocalServer
      */
     public static function url(string $name = 'a'): string
     {
-        if (!isset(self::$servers[$name])) {
-            $port = self::freePort();
-            $process = proc_open(
-                [PHP_BINARY, '-S', '127.0.0.1:' . $port, __DIR__ . '/fixtures/server.php'],
-                [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']],
-                $pipes,
-                null,
-                ['PHP_CLI_SERVER_WORKERS' => '4'] + getenv(),
-            );
+        $port = self::start($name, static fn(int $port): Process => new Process(
+            [PHP_BINARY, '-S', '127.0.0.1:' . $port, __DIR__ . '/fixtures/server.php'],
+            env: ['PHP_CLI_SERVER_WORKERS' => '4'],
+        ), 'started');
 
-            self::$servers[$name] = [self::started($process), $port];
-            self::wait($port);
-        }
-
-        return 'http://127.0.0.1:' . self::$servers[$name][1];
+        return 'http://127.0.0.1:' . $port;
     }
 
     /**
@@ -44,19 +36,9 @@ final class LocalServer
     public static function tls(): array
     {
         $certificate = sys_get_temp_dir() . '/nucleon-tls-' . getmypid() . '.crt';
+        $port = self::start('tls', static fn(int $port): Process => new Process([PHP_BINARY, __DIR__ . '/fixtures/tls-server.php', (string) $port, $certificate]), 'ready');
 
-        if (!isset(self::$servers['tls'])) {
-            $port = self::freePort();
-            $process = proc_open([PHP_BINARY, __DIR__ . '/fixtures/tls-server.php', (string) $port, $certificate], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-
-            self::$servers['tls'] = [self::started($process), $port];
-
-            if (trim((string) fgets($pipes[1])) !== 'ready') {
-                throw new RuntimeException('The TLS server did not start: ' . stream_get_contents($pipes[2]));
-            }
-        }
-
-        return ['https://127.0.0.1:' . self::$servers['tls'][1], $certificate];
+        return ['https://127.0.0.1:' . $port, $certificate];
     }
 
     /**
@@ -64,44 +46,39 @@ final class LocalServer
      */
     public static function connectProxy(): string
     {
-        if (!isset(self::$servers['proxy'])) {
-            $port = self::freePort();
-            $process = proc_open([PHP_BINARY, __DIR__ . '/fixtures/connect-proxy.php', (string) $port], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-
-            self::$servers['proxy'] = [self::started($process), $port];
-
-            if (trim((string) fgets($pipes[1])) !== 'ready') {
-                throw new RuntimeException('The proxy did not start: ' . stream_get_contents($pipes[2]));
-            }
-        }
-
-        return 'http://127.0.0.1:' . self::$servers['proxy'][1];
+        return 'http://127.0.0.1:' . self::start('proxy', static fn(int $port): Process => new Process([PHP_BINARY, __DIR__ . '/fixtures/connect-proxy.php', (string) $port]), 'ready');
     }
 
     public static function stopAll(): void
     {
         foreach (self::$servers as [$process]) {
-            proc_terminate($process);
-            proc_close($process);
+            $process->stop(1.0);
         }
 
         self::$servers = [];
     }
 
     /**
-     * @param resource|false $process
+     * Starts a server once, and waits until it writes `$ready`.
      *
-     * @return resource
+     * @param callable(int): Process $process
      */
-    private static function started(mixed $process): mixed
+    private static function start(string $name, callable $process, string $ready): int
     {
-        if (!is_resource($process)) {
-            throw new RuntimeException('Cannot start the test server.');
+        if (isset(self::$servers[$name])) {
+            return self::$servers[$name][1];
         }
 
-        register_shutdown_function(self::stopAll(...));
+        $port = self::freePort();
+        $server = $process($port)->start();
 
-        return $process;
+        if (!$server->waitUntil(static fn(string $output, string $errorOutput): bool => str_contains($output . $errorOutput, $ready), 10.0)) {
+            throw new RuntimeException('The test server "' . $name . '" stopped: ' . $server->getErrorOutput());
+        }
+
+        self::$servers[$name] = [$server, $port];
+
+        return $port;
     }
 
     private static function freePort(): int
@@ -116,22 +93,5 @@ final class LocalServer
         fclose($socket);
 
         return $port;
-    }
-
-    private static function wait(int $port): void
-    {
-        for ($i = 0; $i < 100; $i++) {
-            $socket = @fsockopen('127.0.0.1', $port, $errno, $error, 0.1);
-
-            if ($socket !== false) {
-                fclose($socket);
-
-                return;
-            }
-
-            usleep(50000);
-        }
-
-        throw new RuntimeException('The test server did not start on port ' . $port . '.');
     }
 }

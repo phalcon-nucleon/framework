@@ -108,12 +108,13 @@ abstract class Model extends \Phalcon\Mvc\Model
     }
 
     /**
-     * `created_at` (set on create) and `updated_at` (set on update, null until then) columns.
+     * `created_at` (set on create) and `updated_at` (set on create and on update) columns: the model writes both,
+     * as the NOT NULL columns of the schema builder's `timestamps()` need.
      */
     protected function timestamps(string $createdAt = 'created_at', string $updatedAt = 'updated_at', string $format = DATE_ATOM): void
     {
         $this->timestampable($createdAt, ['insert' => true, 'format' => $format]);
-        $this->timestampable($updatedAt, ['update' => true, 'format' => $format, 'nullable' => true]);
+        $this->timestampable($updatedAt, ['insert' => true, 'update' => true, 'format' => $format, 'nullable' => true]);
     }
 
     /**

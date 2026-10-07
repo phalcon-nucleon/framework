@@ -7,6 +7,7 @@ namespace Neutrino\Debug;
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Handler;
+use Neutrino\Foundation\Http\Kernel as HttpKernel;
 use Neutrino\Interfaces\Kernelable;
 use Neutrino\Version;
 use Phalcon\Config\ConfigInterface;
@@ -136,6 +137,13 @@ final class Debugger
         $variable = is_array($env) && is_string($env['var'] ?? null) ? $env['var'] : 'APP_ENV';
         if (getenv($variable) === false && !isset($_ENV[$variable]) && !isset($_SERVER[$variable])) {
             $_ENV[$variable] = APP_ENV;
+        }
+
+        // The view of the action goes to the response before the bar reads it (see HttpKernel::renderedView()).
+        if ($app instanceof HttpKernel) {
+            $app->getEventsManager()?->attach('application:beforeSendResponse', static function (EventInterface $event, HttpKernel $app, mixed $response): void {
+                $app->renderedView($response);
+            });
         }
 
         (new Provider($app, $options))->boot(); // @phpstan-ignore argument.type (options of the config, checked by the bar)

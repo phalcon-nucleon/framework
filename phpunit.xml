@@ -74,6 +74,9 @@
         <testsuite name="Providers">
             <directory>tests/Test/Providers</directory>
         </testsuite>
+        <testsuite name="Rector">
+            <directory>tests/Test/Rector</directory>
+        </testsuite>
         <testsuite name="Repositories">
             <directory>tests/Test/Repositories</directory>
         </testsuite>

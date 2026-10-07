@@ -11,7 +11,7 @@ use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
  * so that the 1.3 code still waiting for its epic does not fail the build.
  */
 $finder = Finder::create()
-    ->in([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/bench', __DIR__ . '/bin'])
+    ->in([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/bench', __DIR__ . '/bin', __DIR__ . '/resources'])
     ->exclude('Debug/resources')
     ->ignoreDotFiles(false)
     ->exclude('.legacy')

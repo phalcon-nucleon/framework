@@ -56,16 +56,28 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - Micro: a Before middleware returning `false` stops the request (Phalcon 5 ignores the returned value).
  - `Micro\Router::add()` returns the route; the controller of a Micro route is built once per request.
  - CLI: `help <command>` and `help` alone; task options no longer break actions without parameters; a task run twice in a process reads its current options; `route:list` and `route:cache` no longer replace the console router; output blocks honour their padding.
- - `Repository`: column names, operators and sort directions were written unchecked in the PHQL (injection).
  - `Support\Db::getQueries()` left its listener attached on error and kept the events manager it created.
- - Remember-me: token stored hashed and bound to the user agent, revoked at logout, cookie limited to one year; malformed cookies are ignored.
  - The rate limiter released a client only when it stopped trying (sliding lifetime).
  - Session provider: the construction error kept the previous exception as its code.
  - Migrations: `migrate:rollback` rolled back one migration of the last batch; `Builder` read the tables of the `dbname` schema (wrong on PostgreSQL); `make:migration --table` wrote a call to a missing `Builder::update()`; `migrate --pretend` reported the introspection queries and missed the modifications; `migrate:fresh` left the tables of the other connections (log, migrations on their own connection).
  - Errors: the fatal errors other than `E_ERROR` (`E_PARSE`, `E_CORE_ERROR`, `E_COMPILE_ERROR`, `E_RECOVERABLE_ERROR`) were not reported; a failing writer stopped the others; the `Flash` writer output a fatal error before the error page, which lost its 500 status.
- - HTTP client: `StreamContext::disableSsl()` left the certificate check on; any protocol was accepted (`file://`, `gopher://`…); `Authorization` was sent to the host of a redirection.
+ - HTTP client: `StreamContext::disableSsl()` did not disable the TLS checks.
+ - Views rendered by the actions (`view.implicit` false) went straight to the output with Phalcon 5, before the status, the headers and the cookies of the response: they go to the response.
+ - `view:cache` failed on the `{% extends %}` and `{% include %}` relative to `views_dir`.
+ - `Model::timestamps()` left `updated_at` null on create: rejected by the `NOT NULL` columns of `Blueprint::timestamps()` (MySQL).
+ - `RoutesTestCase` with a full URL in `app.base_uri`.
  - Process: `wait()` returned at once while the timeout was not over; `wait()` and `watch()` added milliseconds to seconds; `stop()` waited 1 000 times too long and never killed a process ignoring SIGTERM; the exit code was lost; reading the outputs while the process wrote could overwrite them.
  - `route:cache`: route names and hostnames are escaped; routes that cannot be cached are rejected instead of being lost.
+
+### Security
+ - `Repository`: column names, operators and sort directions were written unchecked in the PHQL: injection when they came from the request. They are checked against the model attributes and lists of operators and directions (E10).
+ - Remember-me: the token is stored hashed (SHA-256) and bound to the user agent, revoked at logout; the cookie lasts one year (1.3: 100 years), `HttpOnly` and `Secure`; malformed cookies are ignored (E8).
+ - CSRF: the token is read from the `X-CSRF-Token` header or the body only, no longer from the query string, where it ended up in the logs and the `Referer` (E8).
+ - Volt `PhpFunctionExtension` refuses the dangerous PHP functions in templates (commands, files, `ini_set`, callbacks…) (E9).
+ - HTTP client: any protocol was accepted (`file://`, `gopher://`, `dict://`: SSRF), also on redirections; `Authorization` and cookies were sent to another host on a redirection; header values are now checked for line breaks (E13). (`StreamContext::disableSsl()` did not disable the TLS checks: a bug, not a weakness, listed in Fixed.)
+ - Process: a command can be a list, run without shell (no command injection through its arguments) (E14).
+ - CSRF: the safe methods are those of the request itself: a POST overridden to GET (`X-HTTP-Method-Override`, or `_method` when the application allows it) was not checked (E15).
+ - Volt `PhpFunctionExtension` also refuses the functions writing files (`error_log`), opening connections (`fsockopen`, `curl_*`), reading the configuration and the constants (`ini_get`, `get_defined_constants`, `get_defined_vars`) and the other callbacks (`array_udiff`…). Volt's own `constant()` stays available (E15).
 
 ### Removed
  - Assets (`Neutrino\Assets`, `assets:*` tasks), `Optimizer`, `PhpPreloader` (and `nikic/php-parser`), `ConfigPreloader`, `ReturnConverter`.

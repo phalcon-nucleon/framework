@@ -28,15 +28,23 @@ class PhpFunctionExtension extends ExtensionExtend
         'array_map', 'array_filter', 'array_walk', 'array_walk_recursive', 'array_reduce', 'usort', 'uasort',
         'uksort', 'preg_replace_callback', 'preg_replace_callback_array', 'iterator_apply', 'register_shutdown_function',
         'register_tick_function', 'set_error_handler', 'set_exception_handler', 'spl_autoload_register', 'ob_start',
-        'create_function', 'extract', 'parse_str', 'unserialize',
+        'create_function', 'extract', 'parse_str', 'unserialize', 'array_udiff', 'array_udiff_assoc',
+        'array_udiff_uassoc', 'array_diff_uassoc', 'array_diff_ukey', 'array_uintersect', 'array_uintersect_assoc',
+        'array_uintersect_uassoc', 'array_intersect_uassoc', 'array_intersect_ukey', 'mb_ereg_replace_callback',
+        'header_register_callback', 'session_set_save_handler', 'stream_wrapper_register', 'stream_filter_register',
         // files
         'unlink', 'rmdir', 'mkdir', 'rename', 'copy', 'touch', 'chmod', 'chown', 'chgrp', 'symlink', 'link',
         'tempnam', 'tmpfile', 'move_uploaded_file', 'file_put_contents', 'fopen', 'fwrite', 'fputs', 'file',
         'file_get_contents', 'readfile', 'fpassthru', 'highlight_file', 'show_source', 'parse_ini_file', 'glob',
-        'scandir', 'opendir',
-        // configuration and environment
-        'ini_set', 'ini_alter', 'ini_restore', 'putenv', 'getenv', 'set_include_path', 'phpinfo', 'header',
-        'setcookie', 'session_start', 'session_destroy',
+        'scandir', 'opendir', 'dir', 'error_log', 'gzopen', 'gzfile', 'readgzfile', 'bzopen',
+        // network
+        'fsockopen', 'pfsockopen', 'stream_socket_client', 'stream_socket_server', 'curl_init', 'curl_exec',
+        'curl_multi_exec',
+        // configuration, environment and secrets (the constants of Dotconst hold keys and passwords; Volt compiles
+        // its own `constant()`, out of reach of this list)
+        'ini_set', 'ini_alter', 'ini_restore', 'ini_get', 'ini_get_all', 'get_cfg_var', 'putenv', 'getenv',
+        'set_include_path', 'phpinfo', 'header', 'setcookie', 'session_start', 'session_destroy',
+        'get_defined_constants', 'get_defined_vars',
     ];
 
     /** @var array<string, true>|null */

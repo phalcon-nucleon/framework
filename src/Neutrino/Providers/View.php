@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
+use Neutrino\Foundation\Http\Kernel as HttpKernel;
 use Neutrino\Interfaces\Providable;
 use Neutrino\View\Engines\EngineRegister;
 use Phalcon\Assets\Manager as AssetsManager;
@@ -81,6 +82,14 @@ class View extends Injectable implements Providable
                     : $engine;
             }
             $view->registerEngines($engines);
+
+            // HTTP kernel without implicit views: the actions render with $this->view->render(), which Phalcon 5
+            // writes straight to the output unless the view is started (before the headers, the status and the
+            // cookies of the response). Started by the kernel, which puts its content in the response.
+            $app = $di->has(Services::APP) ? $di->getShared(Services::APP) : null;
+            if ($app instanceof HttpKernel) {
+                $app->startView($view);
+            }
 
             return $view;
         }, true);

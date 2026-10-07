@@ -114,6 +114,19 @@ final class CsrfTest extends TestCase
         $this->assertFalse($this->getDI()->getService(Services::SESSION)->isResolved() && $this->security->getSessionToken() !== null, 'No token is created.');
     }
 
+    /**
+     * A POST passed for a GET (X-HTTP-Method-Override, or `_method` when the application allows it) is checked.
+     */
+    public function testMethodOverrideIsChecked(): void
+    {
+        $this->security->getToken();
+        $this->app->request->setHttpMethodParameterOverride(true);
+
+        $this->dispatch('/form', 'POST', ['_method' => 'GET'], ['X-HTTP-Method-Override' => 'GET']);
+
+        $this->assertResponseCode(StatusCode::FORBIDDEN);
+    }
+
     public function testTokenStaysValidForSuccessiveRequests(): void
     {
         $token = (string) $this->security->getToken();

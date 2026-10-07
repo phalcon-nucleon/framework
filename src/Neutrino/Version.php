@@ -16,7 +16,7 @@ final class Version
     public const int PATCH = 0;
 
     /** Empty for a stable release, otherwise `dev`, `alpha1`, `beta2`, `RC1`… */
-    public const string STABILITY = 'dev';
+    public const string STABILITY = 'beta1';
 
     /**
      * Semantic version, e.g. `2.0.0` or `2.0.0-dev`.

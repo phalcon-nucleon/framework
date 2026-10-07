@@ -41,7 +41,11 @@ class Csrf extends Controller implements BeforeInterface
         /** @var Request $request */
         $request = $di->getShared(Services::REQUEST);
 
-        if (in_array($request->getMethod(), self::SAFE_METHODS, true)) {
+        // The real method: Phalcon's getMethod() follows the X-HTTP-Method-Override header, and `_method` when
+        // the application allows it, so that a POST could pass for a GET.
+        $method = $request->getServer('REQUEST_METHOD');
+
+        if (in_array(is_string($method) ? strtoupper($method) : '', self::SAFE_METHODS, true)) {
             return true;
         }
 

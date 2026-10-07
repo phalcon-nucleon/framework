@@ -44,7 +44,8 @@ final class FuncTestCaseTest extends TestCase
 
         $output = $this->dispatch('/dispatch', $method, $params);
 
-        $this->assertSame('', $output);
+        // The content of the response, not sent: what the client receives.
+        $this->assertSame($this->getContent(), $output);
         $this->assertInstanceOf(Response::class, $this->getDI()->getShared(Services::RESPONSE));
 
         $content = json_decode($this->getContent(), true);
@@ -89,7 +90,8 @@ final class FuncTestCaseTest extends TestCase
             echo 'echoed';
         });
 
-        $this->assertSame('echoed', $this->dispatch('/echo'));
+        // The output, then the content of the response (the value returned by the action).
+        $this->assertSame('echoed' . \Fake\Kernels\Http\Controllers\StubController::class . '::returnAction', $this->dispatch('/echo'));
     }
 
     public function testDispatchRethrowsAndCleansTheBuffer(): void

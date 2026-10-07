@@ -1,6 +1,6 @@
 # E15 — Release 2.0
 
-**Statut** : Rédigé · **Dépend de** : tous les epics · **Bloque** : —
+**Statut** : En cours · **Dépend de** : tous les epics · **Bloque** : —
 
 ## Objectif
 
@@ -85,3 +85,16 @@ Sortir Nucleon 2.0 avec la preuve que la performance est au moins égale à cell
 - Le squelette et l'app de S4 tournent sur la 2.0 en ayant suivi uniquement le guide et la config Rector.
 - Toutes les suites de tests sont activées en CI (plus aucune suite exclue) et passent sur la matrice Phalcon 5. Le statut du job Phalcon 6 est documenté.
 - Baseline PHPStan vide ou justifiée.
+
+## Avancement
+
+| Story | État | Notes |
+|---|---|---|
+| S1 · Mesures finales | Fait, décision attendue | `bench/report-2.0.md` (17 scénarios, déployé et autoloaders par défaut). Mémoire −29 à −36 % partout en production, console −26 à −29 %. Requête HTTP +31 % (+75 µs), Micro +20 %, modèles +28 à +32 %, cache `memory` ×3 : au-delà des chiffres acceptés le 6 octobre (requête +45 µs). Recherche par commit (copies de travail E4, E7, E10, E12) : l'app mesurée a grossi avec les epics ; sur l'app d'E4, le code actuel mesure comme E4 (requête 284 contre 281 µs). La recherche a trouvé un écouteur `application:beforeSendResponse` ajouté pendant E15 : +20 µs par requête (Phalcon construit un `Event` pour chaque événement de l'application dès qu'il y a un écouteur), remplacé par un appel dans `handleIncoming()`. **À trancher** : accepter ces écarts comme coût de Phalcon 5, ou programmer les optimisations listées dans la décision du 6 octobre. |
+| S2 · Documentation du dépôt | Fait | `README.md` (prérequis, badge GitHub Actions, fonctionnalités, fin de la 1.x, statut Phalcon 6), `CLAUDE.md` (contraintes et commandes 2.x), `UPGRADING-2.0.md` (prérequis et étapes, Rector, sections complétées par la validation sur le squelette), `CHANGELOG-2.0.md` (section Security avec renvoi aux epics). `Neutrino\Version` : `2.0.0-beta1`. |
+| S3 · Configuration Rector | Fait | `resources/rector/upgrade-2.0.php` : renommages de classes (Nucleon, et Phalcon 3 → 5 dont les validateurs et `Phalcon\Exception`) et de méthodes (`Process`, `Error`), propriétés typées **avec la valeur par défaut du parent** (`TypedPropertiesRector` : un `protected $options;` 1.3 aurait sinon laissé une propriété typée non initialisée), méthodes typées des classes étendues, `routes()` statique (`StaticRoutesRector`), retrait des imports devenus inutiles. Testée sur l'app 1.3 du bench (diff identique au portage manuel), sur le squelette, et par `UpgradeConfigTest` (fixture d'un projet 1.3, résultat relu). |
+| S4 · Validation sur une vraie app | Partiel | Fait sur le squelette (S5), uniquement avec le guide et Rector ; chaque manque a été corrigé dans le guide ou le framework (voir S5). L'app réelle (`tumbex-api` ou `tumbex-www`, en 1.3) reste à migrer. |
+| S5 · Squelette | Fait (branche `2.x` locale du dépôt `nucleon`) | Rector puis le guide. Testé sur MySQL : console, migrations, `route:list`, `view:cache`, `ide-helper`, `RoutesTest`, et parcours HTTP complet (inscription et connexion avec CSRF, flash, redirections, déconnexion, 404, page d'erreur de debug, API Micro). Trouvé et corrigé dans le framework : les vues rendues par les actions (`view.implicit` faux) partaient directement sur la sortie avant les en-têtes (statut 404 perdu, cookies et session cassés) ; `view:cache` échouait sur les `extends` relatifs ; `Model::timestamps()` laissait `updated_at` nul à la création (refusé par les colonnes `NOT NULL` de `Blueprint::timestamps()`) ; `RoutesTestCase` avec une URL complète dans `app.base_uri` ; `FuncTestCase::dispatch()` renvoie ce que reçoit le client (sortie puis contenu de la réponse). Trouvé dans le squelette 1.3 : route `/back/:controller/:action` sans chemins, tableau passé à `ThrottleRequest`. Documenté (défaut de Volt 5) : `form()` avec des arguments nommés compile un PHP invalide. |
+| S6 · Revue finale et publication | Revue faite, publication à faire | Revue de sécurité (CSRF, auth, `Repository`, HttpClient, Process, Volt) : le CSRF décidait des méthodes sûres d'après `getMethod()`, que `X-HTTP-Method-Override` (ou `_method`) fait passer d'un POST à un GET : corrigé (méthode réelle). `PhpFunctionExtension` : ajout des fonctions qui écrivent des fichiers, ouvrent des connexions, lisent la configuration et les constantes, et des derniers callbacks ; le `constant()` natif de Volt reste hors de portée. Remember-me, `Repository`, HttpClient et Process : rien à signaler. Baseline PHPStan vide (supprimée en E14). Tags, fusion dans `master` et site de documentation : à faire par le mainteneur. |
+
+Limite connue, non corrigée : en debug, le writer `Flash` affiche les erreurs non fatales dès qu'elles surviennent (`Phalcon\Flash\Direct`) ; une notice levée avant l'envoi des en-têtes les envoie trop tôt (comme en 1.3).

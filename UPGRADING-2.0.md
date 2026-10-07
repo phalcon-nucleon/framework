@@ -1,6 +1,34 @@
 # UPGRADING 1.3 > 2.0
 
-Nucleon 2.0 requires **PHP ≥ 8.3** and **Phalcon ≥ 5.22**. This guide is completed as the upgrade progresses (see `docs/upgrade-2.0/`).
+## Requirements and steps
+
+Nucleon 2.0 requires **PHP ≥ 8.3** and **Phalcon ≥ 5.22** (the `phalcon` extension). Nucleon 1.x is no longer maintained.
+
+```json
+"require": {
+    "php": ">=8.3",
+    "ext-phalcon": "^5.22",
+    "nucleon/framework": "^2.0"
+},
+"require-dev": {
+    "phalcon/ide-stubs": "^5.22",
+    "phpunit/phpunit": "^11.0",
+    "mockery/mockery": "^1.6",
+    "phalcon/debugbar": "^0.4",
+    "tempest/highlight": "^2.12"
+}
+```
+
+1. **Rector** does the mechanical part: class and method renames (Nucleon and Phalcon 3 > 5), typed properties and methods of the classes you extend (an untyped redeclaration is a fatal error), static `routes()` of the `RoutesTestCase`. With Rector as a development dependency:
+
+   ```bash
+   vendor/bin/rector process app config routes migrations tests --config=vendor/nucleon/framework/resources/rector/upgrade-2.0.php --dry-run
+   ```
+
+   Review the diff, then run it without `--dry-run`.
+2. **Configuration**: update `config/*.php` with the sections below (cache, log, session, auth, view…); remove `config/compile.php` and `config/assets.php` (the Optimizer and the Assets are removed).
+3. **Bootstrap**: `bootstrap/autoload.php` only requires `vendor/autoload.php`; remove the `Handler::register()` call of `bootstrap/app.php` (the error handler is registered by `Bootstrap::make()`); the console no longer needs `$kernel->setArgument($argv)`.
+4. Then go through the sections below: the APIs that changed (cache, auth `attempt()`, HTTP client, process…) are done by hand.
 
 ## Kernels
 
@@ -263,7 +291,7 @@ class User extends Model
 }
 ```
 
-- `timestamps()`: `updated_at` is nullable (null until the first update). `softDelete()`: the column defaults to `false`.
+- `timestamps()` (and `#[Timestamps]`): `created_at` is set on create, `updated_at` on create and on update (the `NOT NULL` columns of `Blueprint::timestamps()` need both); `updated_at` is described nullable, for the rows where it is null. `softDelete()`: the column defaults to `false`.
 - `models.metadata.adapter` (`memory` by default, `apcu`, `stream`, `redis`, `libmemcached`): keep `memory` for Nucleon models, whose description costs less than a cache read. `model:cache` warms a shared cache (stream, redis, memcached) for introspected models.
 - `Model::findFirst()` returns `null` (Phalcon 5), no longer `false`.
 
@@ -385,7 +413,9 @@ The `auth` service is a `Phalcon\Auth\Manager` (also registered as `Phalcon\Auth
 
 - Volt options: the 1.3 names `compiledPath`, `compiledSeparator`, `compiledExtension` and `compileAlways` are converted to `path`, `separator`, `extension` and `always` (Phalcon 5 deprecates the old names).
 - `{% cache %}` no longer compiles (the output cache is gone from Phalcon 5): remove it, or cache the data with the `cache` service.
-- The `tag` service is a `Phalcon\Html\TagFactory` (also `tagFactory`), as in the Phalcon 5 `FactoryDefault`: Volt compiles `link_to()`, `form()`… on it. `Phalcon\Tag` stays resolvable by its class. `assets` is built with the `TagFactory`.
+- The `tag` service is a `Phalcon\Html\TagFactory` (also `tagFactory`), as in the Phalcon 5 `FactoryDefault`. `Phalcon\Tag` stays resolvable by its class. `assets` is built with the `TagFactory`.
+- **`form()` in Volt**: Volt 5 compiles it on the `TagFactory`, copying the arguments as they are: `{{ form('login', 'method': 'post') }}` compiles to invalid PHP (a `ParseError` when the page renders). Pass one array of attributes, with the URL of the action: `{{ form(['action': url('login'), 'method': 'post']) }}`. The other tag functions (`text_field()`, `submit_button()`, `link_to()`, `end_form()`…) still compile on `Phalcon\Tag`.
+- **Views rendered by the actions** (`view.implicit` false, the default: `$this->view->render('home', 'index')` in the action): Phalcon 5 writes them straight to the output, before the status, the headers and the cookies of the response (and raises an `ob_clean()` notice). Nucleon now starts the view and puts its content in the response, unless the action set the content itself: nothing to change in the controllers. As with implicit views, what the action echoes once the view is used is dropped by `render()`.
 - `csrf_field()` writes the field itself (`<input type="hidden" name="_csrf_token" value="…">`, escaped), with the session token of `Csrf::token()`.
 - `PhpFunctionExtension` refuses the functions of `PhpFunctionExtension::DENY` (commands, files, `ini_set`, `putenv`, callbacks such as `call_user_func` or `array_map`…). `view.php_functions.allow` allows some of them again, `view.php_functions.deny` replaces the list.
 - `SliceFilter` (`array_slice(offset, length)`) differs from the native Volt `slice(start, end)` (inclusive end, strings too): without `'slice' => SliceFilter::class` in `filters`, `slice` is the Volt one.
@@ -427,8 +457,8 @@ protected static function routes(): array
 }
 ```
 
-- `RoutesTestCase::routes()`, `formatDataRoute()`, `routesProvider()` and `getApplicationRoutes()` are static (PHPUnit 11 data providers). `routes/http.php` is required from a static method: use the `Router` Facade there, not `$this`.
-- `FuncTestCase::dispatch(string $url, string $method = 'GET', array $params = [], array $headers = [], ?array $json = null): string` returns the output (it was filled by reference). PATCH parameters go to `$_POST` (they went to `$_GET`), DELETE parameters to `$_GET` (they were dropped). The superglobals are restored after the call.
+- `RoutesTestCase::routes()`, `formatDataRoute()`, `routesProvider()` and `getApplicationRoutes()` are static (PHPUnit 11 data providers). The routes are tested under the path of `app.base_uri`, which can be a full URL (`http://127.0.0.1:8000/` tests `/…`). `routes/http.php` is required from a static method: use the `Router` Facade there, not `$this`.
+- `FuncTestCase::dispatch(string $url, string $method = 'GET', array $params = [], array $headers = [], ?array $json = null): string` returns what the client receives: the output, then the content of the response when it was not sent (it was filled by reference, with the output only). A test asserting the output of an action that returns or sets its content now gets that content. PATCH parameters go to `$_POST` (they went to `$_GET`), DELETE parameters to `$_GET` (they were dropped). The superglobals are restored after the call.
 - `assertResponseCode()` expects an `int` and compares it with `Response::getStatusCode()`.
 - `mockService(string $service, string|object $class, bool $shared = true)`.
 - A test case fails (instead of being skipped) when Phalcon is not available.

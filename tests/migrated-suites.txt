@@ -22,6 +22,7 @@ Models
 Optimize
 Process
 Providers
+Rector
 Repositories
 Security
 Support

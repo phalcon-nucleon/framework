@@ -166,18 +166,21 @@ final class FrameworkTasksTest extends CliTestCase
     {
         $dir = sys_get_temp_dir() . '/nucleon-view-cache-' . bin2hex(random_bytes(4));
         mkdir($dir . '/views/users', 0777, true);
+        mkdir($dir . '/views/layouts');
         mkdir($dir . '/compiled');
         file_put_contents($dir . '/views/index.volt', '{{ content() }}');
-        file_put_contents($dir . '/views/users/show.volt', '{{ name|e }}');
+        file_put_contents($dir . '/views/layouts/base.volt', '<main>{% block body %}{% endblock %}</main>');
+        // A layout relative to views_dir, as in a view rendered by the application.
+        file_put_contents($dir . '/views/users/show.volt', "{% extends 'layouts/base.volt' %}{% block body %}{{ name|e }}{% endblock %}");
         file_put_contents($dir . '/views/users/notes.txt', 'not a template');
         $this->getDI()->getShared(Services::CONFIG)->merge(['view' => ['views_dir' => $dir . '/views/', 'compiled_path' => $dir . '/compiled/']]);
 
         try {
-            $this->assertStringContainsString('Compiling views                         Success (2)', $this->runCommand('view:cache'));
+            $this->assertStringContainsString('Compiling views                         Success (3)', $this->runCommand('view:cache'));
 
-            $compiled = glob($dir . '/compiled/*.php') ?: [];
-            $this->assertCount(2, $compiled);
-            $this->assertStringContainsString('$this->escaper->html($name)', (string) file_get_contents((string) end($compiled)));
+            $compiled = glob($dir . '/compiled/*show.volt.php') ?: [];
+            $this->assertCount(1, $compiled);
+            $this->assertStringContainsString('<main><?= $this->escaper->html($name) ?></main>', (string) file_get_contents($compiled[0]));
         } finally {
             exec('rm -rf ' . escapeshellarg($dir));
         }

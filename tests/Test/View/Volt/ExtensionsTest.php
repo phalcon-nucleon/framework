@@ -50,7 +50,7 @@ final class ExtensionsTest extends ViewTestCase
      */
     public static function deniedFunctions(): iterable
     {
-        foreach (['system', 'exec', 'unlink', 'file_put_contents', 'ini_set', 'putenv', 'call_user_func', 'array_map', 'SYSTEM'] as $function) {
+        foreach (['system', 'exec', 'unlink', 'file_put_contents', 'ini_set', 'putenv', 'call_user_func', 'array_map', 'SYSTEM', 'get_defined_constants', 'error_log', 'fsockopen', 'array_udiff'] as $function) {
             yield $function => [$function];
         }
     }

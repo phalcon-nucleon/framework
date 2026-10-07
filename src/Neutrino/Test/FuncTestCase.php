@@ -148,7 +148,8 @@ abstract class FuncTestCase extends TestCase
     }
 
     /**
-     * Dispatches a request through the HTTP (or Micro) kernel and returns the output.
+     * Dispatches a request through the HTTP (or Micro) kernel and returns what the client receives: the output, then
+     * the content of the response when it was not sent.
      *
      * Parameters go to `$_GET` for GET, HEAD and DELETE, to `$_POST` for POST, PUT and PATCH.
      * Headers go to `$_SERVER['HTTP_*']` (and `CONTENT_TYPE`, `CONTENT_LENGTH`).
@@ -199,13 +200,21 @@ abstract class FuncTestCase extends TestCase
 
         ob_start();
         try {
-            $response = $app->handle($path);
+            // handleIncoming() as Bootstrap::run(): the HTTP kernel puts the view of the action in the response.
+            $response = $app->handleIncoming();
+
+            $output = (string) ob_get_contents();
 
             if ($response instanceof ResponseInterface) {
                 $this->setResponse($response);
+
+                // What the client receives: Bootstrap::run() sends the response after the output.
+                if (!$response->isSent()) {
+                    $output .= (string) $response->getContent();
+                }
             }
 
-            return (string) ob_get_contents();
+            return $output;
         } finally {
             ob_end_clean();
             [$_SERVER, $_GET, $_POST, $_COOKIE, $_REQUEST, $_FILES] = $globals;

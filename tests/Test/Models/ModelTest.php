@@ -86,6 +86,7 @@ final class ModelTest extends DatabaseTestCase
         $this->assertTrue($article->save(), implode(', ', $article->getMessages()));
         $this->assertSame(1, (int) $article->id);
         $this->assertNotEmpty($article->created_at, 'Timestamps on create.');
+        $this->assertSame($article->created_at, $article->updated_at, 'updated_at set on create too (NOT NULL in the schema builder).');
         $this->assertSame(1, Article::count());
 
         $found = Article::findFirst(['[title] = :t:', 'bind' => ['t' => 'Nucleon 2.0']]);

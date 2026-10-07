@@ -10,6 +10,7 @@ use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Di\FactoryDefault as Di;
 use Phalcon\Events\Manager as EventManager;
+use Phalcon\Http\ResponseInterface;
 use Phalcon\Mvc\Application;
 
 /**
@@ -20,6 +21,9 @@ abstract class Kernel extends Application implements Kernelable
     use Kernelize {
         boot as private bootKernel;
     }
+
+    /** The view was started for the actions to render into it (see startView()) */
+    private bool $viewStarted = false;
 
     /**
      * Providers to register.
@@ -84,6 +88,61 @@ abstract class Kernel extends Application implements Kernelable
 
     public function handleIncoming(): mixed
     {
-        return $this->handle($this->incomingUri());
+        // A view built by a previous request (tests, long-running workers) is started again.
+        $di = $this->container;
+        if ($di !== null && $di->has(Services::VIEW) && $di->getService(Services::VIEW)->isResolved()) {
+            /** @var \Phalcon\Mvc\View $view */
+            $view = $di->getShared(Services::VIEW);
+            $this->startView($view);
+        }
+
+        $response = $this->handle($this->incomingUri());
+
+        $this->renderedView($response);
+
+        return $response;
+    }
+
+    /**
+     * Without implicit views, starts the view (called by the View provider when it builds it): the actions render
+     * into it, and its content goes to the response.
+     *
+     * @internal
+     */
+    public function startView(\Phalcon\Mvc\View $view): void
+    {
+        if ($this->implicitView || $this->viewStarted) {
+            return;
+        }
+
+        $view->start();
+        $this->viewStarted = true;
+    }
+
+    /**
+     * Without implicit views, the actions render with $this->view->render(): the View provider started the view,
+     * its content goes to the response, unless the action set the content of the response itself. Called by
+     * handleIncoming(), and by the Debugger before the debug bar reads the response. Not an events listener: any
+     * listener on the application events costs about 20 µs per request.
+     *
+     * @internal
+     */
+    public function renderedView(mixed $response): void
+    {
+        $di = $this->container;
+
+        if (!$this->viewStarted || $di === null) {
+            return;
+        }
+
+        $this->viewStarted = false;
+
+        /** @var \Phalcon\Mvc\View $view */
+        $view = $di->getShared(Services::VIEW);
+        $view->finish();
+
+        if ($response instanceof ResponseInterface && $response->getContent() === '') {
+            $response->setContent((string) $view->getContent());
+        }
     }
 }

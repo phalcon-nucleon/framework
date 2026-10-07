@@ -53,6 +53,8 @@ final class ViewCacheTask extends Task
 
         $view = new View();
         $view->setDI($di);
+        // Volt resolves `{% extends %}` and `{% include %}` against the views directories of the view.
+        $view->setViewsDir(array_values(array_filter($directories, is_string(...))));
         $engine = (new $register())->register($view, $di);
 
         if (!$engine instanceof Volt) {

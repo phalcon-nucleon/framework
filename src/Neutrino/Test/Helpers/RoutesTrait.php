@@ -45,8 +45,11 @@ trait RoutesTrait
         /** @var Config $config */
         $config = $di->getShared(Services::CONFIG);
 
+        // The path of the base URI: the router handles paths, `app.base_uri` can be a full URL.
         $base = $config->path('app.base_uri', '/');
-        $base = is_string($base) ? $base : '/';
+        $base = is_string($base) ? (string) parse_url($base, PHP_URL_PATH) : '/';
+        $base = '/' . trim($base, '/') . '/';
+        $base = $base === '//' ? '/' : $base;
         $uri = $base . preg_replace('#^/(.+)#', '$1', $route);
 
         // WHEN

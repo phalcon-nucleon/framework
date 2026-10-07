@@ -94,6 +94,21 @@ soon as an application event has a listener, Phalcon builds an `Event` object fo
 was replaced by a call in `handleIncoming()`; only the debug mode (`phalcon/debugbar`) keeps the listener.
 **Lesson**: no listener on the application events in the request path of the framework.
 
-**To decide before the release**: accept the gaps of the request (+31 %, +75 µs as deployed), the models
-(+28 to +32 %) and the `memory` cache as the cost of Phalcon 5, or plan the optimizations listed in the decision of
-6 October (pure PHP `memory` store, lazy reading of the model attributes, bypass of the dispatcher).
+**Decision** (7 October 2026): these gaps are accepted as the cost of Phalcon 5. The optimizations listed in the
+decision of 6 October (pure PHP `memory` store, lazy reading of the model attributes, bypass of the dispatcher) stay
+possible in 2.x.
+
+## For reference: Laravel
+
+Same container (PHP 8.3), one process per request, OPcache file cache, 200 iterations, medians. A minimal "Hello"
+route; Laravel 13.35 deployed (`APP_ENV=production`, `APP_DEBUG=false`, `composer --no-dev --classmap-authoritative`,
+`php artisan optimize`) and with an OPcache preload script of the 372 files a request includes.
+
+| Request | Time | Requests/s (one core) | Memory |
+|---|---|---|---|
+| Nucleon 2.0 | 0.30 ms | ~3 330 | 481 KiB |
+| Laravel 13, outside the `web` group | 1.28 ms | ~780 | 838 KiB |
+| Laravel 13, `web` group (session, cookies, CSRF) | 3.0 ms | ~330 | 996 KiB |
+
+Without the preload script, each Laravel process loads these files from the OPcache file cache (10 ms): under
+PHP-FPM, the shared memory of OPcache makes it closer to the preloaded figure.

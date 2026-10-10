@@ -186,6 +186,37 @@ final class FrameworkTasksTest extends CliTestCase
         }
     }
 
+    /**
+     * Volt compiles `assets.x` to `$this->assets->x` only when `assets` is a service at compile time: the templates
+     * are compiled with the services of the HTTP kernel, not with those of the console.
+     */
+    public function testViewCacheWithTheServicesOfTheHttpKernel(): void
+    {
+        $dir = sys_get_temp_dir() . '/nucleon-view-cache-' . bin2hex(random_bytes(4));
+        mkdir($dir . '/views', 0777, true);
+        mkdir($dir . '/compiled');
+        file_put_contents($dir . '/views/page.volt', '{% do assets.outputCss() %}{{ flash.output() }}{{ title }}');
+        $config = $this->getDI()->getShared(Services::CONFIG);
+        $config->merge(['view' => ['views_dir' => $dir . '/views/', 'compiled_path' => $dir . '/compiled/', 'kernel' => StubViewHttpKernel::class]]);
+
+        try {
+            $this->assertStringContainsString('Success (1)', $this->runCommand('view:cache'));
+
+            $compiled = (string) file_get_contents((glob($dir . '/compiled/*.php') ?: [''])[0]);
+            $this->assertStringContainsString('$this->assets->outputCss()', $compiled);
+            $this->assertStringContainsString('$this->flash->output()', $compiled);
+            $this->assertStringContainsString('$title', $compiled);
+            $this->assertStringNotContainsString('$this->title', $compiled);
+
+            $this->output->out = '';
+            $output = $this->runCommand('view:cache --kernel=' . \stdClass::class);
+            $this->assertStringContainsString('the kernel "stdClass" is not a class extending', $output);
+        } finally {
+            $config->remove('view');
+            exec('rm -rf ' . escapeshellarg($dir));
+        }
+    }
+
     public function testModelCache(): void
     {
         $dir = sys_get_temp_dir() . '/nucleon-model-cache-' . bin2hex(random_bytes(4));
@@ -249,4 +280,12 @@ final class FrameworkTasksTest extends CliTestCase
             $this->assertCount(1, (new ReflectionMethod($class, 'mainAction'))->getAttributes(Description::class), $class);
         }
     }
+}
+
+/**
+ * An HTTP kernel whose templates use the `assets` and `flash` services.
+ */
+final class StubViewHttpKernel extends \Neutrino\Foundation\Http\Kernel
+{
+    protected array $providers = [\Neutrino\Providers\View::class, \Neutrino\Providers\Flash::class];
 }

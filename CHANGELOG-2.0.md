@@ -64,6 +64,7 @@ Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADIN
  - HTTP client: `StreamContext::disableSsl()` did not disable the TLS checks.
  - Views rendered by the actions (`view.implicit` false) went straight to the output with Phalcon 5, before the status, the headers and the cookies of the response: they go to the response.
  - `view:cache` failed on the `{% extends %}` and `{% include %}` relative to `views_dir`.
+ - `view:cache` compiled the templates with the services of the console: `assets.x`, `auth.x`, `flash.x`… became undefined local variables, and every page using a service failed once compiled (500). It compiles with the services of the HTTP kernel.
  - `Model::timestamps()` left `updated_at` null on create: rejected by the `NOT NULL` columns of `Blueprint::timestamps()` (MySQL).
  - `RoutesTestCase` with a full URL in `app.base_uri`.
  - Process: `wait()` returned at once while the timeout was not over; `wait()` and `watch()` added milliseconds to seconds; `stop()` waited 1 000 times too long and never killed a process ignoring SIGTERM; the exit code was lost; reading the outputs while the process wrote could overwrite them.

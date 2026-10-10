@@ -5,26 +5,43 @@ declare(strict_types=1);
 namespace Neutrino\Foundation\Cli\Tasks;
 
 use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
 use Neutrino\Constants\Services;
+use Neutrino\Foundation\Http\Kernel as HttpKernel;
+use Neutrino\Foundation\ProviderRegistrar;
 use Neutrino\View\Engines\EngineRegister;
 use Neutrino\View\Engines\Volt\VoltEngineRegister;
 use Phalcon\Config\Config;
+use Phalcon\Di\DiInterface;
+use Phalcon\Di\FactoryDefault;
 use Phalcon\Mvc\View;
 use Phalcon\Mvc\View\Engine\Volt;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use ReflectionProperty;
+use RuntimeException;
 use SplFileInfo;
 use Throwable;
 
 /**
  * Compiles every `*.volt` template of `view.views_dir`: the first requests do not compile, and the production can
  * run with `view.options.stat = false`.
+ *
+ * The templates are compiled with the services of the HTTP kernel (a container of its own, with its providers):
+ * Volt compiles `assets.x` to `$this->assets->x` only when `assets` is a service at compile time, and to an undefined
+ * local variable otherwise. The kernel: `--kernel`, else `view.kernel`, else `App\Kernels\Http\Kernel` if it exists.
  */
 final class ViewCacheTask extends Task
 {
+    /**
+     * The HTTP kernel of the Nucleon skeleton.
+     */
+    public const string DEFAULT_KERNEL = 'App\\Kernels\\Http\\Kernel';
+
     #[Description('Compile all the Volt templates.')]
+    #[Option('--kernel={class}', 'HTTP kernel whose services the templates use (default: view.kernel, else App\\Kernels\\Http\\Kernel).')]
     public function mainAction(): void
     {
         $this->writer()->write(Decorate::notice(str_pad('Compiling views', 40)), false);
@@ -41,9 +58,9 @@ final class ViewCacheTask extends Task
 
     private function compile(): int
     {
-        $di = $this->getDI();
         /** @var Config $config */
-        $config = $di->getShared(Services::CONFIG);
+        $config = $this->getDI()->getShared(Services::CONFIG);
+        $di = $this->container($config);
         $directories = $config->path('view.views_dir');
         $directories = $directories instanceof Config ? $directories->toArray() : [$directories];
 
@@ -80,5 +97,37 @@ final class ViewCacheTask extends Task
         }
 
         return $count;
+    }
+
+    /**
+     * The container of the HTTP kernel: its providers, registered without being built. The console container when
+     * there is no HTTP kernel.
+     */
+    private function container(Config $config): DiInterface
+    {
+        $kernel = $this->getOption('kernel') ?? $config->path('view.kernel');
+
+        if ($kernel === null) {
+            if (!class_exists(self::DEFAULT_KERNEL)) {
+                return $this->getDI();
+            }
+
+            $kernel = self::DEFAULT_KERNEL;
+        }
+
+        if (!is_string($kernel) || !is_subclass_of($kernel, HttpKernel::class)) {
+            throw new RuntimeException('view:cache: the kernel "' . (is_scalar($kernel) ? $kernel : get_debug_type($kernel)) . '" is not a class extending ' . HttpKernel::class . '.');
+        }
+
+        $app = new $kernel();
+        $diClass = (new ReflectionProperty($app, 'dependencyInjection'))->getValue($app);
+        $diClass = is_string($diClass) && is_subclass_of($diClass, DiInterface::class) ? $diClass : FactoryDefault::class;
+
+        /** @var DiInterface $di */
+        $di = new $diClass();
+        $di->setShared(Services::CONFIG, $config);
+        ProviderRegistrar::register($di, $app->getProviders());
+
+        return $di;
     }
 }

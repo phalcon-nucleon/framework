@@ -420,7 +420,7 @@ The `auth` service is a `Phalcon\Auth\Manager` (also registered as `Phalcon\Auth
 - `PhpFunctionExtension` refuses the functions of `PhpFunctionExtension::DENY` (commands, files, `ini_set`, `putenv`, callbacks such as `call_user_func` or `array_map`…). `view.php_functions.allow` allows some of them again, `view.php_functions.deny` replaces the list.
 - `SliceFilter` (`array_slice(offset, length)`) differs from the native Volt `slice(start, end)` (inclusive end, strings too): without `'slice' => SliceFilter::class` in `filters`, `slice` is the Volt one.
 - Custom extensions, functions and filters: `ExtensionExtend::compileFunction(string $name, string $arguments, ?array $funcArguments)` (and `compileFilter()`, `resolveExpression(array)`, `compileStatement(array)`, now optional), `FunctionExtend::compileFunction(string $resolvedArgs, ?array $exprArgs)`, `FilterExtend::compileFilter(string $resolvedArgs, ?array $exprArgs)`. `$exprArgs` is `null` when the filter has no parentheses. `EngineRegister::register(ViewBaseInterface $view, DiInterface $di)`.
-- New `view:cache` command (run by `optimize`): compiles every template, so that the production can set `stat` to `false`.
+- New `view:cache` command (run by `optimize`): compiles every template, so that the production can set `stat` to `false`. It compiles with the services of the HTTP kernel (Volt writes `assets.x` as `$this->assets->x` only when `assets` is a service at compile time): `App\Kernels\Http\Kernel` by default, another one with `view.kernel` or `--kernel=`.
 
 ## Errors and debug
 

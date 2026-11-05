@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Cli\Output;
 
 use Fake\Kernels\Cli\Output\StubOutput;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Output\Group;
 use Neutrino\Cli\Output\Writer;
-use Neutrino\Debug\Reflexion;
+use Neutrino\Support\Reflection;
 use Test\TestCase\TestCase;
 
 /**
@@ -16,14 +18,14 @@ use Test\TestCase\TestCase;
  */
 class GroupTest extends TestCase
 {
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
         Decorate::setColorSupport(true);
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         parent::tearDownAfterClass();
 
@@ -38,69 +40,67 @@ class GroupTest extends TestCase
         return new StubOutput();
     }
 
-    public function dataGenerateGroupData()
+    public static function dataGenerateGroupData(): array
     {
         return [
             [[
-                 '_default' => ['list' => 'all commands'],
-                 'route'   => ['route:list' => 'all routes'],
-             ],
-             [
-                 'list'       => 'all commands',
-                 'route:list' => 'all routes',
-             ]],
+                '_default' => ['list' => 'all commands'],
+                'route'   => ['route:list' => 'all routes'],
+            ],
+                [
+                    'list'       => 'all commands',
+                    'route:list' => 'all routes',
+                ]],
             [[
-                 '_default' => ['list' => 'all commands'],
-                 'route'   => [
-                     'route:list'  => 'all routes',
-                     'route:cache' => 'cache routes',
-                     'route:clear' => 'clear cache routes',
-                 ],
-                 'view'    => ['view:clear' => 'clear views'],
-             ],
-             [
-                 'list'        => 'all commands',
-                 'route:list'  => 'all routes',
-                 'route:cache' => 'cache routes',
-                 'route:clear' => 'clear cache routes',
-                 'view:clear'  => 'clear views',
-             ]],
+                '_default' => ['list' => 'all commands'],
+                'route'   => [
+                    'route:list'  => 'all routes',
+                    'route:cache' => 'cache routes',
+                    'route:clear' => 'clear cache routes',
+                ],
+                'view'    => ['view:clear' => 'clear views'],
+            ],
+                [
+                    'list'        => 'all commands',
+                    'route:list'  => 'all routes',
+                    'route:cache' => 'cache routes',
+                    'route:clear' => 'clear cache routes',
+                    'view:clear'  => 'clear views',
+                ]],
             [[
-                 '_default' => ['list' => 'all commands'],
-                 'route'   => [
-                     'route:list'                  => 'all routes',
-                     "\033[32mroute:cache\033[39m" => 'cache routes',
-                     "\033[32mroute:clear\033[39m" => 'clear cache routes',
-                 ],
-                 'view'    => ["\033[32mview:clear\033[39m" => 'clear views'],
-             ],
-             [
-                 'list'                        => 'all commands',
-                 'route:list'                  => 'all routes',
-                 "\033[32mroute:cache\033[39m" => 'cache routes',
-                 "\033[32mroute:clear\033[39m" => 'clear cache routes',
-                 "\033[32mview:clear\033[39m"  => 'clear views',
-             ]],
+                '_default' => ['list' => 'all commands'],
+                'route'   => [
+                    'route:list'                  => 'all routes',
+                    "\033[32mroute:cache\033[39m" => 'cache routes',
+                    "\033[32mroute:clear\033[39m" => 'clear cache routes',
+                ],
+                'view'    => ["\033[32mview:clear\033[39m" => 'clear views'],
+            ],
+                [
+                    'list'                        => 'all commands',
+                    'route:list'                  => 'all routes',
+                    "\033[32mroute:cache\033[39m" => 'cache routes',
+                    "\033[32mroute:clear\033[39m" => 'clear cache routes',
+                    "\033[32mview:clear\033[39m"  => 'clear views',
+                ]],
         ];
     }
 
-    /**
-     * @dataProvider dataGenerateGroupData
-     */
-    public function testGenerateGroupData($expected, $data)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataGenerateGroupData')]
+    public function testGenerateGroupData($expected, $data): void
     {
         $output = $this->consoleOutput();
 
         $table = new Group($output, $data);
 
-        Reflexion::invoke($table, 'generateGroupData');
+        Reflection::invoke($table, 'generateGroupData');
 
-        $columns = Reflexion::get($table, 'groups');
+        $columns = Reflection::get($table, 'groups');
 
         $this->assertEquals($expected, $columns);
     }
 
-    public function dataDisplay()
+    public static function dataDisplay(): array
     {
         return [
             [
@@ -110,7 +110,7 @@ class GroupTest extends TestCase
                 [
                     'list'       => 'all commands',
                     'route:list' => 'all routes',
-                ]
+                ],
             ],
             [
                 ' list         all commands       ' . PHP_EOL .
@@ -126,7 +126,7 @@ class GroupTest extends TestCase
                     'route:cache' => 'cache routes',
                     'route:clear' => 'clear cache routes',
                     'view:clear'  => 'clear views',
-                ]
+                ],
             ],
             [
 
@@ -143,21 +143,19 @@ class GroupTest extends TestCase
                     "\033[32mroute:cache\033[39m" => 'cache routes',
                     "\033[32mroute:clear\033[39m" => 'clear cache routes',
                     "\033[32mview:clear\033[39m"  => 'clear views',
-                ]
+                ],
             ],
         ];
     }
 
-    /**
-     * @dataProvider dataDisplay
-     */
-    public function testDisplay($expected, $data)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataDisplay')]
+    public function testDisplay($expected, $data): void
     {
         $output = $this->consoleOutput();
 
         $table = new Group($output, $data);
 
-        Reflexion::invoke($table, 'display');
+        Reflection::invoke($table, 'display');
 
         $this->assertEquals($expected, $output->out);
     }

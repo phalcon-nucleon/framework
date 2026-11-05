@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\DesignPatterns\Strategy;
 
 interface StrategyInterface
 {
     /**
-     * Return / Change current adapter.
+     * Returns the current adapter, after switching to `$use` when given.
      *
-     * @param string|null $use
-     *
-     * @return mixed
-     * @throws \RuntimeException
+     * @throws \RuntimeException When `$use` is not supported
      */
-    public function uses($use = null);
+    public function uses(?string $use = null): object;
 }

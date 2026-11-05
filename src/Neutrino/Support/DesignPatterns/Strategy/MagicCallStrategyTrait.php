@@ -1,20 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\DesignPatterns\Strategy;
 
+use BadMethodCallException;
+
 /**
- * Class MagicCallStrategyTrait
- *
- * @package Neutrino\Support\DesignPatterns\Strategy
+ * Forwards unknown method calls to the current adapter.
  */
 trait MagicCallStrategyTrait
 {
-    public function __call($name, $arguments)
+    /**
+     * @param array<int|string, mixed> $arguments
+     */
+    public function __call(string $name, array $arguments): mixed
     {
         $use = $this->uses();
 
         if (!method_exists($use, $name)) {
-            throw new \BadMethodCallException(get_class($use) . ' doesn\t have ' . $name . ' method.');
+            throw new BadMethodCallException($use::class . ' doesn\'t have ' . $name . ' method.');
         }
 
         return $use->$name(...$arguments);

@@ -1,61 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Output;
 
-use Neutrino\Support\Str;
-
 /**
- * Class Group
- *
- * @package Neutrino\Cli\Output
+ * Two-column listing grouped by the prefix of the keys (`group:name`).
  */
 class Group
 {
-    const NONE = 0;
+    public const int NONE = 0;
 
-    const SORT_ASC = 2;
+    public const int SORT_ASC = 2;
 
-    const SORT_DESC = 4;
-
-    protected $output;
-
-    protected $datas;
-
-    protected $options;
-
-    protected $groups = [];
+    public const int SORT_DESC = 4;
 
     /**
-     * Group constructor.
-     *
-     * @param Writer $output
-     * @param array  $datas
-     * @param int    $options
+     * @var array<string, array<string, string>>
+     */
+    protected array $groups = [];
+
+    /**
+     * @param array<string, string> $datas Key (possibly decorated) => description
      */
     public function __construct(
-        Writer $output,
-        array $datas = [],
-        $options = self::NONE
-    )
-    {
-        $this->output = $output;
-        $this->datas = $datas;
-        $this->options = $options;
-    }
+        protected Writer $output,
+        protected array $datas = [],
+        protected int $options = self::NONE,
+    ) {}
 
-    protected function generateGroupData()
+    protected function generateGroupData(): void
     {
+        $this->groups = [];
+
         foreach ($this->datas as $key => $data) {
-            $washKey = Helper::removeDecoration($key);
-            if (Str::contains($washKey, ':')) {
-                $keys = explode(':', $washKey);
+            $washKey = Helper::removeDecoration((string) $key);
+            $group = str_contains($washKey, ':') ? explode(':', $washKey)[0] : '_default';
 
-                $group = $keys[0];
-
-                $this->groups[$group][$key] = $data;
-            } else {
-                $this->groups['_default'][$key] = $data;
-            }
+            $this->groups[$group][(string) $key] = $data;
         }
 
         if ($this->options & self::SORT_DESC) {
@@ -63,39 +45,47 @@ class Group
             foreach ($this->groups as &$group) {
                 krsort($group);
             }
+            unset($group);
         } elseif ($this->options & self::SORT_ASC) {
             ksort($this->groups);
             foreach ($this->groups as &$group) {
                 ksort($group);
             }
+            unset($group);
         }
     }
 
-    public function display()
+    public function display(): void
     {
         $this->generateGroupData();
 
         $tableOutput = new Table($this->output, [], [], Table::NO_STYLE | Table::NO_HEADER);
 
-        // Browser all data for generate correct columns length
-        foreach ($this->groups as $group => $datas) {
-            $table = [];
-            foreach ($datas as $key => $value) {
-                $table[] = [$key, $value];
-            }
-            $tableOutput->setDatas($table)->generateColumns();
+        // Every group first, so that the columns have the same width in all of them.
+        foreach ($this->groups as $datas) {
+            $tableOutput->setDatas(self::rows($datas))->generateColumns();
         }
 
-        // Display elements
         foreach ($this->groups as $group => $datas) {
-            if ($group != '_default') {
-                $this->output->notice($group);
+            if ($group !== '_default') {
+                $this->output->notice((string) $group);
             }
-            $table = [];
-            foreach ($datas as $key => $value) {
-                $table[] = [$key, $value];
-            }
-            $tableOutput->setDatas($table)->display();
+            $tableOutput->setDatas(self::rows($datas))->display();
         }
+    }
+
+    /**
+     * @param array<string, string> $datas
+     *
+     * @return list<array{string, string}>
+     */
+    private static function rows(array $datas): array
+    {
+        $rows = [];
+        foreach ($datas as $key => $value) {
+            $rows[] = [(string) $key, $value];
+        }
+
+        return $rows;
     }
 }

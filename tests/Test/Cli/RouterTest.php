@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Test\Cli;
 
 use Fake\Kernels\Cli\StubKernelCli;
@@ -9,33 +12,31 @@ use Test\TestCase\TestCase;
 
 class RouterTest extends TestCase
 {
-    protected static function kernelClassInstance()
+    protected static function kernelClassInstance(): string
     {
         return StubKernelCli::class;
     }
 
-    public function dataAddTask()
+    public static function dataAddTask(): array
     {
         return [
             ['task', ListTask::class, null, [],
-             'task',
-             ['task' => ListTask::class, 'action' => null]
+                'task',
+                ['task' => ListTask::class],
             ],
             ['task', ListTask::class, 'action', [],
-             'task',
-             ['task' => ListTask::class, 'action' => 'action']]
+                'task',
+                ['task' => ListTask::class, 'action' => 'action']]
             ,
             ['task {param}', ListTask::class, 'action', [],
-             'task ([[:word:]]+)',
-             ['task' => ListTask::class, 'action' => 'action', 'param' => 1]
+                'task ([[:word:]]+)',
+                ['task' => ListTask::class, 'action' => 'action', 'param' => 1],
             ],
         ];
     }
 
-    /**
-     * @dataProvider dataAddTask
-     */
-    public function testAddTask($pattern, $class, $action, $params, $expectedPattern, $expectedPaths)
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataAddTask')]
+    public function testAddTask($pattern, $class, $action, $params, $expectedPattern, $expectedPaths): void
     {
         /** @var Router $router */
         $router = $this->getDI()->getShared(Services::ROUTER);

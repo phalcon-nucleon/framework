@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class PathFuncTest extends TestCase
 {
-    public function dataNormalizePath()
+    public static function dataNormalizePath()
     {
         $s = DIRECTORY_SEPARATOR;
 
@@ -28,17 +28,17 @@ class PathFuncTest extends TestCase
     }
 
     /**
-     * @dataProvider dataNormalizePath
      *
      * @param $expected
      * @param $path
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataNormalizePath')]
     public function testNormalizePath($expected, $path)
     {
         $this->assertEquals($expected, Path::normalize($path));
     }
 
-    public function dataFindRelative()
+    public static function dataFindRelative()
     {
         return [
             ['dir', '/app', '/app/dir'],
@@ -55,12 +55,12 @@ class PathFuncTest extends TestCase
     }
 
     /**
-     * @dataProvider dataFindRelative
      *
      * @param $expected
      * @param $from
      * @param $to
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataFindRelative')]
     public function testFindRelative($expected, $from, $to)
     {
         $this->assertEquals($expected, Path::findRelative($from, $to));

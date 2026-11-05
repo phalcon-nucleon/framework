@@ -1,32 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
-
 use Neutrino\Support\Provider;
 use Phalcon\Flash\Session as PhalconFlashSession;
+use Phalcon\Html\Escaper\EscaperInterface;
 
 /**
- * Class FlashSession
+ * The `flashSession` service: messages kept in the session until they are output.
  *
- *  @package Neutrino\Providers
+ * The session is read from the container when a message is stored or output, not when the service is built.
  */
 class FlashSession extends Provider
 {
-    protected $name = Services::FLASH_SESSION;
+    protected string $name = Services::FLASH_SESSION;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [PhalconFlashSession::class];
+    protected array $aliases = [PhalconFlashSession::class];
 
-    /**
-     * @return \Phalcon\Flash\Session
-     */
-    protected function register()
+    protected function register(): PhalconFlashSession
     {
-        $flash = new PhalconFlashSession();
+        $di = $this->getDI();
+        /** @var EscaperInterface|null $escaper */
+        $escaper = $di->has(Services::ESCAPER) ? $di->getShared(Services::ESCAPER) : null;
 
-        return $flash;
+        return new PhalconFlashSession($escaper);
     }
 }

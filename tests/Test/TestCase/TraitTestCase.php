@@ -1,35 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\TestCase;
 
 use Fake\Kernels\Http\StubKernelHttp;
 
 /**
- * Class TraitTestCase
+ * Boots the fake app's HTTP kernel with a minimal configuration.
  */
 trait TraitTestCase
 {
-    /**
-     * @return mixed
-     */
-    protected static function kernelClassInstance()
+    protected static function kernelClassInstance(): string
     {
         return StubKernelHttp::class;
     }
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
         self::setConfig([
-            'cache'       => [
-                'stores' => ['memory' => [
-                    'driver' => \Phalcon\Cache\Backend\Memory::class,
-                    'adapter' => 'None',
-                ]],
-                'default' => 'memory'
+            'cache' => [
+                'stores'  => ['memory' => ['adapter' => 'memory']],
+                'default' => 'memory',
             ],
-            'app' => ['base_uri' => '/']
+            'app'   => ['base_uri' => '/'],
         ]);
     }
 }

@@ -1,267 +1,220 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli;
 
 use Neutrino\Cli\Output\Block;
 use Neutrino\Cli\Output\QuestionHelper;
 use Neutrino\Cli\Output\Table;
+use Neutrino\Cli\Output\Writer;
 use Neutrino\Cli\Question\ChoiceQuestion;
 use Neutrino\Cli\Question\ConfirmationQuestion;
 use Neutrino\Cli\Question\Question;
-use Neutrino\Support\Arr;
-use Phalcon\Cli\Router\Route;
+use Neutrino\Constants\Services;
+use Phalcon\Cli\Dispatcher;
 use Phalcon\Cli\Task as PhalconTask;
 
 /**
- * Class Task
+ * Base class of the console tasks: arguments, options, output and questions.
  *
- * @package Neutrino\Cli
- *
- * @property-read \Neutrino\Foundation\Cli\Kernel        $application
- * @property-read \Phalcon\Config|\stdClass|\ArrayAccess $config
- * @property-read \Neutrino\Cli\Router                   $router
- * @property-read \Phalcon\Cli\Dispatcher                $dispatcher
- * @property-read \Neutrino\Cli\Output\Writer            $output
+ * @property-read \Neutrino\Foundation\Cli\Kernel $application
+ * @property-read \Phalcon\Config\Config          $config
+ * @property-read \Neutrino\Cli\Router            $router
+ * @property-read \Phalcon\Cli\Dispatcher         $dispatcher
+ * @property-read \Neutrino\Cli\Output\Writer     $output
  */
 abstract class Task extends PhalconTask
 {
-    protected $options;
+    /** @var array<int|string, mixed> */
+    protected array $options = [];
 
-    protected $arguments;
+    /** @var array<int|string, mixed> */
+    protected array $arguments = [];
 
+    /**
+     * Stream the answers to the questions are read from (STDIN by default).
+     *
+     * @var resource|null
+     */
+    protected mixed $input = null;
+
+    /**
+     * No return type, so that tasks can override it as before.
+     *
+     * @return void
+     */
     protected function onConstruct()
     {
         $this->applyArguments();
         $this->applyOptions();
     }
 
-    protected function applyOptions()
+    /**
+     * Called by the dispatcher before each action: the task instance is shared, so a task run twice in the same
+     * process (callTask(), tests) reads the arguments and options of the current run.
+     */
+    public function beforeExecuteRoute(): void
     {
-        $this->options = $this->dispatcher->getOptions();
+        $this->applyArguments();
+        $this->applyOptions();
     }
 
-    protected function applyArguments()
+    protected function applyOptions(): void
     {
-        $args = $this->dispatcher->getParams();
+        $this->options = $this->cliDispatcher()->getOptions();
+    }
 
-        $this->arguments = is_string($args) ? explode(Route::getDelimiter(), $args) : $args;
+    protected function applyArguments(): void
+    {
+        $this->arguments = $this->cliDispatcher()->getParams();
     }
 
     /**
-     * @param string $task
-     * @param string $action
-     * @param array  $args
-     * @param array  $opts
+     * Runs another task.
+     *
+     * @param list<string>          $args
+     * @param array<string, mixed> $opts `true` for a flag (`-name`), a value otherwise (`--name=value`)
      */
-    public function callTask($task, $action, $args = [], $opts = [])
+    public function callTask(string $task, string $action, array $args = [], array $opts = []): mixed
     {
-        $handler = [
-            'task'   => $task,
-            'action' => $action,
-        ];
-
         $options = [];
         foreach ($opts as $name => $opt) {
-            if ($opt === true) {
-                $options[] = "-$name";
-            } else {
-                $options[] = "--$name=$opt";
-            }
+            $options[] = $opt === true ? "-$name" : "--$name=" . (is_scalar($opt) ? (string) $opt : '');
         }
 
-        $this->application->handle(array_merge(
-            $handler,
-            $args,
-            $options
-        ));
+        /** @var \Neutrino\Foundation\Cli\Kernel $application */
+        $application = $this->getDI()->getShared(Services::APP);
+
+        return $application->handle(array_merge(['task' => $task, 'action' => $action], $args, $options));
     }
 
-    /**
-     * @param string $str
-     */
-    public function line($str)
+    public function line(string $str): void
     {
-        $this->output->write($str, true);
+        $this->writer()->write($str, true);
     }
 
-    /**
-     * @param string $str
-     */
-    public function info($str)
+    public function info(string $str): void
     {
-        $this->output->info($str);
+        $this->writer()->info($str);
     }
 
-    /**
-     * @param string $str
-     */
-    public function notice($str)
+    public function notice(string $str): void
     {
-        $this->output->notice($str);
+        $this->writer()->notice($str);
     }
 
-    /**
-     * @param string $str
-     */
-    public function warn($str)
+    public function warn(string $str): void
     {
-        $this->output->warn($str);
+        $this->writer()->warn($str);
     }
 
-    /**
-     * @param string $str
-     */
-    public function error($str)
+    public function error(string $str): void
     {
-        $this->output->error($str);
+        $this->writer()->error($str);
     }
 
-    /**
-     * @param string $str
-     */
-    public function question($str)
+    public function question(string $str): void
     {
-        $this->output->question($str);
+        $this->writer()->question($str);
     }
 
-    /**
-     * @param string      $str
-     * @param null|string $default
-     *
-     * @return null|string
-     */
-    public function prompt($str, $default = null)
+    public function prompt(string $str, ?string $default = null): mixed
     {
         return $this->ask(new Question($str, $default));
     }
 
-    /**
-     * @param string $str
-     * @param bool   $default
-     *
-     * @return null|string
-     */
-    public function confirm($str, $default = false)
+    public function confirm(string $str, bool $default = false): bool
     {
-        return $this->ask(new ConfirmationQuestion($str, $default));
+        return (bool) $this->ask(new ConfirmationQuestion($str, $default));
     }
 
     /**
-     * @param string      $str
-     * @param array       $choices
-     * @param int         $maxAttempts
-     * @param null|string $default
-     *
-     * @return null|string
+     * @param array<int|string, string> $choices
      */
-    public function choices($str, array $choices, $default = null, $maxAttempts = null)
+    public function choices(string $str, array $choices, mixed $default = null, ?int $maxAttempts = null): mixed
     {
         return $this->ask(new ChoiceQuestion($str, $choices, $default, $maxAttempts));
     }
 
-    /**
-     * @param \Neutrino\Cli\Question\Question $question
-     *
-     * @return null|string
-     */
-    public function ask(Question $question)
+    public function ask(Question $question): mixed
     {
-        return QuestionHelper::ask($this->output, STDIN, $question);
+        return QuestionHelper::ask($this->writer(), $this->input, $question);
     }
 
     /**
-     * @param array $datas
-     * @param array $headers
-     * @param int   $style Table::STYLE_DEFAULT | Table::NO_STYLE | ...
+     * @param array<array<int|string, scalar|null>> $datas
+     * @param list<string>                          $headers
+     * @param int                                   $style   Table::STYLE_DEFAULT | Table::NO_STYLE | Table::NO_HEADER
      */
-    public function table(array $datas, array $headers = [], $style = Table::STYLE_DEFAULT)
+    public function table(array $datas, array $headers = [], int $style = Table::STYLE_DEFAULT): void
     {
-        (new Table($this->output, $datas, $headers, $style))->display();
+        (new Table($this->writer(), $datas, $headers, $style))->display();
     }
 
     /**
-     * @param array  $lines
-     * @param string $style Output function used to display block (notice, info, warn, ...)
-     * @param int    $padding
+     * @param list<string>                                     $lines
+     * @param 'line'|'info'|'notice'|'warn'|'error'|'question' $style Writer method used to draw the block
      */
-    public function block($lines, $style, $padding = 4)
+    public function block(array $lines, string $style, int $padding = 4): void
     {
-        (new Block($this->output, $style, ['padding' => $padding]))->draw($lines);
+        (new Block($this->writer(), $style, ['padding' => $padding]))->draw($lines);
     }
 
     /**
-     * Return all agruments pass to the cli
-     *
-     * @return array
+     * @return array<int|string, mixed>
      */
-    protected function getArgs()
+    protected function getArgs(): array
     {
         return $this->arguments;
     }
 
-    /**
-     * Return an arg by his name, or default
-     *
-     * @param string     $name
-     * @param mixed|null $default
-     *
-     * @return string|null
-     */
-    protected function getArg($name, $default = null)
+    protected function getArg(int|string $name, mixed $default = null): mixed
     {
-        return Arr::fetch($this->arguments, $name, $default);
+        return $this->arguments[$name] ?? $default;
+    }
+
+    protected function hasArg(int|string $name): bool
+    {
+        return array_key_exists($name, $this->arguments);
     }
 
     /**
-     * Check if arg has been passed
-     *
-     * @param string $name
-     *
-     * @return bool
+     * @return array<int|string, mixed>
      */
-    protected function hasArg($name)
-    {
-        return Arr::has($this->arguments, $name);
-    }
-
-    /**
-     * Return all options pass to the cli
-     *
-     * @return array
-     */
-    protected function getOptions()
+    protected function getOptions(): array
     {
         return $this->options;
     }
 
-    /**
-     * Return an option by his name, or default
-     *
-     * @param string     $name
-     * @param mixed|null $default
-     *
-     * @return string|null
-     */
-    protected function getOption($name, $default = null)
+    protected function getOption(string $name, mixed $default = null): mixed
     {
-        return Arr::fetch($this->options, $name, $default);
+        return $this->options[$name] ?? $default;
     }
 
     /**
-     * Check if option has been passed
-     *
-     * @param string[] ...$options
-     *
-     * @return bool
+     * Whether one of the options was given (`hasOption('f', 'force')`).
      */
-    protected function hasOption(...$options)
+    protected function hasOption(string ...$options): bool
     {
         foreach ($options as $option) {
-            if (Arr::has($this->options, $option)) {
+            if (array_key_exists($option, $this->options)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    protected function writer(): Writer
+    {
+        /** @var Writer */
+        return $this->getDI()->getShared(Services\Cli::OUTPUT);
+    }
+
+    private function cliDispatcher(): Dispatcher
+    {
+        /** @var Dispatcher */
+        return $this->getDI()->getShared(Services::DISPATCHER);
     }
 }

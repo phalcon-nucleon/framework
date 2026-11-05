@@ -1,24 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
-
 use Neutrino\Support\SimpleProvider;
 use Phalcon\Mvc\Model\Transaction\Manager;
 
 /**
- * Class Model
- *
- *  @package Neutrino\Providers
+ * The `transactionManager` service.
  */
 class ModelTransactionManager extends SimpleProvider
 {
-    protected $class = Manager::class;
+    protected string $class = Manager::class;
 
-    protected $name = Services::TRANSACTION_MANAGER;
+    protected string $name = Services::TRANSACTION_MANAGER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [Manager::class];
+    protected array $aliases = [Manager::class];
 }

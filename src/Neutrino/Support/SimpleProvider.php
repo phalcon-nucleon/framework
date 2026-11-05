@@ -1,84 +1,81 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support;
 
 use Neutrino\Interfaces\Providable;
 use Phalcon\Di\Injectable;
 use Phalcon\Di\Service;
+use RuntimeException;
 
 /**
- * Class BasicProvider
+ * Registers `$class` as a service definition, built by the container on the first resolution.
  *
- * @package Neutrino\Providers
- *
- * @property-read \Phalcon\Application|\Phalcon\Mvc\Application|\Phalcon\Cli\Console|\Phalcon\Mvc\Micro $application
- * @property-read \Phalcon\Config|\stdClass|\ArrayAccess                                                $config
+ * @property-read \Neutrino\Foundation\Http\Kernel|\Neutrino\Foundation\Cli\Kernel|\Neutrino\Foundation\Micro\Kernel $application
+ * @property-read \Phalcon\Config\Config                                                                               $config
  */
 abstract class SimpleProvider extends Injectable implements Providable
 {
     /**
-     * Class to provide
+     * Class to provide.
      *
-     * @var string
+     * @var class-string
      */
-    protected $class;
+    protected string $class;
 
     /**
-     * Name of the service
-     *
-     * @var string
+     * Name of the service.
      */
-    protected $name;
+    protected string $name;
 
     /**
-     * Aliases
+     * Other names the service is registered under (usually its class).
      *
-     * @var string[]
+     * @var list<string>
      */
-    protected $aliases;
+    protected array $aliases = [];
+
+    protected bool $shared = false;
 
     /**
-     * Shared Service
+     * Options of the Phalcon definition (`arguments`, `calls`, `properties`).
      *
-     * @var bool
+     * @var array<string, mixed>
      */
-    protected $shared = false;
+    protected array $options = [];
 
-    /**
-     * Options to pass to the definition
-     *
-     * @var array
-     */
-    protected $options;
-
-    /**
-     * BasicProvider constructor.
-     */
     final public function __construct()
     {
-        if (empty($this->name) || !is_string($this->name)) {
-            throw new \RuntimeException('Provider "' . static::class . '::$name" isn\'t valid.');
+        if (!isset($this->name) || $this->name === '') {
+            throw new RuntimeException('Provider "' . static::class . '::$name" isn\'t valid.');
         }
-        if (empty($this->class) || !is_string($this->class)) {
-            throw new \RuntimeException('Provider "' . static::class . '::$class" isn\'t valid.');
+        if (!isset($this->class)) {
+            throw new RuntimeException('Provider "' . static::class . '::$class" isn\'t valid.');
         }
     }
 
-    final public function registering()
+    final public function registering(): void
     {
-        if (empty($this->options)) {
-            $definition = $this->class;
-        } else {
-            $definition = array_merge(['className' => $this->class], $this->options);
+        $definition = $this->options === []
+            ? $this->class
+            : ['className' => $this->class] + $this->options;
+
+        $service = new Service($definition, $this->shared);
+
+        $di = $this->getDI();
+        $di->setService($this->name, $service);
+
+        foreach ($this->aliases as $alias) {
+            $di->setService($alias, $service);
         }
+    }
 
-        $service = new Service($this->name, $definition, $this->shared);
-
-        $this->getDI()->setRaw($this->name, $service);
-
-        if (!empty($this->aliases))
-            foreach ($this->aliases as $alias) {
-                $this->getDI()->setRaw($alias, $service);
-            }
+    /**
+     * @return class-string
+     */
+    public function getClass(): string
+    {
+        return $this->class;
     }
 }

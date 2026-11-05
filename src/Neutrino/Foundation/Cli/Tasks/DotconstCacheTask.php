@@ -1,41 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
 use Neutrino\Cli\Output\Decorate;
 use Neutrino\Cli\Task;
 use Neutrino\Dotconst;
+use Throwable;
 
-/**
- * Class ConfigCacheTask
- *
- * @package     Neutrino\Foundation\Cli\Tasks
- */
-class DotconstCacheTask extends Task
+final class DotconstCacheTask extends Task
 {
-
-    /**
-     * Dotconst compile & cache.
-     *
-     * @description Dotconst compile & cache.
-     *
-     * @throws \Exception
-     */
-    public function mainAction()
+    #[Description('Cache the constants of the .const.ini files.')]
+    public function mainAction(): void
     {
-        $this->output->write(Decorate::notice(str_pad('Generating dotconst cache', 40, ' ')), false);
+        $this->writer()->write(Decorate::notice(str_pad('Generating dotconst cache', 40)), false);
 
         try {
             self::generateCache();
 
-            $this->info("Success");
-        } catch (\Exception $e) {
-            $this->error("Error");
+            $this->info('Success');
+        } catch (Throwable $e) {
+            $this->error('Error');
             $this->block([$e->getMessage()], 'error');
         }
     }
 
-    public static function generateCache()
+    public static function generateCache(): void
     {
         Dotconst\Compile::compile(BASE_PATH, BASE_PATH . '/bootstrap/compile');
     }

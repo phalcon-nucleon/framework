@@ -1,235 +1,106 @@
 <?php
-/*
-  +------------------------------------------------------------------------+
-  | Phalcon Framework                                                      |
-  +------------------------------------------------------------------------+
-  | Copyright (c) 2011-2016 Phalcon Team (http://www.phalconphp.com)       |
-  +------------------------------------------------------------------------+
-  | This source file is subject to the New BSD License that is bundled     |
-  | with this package in the file docs/LICENSE.txt.                        |
-  |                                                                        |
-  | If you did not receive a copy of the license and are unable to         |
-  | obtain it through the world-wide-web, please send an email             |
-  | to license@phalconphp.com so we can send you a copy immediately.       |
-  +------------------------------------------------------------------------+
-  | Authors: Andres Gutierrez <andres@phalconphp.com>                      |
-  |          Eduar Carvajal <eduar@phalconphp.com>                         |
-  |          Nikita Vershinin <endeveit@gmail.com>                         |
-  +------------------------------------------------------------------------+
-*/
+
+declare(strict_types=1);
 
 namespace Neutrino\Error;
 
-use Neutrino\Support\Arr;
+use JsonSerializable;
+use Throwable;
 
 /**
- * Class Error
- *
- * @package Phalcon\Error
- *
- * @property-read int        type
- * @property-read int        code
- * @property-read string     typeStr
- * @property-read string     message
- * @property-read string     file
- * @property-read string     line
- * @property-read \Exception exception
- * @property-read bool       isException
- * @property-read bool       isError
+ * A PHP error or an uncaught exception, as passed to the error writers.
  */
-class Error implements \ArrayAccess, \JsonSerializable
+final readonly class Error implements JsonSerializable
 {
     /**
-     * @var array
+     * The type of an uncaught exception.
      */
-    protected $attributes;
+    public const int EXCEPTION = -1;
 
     /**
-     * Class constructor sets the attributes.
-     *
-     * @param array $options
+     * The error is an uncaught exception.
      */
-    public function __construct(array $options = [])
+    public bool $isException;
+
+    /**
+     * The error is a PHP error.
+     */
+    public bool $isError;
+
+    /**
+     * Readable type, as "Warning [E_WARNING]".
+     */
+    public string $typeStr;
+
+    /**
+     * Logger level (`Phalcon\Logger\Enum`).
+     */
+    public int $logLvl;
+
+    /**
+     * @param int        $type      `E_*` constant, or {@see self::EXCEPTION}
+     * @param int|string $code      Code of the exception (a string for a `PDOException`), the type for an error
+     */
+    public function __construct(
+        public int $type,
+        public string $message,
+        public string $file = '',
+        public int $line = 0,
+        public int|string $code = 0,
+        public ?Throwable $exception = null,
+    ) {
+        $this->isException = $exception !== null;
+        $this->isError = $exception === null;
+        $this->typeStr = Helper::verboseErrorType($type);
+        $this->logLvl = Helper::getLogType($type);
+    }
+
+    public static function fromException(Throwable $exception): self
     {
-        $defaults = [
-            'type'        => -1,
-            'code'        => 0,
-            'message'     => 'No error message',
-            'file'        => '',
-            'line'        => '',
-            'exception'   => null,
-            'isException' => false,
-            'isError'     => false,
+        return new self(
+            self::EXCEPTION,
+            $exception->getMessage(),
+            $exception->getFile(),
+            $exception->getLine(),
+            $exception->getCode(),
+            $exception,
+        );
+    }
+
+    public static function fromError(int $type, string $message, string $file = '', int $line = 0): self
+    {
+        return new self($type, $message, $file, $line, $type);
+    }
+
+    /**
+     * An uncaught exception, or an error that stops the script.
+     */
+    public function isFatal(): bool
+    {
+        return $this->type === self::EXCEPTION || ($this->type & Handler::FATAL) !== 0;
+    }
+
+    /**
+     * @return array{type: int, code: int|string, message: string, file: string, line: int, isException: bool, isError: bool, typeStr: string, logLvl: int, exception: array{class: class-string, code: int|string, message: string, traces: list<array{id: int, func: string, where: string, file?: string, line?: int}>}|null}
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'type'        => $this->type,
+            'code'        => $this->code,
+            'message'     => $this->message,
+            'file'        => $this->file,
+            'line'        => $this->line,
+            'isException' => $this->isException,
+            'isError'     => $this->isError,
+            'typeStr'     => $this->typeStr,
+            'logLvl'      => $this->logLvl,
+            'exception'   => $this->exception === null ? null : [
+                'class'   => $this->exception::class,
+                'code'    => $this->exception->getCode(),
+                'message' => $this->exception->getMessage(),
+                'traces'  => Helper::formatExceptionTrace($this->exception),
+            ],
         ];
-
-        $options = array_merge($defaults, $options);
-
-        foreach ($options as $option => $value) {
-            $this->attributes[$option] = $value;
-        }
-
-        $this->attributes['typeStr'] = Helper::verboseErrorType($this->attributes['type']);
-        $this->attributes['logLvl'] = Helper::getLogType($this->attributes['type']);
-    }
-
-    /**
-     * @param \Exception|\Error|\Throwable $e
-     *
-     * @return \Neutrino\Error\Error
-     */
-    public static function fromException($e)
-    {
-        return new static([
-            'type'        => -1,
-            'code'        => $e->getCode(),
-            'message'     => $e->getMessage(),
-            'file'        => $e->getFile(),
-            'line'        => $e->getLine(),
-            'isException' => true,
-            'exception'   => $e,
-        ]);
-    }
-
-    public static function fromError($errno, $errstr, $errfile, $errline)
-    {
-        return new static([
-            'type'    => $errno,
-            'code'    => $errno,
-            'message' => $errstr,
-            'file'    => $errfile,
-            'line'    => $errline,
-            'isError' => true,
-        ]);
-    }
-
-    public function isFateful()
-    {
-        $type = $this->type;
-
-        return $type == -1 ||
-            $type == E_ERROR ||
-            $type == E_PARSE ||
-            $type == E_CORE_ERROR ||
-            $type == E_COMPILE_ERROR ||
-            $type == E_RECOVERABLE_ERROR;
-    }
-
-    /**
-     * Magic method to retrieve the attributes.
-     *
-     * @param  string $name
-     *
-     * @return mixed
-     */
-    public function __get($name)
-    {
-        return isset($this->attributes[$name]) ? $this->attributes[$name] : null;
-    }
-
-    public function __isset($name)
-    {
-        return isset($this->attributes[$name]);
-    }
-
-    /**
-     * Whether a offset exists
-     *
-     * @link  http://php.net/manual/en/arrayaccess.offsetexists.php
-     *
-     * @param mixed $offset <p>
-     *                      An offset to check for.
-     *                      </p>
-     *
-     * @return boolean true on success or false on failure.
-     * </p>
-     * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
-     * @since 5.0.0
-     */
-    public function offsetExists($offset)
-    {
-        return Arr::has($this->attributes, $offset);
-    }
-
-    /**
-     * Offset to retrieve
-     *
-     * @link  http://php.net/manual/en/arrayaccess.offsetget.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to retrieve.
-     *                      </p>
-     *
-     * @return mixed Can return all value types.
-     * @since 5.0.0
-     */
-    public function offsetGet($offset)
-    {
-        return Arr::get($this->attributes, $offset);
-    }
-
-    /**
-     * Offset to set
-     *
-     * @link  http://php.net/manual/en/arrayaccess.offsetset.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to assign the value to.
-     *                      </p>
-     * @param mixed $value  <p>
-     *                      The value to set.
-     *                      </p>
-     *
-     * @return void
-     * @since 5.0.0
-     */
-    public function offsetSet($offset, $value)
-    {
-        $this->attributes[$offset] = $value;
-    }
-
-    /**
-     * Offset to unset
-     *
-     * @link  http://php.net/manual/en/arrayaccess.offsetunset.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to unset.
-     *                      </p>
-     *
-     * @return void
-     * @since 5.0.0
-     */
-    public function offsetUnset($offset)
-    {
-        if (isset($this->attributes[$offset])) {
-            unset($this->attributes[$offset]);
-        }
-    }
-
-    /**
-     * Specify data which should be serialized to JSON
-     *
-     * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
-     *        which is a value of any type other than a resource.
-     * @since 5.4.0
-     */
-    function jsonSerialize()
-    {
-        $json = $this->attributes;
-
-        if ($this->attributes['isException']) {
-            /** @var \Exception $exception */
-            $exception         = $this->attributes['exception'];
-            $json['exception'] = [
-                'class'   => get_class($exception),
-                'code'    => $exception->getCode(),
-                'message' => $exception->getMessage(),
-                'traces'  => Helper::formatExceptionTrace($exception)
-            ];
-        }
-
-        return $json;
     }
 }

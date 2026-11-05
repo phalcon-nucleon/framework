@@ -1,45 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Middleware;
 
 use Neutrino\Constants\Events;
+use Neutrino\Constants\Services;
 use Neutrino\Events\Listener;
 use Neutrino\Interfaces\Middleware\AfterInterface;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
 use Neutrino\Interfaces\Middleware\FinishInterface;
+use Phalcon\Dispatcher\AbstractDispatcher;
+use Phalcon\Events\Event;
 
 /**
- * ControllerMiddleware
- *
- * Class Controller
- *
- *  @package Neutrino\Foundation\Middleware
+ * Middleware of a controller: `before` / `after` around the controller action, `finish` after the dispatch.
+ * Applied only to the controller that registered it, and filtered by {@see only()} / {@see except()}.
  */
 abstract class Controller extends Listener
 {
     /**
-     * Filter methods
+     * Action filters: `only` and `except`, as sets of action names.
      *
-     * @var array
+     * @var array{only?: array<string, true>, except?: array<string, true>}
      */
-    private $filter = [];
+    private array $filter = [];
 
     /**
-     * The controller who create this middleware
-     *
-     * @var string
+     * @param string $controllerClass The controller that registers this middleware
      */
-    private $controllerClass;
-
-    /**
-     * ControllerMiddleware constructor.
-     *
-     * @param string $controllerClass The controller who create this middleware
-     */
-    public function __construct($controllerClass)
+    public function __construct(private readonly string $controllerClass)
     {
-        $this->controllerClass = $controllerClass;
-
         if ($this instanceof BeforeInterface) {
             $this->listen[Events\Dispatch::BEFORE_EXECUTE_ROUTE] = 'checkBefore';
         }
@@ -52,14 +43,15 @@ abstract class Controller extends Listener
     }
 
     /**
-     * @return bool
+     * Whether the middleware applies to the action being dispatched.
      */
-    final public function check()
+    final public function check(): bool
     {
-        $dispatcher = $this->dispatcher;
+        /** @var AbstractDispatcher $dispatcher */
+        $dispatcher = $this->getDI()->getShared(Services::DISPATCHER);
 
-        if($dispatcher->wasForwarded() && !$dispatcher->isFinished()){
-            // Controller has just been forwarded
+        if ($dispatcher->wasForwarded() && !$dispatcher->isFinished()) {
+            // The controller has just been forwarded
             return false;
         }
 
@@ -69,113 +61,58 @@ abstract class Controller extends Listener
 
         $action = $dispatcher->getActionName();
 
-        $enable = true;
-        if (isset($this->filter['only'])) {
-            $enable = isset($this->filter['only'][$action]);
-        }
+        $enable = !isset($this->filter['only']) || isset($this->filter['only'][$action]);
 
-        if ($enable && isset($this->filter['except'])) {
-            $enable = !isset($this->filter['except'][$action]);
-        }
-
-        return $enable;
+        return $enable && !isset($this->filter['except'][$action]);
     }
 
     /**
-     * Allowed Method.
+     * Applies the middleware to these actions only. Calls add up; `[]` resets the list (the middleware
+     * then applies to no action), `null` changes nothing.
      *
-     * @param array|null $filters
-     *
-     * @return \Neutrino\Foundation\Middleware\Controller
+     * @param list<string>|null $filters
      */
-    final public function only(array $filters = null)
+    final public function only(?array $filters = null): static
     {
         return $this->filters('only', $filters);
     }
 
     /**
-     * Excepted Method.
+     * Applies the middleware to every action but these ones. Calls add up; `[]` resets the list.
      *
-     * @param array|null $filters
-     *
-     * @return \Neutrino\Foundation\Middleware\Controller
+     * @param list<string>|null $filters
      */
-    final public function except(array $filters = null)
+    final public function except(?array $filters = null): static
     {
         return $this->filters('except', $filters);
     }
 
-    /**
-     * @param $event
-     * @param $source
-     * @param $data
-     *
-     * @return mixed
-     */
-    final public function checkBefore($event, $source, $data)
+    final public function checkBefore(Event $event, object $source, mixed $data = null): mixed
     {
-        if ($this->check()) {
-            /** @var \Neutrino\Interfaces\Middleware\BeforeInterface $this */
-            return $this->before($event, $source, $data);
-        }
+        return $this instanceof BeforeInterface && $this->check() ? $this->before($event, $source, $data) : true;
+    }
 
-        return true;
+    final public function checkAfter(Event $event, object $source, mixed $data = null): mixed
+    {
+        return $this instanceof AfterInterface && $this->check() ? $this->after($event, $source, $data) : true;
+    }
+
+    final public function checkFinish(Event $event, object $source, mixed $data = null): mixed
+    {
+        return $this instanceof FinishInterface && $this->check() ? $this->finish($event, $source, $data) : true;
     }
 
     /**
-     * @param $event
-     * @param $source
-     * @param $data
-     *
-     * @return mixed
+     * @param 'only'|'except'   $type
+     * @param list<string>|null $filters
      */
-    final public function checkAfter($event, $source, $data)
-    {
-        if ($this->check()) {
-            /** @var \Neutrino\Interfaces\Middleware\AfterInterface $this */
-            return $this->after($event, $source, $data);
-        }
-
-        return true;
-    }
-
-    /**
-     * @param $event
-     * @param $source
-     * @param $data
-     *
-     * @return mixed
-     */
-    final public function checkFinish($event, $source, $data)
-    {
-        if ($this->check()) {
-            /** @var \Neutrino\Interfaces\Middleware\FinishInterface $this */
-            return $this->finish($event, $source, $data);
-        }
-
-        return true;
-    }
-
-    /**
-     * @param            $type
-     * @param array|null $filters
-     *
-     * @return $this
-     */
-    private function filters($type, array $filters = null)
+    private function filters(string $type, ?array $filters): static
     {
         if ($filters === null) {
             return $this;
         }
-        if (empty($filters)) {
-            $this->filter[$type] = [];
 
-            return $this;
-        }
-
-        foreach ($filters as $item) {
-            $this->filter[$type][$item] = true;
-        }
+        $this->filter[$type] = $filters === [] ? [] : ($this->filter[$type] ?? []) + array_fill_keys($filters, true);
 
         return $this;
     }

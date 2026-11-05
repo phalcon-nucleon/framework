@@ -1,54 +1,65 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Support;
 
 use Neutrino\Support\Traits\InjectionAwareTrait;
-use Phalcon\Di;
-use Test\TestCase\TestCase;
+use Phalcon\Di\Di;
+use Phalcon\Di\FactoryDefault;
+use Phalcon\Mvc\Router;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use stdClass;
+
+final class InjectionAwareTraitTest extends TestCase
+{
+    protected function tearDown(): void
+    {
+        Di::reset();
+    }
+
+    public function testMagicGetResolvesSharedServicesOnce(): void
+    {
+        $di = new FactoryDefault();
+        $di->set('counter', fn() => new stdClass());
+
+        $aware = new InjectionAwareStub();
+        $aware->setDI($di);
+
+        $this->assertInstanceOf(Router::class, $aware->router);
+        $this->assertSame($aware->counter, $aware->counter);
+        $this->assertSame($di->getShared('counter'), $aware->counter);
+        $this->assertTrue(isset($aware->router));
+        $this->assertFalse(isset($aware->unknown));
+    }
+
+    public function testGetDiFallsBackOnTheDefaultContainer(): void
+    {
+        $di = new FactoryDefault();
+        Di::setDefault($di);
+
+        $this->assertSame($di, (new InjectionAwareStub())->getDI());
+    }
+
+    public function testUnknownService(): void
+    {
+        $aware = new InjectionAwareStub();
+        $aware->setDI(new Di());
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('unknown not found in dependency injection.');
+
+        $aware->unknown;
+    }
+}
 
 /**
- * Class Test
- *
- * @package Test\Support
+ * @property-read mixed $router
+ * @property-read mixed $counter
+ * @property-read mixed $unknown
  */
-class InjectionAwareTraitTest extends TestCase
+class InjectionAwareStub
 {
-
-    public function testMagicGet()
-    {
-        $mock = $this->getMockForTrait(InjectionAwareTrait::class);
-
-        $services = [
-            'dispatcher'         => \Phalcon\Mvc\Dispatcher::class,
-            'router'             => \Phalcon\Mvc\Router::class,
-            'url'                => \Phalcon\Mvc\Url::class,
-            'modelsManager'      => \Phalcon\Mvc\Model\Manager::class,
-            'modelsMetadata'     => \Phalcon\Mvc\Model\MetaData\Memory::class,
-            'response'           => \Phalcon\Http\Response::class,
-            'cookies'            => \Phalcon\Http\Response\Cookies::class,
-            'request'            => \Phalcon\Http\Request::class,
-            'filter'             => \Phalcon\Filter::class,
-            'escaper'            => \Phalcon\Escaper::class,
-            'security'           => \Phalcon\Security::class,
-            'crypt'              => \Phalcon\Crypt::class,
-            'annotations'        => \Phalcon\Annotations\Adapter\Memory::class,
-            'flash'              => \Phalcon\Flash\Direct::class,
-            'flashSession'       => \Phalcon\Flash\Session::class,
-            'tag'                => \Phalcon\Tag::class,
-            'session'            => \Phalcon\Session\Adapter\Files::class,
-            'eventsManager'      => \Phalcon\Events\Manager::class,
-            'transactionManager' => \Phalcon\Mvc\Model\Transaction\Manager::class,
-            'assets'             => \Phalcon\Assets\Manager::class,
-            'application'        => \Phalcon\Application::class,
-            'config'             => \Phalcon\Config::class,
-            'cache'              => \Neutrino\Cache\CacheStrategy::class,
-        ];
-
-        foreach ($services as $service => $class) {
-            $this->assertInstanceOf($class, $mock->$service, $service);
-        }
-        foreach ($services as $service => $class) {
-            $this->assertTrue(property_exists($mock, $service));
-        }
-    }
+    use InjectionAwareTrait;
 }

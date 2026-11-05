@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Events;
 
 /**
@@ -11,5 +13,5 @@ namespace Neutrino\Constants\Events;
  */
 final class ModelsManager
 {
-    const AFTER_INITIALIZE = 'modelsManager:afterInitialize';
+    public const string AFTER_INITIALIZE = 'modelsManager:afterInitialize';
 }

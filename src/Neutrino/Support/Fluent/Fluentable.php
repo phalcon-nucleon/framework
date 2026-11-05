@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Laravel 5.4 Fluent Class
  *
@@ -7,137 +10,50 @@
 
 namespace Neutrino\Support\Fluent;
 
+use ArrayAccess;
+use Iterator;
+use JsonSerializable;
 
-interface Fluentable extends \ArrayAccess, \Iterator, \JsonSerializable
+/**
+ * @extends ArrayAccess<array-key, mixed>
+ * @extends Iterator<array-key, mixed>
+ */
+interface Fluentable extends ArrayAccess, Iterator, JsonSerializable
 {
     /**
-     * Create a new fluent container instance.
-     *
-     * @param  array|object $attributes
+     * @param iterable<array-key, mixed>|object $attributes
      */
-    public function __construct($attributes);
+    public function __construct(iterable|object $attributes = []);
 
     /**
-     * Get an attribute from the container.
-     *
-     * @param  string $key
-     * @param  mixed  $default
-     *
-     * @return mixed
+     * Gets an attribute, or `$default` (a closure is called) when it is not set.
      */
-    public function get($key, $default = null);
+    public function get(string|int $key, mixed $default = null): mixed;
 
     /**
-     * Get the attributes from the container.
-     *
-     * @return array
+     * @return array<array-key, mixed>
      */
-    public function getAttributes();
+    public function getAttributes(): array;
 
     /**
-     * Convert the Fluent instance to an array.
-     *
-     * @return array
+     * @return array<array-key, mixed>
      */
-    public function toArray();
+    public function toArray(): array;
+
+    public function toJson(int $options = 0): string;
 
     /**
-     * Convert the object into something JSON serializable.
+     * Sets the attribute named after the method: `$fluent->nullable()`, `$fluent->default(1)`.
      *
-     * @return array
+     * @param array<int, mixed> $parameters
      */
-    public function jsonSerialize();
+    public function __call(string $method, array $parameters): static;
 
-    /**
-     * Convert the Fluent instance to JSON.
-     *
-     * @param  int $options
-     *
-     * @return string
-     */
-    public function toJson($options = 0);
+    public function __get(string $key): mixed;
 
-    /**
-     * Determine if the given offset exists.
-     *
-     * @param  string $offset
-     *
-     * @return bool
-     */
-    public function offsetExists($offset);
+    public function __set(string $key, mixed $value): void;
 
-    /**
-     * Get the value for a given offset.
-     *
-     * @param  string $offset
-     *
-     * @return mixed
-     */
-    public function offsetGet($offset);
+    public function __isset(string $key): bool;
 
-    /**
-     * Set the value at the given offset.
-     *
-     * @param  string $offset
-     * @param  mixed  $value
-     *
-     * @return void
-     */
-    public function offsetSet($offset, $value);
-
-    /**
-     * Unset the value at the given offset.
-     *
-     * @param  string $offset
-     *
-     * @return void
-     */
-    public function offsetUnset($offset);
-
-    /**
-     * Handle dynamic calls to the container to set attributes.
-     *
-     * @param  string $method
-     * @param  array  $parameters
-     *
-     * @return $this
-     */
-    public function __call($method, $parameters);
-
-    /**
-     * Dynamically retrieve the value of an attribute.
-     *
-     * @param  string $key
-     *
-     * @return mixed
-     */
-    public function __get($key);
-
-    /**
-     * Dynamically set the value of an attribute.
-     *
-     * @param  string $key
-     * @param  mixed  $value
-     *
-     * @return void
-     */
-    public function __set($key, $value);
-
-    /**
-     * Dynamically check if an attribute is set.
-     *
-     * @param  string $key
-     *
-     * @return bool
-     */
-    public function __isset($key);
-
-    /**
-     * Dynamically unset an attribute.
-     *
-     * @param  string $key
-     *
-     * @return void
-     */
-    public function __unset($key);
+    public function __unset(string $key): void;
 }

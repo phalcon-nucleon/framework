@@ -1,37 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst\Extensions;
 
+use LogicException;
+
 /**
- * Class Extension
- *
- * @package Neutrino\Dotconst\Extensions
+ * A dynamic value of a `.const.ini` file, written `@{identifier}`.
  */
 abstract class Extension
 {
-    protected $identifier;
-
     /**
-     * Extension constructor.
+     * Regular expression (without delimiters) matched after the `@`.
      */
+    protected string $identifier;
+
     public function __construct()
     {
-        if (empty($this->identifier)) {
-            throw new \LogicException(__CLASS__ . '::$identifier can\'t be empty');
+        if (!isset($this->identifier) || $this->identifier === '') {
+            throw new LogicException(static::class . '::$identifier can\'t be empty');
         }
     }
 
-    /**
-     * @param $value
-     *
-     * @return bool
-     */
-    final public function identify($value)
+    final public function identify(mixed $value): bool
     {
-        return preg_match("#^@{$this->identifier}@?#", $value) === 1;
+        return is_string($value) && preg_match("#^@{$this->identifier}@?#", $value) === 1;
     }
 
-    protected function match($value)
+    /**
+     * @return array<string>
+     */
+    protected function match(string $value): array
     {
         preg_match("#^@{$this->identifier}@?#", $value, $match);
 
@@ -39,19 +39,24 @@ abstract class Extension
     }
 
     /**
-     * @param string $value
-     * @param string $basePath
-     *
-     * @return string
+     * Value of the constant when the ini files are read at runtime.
      */
-    abstract public function parse($value, $basePath);
+    abstract public function parse(string $value, string $basePath): mixed;
 
     /**
-     * @param string $value
-     * @param string $basePath
-     * @param string $compilePath
+     * PHP expression of the constant, written in the compiled file.
      *
-     * @return string
+     * @param string $basePath    Directory of the ini files
+     * @param string $compilePath Directory of the compiled file
      */
-    abstract public function compile($value, $basePath, $compilePath);
+    abstract public function compile(string $value, string $basePath, string $compilePath): string;
+
+    /**
+     * Whether {@see Extension::compile()} returns a constant expression,
+     * which allows `const X = ...;` instead of `define()`.
+     */
+    public function isConstantExpression(): bool
+    {
+        return true;
+    }
 }

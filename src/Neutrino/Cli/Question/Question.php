@@ -1,54 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Question;
 
 /**
- * Class Question
- *
- * @package Neutrino\Cli\Question
+ * Question asked on the console, with its default answer.
  */
 class Question
 {
-    /** @var string */
-    protected $question;
+    public function __construct(protected string $question, protected mixed $default = null) {}
 
-    /** @var null|bool|int|string */
-    protected $default;
-
-    /**
-     * Question constructor.
-     *
-     * @param string               $question
-     * @param null|bool|int|string $default
-     */
-    public function __construct($question, $default = null)
-    {
-        $this->question = $question;
-        $this->default = $default;
-    }
-
-    /**
-     * @return string
-     */
-    public function getQuestion()
+    public function getQuestion(): string
     {
         return $this->question;
     }
 
-    /**
-     * @return null|bool|int|string
-     */
-    public function getDefault()
+    public function getDefault(): mixed
     {
         return $this->default;
     }
 
     /**
-     * @param $response
-     *
-     * @return string
+     * Converts the answer typed by the user.
      */
-    public function normalize($response)
+    public function normalize(string $response): mixed
     {
         return $response;
     }

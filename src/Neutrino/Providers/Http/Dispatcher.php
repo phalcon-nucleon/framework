@@ -1,32 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers\Http;
 
 use Neutrino\Constants\Services;
 use Neutrino\Support\Provider;
+use Phalcon\Events\ManagerInterface;
+use Phalcon\Mvc\Dispatcher as MvcDispatcher;
 
 /**
- * Class Dispatcher
- *
- * @package Neutrino\Providers
+ * MVC dispatcher, attached to the shared events manager (middlewares and listeners).
  */
 class Dispatcher extends Provider
 {
-    protected $name = Services::DISPATCHER;
+    protected string $name = Services::DISPATCHER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Mvc\Dispatcher::class];
+    protected array $aliases = [MvcDispatcher::class];
 
-    /**
-     * @return \Phalcon\Mvc\Dispatcher
-     */
-    protected function register()
+    protected function register(): MvcDispatcher
     {
-        $dispatcher = new \Phalcon\Mvc\Dispatcher();
+        $dispatcher = new MvcDispatcher();
 
-        // Assign the events manager to the dispatcher
-        $dispatcher->setEventsManager($this->getDI()->getShared(Services::EVENTS_MANAGER));
+        /** @var ManagerInterface $eventsManager */
+        $eventsManager = $this->getDI()->getShared(Services::EVENTS_MANAGER);
+        $dispatcher->setEventsManager($eventsManager);
 
         return $dispatcher;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers\Cli;
 
 use Neutrino\Cli\Output\Writer;
@@ -7,25 +9,18 @@ use Neutrino\Constants\Services;
 use Neutrino\Support\Provider;
 
 /**
- * Class Output
- *
- * @package     Neutrino\Providers\Cli
+ * Console output, quiet when the kernel received `-q` / `--quiet`.
  */
 class Output extends Provider
 {
-    protected $name = Services\Cli::OUTPUT;
+    protected string $name = Services\Cli::OUTPUT;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    /**
-     * Return the service to register
-     *
-     * Called when the services container tries to resolve the service
-     *
-     * @return mixed
-     */
-    protected function register()
+    protected function register(): Writer
     {
-        return new Writer($this->getDI()->getShared(Services::APP)->isQuiet());
+        $application = $this->getDI()->getShared(Services::APP);
+
+        return new Writer(is_object($application) && method_exists($application, 'isQuiet') && $application->isQuiet());
     }
 }

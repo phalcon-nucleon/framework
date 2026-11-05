@@ -1,0 +1,18 @@
+parameters:
+    level: max
+    paths:
+        - src
+        - phpstan/TraitUsage.php
+    bootstrapFiles:
+        - phpstan/constants.php
+    dynamicConstantNames:
+        BASE_PATH: string
+        APP_ENV: string
+        APP_DEBUG: bool
+    excludePaths:
+        - src/Neutrino/Debug/resources
+    # Phalcon classes come from the extension when it is loaded; the stubs
+    # cover analysis without it (Phalcon 6 job, editors).
+    scanDirectories:
+        - vendor/phalcon/ide-stubs/src
+    tmpDir: build/phpstan

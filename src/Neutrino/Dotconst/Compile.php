@@ -1,88 +1,81 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst;
 
 use Neutrino\Dotconst;
-use Neutrino\Dotconst\Exception\InvalidFileException;
+use Neutrino\Support\AtomicFile;
 
 /**
- * Class Compile
+ * Compiles the `.const.ini` files into a PHP file of constant declarations.
  *
- * @package Neutrino\Dotconst
+ * Values are written as `const X = ...;` (resolved by the engine, slightly faster than `define()`),
+ * except the ones that must be evaluated at runtime, such as `@php/env`, which use `define()`.
  */
-class Compile
+final class Compile
 {
-
     /**
-     * Compile loaded & parsed ini files to php files.
+     * @param string $basePath    Directory of the `.const.ini` files
+     * @param string $compilePath Directory of the compiled `consts.php`
      *
-     * @param string $basePath
-     * @param string $compilePath
+     * @return string Path of the compiled file
      *
-     * @throws \Neutrino\Dotconst\Exception\InvalidFileException
+     * @throws Exception\InvalidFileException
      */
-    public static function compile($basePath, $compilePath)
+    public static function compile(string $basePath, string $compilePath): string
     {
-        $extensions = Dotconst::getExtensions();
-
         $raw = Loader::loadRaw($basePath);
 
-        $config = Loader::fromFiles($basePath);
-
-        $r = fopen($compilePath . '/consts.php', 'w');
-
-        if ($r === false) {
-            throw new InvalidFileException('Can\'t create file : ' . $compilePath);
-        }
-
-        fwrite($r, "<?php" . PHP_EOL);
-
+        $lines = [];
         $nested = [];
 
         foreach ($raw as $const => $value) {
-            foreach ($extensions as $k => $extension) {
-                if(is_string($extension)){
-                    $extensions[$k] = $extension = new $extension;
-                }
-
+            foreach (Dotconst::getExtensions() as $extension) {
                 if ($extension->identify($value)) {
-                    fwrite($r, "define('$const', " . $extension->compile($value, $basePath, $compilePath) . ");" . PHP_EOL);
+                    /** @var string $value */
+                    $lines[] = self::declare($const, $extension->compile($value, $basePath, $compilePath), $extension->isConstantExpression());
 
                     continue 2;
                 }
             }
 
-            if (preg_match('#^@\{(\w+)\}@?#', $value, $match)) {
-                $key = strtoupper($match[1]);
+            if (($reference = Loader::matchReference($value)) !== null) {
+                [$name, $rest] = $reference;
+                $key = strtoupper($name);
 
-                $value = preg_replace('#^@\{(\w+)\}@?#', '', $value);
-
-                $draw = '';
-                $require = null;
-                if(isset($config[$key])){
-                    $draw .= $key;
-                    $require = $key;
+                if (array_key_exists($key, $raw)) {
+                    $nested[$const] = [
+                        'require' => $key,
+                        'draw'    => $rest === '' ? '\\' . $key : '\\' . $key . ' . ' . var_export($rest, true),
+                    ];
                 } else {
-                    $draw .= $match[1] ;
+                    $nested[$const] = ['require' => null, 'draw' => var_export($name . $rest, true)];
                 }
-                if(!empty($value)){
-                    $draw .= " . '$value'";
-                }
-
-                $nested[$const] = ['draw' => $draw, 'require' => $require];
 
                 continue;
             }
 
-            fwrite($r, "define('$const', " . var_export($value, true) . ");" . PHP_EOL);
+            $lines[] = self::declare($const, var_export($value, true), true);
         }
 
-        $nested = Helper::nestedConstSort($nested);
-
-        foreach ($nested as $const => $item) {
-            fwrite($r, "define('$const', {$item['draw']});" . PHP_EOL);
+        foreach (Helper::nestedConstSort($nested) as $const => $item) {
+            $lines[] = self::declare($const, $item['draw'], true);
         }
 
-        fclose($r);
+        $file = $compilePath . DIRECTORY_SEPARATOR . Loader::COMPILED_FILE;
+
+        AtomicFile::write($file, "<?php\n\n" . implode("\n", $lines) . "\n");
+
+        return $file;
+    }
+
+    private static function declare(string $const, string $expression, bool $constantExpression): string
+    {
+        if ($constantExpression && preg_match('/^[A-Za-z_]\w*$/', $const) === 1) {
+            return "const $const = $expression;";
+        }
+
+        return 'define(' . var_export($const, true) . ", $expression);";
     }
 }

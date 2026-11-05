@@ -1,22 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 use Neutrino\Support\SimpleProvider;
+use Phalcon\Encryption\Security as PhalconSecurity;
 
 /**
- * Class Security
- *
- *  @package Neutrino\Providers
+ * The `security` service. It reads the session and the request from the container when it needs them (CSRF
+ * tokens): hashing a password does not start the session.
  */
 class Security extends SimpleProvider
 {
-    protected $class = \Phalcon\Security::class;
+    protected string $class = PhalconSecurity::class;
 
-    protected $name = Services::SECURITY;
+    protected string $name = Services::SECURITY;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Security::class];
+    protected array $aliases = [PhalconSecurity::class];
 }

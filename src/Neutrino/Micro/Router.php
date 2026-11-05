@@ -1,453 +1,245 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Micro;
 
+use Closure;
 use Neutrino\Constants\Events;
+use Neutrino\Constants\Services;
+use Neutrino\Foundation\Middleware\Controller as ControllerMiddleware;
 use Neutrino\Interfaces\Middleware\AfterInterface;
 use Neutrino\Interfaces\Middleware\BeforeInterface;
+use Phalcon\Di\DiInterface;
 use Phalcon\Di\Injectable;
 use Phalcon\Events\Event;
 use Phalcon\Mvc\Micro;
-use Phalcon\Mvc\Micro\Collection;
+use Phalcon\Mvc\Micro\CollectionInterface;
+use Phalcon\Mvc\Router\RouteInterface;
+use Phalcon\Mvc\RouterInterface as MvcRouterInterface;
+use UnexpectedValueException;
 
 /**
- * Class Router
+ * Routes of the Micro kernel, registered on the application (`micro.router` service).
  *
- * @property \Phalcon\Mvc\Micro $application
- * @property \Phalcon\Mvc\Router $router
- *
- * @package Neutrino\Micro
+ * @phpstan-import-type Handler from RouterInterface
  */
 class Router extends Injectable implements RouterInterface
 {
-    /**
-     * @deprecated Micro Application doesn't support modules.
-     *
-     * Sets the name of the default module
-     *
-     * @param string $moduleName
-     */
-    public function setDefaultModule($moduleName)
+    public function add(string $pattern, Closure|string|array $handler, string|array|null $httpMethods = null): RouteInterface
     {
-        throw new \RuntimeException(__CLASS__ . ' doesn\'t support modules.');
-    }
+        $route = $this->application()->map($pattern, $this->toHandler($handler));
 
-    /**
-     * @deprecated Micro Application doesn't support default controller.
-     *
-     * Sets the default controller name
-     *
-     * @param string $controllerName
-     */
-    public function setDefaultController($controllerName)
-    {
-        throw new \RuntimeException(__CLASS__ . ' doesn\'t support default controller.');
-    }
-
-    /**
-     * @deprecated Micro Application doesn't support default action.
-     *
-     * Sets the default action name
-     *
-     * @param string $actionName
-     */
-    public function setDefaultAction($actionName)
-    {
-        throw new \RuntimeException(__CLASS__ . ' doesn\'t support default action.');
-    }
-
-    /**
-     * @deprecated Micro Application doesn't support default paths.
-     *
-     * Sets an array of default paths
-     *
-     * @param array $defaults
-     */
-    public function setDefaults(array $defaults)
-    {
-        throw new \RuntimeException(__CLASS__ . ' doesn\'t support defaults paths.');
-    }
-
-    /**
-     * Handles routing information received from the rewrite engine
-     *
-     * @param string $uri
-     */
-    public function handle($uri = null)
-    {
-        $this->router->handle($uri);
-    }
-
-    /**
-     * Adds a route to the router on any HTTP method
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     * @param mixed  $httpMethods
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function add($pattern, $paths = null, $httpMethods = null)
-    {
-        foreach ($httpMethods as $httpMethod) {
-            $this->application->{strtolower($httpMethod)}($pattern, $this->pathToHandler($paths));
+        if ($httpMethods !== null) {
+            $route->via($httpMethods);
         }
 
-        return null;
+        return $route;
     }
 
-    /**
-     * Adds a route to the router that only match if the HTTP method is GET
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addGet($pattern, $paths = null)
+    public function addGet(string $pattern, Closure|string|array $handler): RouteInterface
     {
-        return $this->application->get($pattern, $this->pathToHandler($paths));
+        return $this->application()->get($pattern, $this->toHandler($handler));
     }
 
-    /**
-     * Adds a route to the router that only match if the HTTP method is POST
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addPost($pattern, $paths = null)
+    public function addPost(string $pattern, Closure|string|array $handler): RouteInterface
     {
-        return $this->application->post($pattern, $this->pathToHandler($paths));
+        return $this->application()->post($pattern, $this->toHandler($handler));
     }
 
-    /**
-     * Adds a route to the router that only match if the HTTP method is PUT
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addPut($pattern, $paths = null)
+    public function addPut(string $pattern, Closure|string|array $handler): RouteInterface
     {
-        return $this->application->put($pattern, $this->pathToHandler($paths));
+        return $this->application()->put($pattern, $this->toHandler($handler));
     }
 
-    /**
-     * Adds a route to the router that only match if the HTTP method is PATCH
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addPatch($pattern, $paths = null)
+    public function addPatch(string $pattern, Closure|string|array $handler): RouteInterface
     {
-        return $this->application->patch($pattern, $this->pathToHandler($paths));
+        return $this->application()->patch($pattern, $this->toHandler($handler));
     }
 
-    /**
-     * Adds a route to the router that only match if the HTTP method is DELETE
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addDelete($pattern, $paths = null)
+    public function addDelete(string $pattern, Closure|string|array $handler): RouteInterface
     {
-        return $this->application->delete($pattern, $this->pathToHandler($paths));
+        return $this->application()->delete($pattern, $this->toHandler($handler));
     }
 
-    /**
-     * Add a route to the router that only match if the HTTP method is OPTIONS
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addOptions($pattern, $paths = null)
+    public function addOptions(string $pattern, Closure|string|array $handler): RouteInterface
     {
-        return $this->application->options($pattern, $this->pathToHandler($paths));
+        return $this->application()->options($pattern, $this->toHandler($handler));
     }
 
-    /**
-     * Adds a route to the router that only match if the HTTP method is HEAD
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addHead($pattern, $paths = null)
+    public function addHead(string $pattern, Closure|string|array $handler): RouteInterface
     {
-        return $this->application->head($pattern, $this->pathToHandler($paths));
+        return $this->application()->head($pattern, $this->toHandler($handler));
     }
 
-    /**
-     * @deprecated Micro Application doesn't support HTTP PURGE method.
-     *
-     * Adds a route to the router that only match if the HTTP method is PURGE (Squid and Varnish support)
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addPurge($pattern, $paths = null)
+    public function notFound(callable $handler): static
     {
-        throw new \RuntimeException(__METHOD__ . ': Micro Application doesn\'t support HTTP PURGE method.');
-    }
-
-    /**
-     * @deprecated Micro Application doesn't support HTTP TRACE method.
-     *
-     * Adds a route to the router that only match if the HTTP method is TRACE
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addTrace($pattern, $paths = null)
-    {
-        throw new \RuntimeException(__METHOD__ . ': Micro Application doesn\'t support HTTP TRACE method.');
-    }
-
-    /**
-     * @deprecated Micro Application doesn't support HTTP CONNECT method.
-     *
-     * Adds a route to the router that only match if the HTTP method is CONNECT
-     *
-     * @param string $pattern
-     * @param mixed  $paths
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function addConnect($pattern, $paths = null)
-    {
-        throw new \RuntimeException(__METHOD__ . ': Micro Application doesn\'t support HTTP CONNECT method.');
-    }
-
-    /**
-     * Adds a notFound route
-     *
-     * @param callable $handler
-     */
-    public function notFound($handler)
-    {
-        $this->application->notFound($handler);
-    }
-
-    /**
-     * Mounts a group of routes in the router
-     *
-     * @param \Phalcon\Mvc\Micro\Collection $collection
-     *
-     * @return RouterInterface
-     */
-    public function mount(Collection $collection)
-    {
-        $this->application->mount($collection);
+        $this->application()->notFound($handler);
 
         return $this;
     }
 
-    /**
-     * @deprecated Micro Application doesn't support clear method.
-     *
-     * Removes all the defined routes
-     */
-    public function clear()
+    public function mount(CollectionInterface $collection): static
     {
-        throw new \RuntimeException(__METHOD__ . ': you can\'t clear the router in micro application.');
+        $this->application()->mount($collection);
+
+        return $this;
+    }
+
+    public function getRoutes(): array
+    {
+        return $this->router()->getRoutes();
+    }
+
+    public function getRouteByName(string $name): ?RouteInterface
+    {
+        $route = $this->router()->getRouteByName($name);
+
+        return $route instanceof RouteInterface ? $route : null;
+    }
+
+    public function wasMatched(): bool
+    {
+        return $this->router()->wasMatched();
+    }
+
+    public function getMatchedRoute(): ?RouteInterface
+    {
+        return $this->router()->getMatchedRoute();
+    }
+
+    public function getParams(): array
+    {
+        return $this->router()->getParams();
+    }
+
+    public function getControllerName(): string
+    {
+        return $this->router()->getControllerName();
+    }
+
+    public function getActionName(): string
+    {
+        return $this->router()->getActionName();
     }
 
     /**
-     * @deprecated Micro Application doesn't support modules.
-     *
-     * Returns processed module name
-     *
-     * @return string
+     * @param Handler $handler
      */
-    public function getModuleName()
+    protected function toHandler(Closure|string|array $handler): Closure
     {
-        throw new \RuntimeException(__METHOD__ . ' doesn\'t support modules.');
-    }
-
-    /**
-     * Returns processed namespace name
-     *
-     * @return string
-     */
-    public function getNamespaceName()
-    {
-        return $this->router->getNamespaceName();
-    }
-
-    /**
-     * Returns processed controller name
-     *
-     * @return string
-     */
-    public function getControllerName()
-    {
-        return $this->router->getControllerName();
-    }
-
-    /**
-     * Returns processed action name
-     *
-     * @return string
-     */
-    public function getActionName()
-    {
-        return $this->router->getActionName();
-    }
-
-    /**
-     * Returns processed extra params
-     *
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->router->getParams();
-    }
-
-    /**
-     * Returns the route that matches the handled URI
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function getMatchedRoute()
-    {
-        return $this->router->getMatchedRoute();
-    }
-
-    /**
-     * Return the sub expressions in the regular expression matched
-     *
-     * @return array
-     */
-    public function getMatches()
-    {
-        return $this->router->getMatches();
-    }
-
-    /**
-     * Check if the router matches any of the defined routes
-     *
-     * @return bool
-     */
-    public function wasMatched()
-    {
-        return $this->router->wasMatched();
-    }
-
-    /**
-     * Return all the routes defined in the router
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface[]
-     */
-    public function getRoutes()
-    {
-        return $this->router->getRoutes();
-    }
-
-    /**
-     * Returns a route object by its id
-     *
-     * @param mixed $id
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function getRouteById($id)
-    {
-        return $this->router->getRouteById($id);
-    }
-
-    /**
-     * Returns a route object by its name
-     *
-     * @param string $name
-     *
-     * @return \Phalcon\Mvc\Router\RouteInterface
-     */
-    public function getRouteByName($name)
-    {
-        return $this->router->getRouteByName($name);
-    }
-
-    /**
-     * @param $path
-     *
-     * @return \Closure
-     */
-    protected function pathToHandler($path){
-        if ($path instanceof \Closure) {
-            return $path;
+        if ($handler instanceof Closure) {
+            return $handler;
         }
 
-        if (is_array($path)) {
-            return function (...$args) use ($path) {
-                /** @var Micro $this */
+        [$controller, $action, $middlewares] = $this->parseHandler($handler);
 
-                $controller = isset($path['controller']) ? $path['controller'] : null;
-                $action = isset($path['action']) ? $path['action'] : null;
+        $di = $this->getDI();
+        $application = $this->application();
 
-                $handler = $this->getDI()->get($controller);
+        // Not static: Micro binds the closure handlers to the application.
+        return function (mixed ...$args) use ($di, $application, $controller, $action, $middlewares): mixed {
+            $instance = $di->get($controller);
 
-                if (!method_exists($handler, $action)) {
-                    throw new \RuntimeException('Method : "' . $action . '" doesn\'t exist on "' . $controller . '"');
+            if (!is_object($instance) || !method_exists($instance, $action)) {
+                throw new UnexpectedValueException('Method "' . $action . '" does not exist on "' . $controller . '".');
+            }
+
+            $instances = [];
+            foreach ($middlewares as $middleware => $params) {
+                $instances[] = self::makeMiddleware($controller, $middleware, $params);
+            }
+
+            return self::run($di, $application, $instances, $instance, $action, $args);
+        };
+    }
+
+    /**
+     * Runs the controller middlewares around the action.
+     *
+     * @param list<ControllerMiddleware> $middlewares
+     * @param array<int|string, mixed>   $args
+     */
+    private static function run(DiInterface $di, Micro $application, array $middlewares, object $controller, string $action, array $args): mixed
+    {
+        $before = null;
+        foreach ($middlewares as $middleware) {
+            if ($middleware instanceof BeforeInterface) {
+                $before ??= new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $application);
+
+                if ($middleware->before($before, $application, null) === false) {
+                    return $di->getShared(Services::RESPONSE);
                 }
-
-                if (isset($path['middlewares'])) {
-                    foreach ($path['middlewares'] as $middleware => $params) {
-                        if (is_string($params)) {
-                            $middleware = $params;
-                            $params = [];
-                        }
-
-                        /** @var \Neutrino\Foundation\Middleware\Controller $middleware */
-                        $middlewares[] = $middleware = new $middleware($controller, ...$params);
-
-                        if ($middleware instanceof BeforeInterface) {
-                            if (!isset($event)) {
-                                $event = new Event(Events\Micro::BEFORE_EXECUTE_ROUTE, $this);
-                            }
-
-                            $result = $middleware->before($event, $this, null);
-
-                            if ($result === false) {
-                                return $this->response;
-                            }
-                        }
-                    }
-                }
-
-                $value = $handler->$action(...$args);
-
-                if (isset($middlewares)) {
-                    $event = null;
-                    foreach ($middlewares as $middleware) {
-                        if ($middleware instanceof AfterInterface) {
-                            if (!isset($event)) {
-                                $event = new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $this);
-                            }
-
-                            $middleware->after($event, $this, null);
-                        }
-                    }
-                }
-
-                return $value;
-            };
+            }
         }
 
-        throw new \RuntimeException("invalid route paths");
+        $value = $controller->$action(...$args);
+
+        $after = null;
+        foreach ($middlewares as $middleware) {
+            if ($middleware instanceof AfterInterface) {
+                $after ??= new Event(Events\Micro::AFTER_EXECUTE_ROUTE, $application);
+
+                $middleware->after($after, $application, null);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * Same rule as the HTTP route middlewares: an int key means the value is the class;
+     * a string key is the class, and the value its parameters (a single parameter is accepted).
+     */
+    private static function makeMiddleware(string $controller, int|string $middleware, mixed $params): ControllerMiddleware
+    {
+        [$class, $params] = is_int($middleware)
+            ? [$params, []]
+            : [$middleware, is_array($params) ? $params : [$params]];
+
+        if (!is_string($class) || !is_subclass_of($class, ControllerMiddleware::class)) {
+            throw new UnexpectedValueException('A controller middleware must extend ' . ControllerMiddleware::class . ', ' . (is_string($class) ? $class : get_debug_type($class)) . ' given.');
+        }
+
+        return new $class($controller, ...array_values($params));
+    }
+
+    /**
+     * @param string|array<int|string, mixed> $handler
+     *
+     * @return array{string, string, array<int|string, mixed>}
+     */
+    private function parseHandler(string|array $handler): array
+    {
+        if (is_string($handler)) {
+            $handler = explode('::', $handler, 2);
+        }
+
+        if (array_is_list($handler)) {
+            $handler = ['controller' => $handler[0] ?? null, 'action' => $handler[1] ?? null];
+        }
+
+        $controller = $handler['controller'] ?? null;
+        $action = $handler['action'] ?? null;
+        $middlewares = $handler['middlewares'] ?? [];
+
+        if (!is_string($controller) || $controller === '' || !is_string($action) || $action === '' || !is_array($middlewares)) {
+            throw new UnexpectedValueException('Invalid Micro route handler: expected a closure, "Controller::action", [Controller::class, "action"] or ["controller" => …, "action" => …].');
+        }
+
+        /** @var array<int|string, mixed> $middlewares */
+        return [$controller, $action, $middlewares];
+    }
+
+    private function application(): Micro
+    {
+        /** @var Micro */
+        return $this->getDI()->getShared(Services::APP);
+    }
+
+    private function router(): MvcRouterInterface
+    {
+        /** @var MvcRouterInterface */
+        return $this->getDI()->getShared(Services::ROUTER);
     }
 }

@@ -1,28 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
 use Neutrino\Cli\Task;
+use Neutrino\Config\ConfigCompiler;
 
-/**
- * Class ConfigClearTask
- *
- * @package Neutrino\Foundation\Cli\Tasks
- */
-class ConfigClearTask extends Task
+final class ConfigClearTask extends Task
 {
-    /**
-     * Clear configuration cache.
-     *
-     * @description Clear the configuration cache.
-     *
-     * @throws \Exception
-     */
-    public function mainAction()
+    #[Description('Remove the configuration cache.')]
+    public function mainAction(): void
     {
-        if(file_exists($file = BASE_PATH . '/bootstrap/compile/config.php')){
-            @unlink($file);
-        }
+        ConfigCompiler::clear(BASE_PATH);
 
         $this->info('The configuration cache has been removed.');
     }

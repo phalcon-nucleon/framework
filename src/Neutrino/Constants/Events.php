@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants;
 
 /**
@@ -11,17 +13,17 @@ namespace Neutrino\Constants;
  */
 final class Events
 {
-    const DISPATCH           = 'dispatch';
-    const LOADER             = 'loader';
-    const ACL                = 'acl';
-    const CONSOLE            = 'console';
-    const DB                 = 'db';
-    const APPLICATION        = 'application';
-    const COLLECTION         = 'collection';
-    const MICRO              = 'micro';
-    const MODEL              = 'model';
-    const VIEW               = 'view';
-    const COLLECTION_MANAGER = 'collectionManager';
-    const MODELS_MANAGER     = 'modelsManager';
-    const VOLT               = 'volt';
+    public const string DISPATCH           = 'dispatch';
+    public const string LOADER             = 'loader';
+    public const string ACL                = 'acl';
+    public const string CONSOLE            = 'console';
+    public const string DB                 = 'db';
+    public const string APPLICATION        = 'application';
+    public const string MICRO              = 'micro';
+    public const string MODEL              = 'model';
+    public const string VIEW               = 'view';
+    public const string MODELS_MANAGER     = 'modelsManager';
+    public const string ROUTER             = 'router';
+    public const string DI                 = 'di';
+    public const string KERNEL             = 'kernel';
 }

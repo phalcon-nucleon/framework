@@ -1,43 +1,73 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
+use Neutrino\Database\Migrations\Migration;
+use Neutrino\Database\Migrations\Storage\DatabaseStorage;
 use Neutrino\Database\Schema\Builder;
+use Neutrino\Support\Db;
+use Phalcon\Db\Adapter\AdapterInterface;
 
-/**
- * Class FreshTask
- *
- * @package Neutrino\Database\Cli\Tasks
- */
-class FreshTask extends BaseTask
+final class FreshTask extends BaseTask
 {
-    /**
-     * @description Drop all tables and re-run all migrations.
-     *
-     * @option -f, --force Force the operation to run when in production.
-     * @option --path The path of migrations files to be executed.
-     * @option --pretend : Dump the SQL queries that would be run.
-     */
-    public function mainAction()
+    #[Description('Drop all tables and re-run all migrations.')]
+    #[Option('--database={name}', 'Connection of the migrations that do not declare theirs.')]
+    #[Option('-f, --force', 'Force the operation to run in production.')]
+    #[Option('--path={path}', 'Path of the migrations, relative to the application.')]
+    public function mainAction(): void
     {
         if (!$this->confirmToProceed()) {
             return;
         }
 
-        $this->dropAllTables();
+        foreach ($this->connections() as $connection) {
+            (new Builder($connection))->dropAllTables();
+        }
 
         $this->info('Dropped all tables successfully.');
 
-        $this->callTask(MigrateTask::class, 'main', $this->arguments, $this->options);
+        $this->prepareStorage();
+
+        $this->migrator()->run($this->getMigrationPaths());
+        $this->writeNotes();
     }
 
     /**
-     * Drop all of the database tables.
+     * The connections to empty: that of the migrations (`--database` or the default one), those the migrations
+     * declare, and that of the migration table.
      *
-     * @return void
+     * @return array<int, AdapterInterface>
      */
-    protected function dropAllTables()
+    private function connections(): array
     {
-        (new Builder())->dropAllTables();
+        $migrator = $this->migrator();
+        $database = $this->getOption('database');
+        $names = [is_string($database) && $database !== '' ? $database : null];
+
+        foreach ($migrator->getMigrationFiles($this->getMigrationPaths()) as $file) {
+            $migration = $migrator->resolve($file);
+
+            if ($migration instanceof Migration && $migration->getConnection() !== null) {
+                $names[] = $migration->getConnection();
+            }
+        }
+
+        $connections = [];
+        foreach (array_unique($names, SORT_REGULAR) as $name) {
+            $connection = Db::connection($name);
+            $connections[spl_object_id($connection)] = $connection;
+        }
+
+        $storage = $this->storage();
+        if ($storage instanceof DatabaseStorage) {
+            $connection = $storage->connection();
+            $connections[spl_object_id($connection)] = $connection;
+        }
+
+        return $connections;
     }
 }

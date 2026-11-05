@@ -1,26 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Exceptions;
 
-use Phalcon\Exception;
+use RuntimeException;
+use Throwable;
 
 /**
- * Class TokenMismatchException
- *
- * Token exception for failing csrf check
- *
- *  @package Neutrino\Exceptions
+ * A failed CSRF check, for applications that throw instead of answering 403.
  */
-class TokenMismatchException extends Exception
+class TokenMismatchException extends RuntimeException
 {
-    /**
-     * TokenMismatchException constructor.
-     *
-     * @param string          $message
-     * @param int             $code
-     * @param \Throwable|null $previous
-     */
-    public function __construct($message = 'Token mismatch', $code = 403, \Throwable $previous = null)
+    public function __construct(string $message = 'Token mismatch', int $code = 403, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

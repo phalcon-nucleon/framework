@@ -1,54 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt\Compiler\Filters;
 
 use Neutrino\View\Engines\Volt\Compiler\FilterExtend;
 
 /**
- * Class RoundFilter
- *
- * @package App\Core\View\Engines\Volt\Filters
+ * `{{ x|round }}`, `{{ x|round(2) }}`, `{{ x|round('floor') }}`, `{{ x|round(2, 'ceil') }}`.
  */
 class RoundFilter extends FilterExtend
 {
-    /*
-    #define PHVOLT_T_INTEGER 258
-    #define PHVOLT_T_DOUBLE 259
-    #define PHVOLT_T_STRING 260
-    #define PHVOLT_T_NULL 261
-    #define PHVOLT_T_FALSE 262
-    #define PHVOLT_T_TRUE 263
-     *
-     */
-    /**
-     * @param string $resolvedArgs
-     * @param array $exprArgs
-     *
-     * @return string|null
-     */
-    public function compileFilter($resolvedArgs, $exprArgs)
+    private const int VOLT_STRING = 260;
+
+    public function compileFilter(string $resolvedArgs, ?array $exprArgs): string
     {
-        $value = isset($exprArgs[0]['expr']['value']) ? $exprArgs[0]['expr']['value'] : $resolvedArgs;
+        $value = $this->compileArgument($exprArgs, 0) ?? $resolvedArgs;
+        $first = self::argument($exprArgs, 1);
 
-        switch (isset($exprArgs[1]['expr']['type']) ? $exprArgs[1]['expr']['type'] : null) {
-            case 260:
-                switch (isset($exprArgs[1]['expr']['value']) ? $exprArgs[1]['expr']['value'] : null) {
-                    case 'floor':
-                        return "floor($value)";
-                    case 'ceil':
-                        return "ceil($value)";
-                }
+        if ($first !== null && ($first['type'] ?? null) === self::VOLT_STRING) {
+            return match ($first['value'] ?? null) {
+                'floor' => "floor($value)",
+                'ceil'  => "ceil($value)",
+                default => "round($value)",
+            };
         }
 
-        $precision = isset($exprArgs[1]['expr']['value']) ? $exprArgs[1]['expr']['value'] : 0;
+        $precision = $this->compileArgument($exprArgs, 1) ?? '0';
 
-        switch (isset($exprArgs[2]['expr']['value']) ? $exprArgs[2]['expr']['value'] :  null) {
-            case 'floor':
-                return "floor($value*(10**$precision))/(10**$precision)";
-            case 'ceil':
-                return "ceil($value*(10**$precision))/(10**$precision)";
-        }
-
-        return "round($value, $precision)";
+        return match (self::argument($exprArgs, 2)['value'] ?? null) {
+            'floor' => "floor($value * (10 ** $precision)) / (10 ** $precision)",
+            'ceil'  => "ceil($value * (10 ** $precision)) / (10 ** $precision)",
+            default => "round($value, $precision)",
+        };
     }
 }

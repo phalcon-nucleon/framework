@@ -1,23 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
 
 /**
- * Class Phplog
- *
- * @package Neutrino\Error\Writer
+ * Writes the errors to the PHP log (`error_log`).
  */
-class Phplog implements Writable
+final class Phplog implements Writable
 {
-
-    /**
-     * @inheritdoc
-     */
-    public function handle(Error $error)
+    public function handle(Error $error): void
     {
-        error_log(Helper::format($error), 0);
+        error_log(Helper::format($error));
     }
 }

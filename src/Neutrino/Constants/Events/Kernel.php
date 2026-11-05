@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Events;
 
 final class Kernel
 {
-    const BOOT = 'kernel:boot';
+    public const string BOOT = 'kernel:boot';
 
-    const TERMINATE = 'kernel:terminate';
+    public const string TERMINATE = 'kernel:terminate';
 }

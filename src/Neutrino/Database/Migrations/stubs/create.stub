@@ -1,19 +1,11 @@
 <?php
 
-use \Neutrino\Database\Migrations\Migration;
-use \Neutrino\Database\Schema\Builder;
-use \Neutrino\Database\Schema\Blueprint;
+use Neutrino\Database\Migrations\Migration;
+use Neutrino\Database\Schema\Blueprint;
+use Neutrino\Database\Schema\Builder;
 
-class {class} extends Migration
-{
-    /**
-     * Run the migrations.
-     *
-     * @param \Neutrino\Database\Schema\Builder $schema
-     *
-     * @return void
-     */
-    public function up(Builder $schema)
+return new class extends Migration {
+    public function up(Builder $schema): void
     {
         $schema->create('{table}', function (Blueprint $table) {
             $table->increments('id');
@@ -21,15 +13,8 @@ class {class} extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @param \Neutrino\Database\Schema\Builder $schema
-     *
-     * @return void
-     */
-    public function down(Builder $schema)
+    public function down(Builder $schema): void
     {
         $schema->dropIfExists('{table}');
     }
-}
+};

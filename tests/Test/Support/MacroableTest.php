@@ -1,120 +1,102 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Test\Support;
 
+use BadMethodCallException;
 use Neutrino\Support\Traits\Macroable;
-use Test\TestCase\TestCase;
+use PHPUnit\Framework\TestCase;
 
-/**
- * Trait MacroableTest
- *
- * @package Support
- *
- * @coversDefaultClass \Neutrino\Support\Traits\Macroable
- */
-class MacroableTest extends TestCase
+final class MacroableTest extends TestCase
 {
-    /**
-     * @var Macroable
-     */
-    private $macroable;
-
-    public function setUp()
+    public function testRegisterMacro(): void
     {
-        parent::setUp();
-        
-        $this->macroable = $this->createObjectForTrait();
+        MacroableStub::macro('staticName', static fn() => 'Taylor');
+
+        $this->assertTrue(MacroableStub::hasMacro('staticName'));
+        $this->assertSame('Taylor', MacroableStub::staticName());
     }
 
-    private function createObjectForTrait()
+    public function testRegisterMacroAndCallWithoutStatic(): void
     {
-        return $this->getObjectForTrait(Macroable::class);
+        MacroableStub::macro('instanceName', fn() => 'Taylor');
+
+        $this->assertSame('Taylor', (new MacroableStub())->instanceName());
     }
 
-    public function testRegisterMacro()
+    public function testRegisterMacroAndCallWithoutStaticCallable(): void
     {
-        $macroable = $this->macroable;
-        $macroable::macro(__CLASS__, function () {
-            return 'Taylor';
-        });
-        $this->assertEquals('Taylor', $macroable::{__CLASS__}());
+        MacroableStub::macro('invokable', new InvokableStub());
+
+        $this->assertSame('Taylor', (new MacroableStub())->invokable());
     }
 
-    public function testRegisterMacroAndCallWithoutStatic()
+    public function testNotFoundMethod(): void
     {
-        $macroable = $this->macroable;
-        $macroable::macro(__CLASS__, function () {
-            return 'Taylor';
-        });
-        $this->assertEquals('Taylor', $macroable->{__CLASS__}());
+        $this->expectException(BadMethodCallException::class);
+        $this->expectExceptionMessage('Method unknown does not exist.');
+
+        (new MacroableStub())->unknown();
     }
 
-    public function testRegisterMacroAndCallWithoutStaticCallable()
+    public function testNotFoundMethodStatic(): void
     {
-        $obj       = new StubMacroable;
-        $macroable = $this->macroable;
-        $macroable::macro(__CLASS__, $obj);
-        $this->assertEquals('Taylor', $macroable->{__CLASS__}());
+        $this->expectException(BadMethodCallException::class);
+        $this->expectExceptionMessage('Method unknownStatic does not exist.');
+
+        MacroableStub::unknownStatic();
     }
 
-    public function testNotFoundMethod()
+    public function testWhenCallingMacroClosureIsBoundToObject(): void
     {
-        $method = __CLASS__;
-
-        $this->setExpectedException(\BadMethodCallException::class,
-            "Method {$method} does not exist.");
-
-        $this->macroable->{$method}();
-    }
-
-    public function testNotFoundMethodStatic()
-    {
-        $macroable = $this->macroable;
-        $this->setExpectedException(\BadMethodCallException::class,
-            "Method " . __CLASS__ . " does not exist.");
-
-        $this->assertEquals('Taylor', $macroable::{__CLASS__}());
-    }
-
-    public function testWhenCallingMacroClosureIsBoundToObject()
-    {
-        TestMacroable::macro('tryInstance', function () {
+        MacroableStub::macro('tryInstance', function () {
+            /** @var MacroableStub $this */
             return $this->protectedVariable;
         });
-        TestMacroable::macro('tryStatic', function () {
-            return static::getProtectedStatic();
-        });
-        $instance = new TestMacroable;
-        $result   = $instance->tryInstance();
-        $this->assertEquals('instance', $result);
-        $result = TestMacroable::tryStatic();
-        $this->assertEquals('static', $result);
+        MacroableStub::macro('tryStatic', static fn() => static::getProtectedStatic());
 
-        $method = __METHOD__;
-        TestMacroable::macro($method, [$instance, 'func']);
+        $instance = new MacroableStub();
 
-        $this->assertEquals(123, TestMacroable::$method());
+        $this->assertSame('instance', $instance->tryInstance());
+        $this->assertSame('static', MacroableStub::tryStatic());
+
+        MacroableStub::macro('callableFunc', [$instance, 'func']);
+
+        $this->assertSame(123, MacroableStub::callableFunc());
     }
 }
 
-class TestMacroable
+/**
+ * @method static string staticName()
+ * @method static string tryStatic()
+ * @method static int callableFunc()
+ * @method static mixed unknownStatic()
+ * @method string instanceName()
+ * @method string invokable()
+ * @method string tryInstance()
+ * @method mixed unknown()
+ */
+class MacroableStub
 {
     use Macroable;
-    protected $protectedVariable = 'instance';
 
-    protected static function getProtectedStatic()
+    protected string $protectedVariable = 'instance';
+
+    protected static function getProtectedStatic(): string
     {
         return 'static';
     }
 
-    public function func()
+    public function func(): int
     {
         return 123;
     }
 }
 
-class StubMacroable
+class InvokableStub
 {
-    function __invoke()
+    public function __invoke(): string
     {
         return 'Taylor';
     }

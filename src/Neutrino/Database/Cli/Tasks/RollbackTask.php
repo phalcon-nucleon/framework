@@ -1,38 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Cli\Tasks;
 
-/**
- * Class RollbackTask
- *
- * @package Neutrino\Database\Cli\Tasks
- */
-class RollbackTask extends BaseTask
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
+
+final class RollbackTask extends BaseTask
 {
-    /**
-     * @description Rollback the last database migration.
-     *
-     * @option      -f, --force : Force the operation to run when in production.
-     * @option      --path : The path of migrations files to be executed.
-     * @option      --step : The number of migrations to be reverted & re-run.
-     * @option      --pretend : Dump the SQL queries that would be run.
-     */
-    public function mainAction()
+    #[Description('Rollback the last batch of migrations.')]
+    #[Option('--database={name}', 'Connection of the migrations that do not declare theirs.')]
+    #[Option('-f, --force', 'Force the operation to run in production.')]
+    #[Option('--path={path}', 'Path of the migrations, relative to the application.')]
+    #[Option('--step={n}', 'Number of migrations to roll back (the last batch otherwise).')]
+    #[Option('--pretend', 'Dump the SQL queries that would be run.')]
+    public function mainAction(): void
     {
         if (!$this->confirmToProceed()) {
             return;
         }
 
-        $this->migrator->rollback($this->getMigrationPaths(), [
-            'step'    => (int)$this->getOption('step'),
-            'pretend' => $this->getOption('pretend') ?: false
+        $this->migrator()->rollback($this->getMigrationPaths(), [
+            'step'    => self::steps($this->getOption('step')),
+            'pretend' => $this->pretending(),
         ]);
 
-        // Once the migrator has run we will grab the note output and send it out to
-        // the console screen, since the migrator itself functions without having
-        // any instances of the OutputInterface contract passed into the class.
-        foreach ($this->migrator->getNotes() as $note) {
-            $this->line($note);
-        }
+        $this->writeNotes();
+    }
+
+    public static function steps(mixed $step): int
+    {
+        return is_numeric($step) ? max(0, (int) $step) : 0;
     }
 }

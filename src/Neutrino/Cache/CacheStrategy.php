@@ -1,187 +1,125 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Neutrino\Cache;
 
+use DateInterval;
 use Neutrino\Constants\Services;
-use Neutrino\Support\DesignPatterns\Strategy;
-use Phalcon\Cache\BackendInterface;
+use Neutrino\Support\DesignPatterns\Strategy\MagicCallStrategyTrait;
+use Neutrino\Support\DesignPatterns\Strategy\StrategyInterface;
+use Neutrino\Support\DesignPatterns\Strategy\StrategyTrait;
+use Phalcon\Cache\CacheInterface;
+use Phalcon\Di\DiInterface;
+use Phalcon\Di\Injectable;
+use RuntimeException;
 
 /**
- * Class CacheService
+ * The `cache` service: delegates to the default store, or to the store chosen with `uses()`.
  *
- * Provides access to all caches saved through the Strategy Design Pattern
- * and thus easily change the storage algorithm.
- *
- *  @package Neutrino\Cache
- *
- * @method BackendInterface uses($use = null)
+ * Each store is the `cache.<store>` service, built on its first use.
  */
-class CacheStrategy extends Strategy implements BackendInterface
+final class CacheStrategy extends Injectable implements StrategyInterface, CacheInterface
 {
+    use StrategyTrait {
+        uses as private useStore;
+    }
+    use MagicCallStrategyTrait;
+
     /**
-     * CacheStrategy constructor.
+     * @param string|null  $default Default store
+     * @param list<string> $stores  Names of the stores: the `cache.<store>` services
      */
-    public function __construct()
+    public function __construct(DiInterface $container, ?string $default, array $stores)
     {
-        $cache = $this->{Services::CONFIG}->cache;
-
-        $this->default = $cache->default;
-
-        $this->supported = array_keys((array)$cache->stores);
+        $this->setDI($container);
+        $this->default = $default;
+        $this->supported = $stores;
     }
 
     /**
-     * @inheritdoc
+     * Returns the current store, after switching to `$use` when given.
      */
-    protected function make($use)
+    public function uses(?string $use = null): CacheInterface
     {
-        return $this->{Services::CACHE . '.' . $use};
+        /** @var CacheInterface */
+        return $this->useStore($use);
     }
 
     /**
-     * Starts a cache. The keyname allows to identify the created fragment
-     *
-     * @param int|string $keyName
-     * @param int        $lifetime
-     *
-     * @return mixed
+     * @param mixed $defaultValue
      */
-    public function start($keyName, $lifetime = null)
+    public function get(string $key, $defaultValue = null): mixed
     {
-        return $this->uses()->start($keyName, $lifetime);
+        return $this->store()->get($key, $defaultValue);
     }
 
     /**
-     * Stops the frontend without store any cached content
-     *
-     * @param boolean $stopBuffer
+     * @param mixed                 $value
+     * @param DateInterval|int|null $ttl
      */
-    public function stop($stopBuffer = true)
+    public function set(string $key, $value, $ttl = null): bool
     {
-        return $this->uses()->stop($stopBuffer);
+        return $this->store()->set($key, $value, $ttl);
+    }
+
+    public function has(string $key): bool
+    {
+        return $this->store()->has($key);
+    }
+
+    public function delete(string $key): bool
+    {
+        return $this->store()->delete($key);
+    }
+
+    public function clear(): bool
+    {
+        return $this->store()->clear();
     }
 
     /**
-     * Returns front-end instance adapter related to the back-end
+     * @param iterable<int|string, string> $keys
+     * @param mixed            $defaultValue
      *
-     * @return mixed
+     * @return iterable<string, mixed>
      */
-    public function getFrontend()
+    public function getMultiple($keys, $defaultValue = null): mixed
     {
-        return $this->uses()->getFrontend();
+        return $this->store()->getMultiple($keys, $defaultValue);
     }
 
     /**
-     * Returns the backend options
-     *
-     * @return array
+     * @param iterable<string, mixed> $values
+     * @param DateInterval|int|null   $ttl
      */
-    public function getOptions()
+    public function setMultiple($values, $ttl = null): bool
     {
-        return $this->uses()->getOptions();
+        return $this->store()->setMultiple($values, $ttl);
     }
 
     /**
-     * Checks whether the last cache is fresh or cached
-     *
-     * @return bool
+     * @param iterable<int|string, string> $keys
      */
-    public function isFresh()
+    public function deleteMultiple($keys): bool
     {
-        return $this->uses()->isFresh();
+        return $this->store()->deleteMultiple($keys);
     }
 
-    /**
-     * Checks whether the cache has starting buffering or not
-     *
-     * @return bool
-     */
-    public function isStarted()
+    protected function make(string $use): CacheInterface
     {
-        return $this->uses()->isStarted();
+        $store = $this->getDI()->getShared(Services::CACHE . '.' . $use);
+
+        if (!$store instanceof CacheInterface) {
+            throw new RuntimeException('The cache store "' . $use . '" must implement ' . CacheInterface::class . '.');
+        }
+
+        return $store;
     }
 
-    /**
-     * Sets the last key used in the cache
-     *
-     * @param string $lastKey
-     */
-    public function setLastKey($lastKey)
+    private function store(): CacheInterface
     {
-        return $this->uses()->setLastKey($lastKey);
-    }
-
-    /**
-     * Gets the last key stored by the cache
-     *
-     * @return string
-     */
-    public function getLastKey()
-    {
-        return $this->uses()->getLastKey();
-    }
-
-    /**
-     * Returns a cached content
-     *
-     * @param string $keyName
-     * @param int    $lifetime
-     *
-     * @return mixed|null
-     */
-    public function get($keyName, $lifetime = null)
-    {
-        return $this->uses()->get($keyName, $lifetime);
-    }
-
-    /**
-     * Stores cached content into the file backend and stops the frontend
-     *
-     * @param int|string $keyName
-     * @param string     $content
-     * @param int        $lifetime
-     * @param boolean    $stopBuffer
-     *
-     * @return bool
-     */
-    public function save($keyName = null, $content = null, $lifetime = null, $stopBuffer = true)
-    {
-        return $this->uses()->save($keyName, $content, $lifetime, $stopBuffer);
-    }
-
-    /**
-     * Deletes a value from the cache by its key
-     *
-     * @param int|string $keyName
-     *
-     * @return boolean
-     */
-    public function delete($keyName)
-    {
-        return $this->uses()->delete($keyName);
-    }
-
-    /**
-     * Query the existing cached keys
-     *
-     * @param string $prefix
-     *
-     * @return array
-     */
-    public function queryKeys($prefix = null)
-    {
-        return $this->uses()->queryKeys($prefix);
-    }
-
-    /**
-     * Checks if cache exists and it hasn't expired
-     *
-     * @param string $keyName
-     * @param int    $lifetime
-     *
-     * @return boolean
-     */
-    public function exists($keyName = null, $lifetime = null)
-    {
-        return $this->uses()->exists($keyName, $lifetime);
+        /** @var CacheInterface */
+        return $this->adapter ?? $this->useStore();
     }
 }

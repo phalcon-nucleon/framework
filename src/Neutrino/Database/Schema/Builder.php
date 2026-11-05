@@ -1,355 +1,278 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Schema;
 
 use Closure;
-use Neutrino\Support\Func;
-use Phalcon\Di\Injectable;
+use Neutrino\Support\Db;
+use Phalcon\Db\Adapter\AdapterInterface;
+use Phalcon\Db\ColumnInterface;
+use RuntimeException;
 
-class Builder extends Injectable
+/**
+ * Schema of a connection: tables are created, modified and dropped with a {@see Blueprint}.
+ *
+ * ```php
+ * $schema->create('users', function (Blueprint $table) {
+ *     $table->increments('id');
+ *     $table->string('email')->unique();
+ *     $table->timestamps();
+ * });
+ * ```
+ */
+final class Builder
 {
     /**
-     * The database configuration.
+     * Grammars by Phalcon dialect type (`AdapterInterface::getDialectType()`).
      *
-     * @var array
+     * @var array<string, class-string<Grammar>>
      */
-    protected $dbConfig;
-
-    /**
-     * The schema grammar instance.
-     *
-     * @var \Neutrino\Database\Schema\DialectInterface
-     */
-    protected $grammar;
-
-    /**
-     * The Blueprint resolver callback.
-     *
-     * @var \Closure
-     */
-    protected $resolver;
+    public const array GRAMMARS = [
+        'mysql'      => Grammar\Mysql::class,
+        'postgresql' => Grammar\Postgresql::class,
+        'sqlite'     => Grammar\Sqlite::class,
+    ];
 
     /**
      * The default string length for migrations.
-     *
-     * @var int
      */
-    public static $defaultStringLength = 255;
+    public static int $defaultStringLength = 255;
+
+    private readonly AdapterInterface $connection;
+
+    private readonly Grammar $grammar;
+
+    /** @var (Closure(string): Blueprint)|null */
+    private ?Closure $resolver = null;
 
     /**
-     * Create a new database Schema manager.
+     * @param AdapterInterface|null $connection The default connection (`db`) by default
+     * @param Grammar|null          $grammar    The grammar of the connection's dialect by default
      */
-    public function __construct()
+    public function __construct(?AdapterInterface $connection = null, ?Grammar $grammar = null)
     {
-        $this->dbConfig = $this->db->getDescriptor();
+        $this->connection = $connection ?? Db::connection();
+        $this->grammar = $grammar ?? self::grammarOf($this->connection);
+    }
 
-        $this->grammar = Dialect\Factory::create($this->db->getDialect());
+    /**
+     * The grammar of a connection, by the type of its dialect.
+     */
+    public static function grammarOf(AdapterInterface $connection): Grammar
+    {
+        $class = self::GRAMMARS[$connection->getDialectType()] ?? throw new RuntimeException(
+            'No schema grammar for the "' . $connection->getDialectType() . '" dialect: pass a ' . Grammar::class . ' to the ' . self::class . '.',
+        );
+
+        return new $class();
     }
 
     /**
      * Set the default string length for migrations.
-     *
-     * @param  int $length
-     *
-     * @return void
      */
-    public static function defaultStringLength($length)
+    public static function defaultStringLength(int $length): void
     {
-        static::$defaultStringLength = $length;
+        self::$defaultStringLength = $length;
+    }
+
+    public function connection(): AdapterInterface
+    {
+        return $this->connection;
+    }
+
+    public function grammar(): Grammar
+    {
+        return $this->grammar;
     }
 
     /**
      * Determine if the given table exists.
-     *
-     * @param string $table
-     *
-     * @return bool
      */
-    public function hasTable($table)
+    public function hasTable(string $table): bool
     {
-        return $this->db->tableExists($table, $this->dbConfig['dbname']);
+        return $this->connection->tableExists($table);
     }
 
     /**
      * Determine if the given table has a given column.
-     *
-     * @param string $table
-     * @param string $column
-     *
-     * @return bool
      */
-    public function hasColumn($table, $column)
+    public function hasColumn(string $table, string $column): bool
     {
-        $tableColumns = array_map('strtolower', $this->listColumnsName($table));
-
-        return in_array(strtolower($column), $tableColumns);
+        return $this->hasColumns($table, [$column]);
     }
 
     /**
      * Determine if the given table has given columns.
      *
-     * @param  string $table
-     * @param  array  $columns
-     *
-     * @return bool
+     * @param list<string> $columns
      */
-    public function hasColumns($table, array $columns)
+    public function hasColumns(string $table, array $columns): bool
     {
-        $tableColumns = array_map('strtolower', $this->listColumnsName($table));
+        $existing = array_map(static fn(ColumnInterface $column): string => strtolower($column->getName()), $this->getColumnListing($table));
 
-        foreach ($columns as $column) {
-            if (!in_array(strtolower($column), $tableColumns)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_diff(array_map(strtolower(...), $columns), $existing) === [];
     }
 
     /**
-     * Get the data type for the given column name.
-     *
-     * @param string $table
-     * @param string $column
-     *
-     * @return string
+     * The Phalcon type (`Db\Column::TYPE_*`) of a column, `null` when the column does not exist.
      */
-    public function getColumnType($table, $column)
+    public function getColumnType(string $table, string $column): int|string|null
     {
-        $col = $this->describeColumn($table, $column);
-
-        if (!is_null($col)) {
-            return $col->getType();
+        foreach ($this->getColumnListing($table) as $definition) {
+            if ($definition->getName() === $column) {
+                return $definition->getType();
+            }
         }
 
         return null;
     }
 
     /**
-     * Get the column listing for a given table.
+     * The columns of a table.
      *
-     * @param  string $table
-     *
-     * @return \Phalcon\Db\Column[]|\Phalcon\Db\ColumnInterface[]
+     * @return list<ColumnInterface>
      */
-    public function getColumnListing($table)
+    public function getColumnListing(string $table): array
     {
-        return $this->db->describeColumns($table, $this->dbConfig['dbname']);
+        return array_values($this->connection->describeColumns($table));
     }
 
     /**
      * Modify a table on the schema.
      *
-     * @param  string   $table
-     * @param  \Closure $callback
-     *
-     * @return void
+     * @param Closure(Blueprint): mixed $callback
      */
-    public function table($table, Closure $callback)
+    public function table(string $table, Closure $callback): void
     {
-        $this->build(Func::tap($this->createBlueprint($table), function (Blueprint $blueprint) use ($callback) {
-            $blueprint->update();
+        $blueprint = $this->createBlueprint($table)->update();
+        $callback($blueprint);
 
-            $callback($blueprint);
-        }));
+        $this->build($blueprint);
     }
 
     /**
      * Create a new table on the schema.
      *
-     * @param  string   $table
-     * @param  \Closure $callback
-     *
-     * @return void
+     * @param Closure(Blueprint): mixed $callback
      */
-    public function create($table, Closure $callback)
+    public function create(string $table, Closure $callback): void
     {
-        $this->build(Func::tap($this->createBlueprint($table), function (Blueprint $blueprint) use ($callback) {
-            $blueprint->create();
+        $blueprint = $this->createBlueprint($table)->create();
+        $callback($blueprint);
 
-            $callback($blueprint);
-        }));
+        $this->build($blueprint);
     }
 
     /**
      * Drop a table from the schema.
-     *
-     * @param  string $table
-     *
-     * @return void
      */
-    public function drop($table)
+    public function drop(string $table): void
     {
-        $this->build(Func::tap($this->createBlueprint($table), function (Blueprint $blueprint) {
-            $blueprint->drop();
-        }));
+        $this->build($this->createBlueprint($table)->drop());
     }
 
     /**
      * Drop a table from the schema if it exists.
-     *
-     * @param  string $table
-     *
-     * @return void
      */
-    public function dropIfExists($table)
+    public function dropIfExists(string $table): void
     {
-        $this->build(Func::tap($this->createBlueprint($table), function (Blueprint $blueprint) {
-            $blueprint->dropIfExists();
-        }));
+        $this->build($this->createBlueprint($table)->dropIfExists());
     }
 
     /**
      * Drop all tables from the database.
-     *
-     * @return void
-     *
-     * @throws \LogicException
      */
-    public function dropAllTables()
+    public function dropAllTables(): void
     {
-        @$this->disableForeignKeyConstraints();
+        $tables = array_values(array_filter($this->connection->listTables(), fn(string $table): bool => !$this->grammar->isSystemTable($table)));
 
-        foreach ($this->db->listTables() as $table) {
-            $this->drop($table);
-        };
+        if ($tables === []) {
+            return;
+        }
 
-        @$this->enableForeignKeyConstraints();
+        $this->withoutForeignKeyConstraints(function () use ($tables): void {
+            foreach ($this->grammar->dropTables($tables) as $sql) {
+                $this->connection->execute($sql);
+            }
+        });
     }
 
     /**
      * Rename a table on the schema.
-     *
-     * @param  string $from
-     * @param  string $to
-     *
-     * @return void
      */
-    public function rename($from, $to)
+    public function rename(string $from, string $to): void
     {
-        $this->build(Func::tap($this->createBlueprint($from), function (Blueprint $blueprint) use ($to) {
-            $blueprint->update();
+        $blueprint = $this->createBlueprint($from)->update();
+        $blueprint->rename($to);
 
-            $blueprint->rename($to);
-        }));
+        $this->build($blueprint);
     }
 
     /**
-     * Execute a raw SQL Command
-     *
-     * @param string $sql
-     *
-     * @return void
+     * Execute a raw SQL statement.
      */
-    public function execute($sql)
+    public function execute(string $sql): void
     {
-        $this->build(Func::tap($this->createBlueprint(null), function (Blueprint $blueprint) use ($sql) {
-            $blueprint->raw();
-
-            $blueprint->sql($sql);
-        }));
+        $this->connection->execute($sql);
     }
 
     /**
      * Enable foreign key constraints.
-     *
-     * @return bool
      */
-    public function enableForeignKeyConstraints()
+    public function enableForeignKeyConstraints(): bool
     {
-        return $this->db->execute(
-            $this->grammar->enableForeignKeyConstraints()
-        );
+        return $this->connection->execute($this->grammar->enableForeignKeyConstraints($this->connection->isUnderTransaction()));
     }
 
     /**
-     * Disable foreign key constraints.
-     *
-     * @return bool
+     * Disable foreign key constraints. On SQLite, in a transaction (a migration), defers them to the commit.
      */
-    public function disableForeignKeyConstraints()
+    public function disableForeignKeyConstraints(): bool
     {
-        return $this->db->execute(
-            $this->grammar->disableForeignKeyConstraints()
-        );
+        return $this->connection->execute($this->grammar->disableForeignKeyConstraints($this->connection->isUnderTransaction()));
+    }
+
+    /**
+     * Runs a callback with the foreign key constraints disabled.
+     *
+     * @template T
+     *
+     * @param Closure(): T $callback
+     *
+     * @return T
+     */
+    public function withoutForeignKeyConstraints(Closure $callback): mixed
+    {
+        $this->disableForeignKeyConstraints();
+
+        try {
+            return $callback();
+        } finally {
+            $this->enableForeignKeyConstraints();
+        }
+    }
+
+    /**
+     * Set the Blueprint resolver callback.
+     *
+     * @param Closure(string): Blueprint $resolver
+     */
+    public function blueprintResolver(Closure $resolver): void
+    {
+        $this->resolver = $resolver;
     }
 
     /**
      * Execute the blueprint to build / modify the table.
-     *
-     * @param  \Neutrino\Database\Schema\Blueprint $blueprint
-     *
-     * @return void
      */
-    protected function build(Blueprint $blueprint)
+    private function build(Blueprint $blueprint): void
     {
-        $blueprint->build($this->db, $this->grammar);
+        $blueprint->build($this->connection, $this->grammar);
     }
 
-    /**
-     * Create a new command set with a Closure.
-     *
-     * @param  string        $table
-     * @param  \Closure|null $callback
-     *
-     * @return \Neutrino\Database\Schema\Blueprint
-     */
-    protected function createBlueprint($table, Closure $callback = null)
+    private function createBlueprint(string $table): Blueprint
     {
-        if (isset($this->resolver)) {
-            return call_user_func($this->resolver, $table, $callback);
-        }
-
-        return new Blueprint($table, $callback);
-    }
-
-    /**
-     * @param string $table
-     * @param string $column
-     *
-     * @return null|\Phalcon\Db\ColumnInterface
-     */
-    protected function describeColumn($table, $column)
-    {
-        foreach ($this->db->describeColumns($table, $this->dbConfig['dbname']) as $col) {
-            if ($col->getName() == $column) {
-                return $col;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param string                             $table
-     * @param \Phalcon\Db\ColumnInterface[]|null $tableColumns
-     *
-     * @return array
-     */
-    protected function listColumnsName($table, array $tableColumns = null)
-    {
-        if (is_null($tableColumns)) {
-            $tableColumns = $this->getColumnListing($table);
-        }
-
-        $columnsName = [];
-
-        foreach ($tableColumns as $tableColumn) {
-            $columnsName[] = $tableColumn->getName();
-        }
-
-        return $columnsName;
-    }
-
-    /**
-     * Set the Schema Blueprint resolver callback.
-     *
-     * @param  \Closure $resolver
-     *
-     * @return void
-     */
-    public function blueprintResolver(Closure $resolver)
-    {
-        $this->resolver = $resolver;
+        return $this->resolver === null ? new Blueprint($table) : ($this->resolver)($table);
     }
 }

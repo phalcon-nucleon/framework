@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Http\Middleware;
 
 use Neutrino\Constants\Services;
-use Neutrino\Middleware\Throttle as ThrottleMiddleware;
+use Neutrino\Middleware\Throttle;
 
 /**
- * Class Throttle
- *
- *  @package Neutrino\Http\Middleware
+ * Limits the requests: `'middleware' => [ThrottleRequest::class => [$max, $decaySeconds]]`.
  */
-class ThrottleRequest extends ThrottleMiddleware
+class ThrottleRequest extends Throttle
 {
-    protected $name = Services::REQUEST;
+    protected string $name = Services::REQUEST;
 }

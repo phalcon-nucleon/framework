@@ -1,45 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt\Compiler\Functions;
 
 use Neutrino\View\Engines\Volt\Compiler\FunctionExtend;
 
 /**
- * Class RouteFunction
- *
- * @package     Neutrino\View\Engines\Volt\Compiler
+ * `{{ route('name') }}`, `{{ route('name', {'id': 1}) }}`, `{{ route('name', {'id': 1}, {'page': 2}) }}`: URL of a
+ * named route (`url->get()`), with its parameters and a query string.
  */
 class RouteFunction extends FunctionExtend
 {
+    private const int VOLT_ARRAY = 360;
 
-    /**
-     * @param string $resolvedArgs
-     * @param array  $exprArgs
-     *
-     * @return string|null
-     */
-    public function compileFunction($resolvedArgs, $exprArgs)
+    public function compileFunction(string $resolvedArgs, ?array $exprArgs): string
     {
-        if (isset($exprArgs[1]['expr']['left'])) {
-            $route = $this->compiler->expression([
-                'type' => 360, // type array
-                'left' => array_merge([
-                    [
-                        'name' => 'for',
-                        'expr' => $exprArgs[0]['expr']
-                    ]
-                ], $exprArgs[1]['expr']['left'])
-            ]);
-        } else {
-            $route = "['for' => " . $this->compiler->expression($exprArgs[0]['expr']) . "]";
-        }
+        $parameters = self::argument($exprArgs, 1)['left'] ?? null;
 
-        $url = "\$this->url->get($route";
-        if (isset($exprArgs[2])) {
-            $url .= ', ' . $this->compiler->expression($exprArgs[2]['expr']);
-        }
-        $url .= ')';
+        $route = $this->compiler->expression([
+            'type' => self::VOLT_ARRAY,
+            'left' => [['name' => 'for', 'expr' => self::argument($exprArgs, 0) ?? []], ...(is_array($parameters) ? $parameters : [])],
+        ]);
 
-        return $url;
+        $query = $this->compileArgument($exprArgs, 2);
+        $query = $query === null ? '' : ', ' . $query;
+
+        return '$this->url->get(' . $route . $query . ')';
     }
 }

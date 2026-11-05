@@ -1,129 +1,113 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Error\Writer;
 
 use Neutrino\Constants\Services;
 use Neutrino\Error\Error;
 use Neutrino\Error\Helper;
 use Neutrino\Error\Writer\Logger;
-use Phalcon\Logger\Adapter\File;
+use Phalcon\Logger\Adapter\Stream;
+use Phalcon\Logger\Enum;
+use Phalcon\Logger\Formatter\Json;
+use Phalcon\Logger\Formatter\Line;
+use Phalcon\Logger\Logger as PhalconLogger;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Test\TestCase\TestCase;
 
-class LoggerTest extends TestCase
+final class LoggerTest extends TestCase
 {
-    public function dataHandle()
+    private string $file = '';
+
+    protected function tearDown(): void
     {
-        $error = Error::fromException(new \Exception());
-        $data[] = [Helper::format($error), \Phalcon\Logger::ERROR, $error];
+        self::getConfig()->remove('error');
 
-        $error = Error::fromError(E_ERROR, 'E_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), \Phalcon\Logger::EMERGENCE, $error];
+        parent::tearDown();
+    }
 
-        $error = Error::fromError(E_WARNING, 'E_WARNING', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), \Phalcon\Logger::WARNING, $error];
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-        $error = Error::fromError(E_NOTICE, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), \Phalcon\Logger::NOTICE, $error];
-
-        $error = Error::fromError(E_STRICT, 'E_STRICT', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), \Phalcon\Logger::INFO, $error];
-
-        $error = Error::fromError(E_PARSE, 'E_PARSE', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), \Phalcon\Logger::CRITICAL, $error];
-
-        $error = Error::fromError(E_USER_ERROR, 'E_USER_ERROR', __FILE__, __LINE__);
-        $data[] = [Helper::format($error), \Phalcon\Logger::ERROR, $error];
-
-        return $data;
+        $this->file = self::$cache_dir . 'error.log';
     }
 
     /**
-     * @dataProvider dataHandle
-     *
-     * @param $expectedMessage
-     * @param $expectedMethod
-     * @param $error
+     * @return iterable<array{int, string}>
      */
-    public function testHandleWhitoutConfig($expectedMessage, $expectedMethod, $error)
+    public static function levels(): iterable
     {
-        $mock = $this->mockService(Services::LOGGER, File::class, true);
-
-        $mock->expects($this->once())
-            ->method('log')
-            ->with($expectedMethod, $expectedMessage);
-
-        $mock->expects($this->never())
-            ->method('setFormatter');
-
-        $writer = new Logger();
-
-        $writer->handle($error);
+        yield [E_ERROR, 'emergency'];
+        yield [E_PARSE, 'critical'];
+        yield [E_USER_ERROR, 'error'];
+        yield [E_WARNING, 'warning'];
+        yield [E_NOTICE, 'notice'];
+        yield [E_DEPRECATED, 'info'];
     }
 
-    public function dataHandleMultiConfig()
+    #[DataProvider('levels')]
+    public function testLevel(int $type, string $level): void
     {
-        $configs = [
-            ['error' => [
-                'formatter' => new \Phalcon\Logger\Formatter\Line('[%date%][%type%] %message%', 'Y-m-d H:i:s O'),
-            ]],
-            ['error' => [
-                'formatter' => [
-                    'formatter'  => \Phalcon\Logger\Formatter\Line::class,
-                    'format'     => '[%date%][%type%] %message%',
-                    'dateFormat' => 'Y-m-d H:i:s O'
-                ],
-            ]],
-            ['error' => [
-                'formatter' => [
-                    'formatter'  => \Phalcon\Logger\Formatter\Line::class,
-                    'format'     => '[%date%][%type%] %message%',
-                    'date_format' => 'Y-m-d H:i:s O'
-                ],
-            ]],
-            ['error' => [
-                'formatter' => [
-                    'formatter'  => \Phalcon\Logger\Formatter\Line::class,
-                    'format'     => '[%date%][%type%] %message%',
-                    'date' => 'Y-m-d H:i:s O'
-                ],
-            ]]
-        ];
+        $this->logger(new Line('%level% %message%'));
+        $error = Error::fromError($type, 'msg', '/app/file.php', 3);
 
-        $datas = $this->dataHandle();
+        (new Logger())->handle($error);
 
-        $handles = [];
-        foreach ($configs as $config) {
-            foreach ($datas as $data) {
-                $data[] = $config;
-                $handles[] = $data;
-            }
-        }
-
-        return $handles;
+        // Phalcon writes the line breaks of a message as "\x0A": an error is on one line.
+        $this->assertSame($level . ' ' . self::escaped(Helper::format($error)) . PHP_EOL, file_get_contents($this->file));
     }
 
-    /**
-     * @dataProvider dataHandleMultiConfig
-     *
-     * @param $expectedMessage
-     * @param $expectedMethod
-     * @param $error
-     */
-    public function testHandleWhitConfig($expectedMessage, $expectedMethod, $error, $config)
+    public function testFormatterOfTheConfig(): void
     {
-        $logger = $this->mockService(Services::LOGGER, File::class, true);
+        $logger = $this->logger(new Line('%level% %message%'));
+        $this->getDI()->getShared(Services::CONFIG)->merge(new \Neutrino\Config\Config(['error' => ['formatter' => ['formatter' => 'line', 'format' => '[error] %message%']]]));
 
-        $this->mockService(Services::CONFIG, new \Phalcon\Config($config), true);
+        (new Logger())->handle(Error::fromError(E_WARNING, 'first'));
+        $logger->info('after');
 
-        $logger->expects($this->once())
-            ->method('log')
-            ->with($expectedMethod, $expectedMessage);
+        // The formatter is used for the error only.
+        $this->assertSame(
+            '[error] ' . self::escaped(Helper::format(Error::fromError(E_WARNING, 'first'))) . PHP_EOL . 'info after' . PHP_EOL,
+            file_get_contents($this->file),
+        );
+        $this->assertInstanceOf(Line::class, $logger->getAdapter('main')->getFormatter());
+    }
 
-        $logger->expects($this->once())
-            ->method('setFormatter');
+    public function testFormatterInstance(): void
+    {
+        $this->logger(new Line('%message%'));
+        $this->getDI()->getShared(Services::CONFIG)->merge(new \Neutrino\Config\Config(['error' => ['formatter' => new Json()]]));
 
-        $writer = new Logger();
+        (new Logger())->handle(Error::fromError(E_WARNING, 'msg'));
 
-        $writer->handle($error);
+        $this->assertSame('warning', json_decode((string) file_get_contents($this->file), true)['level'] ?? null);
+    }
+
+    public function testWithoutLogger(): void
+    {
+        $this->getDI()->remove(Services::LOGGER);
+
+        $this->expectOutputString('');
+
+        (new Logger())->handle(Error::fromError(E_WARNING, 'msg'));
+    }
+
+    private static function escaped(string $message): string
+    {
+        return str_replace("\n", '\x0A', $message);
+    }
+
+    private function logger(Line $formatter): PhalconLogger
+    {
+        $adapter = new Stream($this->file);
+        $adapter->setFormatter($formatter);
+
+        $logger = new PhalconLogger('test', ['main' => $adapter]);
+        $logger->setLogLevel(Enum::CUSTOM);
+        $this->mockService(Services::LOGGER, $logger);
+
+        return $logger;
     }
 }

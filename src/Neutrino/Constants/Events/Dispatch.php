@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Constants\Events;
 
 /**
@@ -11,13 +13,17 @@ namespace Neutrino\Constants\Events;
  */
 final class Dispatch
 {
-    const BEFORE_DISPATCH_LOOP    = 'dispatch:beforeDispatchLoop';
-    const BEFORE_DISPATCH         = 'dispatch:beforeDispatch';
-    const BEFORE_NOT_FOUND_ACTION = 'dispatch:beforeNotFoundAction';
-    const BEFORE_EXECUTE_ROUTE    = 'dispatch:beforeExecuteRoute';
-    const AFTER_INITIALIZE        = 'dispatch:afterInitialize';
-    const AFTER_EXECUTE_ROUTE     = 'dispatch:afterExecuteRoute';
-    const AFTER_DISPATCH          = 'dispatch:afterDispatch';
-    const AFTER_DISPATCH_LOOP     = 'dispatch:afterDispatchLoop';
-    const BEFORE_EXCEPTION        = 'dispatch:beforeException';
+    public const string BEFORE_DISPATCH_LOOP    = 'dispatch:beforeDispatchLoop';
+    public const string BEFORE_DISPATCH         = 'dispatch:beforeDispatch';
+    public const string BEFORE_NOT_FOUND_ACTION = 'dispatch:beforeNotFoundAction';
+    public const string BEFORE_EXECUTE_ROUTE    = 'dispatch:beforeExecuteRoute';
+    public const string AFTER_INITIALIZE        = 'dispatch:afterInitialize';
+    public const string AFTER_EXECUTE_ROUTE     = 'dispatch:afterExecuteRoute';
+    public const string AFTER_DISPATCH          = 'dispatch:afterDispatch';
+    public const string AFTER_DISPATCH_LOOP     = 'dispatch:afterDispatchLoop';
+    public const string BEFORE_EXCEPTION        = 'dispatch:beforeException';
+    public const string BEFORE_FORWARD          = 'dispatch:beforeForward';
+    public const string AFTER_BINDING           = 'dispatch:afterBinding';
+    public const string BEFORE_CALL_ACTION      = 'dispatch:beforeCallAction';
+    public const string AFTER_CALL_ACTION       = 'dispatch:afterCallAction';
 }

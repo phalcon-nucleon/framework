@@ -1,22 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Error\Writer;
 
 use Neutrino\Error\Error;
 
 /**
- * Interface Writable
- *
- * @package Neutrino\Error\Writer
+ * An output of the error handler, listed in the kernel's `$errorHandlerLvl`.
  */
 interface Writable
 {
     /**
-     * Format and write an error.
-     *
-     * @param \Neutrino\Error\Error $error
-     *
-     * @return void
+     * Formats and writes an error.
      */
-    public function handle(Error $error);
+    public function handle(Error $error): void;
 }

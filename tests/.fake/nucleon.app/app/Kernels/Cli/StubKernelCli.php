@@ -19,7 +19,7 @@ class StubKernelCli extends CliApplication
      *
      * @var string[]
      */
-    protected $providers = [
+    protected array $providers = [
         Output::class,
         Dispatcher::class,
         Router::class
@@ -30,7 +30,7 @@ class StubKernelCli extends CliApplication
      *
      * @return void
      */
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
         // TODO: Implement registerRoutes() method.
     }

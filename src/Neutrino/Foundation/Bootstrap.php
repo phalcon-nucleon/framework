@@ -1,54 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation;
 
 use Neutrino\Constants\Env;
 use Neutrino\Debug\Debugger;
+use Neutrino\Error\Handler;
 use Neutrino\Interfaces\Kernelable;
-use Phalcon\Config;
-use Phalcon\Http\Response;
+use Phalcon\Config\Config;
+use Phalcon\Http\ResponseInterface;
 
 /**
- * Class Application
+ * Builds a kernel and runs it.
  *
- * Phalcon Application Bootstrap
- *
- * @package Neutrino\Foundation
+ * Outside the tests (`APP_ENV`), it registers the error handler ({@see Handler}, unless `error.register` is
+ * `false`) and, when `APP_DEBUG` is true, the debug mode of the HTTP and Micro kernels ({@see Debugger}).
  */
-class Bootstrap
+final class Bootstrap
 {
-    /**
-     * @var \Phalcon\Config
-     */
-    private $config;
+    public function __construct(private readonly Config $config) {}
 
     /**
-     * Application constructor.
+     * @template T of Kernelable
      *
-     * @param \Phalcon\Config $config
-     */
-    public function __construct(Config $config)
-    {
-        $this->config = $config;
-    }
-
-    /**
-     * @param $kernelClass
+     * @param class-string<T> $kernelClass
      *
-     * @return \Phalcon\Application
+     * @return T
      */
-    public function make($kernelClass)
+    public function make(string $kernelClass): Kernelable
     {
-        /** @var \Phalcon\Application|\Neutrino\Interfaces\Kernelable $kernel */
-        $kernel = new $kernelClass;
+        $kernel = new $kernelClass();
 
         $kernel->bootstrap($this->config);
 
-        if (APP_DEBUG && APP_ENV !== Env::TEST && php_sapi_name() !== 'cli') {
-            Debugger::register();
+        // Not in the tests: the handlers would replace PHPUnit's. 'test' is Env::TEST, without loading the class.
+        if (APP_ENV !== 'test' && $this->config->path('error.register', true) !== false) {
+            Handler::register();
         }
 
         $kernel->registerServices();
+
+        if (APP_DEBUG && APP_ENV !== Env::TEST && PHP_SAPI !== 'cli') {
+            Debugger::register($kernel);
+        }
+
         $kernel->registerMiddlewares();
         $kernel->registerListeners();
         $kernel->registerRoutes();
@@ -57,18 +53,15 @@ class Bootstrap
         return $kernel;
     }
 
-    /**
-     * @param \Neutrino\Interfaces\Kernelable|\Phalcon\Application $kernel
-     */
-    public function run(Kernelable $kernel)
+    public function run(Kernelable $kernel): void
     {
         $kernel->boot();
 
-        if (($response = $kernel->handle()) instanceof Response) {
-            if (!$response->isSent()) {
-                $response->send();
-            }
-        };
+        $response = $kernel->handleIncoming();
+
+        if ($response instanceof ResponseInterface && !$response->isSent()) {
+            $response->send();
+        }
 
         $kernel->terminate();
     }

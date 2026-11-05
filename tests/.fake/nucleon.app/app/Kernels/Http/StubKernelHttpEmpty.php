@@ -3,7 +3,7 @@
 namespace Fake\Kernels\Http;
 
 use Neutrino\Foundation\Http\Kernel as HttpApplication;
-use Phalcon\Di;
+use Phalcon\Di\Di;
 
 /**
  * Class StubKernelEmpty
@@ -13,21 +13,21 @@ use Phalcon\Di;
 class StubKernelHttpEmpty extends HttpApplication
 {
 
-    protected $dependencyInjection = Di::class;
+    protected ?string $dependencyInjection = Di::class;
 
     /**
      * Return the Provider List to load.
      *
      * @var string[]
      */
-    protected $providers = [];
+    protected array $providers = [];
 
     /**
      * Register the routes.
      *
      * @return void
      */
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
     }
 }

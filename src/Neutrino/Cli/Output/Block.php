@@ -1,71 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli\Output;
 
-use Neutrino\Support\Arr;
-
 /**
- * Class Block
- *
- * @package     Neutrino\Cli\Output
+ * Block of padded lines, all drawn with one Writer style (info, notice, warn, error, question).
  */
 class Block
 {
-    protected $output;
-
-    protected $style;
-
-    protected $options;
+    private const int MAX_WIDTH = 100;
 
     /**
-     * Block constructor.
-     *
-     * @param \Neutrino\Cli\Output\Writer $output
-     * @param string                      $style Output function used to display block (notice, info, warn, ...)
-     * @param array                       $options
+     * @param 'line'|'info'|'notice'|'warn'|'error'|'question' $style
+     * @param array{padding?: int}                             $options
      */
-    public function __construct(Writer $output, $style, $options = [])
-    {
-        $this->output  = $output;
-        $this->style   = $style;
-        $this->options = $options;
-    }
+    public function __construct(
+        protected Writer $output,
+        protected string $style,
+        protected array $options = [],
+    ) {}
 
-    public function draw($lines = [])
+    /**
+     * @param iterable<string> $lines Lines may contain "\n"; lines longer than 100 characters are split.
+     */
+    public function draw(iterable $lines = []): void
     {
-        $maxlen = 0;
         $rows = [];
-
-        $_lines = [];
         foreach ($lines as $line) {
-            $_lines = array_merge($_lines, explode("\n", $line));
-        }
-
-        $lines = $_lines;
-
-        foreach ($lines as $line) {
-            $len = strlen($line);
-
-            if ($len > 100) {
-                $parts = str_split($line, 100);
-                $rows = array_merge($rows, $parts);
-                $maxlen = max($maxlen, 100);
-            } else {
-                $maxlen = max($maxlen, $len);
-                $rows[] = $line;
+            foreach (explode("\n", $line) as $part) {
+                array_push($rows, ...($part === '' ? [''] : str_split($part, self::MAX_WIDTH)));
             }
         }
 
-        $padding = Arr::get($this->options, 'padding', 4);
+        $width = $rows === [] ? 0 : max(array_map('strlen', $rows));
+        $padding = $this->options['padding'] ?? 4;
+        $pad = str_repeat(' ', intdiv($padding, 2));
 
-        $this->output->{$this->style}(str_repeat(' ', $maxlen + $padding));
+        $this->output->{$this->style}(str_repeat(' ', $width + $padding));
 
-        $pad = str_repeat(' ', $padding / 2);
-
-        foreach ($rows as $line) {
-            $this->output->{$this->style}($pad . str_pad($line, $maxlen, ' ', STR_PAD_RIGHT) . $pad);
+        foreach ($rows as $row) {
+            $this->output->{$this->style}($pad . str_pad($row, $width) . $pad);
         }
 
-        $this->output->{$this->style}(str_repeat(' ', $maxlen + 4));
+        $this->output->{$this->style}(str_repeat(' ', $width + $padding));
     }
 }

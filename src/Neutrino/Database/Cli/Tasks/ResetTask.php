@@ -1,47 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Cli\Tasks;
 
-/**
- * Class ResetTask
- *
- * @package Neutrino\Database\Cli\Tasks
- */
-class ResetTask extends BaseTask
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
+
+final class ResetTask extends BaseTask
 {
-    /**
-     * @description Rollback all database migrations.
-     *
-     * @option      -f, --force : Force the operation to run when in production.
-     * @option      --path : The path of migrations files to be executed.
-     * @option      --step : The number of migrations to be reverted & re-run.
-     * @option      --pretend : Dump the SQL queries that would be run.
-     */
-    public function mainAction()
+    #[Description('Rollback all database migrations.')]
+    #[Option('--database={name}', 'Connection of the migrations that do not declare theirs.')]
+    #[Option('-f, --force', 'Force the operation to run in production.')]
+    #[Option('--path={path}', 'Path of the migrations, relative to the application.')]
+    #[Option('--pretend', 'Dump the SQL queries that would be run.')]
+    public function mainAction(): void
     {
         if (!$this->confirmToProceed()) {
             return;
         }
 
-        // First, we'll make sure that the migration table actually exists before we
-        // start trying to rollback and re-run all of the migrations. If it's not
-        // present we'll just bail out with an info message for the developers.
-        if (!$this->migrator->storageExist()) {
+        if (!$this->storage()->storageExist()) {
             $this->notice('Migration table not found.');
 
             return;
         }
 
-        $this->migrator->reset($this->getMigrationPaths(), [
-            'pretend' => $this->getOption('pretend') ?: false
-        ]);
+        $this->migrator()->reset($this->getMigrationPaths(), ['pretend' => $this->pretending()]);
 
-        // Once the migrator has run we will grab the note output and send it out to
-        // the console screen, since the migrator itself functions without having
-        // any instances of the OutputInterface contract passed into the class.
-        foreach ($this->migrator->getNotes() as $note) {
-            $this->line($note);
-        }
+        $this->writeNotes();
     }
-
 }

@@ -1,89 +1,67 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Assert;
 
-use Neutrino\Http\Standards\Method;
 use Neutrino\Test\Helpers\RoutesTrait;
+use PHPUnit\Framework\ExpectationFailedException;
 use Test\TestCase\TestCase;
 
-/**
- * Trait RoutesTestCaseTest
- *
- * @package Test\Assert
- */
-class RoutesTraitTest extends TestCase
+final class RoutesTraitTest extends TestCase
 {
     use RoutesTrait;
 
-    public function testAssertRoute_Ok()
+    public function testAssertRouteOk(): void
     {
-        $this->assertRoute('', Method::GET, true, 'Stub', 'index');
+        $this->assertRoute('', 'GET', true, 'Stub', 'index');
+        $this->assertRoute('', 'GET', true);
+        $this->assertRoute('/fail', 'GET', false);
     }
 
-    public function testAssertRoute_Ok_WithParams()
+    public function testAssertRouteWithParams(): void
     {
-        $this->assertRoute('/parameted/param_1', Method::GET, true, 'Stub', 'index', ['tags' => 'param_1']);
+        $this->assertRoute('/parameted/param_1', 'GET', true, 'Stub', 'index', ['tags' => 'param_1']);
+        $this->assertRoute('/parameted/param_1/123', 'GET', true, 'Stub', 'index', ['tags' => 'param_1', 'page' => '123']);
     }
 
-    public function testAssertRoute_Ok_WithParams_2()
+    public function testMatchedRoutesAreRecorded(): void
     {
-        $this->assertRoute(
-            '/parameted/param_1/123',
-            Method::GET,
-            true,
-            'Stub',
-            'index',
-            ['tags' => 'param_1', 'page' => '123']
-        );
-    }
+        $this->assertRoute('/redirect', 'GET', true);
 
-    public function testAssertRoute_Ok_Whitout_GivenController()
-    {
-        $this->assertRoute('', Method::GET, true);
-    }
-
-    public function testAssertRoute_Ok_Fail()
-    {
-        $this->assertRoute('/fail', Method::GET, false);
+        $this->assertArrayHasKey('/redirect', self::$testedRoutes);
     }
 
     /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
+     * @return iterable<string, array{string, string, string, string, array<string, string>|null}>
      */
-    public function testAssertRoute_WrongMethod()
+    public static function wrongRoutes(): iterable
     {
-        $this->assertRoute('', Method::POST, true, 'Stub', 'wrong');
+        yield 'method' => ['', 'PUT', 'Stub', 'index', null];
+        yield 'controller' => ['', 'GET', 'Wrong', 'index', null];
+        yield 'action' => ['', 'GET', 'Stub', 'wrong', null];
+        yield 'params' => ['/parameted/1.2.3.4', 'GET', 'Stub', 'index', ['tags' => 'param_1']];
+        yield 'missing param' => ['/parameted/abc123/zyx', 'GET', 'Stub', 'index', ['tags' => 'param_1']];
     }
 
     /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
+     * @param array<string, string>|null $params
      */
-    public function testAssertRoute_WrongController()
+    #[\PHPUnit\Framework\Attributes\DataProvider('wrongRoutes')]
+    public function testAssertRouteFails(string $route, string $method, string $controller, string $action, ?array $params): void
     {
-        $this->assertRoute('', Method::GET, true, 'Wrong', 'index');
+        $this->expectException(ExpectationFailedException::class);
+
+        $this->assertRoute($route, $method, true, $controller, $action, $params);
     }
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertRoute_WrongAction()
+    public function testRequestMethodIsRestored(): void
     {
-        $this->assertRoute('', Method::GET, true, 'Stub', 'wrong');
-    }
+        $_SERVER['REQUEST_METHOD'] = 'OPTIONS';
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertRoute_WrongParams()
-    {
-        $this->assertRoute('/parameted/1.2.3.4', Method::GET, true, 'Stub', 'index', ['tags' => 'param_1']);
-    }
+        $this->assertRoute('', 'GET', true);
 
-    /**
-     * @expectedException \PHPUnit_Framework_ExpectationFailedException
-     */
-    public function testAssertRoute_WrongParams_2()
-    {
-        $this->assertRoute('/parameted/abc123/zyx', Method::GET, true, 'Stub', 'index', ['tags' => 'param_1']);
+        $this->assertSame('OPTIONS', $_SERVER['REQUEST_METHOD']);
+        unset($_SERVER['REQUEST_METHOD']);
     }
 }

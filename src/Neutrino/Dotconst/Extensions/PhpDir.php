@@ -1,43 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst\Extensions;
 
-use Neutrino\Dotconst\Helper;
 use Neutrino\Support\Path;
 
 /**
- * Class PhpDir
- *
- * @package Neutrino\Dotconst\Extensions
+ * `@php/dir[:/sub/path][@suffix]`: path relative to the directory of the ini file.
  */
-class PhpDir extends Extension
+final class PhpDir extends Extension
 {
-    protected $identifier = 'php/dir(?::(/[\w\-. ]+))?(?:@(.+))?';
+    protected string $identifier = 'php/dir(?::(/[\w\-. ]+))?(?:@(.+))?';
 
-    /**
-     * @param string $value
-     * @param string $basePath
-     *
-     * @return string
-     */
-    public function parse($value, $basePath)
+    public function parse(string $value, string $basePath): string
     {
         $match = $this->match($value);
 
-        return Helper::normalizePath($basePath . DIRECTORY_SEPARATOR . (isset($match[1]) ? $match[1] : '') . (isset($match[2]) ? $match[2] : ''));
+        return Path::normalize($basePath . DIRECTORY_SEPARATOR . ($match[1] ?? '') . ($match[2] ?? ''));
     }
 
-    /**
-     * @param string $value
-     * @param string $basePath
-     * @param string $compilePath
-     *
-     * @return string
-     */
-    public function compile($value, $basePath, $compilePath)
+    public function compile(string $value, string $basePath, string $compilePath): string
     {
         $match = $this->match($value);
 
-        return "__DIR__ . '" . addslashes('/' . Path::findRelative($compilePath, $basePath) . '/' . (isset($match[1]) ? $match[1] : '')) . "'";
+        // Relative to the compiled file, so that the application directory can be moved after compilation.
+        $relative = Path::findRelative($compilePath, $basePath);
+        $path = ($relative === '' ? '' : '/' . $relative) . ($match[1] ?? '') . ($match[2] ?? '');
+
+        return $path === '' ? '__DIR__' : '__DIR__ . ' . var_export($path, true);
     }
 }

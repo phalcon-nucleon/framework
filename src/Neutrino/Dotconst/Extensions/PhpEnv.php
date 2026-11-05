@@ -1,46 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst\Extensions;
 
 /**
- * Class PhpEnv
- *
- * @package Neutrino\Dotconst\Extensions
+ * `@php/env:NAME[:default]`: environment variable, read at runtime (also from the compiled file).
  */
-class PhpEnv extends Extension
+final class PhpEnv extends Extension
 {
-    protected $identifier = 'php/env:(\w+)(?::(\w+))?';
+    protected string $identifier = 'php/env:(\w+)(?::(\w+))?';
 
-    /**
-     * @param string $value
-     * @param string $basePath
-     *
-     * @return string
-     */
-    public function parse($value, $basePath)
+    public function parse(string $value, string $basePath): ?string
     {
         $match = $this->match($value);
 
-        $value = getenv($match[1]);
+        $env = getenv($match[1]);
 
-        return $value === false ? (isset($match[2]) ? $match[2] : null) : $value;
+        return $env === false ? ($match[2] ?? null) : $env;
     }
 
-    /**
-     * @param string $value
-     * @param string $basePath
-     * @param string $compilePath
-     *
-     * @return string
-     */
-    public function compile($value, $basePath, $compilePath)
+    public function compile(string $value, string $basePath, string $compilePath): string
     {
         $match = $this->match($value);
 
-        if(isset($match[2])){
-            return "(\$_ = getenv('{$match[1]}')) === false ? " . (isset($match[2]) ? "'{$match[2]}'" : 'null') . " : \$_";
-        }
+        $name = var_export($match[1], true);
+        $default = var_export($match[2] ?? null, true);
 
-        return "getenv('{$match[1]}')";
+        return "(getenv($name) === false ? $default : getenv($name))";
+    }
+
+    public function isConstantExpression(): bool
+    {
+        return false;
     }
 }

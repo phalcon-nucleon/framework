@@ -1,20 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Cli\Tasks;
 
-/**
- * Class InstallTask
- *
- * @package Neutrino\Database\Cli\Tasks
- */
-class InstallTask extends BaseTask
+use Neutrino\Cli\Attribute\Description;
+
+final class InstallTask extends BaseTask
 {
-    /**
-     * @description Create the migration storage.
-     */
-    public function mainAction()
+    #[Description('Create the migration table.')]
+    public function mainAction(): void
     {
-        $this->storage->createStorage();
+        if ($this->storage()->storageExist()) {
+            $this->notice('Migration table already exists.');
+
+            return;
+        }
+
+        $this->storage()->createStorage();
 
         $this->info('Migration table created successfully.');
     }

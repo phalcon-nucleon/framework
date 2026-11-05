@@ -1,99 +1,76 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\Traits;
 
 use BadMethodCallException;
 use Closure;
 
 /**
- * Class Macroable
+ * Adds methods to a class at runtime.
  *
- * @see     Laravel 5.2 Illuminate\Support\Traits\Macroable
- *
- *  @package Neutrino\Support\Traits
+ * @see Laravel 5.2 Illuminate\Support\Traits\Macroable
  */
 trait Macroable
 {
     /**
-     * The registered string macros.
+     * The registered macros.
      *
-     * @var array
+     * @var array<string, callable>
      */
-    protected static $macros = [];
+    protected static array $macros = [];
 
     /**
-     * Register a custom macro.
-     *
-     * @param  string   $name
-     * @param  callable $macro
-     *
-     * @return void
+     * Registers a custom macro. A closure is bound to the instance (or the class, for static calls).
      */
-    public static function macro($name, callable $macro)
+    public static function macro(string $name, callable $macro): void
     {
         static::$macros[$name] = $macro;
     }
 
-    /**
-     * Checks if macro is registered.
-     *
-     * @param  string $name
-     *
-     * @return bool
-     */
-    public static function hasMacro($name)
+    public static function hasMacro(string $name): bool
     {
         return isset(static::$macros[$name]);
     }
 
     /**
-     * Dynamically handle calls to the class.
+     * @param array<int|string, mixed> $parameters
      *
-     * @param  string $method
-     * @param  array  $parameters
-     *
-     * @return mixed
-     *
-     * @throws \BadMethodCallException
+     * @throws BadMethodCallException
      */
-    public static function __callStatic($method, $parameters)
+    public static function __callStatic(string $method, array $parameters): mixed
     {
-        if (static::hasMacro($method)) {
-            if (static::$macros[$method] instanceof Closure) {
-                $closure = Closure::bind(static::$macros[$method], null, get_called_class());
-
-                return $closure(...$parameters);
-            } else {
-                return call_user_func_array(static::$macros[$method], $parameters);
-            }
+        if (!static::hasMacro($method)) {
+            throw new BadMethodCallException("Method {$method} does not exist.");
         }
 
-        throw new BadMethodCallException("Method {$method} does not exist.");
+        $macro = static::$macros[$method];
+
+        if ($macro instanceof Closure) {
+            $macro = Closure::bind($macro, null, static::class) ?? $macro;
+        }
+
+        return $macro(...$parameters);
     }
 
     /**
-     * Dynamically handle calls to the class.
+     * @param array<int|string, mixed> $parameters
      *
-     * @param  string $method
-     * @param  array  $parameters
-     *
-     * @return mixed
-     *
-     * @throws \BadMethodCallException
+     * @throws BadMethodCallException
      */
-    public function __call($method, $parameters)
+    public function __call(string $method, array $parameters): mixed
     {
-        if (static::hasMacro($method)) {
-            $macro = static::$macros[$method];
-            if ($macro instanceof Closure) {
-                $closure = $macro->bindTo($this, get_class($this));
-
-                return $closure(...$parameters);
-            } else {
-                return call_user_func_array($macro, $parameters);
-            }
+        if (!static::hasMacro($method)) {
+            throw new BadMethodCallException("Method {$method} does not exist.");
         }
 
-        throw new BadMethodCallException("Method {$method} does not exist.");
+        $macro = static::$macros[$method];
+
+        if ($macro instanceof Closure) {
+            $macro = $macro->bindTo($this, static::class) ?? $macro;
+        }
+
+        return $macro(...$parameters);
     }
 }

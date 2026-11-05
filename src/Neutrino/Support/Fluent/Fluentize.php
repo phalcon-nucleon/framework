@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Laravel 5.4 Fluent Class
  *
@@ -9,36 +12,30 @@ namespace Neutrino\Support\Fluent;
 
 use Neutrino\Support\Obj;
 
+/**
+ * Implementation of {@see Fluentable}.
+ */
 trait Fluentize
 {
     /**
      * All of the attributes set on the container.
      *
-     * @var array
+     * @var array<array-key, mixed>
      */
-    protected $attributes = [];
+    protected array $attributes = [];
 
     /**
-     * Create a new fluent container instance.
-     *
-     * @param  array|object $attributes
+     * @param iterable<array-key, mixed>|object $attributes
      */
-    public function __construct($attributes = [])
+    public function __construct(iterable|object $attributes = [])
     {
+        /** @var iterable<array-key, mixed> $attributes */
         foreach ($attributes as $key => $value) {
             $this->attributes[$key] = $value;
         }
     }
 
-    /**
-     * Get an attribute from the container.
-     *
-     * @param  string $key
-     * @param  mixed  $default
-     *
-     * @return mixed
-     */
-    public function get($key, $default = null)
+    public function get(string|int $key, mixed $default = null): mixed
     {
         if (array_key_exists($key, $this->attributes)) {
             return $this->attributes[$key];
@@ -48,217 +45,109 @@ trait Fluentize
     }
 
     /**
-     * Get the attributes from the container.
-     *
-     * @return array
+     * @return array<array-key, mixed>
      */
-    public function getAttributes()
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
 
     /**
-     * Convert the Fluent instance to an array.
-     *
-     * @return array
+     * @return array<array-key, mixed>
      */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->attributes;
     }
 
     /**
-     * Convert the object into something JSON serializable.
-     *
-     * @return array
+     * @return array<array-key, mixed>
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }
 
-    /**
-     * Convert the Fluent instance to JSON.
-     *
-     * @param  int $options
-     *
-     * @return string
-     */
-    public function toJson($options = 0)
+    public function toJson(int $options = 0): string
     {
-        return json_encode($this->jsonSerialize(), $options);
+        return json_encode($this->jsonSerialize(), $options | JSON_THROW_ON_ERROR);
     }
 
-    /**
-     * Determine if the given offset exists.
-     *
-     * @param  string $offset
-     *
-     * @return bool
-     */
-    public function offsetExists($offset)
+    public function offsetExists(mixed $offset): bool
     {
         return isset($this->attributes[$offset]);
     }
 
-    /**
-     * Get the value for a given offset.
-     *
-     * @param  string $offset
-     *
-     * @return mixed
-     */
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->get($offset);
     }
 
-    /**
-     * Set the value at the given offset.
-     *
-     * @param  string $offset
-     * @param  mixed  $value
-     *
-     * @return void
-     */
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
-        $this->attributes[$offset] = $value;
+        if ($offset === null) {
+            $this->attributes[] = $value;
+        } else {
+            $this->attributes[$offset] = $value;
+        }
     }
 
-    /**
-     * Unset the value at the given offset.
-     *
-     * @param  string $offset
-     *
-     * @return void
-     */
-    public function offsetUnset($offset)
+    public function offsetUnset(mixed $offset): void
     {
         unset($this->attributes[$offset]);
     }
 
-    /**
-     * Return the current element
-     *
-     * @link  http://php.net/manual/en/iterator.current.php
-     * @return mixed Can return any type.
-     * @since 5.0.0
-     */
-    public function current()
+    public function current(): mixed
     {
         return current($this->attributes);
     }
 
-    /**
-     * Move forward to next element
-     *
-     * @link  http://php.net/manual/en/iterator.next.php
-     * @return void Any returned value is ignored.
-     * @since 5.0.0
-     */
-    public function next()
+    public function next(): void
     {
         next($this->attributes);
     }
 
-    /**
-     * Return the key of the current element
-     *
-     * @link  http://php.net/manual/en/iterator.key.php
-     * @return mixed scalar on success, or null on failure.
-     * @since 5.0.0
-     */
-    public function key()
+    public function key(): string|int|null
     {
         return key($this->attributes);
     }
 
-    /**
-     * Checks if current position is valid
-     *
-     * @link  http://php.net/manual/en/iterator.valid.php
-     * @return boolean The return value will be casted to boolean and then evaluated.
-     * Returns true on success or false on failure.
-     * @since 5.0.0
-     */
-    public function valid()
+    public function valid(): bool
     {
-        return !is_null(key($this->attributes));
+        return key($this->attributes) !== null;
     }
 
-    /**
-     * Rewind the Iterator to the first element
-     *
-     * @link  http://php.net/manual/en/iterator.rewind.php
-     * @return void Any returned value is ignored.
-     * @since 5.0.0
-     */
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->attributes);
     }
 
     /**
-     * Handle dynamic calls to the container to set attributes.
-     *
-     * @param  string $method
-     * @param  array  $parameters
-     *
-     * @return $this
+     * @param array<int, mixed> $parameters
      */
-    public function __call($method, $parameters)
+    public function __call(string $method, array $parameters): static
     {
         $this->attributes[$method] = count($parameters) > 0 ? $parameters[0] : true;
 
         return $this;
     }
 
-    /**
-     * Dynamically retrieve the value of an attribute.
-     *
-     * @param  string $key
-     *
-     * @return mixed
-     */
-    public function __get($key)
+    public function __get(string $key): mixed
     {
         return $this->get($key);
     }
 
-    /**
-     * Dynamically set the value of an attribute.
-     *
-     * @param  string $key
-     * @param  mixed  $value
-     *
-     * @return void
-     */
-    public function __set($key, $value)
+    public function __set(string $key, mixed $value): void
     {
         $this->offsetSet($key, $value);
     }
 
-    /**
-     * Dynamically check if an attribute is set.
-     *
-     * @param  string $key
-     *
-     * @return bool
-     */
-    public function __isset($key)
+    public function __isset(string $key): bool
     {
         return $this->offsetExists($key);
     }
 
-    /**
-     * Dynamically unset an attribute.
-     *
-     * @param  string $key
-     *
-     * @return void
-     */
-    public function __unset($key)
+    public function __unset(string $key): void
     {
         $this->offsetUnset($key);
     }

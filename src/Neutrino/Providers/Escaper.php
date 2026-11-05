@@ -1,23 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 use Neutrino\Support\SimpleProvider;
-
+use Phalcon\Html\Escaper as PhalconEscaper;
 
 /**
- * Class Escaper
- *
- *  @package Neutrino\Providers
+ * The `escaper` service.
  */
 class Escaper extends SimpleProvider
 {
-    protected $class = \Phalcon\Escaper::class;
+    protected string $class = PhalconEscaper::class;
 
-    protected $name = Services::ESCAPER;
+    protected string $name = Services::ESCAPER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Escaper::class];
+    protected array $aliases = [PhalconEscaper::class];
 }

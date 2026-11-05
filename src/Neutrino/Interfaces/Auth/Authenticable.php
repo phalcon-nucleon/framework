@@ -1,62 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Interfaces\Auth;
 
+use Phalcon\Contracts\Auth\AuthRemember;
+use Phalcon\Contracts\Auth\AuthUser;
+
 /**
- * Interface Authenticable
- *
- *  @package Neutrino\Auth
+ * A user of `Phalcon\Auth`, with the remember-me. Implemented by the {@see \Neutrino\Auth\Authenticable} trait.
  */
-interface Authenticable
+interface Authenticable extends AuthUser, AuthRemember
 {
     /**
-     * Get the unique identifier for the user.
-     *
-     * @return string
+     * Column (and credential) holding the identifier stored in the session and in the remember-me cookie.
      */
-    public function getAuthIdentifier();
+    public static function getAuthIdentifierName(): string;
+
+    public static function getAuthPasswordName(): string;
 
     /**
-     * Get the password for the user.
-     *
-     * @return string
+     * Column holding the remember-me token, hashed.
      */
-    public function getAuthPassword();
-
-    /**
-     * Get the token value for the "remember me" session.
-     *
-     * @return string
-     */
-    public function getRememberToken();
-
-    /**
-     * Set the token value for the "remember me" session.
-     *
-     * @param  string $value
-     *
-     * @return void
-     */
-    public function setRememberToken($value);
-
-    /**
-     * Get the name of the unique identifier for the user.
-     *
-     * @return string
-     */
-    public static function getAuthIdentifierName();
-
-    /**
-     * Get the name of the password for the user.
-     *
-     * @return string
-     */
-    public static function getAuthPasswordName();
-
-    /**
-     * Get the column name for the "remember me" token.
-     *
-     * @return string
-     */
-    public static function getRememberTokenName();
+    public static function getRememberTokenName(): string;
 }

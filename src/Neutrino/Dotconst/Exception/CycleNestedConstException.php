@@ -1,13 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Dotconst\Exception;
 
-/**
- * Class CycleNestedConstException
- *
- * @package Neutrino\Dotconst\Exception
- */
-class CycleNestedConstException extends \RuntimeException
-{
-
-}
+class CycleNestedConstException extends \RuntimeException {}

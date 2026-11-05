@@ -19,7 +19,7 @@ class StubKernelHttp extends HttpApplication
      *
      * @var string[]
      */
-    protected $providers = [
+    protected array $providers = [
         /*
          * Basic Configuration
          */
@@ -50,7 +50,7 @@ class StubKernelHttp extends HttpApplication
      *
      * @var string[]
      */
-    protected $listeners = [
+    protected array $listeners = [
         StubListener::class
     ];
 
@@ -59,14 +59,14 @@ class StubKernelHttp extends HttpApplication
      *
      * @var string[]
      */
-    protected $middlewares = [
+    protected array $middlewares = [
         StubMiddleware::class
     ];
 
     /**
      * Register the routes of the application.
      */
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
         /** @var Router $router */
         $router = $this->getDI()->getShared(Services::ROUTER);

@@ -1,24 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt\Compiler\Filters;
 
 use Neutrino\View\Engines\Volt\Compiler\FilterExtend;
 
 /**
- * Class MergeFilter
- *
- * @package Neutrino\View\Engines\Volt\Compiler\Filters
+ * `{{ a|merge(b) }}`: `array_merge()`.
  */
 class MergeFilter extends FilterExtend
 {
-
-    /**
-     * @param string $resolvedArgs
-     * @param array  $exprArgs
-     *
-     * @return string|null
-     */
-    public function compileFilter($resolvedArgs, $exprArgs)
+    public function compileFilter(string $resolvedArgs, ?array $exprArgs): string
     {
         return 'array_merge(' . $resolvedArgs . ')';
     }

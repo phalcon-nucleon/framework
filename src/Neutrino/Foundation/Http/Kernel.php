@@ -1,91 +1,148 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Foundation\Http;
 
+use Neutrino\Constants\Services;
 use Neutrino\Error;
 use Neutrino\Foundation\Kernelize;
 use Neutrino\Interfaces\Kernelable;
 use Phalcon\Di\FactoryDefault as Di;
 use Phalcon\Events\Manager as EventManager;
+use Phalcon\Http\ResponseInterface;
 use Phalcon\Mvc\Application;
 
 /**
- * Class Http
- *
- * @package Neutrino\Foundation\Kernel
+ * Base class of the application's HTTP kernel.
  */
 abstract class Kernel extends Application implements Kernelable
 {
     use Kernelize {
-        boot as _boot;
+        boot as private bootKernel;
     }
 
+    /** The view was started for the actions to render into it (see startView()) */
+    private bool $viewStarted = false;
+
     /**
-     * Return the Provider List to load.
+     * Providers to register.
      *
-     * @var string[]
+     * @var array<int|string, string>
      */
-    protected $providers = [];
+    protected array $providers = [];
 
     /**
-     * Return the Middlewares to attach onto the application.
+     * Middlewares to attach to the application.
      *
-     * @var string[]
+     * @var list<class-string<\Neutrino\Events\Listener>>
      */
-    protected $middlewares = [];
+    protected array $middlewares = [];
 
     /**
-     * Return the Events Listeners to attach onto the application.
+     * Events listeners to attach to the application.
      *
-     * @var string[]
+     * @var list<class-string<\Neutrino\Events\Listener>>
      */
-    protected $listeners = [];
+    protected array $listeners = [];
 
     /**
-     * Return the modules to attach onto the application.
+     * The container class. `null` uses the current default container.
      *
-     * @var string[]
+     * @var class-string<\Phalcon\Di\DiInterface>|null
      */
-    protected $modules = [];
+    protected ?string $dependencyInjection = Di::class;
 
     /**
-     * The DependencyInjection class to use.
+     * The events manager class. `null` disables the events manager.
      *
-     * @var string
+     * @var class-string<\Phalcon\Events\ManagerInterface>|null
      */
-    protected $dependencyInjection = Di::class;
+    protected ?string $eventsManagerClass = EventManager::class;
 
     /**
-     * The EventManager class to use.
+     * Error handler outputs.
      *
-     * @var string
+     * @var list<class-string<Error\Writer\Writable>>
      */
-    protected $eventsManagerClass = EventManager::class;
+    protected array $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Flash::class, Error\Writer\View::class];
 
-    /**
-     * Error Handler Outputs
-     *
-     * @var int
-     */
-    protected $errorHandlerLvl = [Error\Writer\Phplog::class, Error\Writer\Logger::class, Error\Writer\Flash::class, Error\Writer\View::class];
-
-
-    /**
-     * Register the routes of the application.
-     */
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
-        if (file_exists(BASE_PATH . '/bootstrap/compile/http-routes.php')) {
-            require BASE_PATH . '/bootstrap/compile/http-routes.php';
+        if (is_file(BASE_PATH . RouteCompiler::COMPILED_FILE)) {
+            require BASE_PATH . RouteCompiler::COMPILED_FILE;
         } else {
             require BASE_PATH . '/routes/http.php';
         }
     }
 
-    public function boot()
+    public function boot(): void
     {
-        $this->_boot();
+        $this->bootKernel();
 
-        $this->useImplicitView(isset($this->config->view->implicit) ? $this->config->view->implicit : false);
+        /** @var \Phalcon\Config\Config $config */
+        $config = $this->getDI()->getShared(Services::CONFIG);
+
+        $this->useImplicitView((bool) $config->path('view.implicit', false));
+    }
+
+    public function handleIncoming(): mixed
+    {
+        // A view built by a previous request (tests, long-running workers) is started again.
+        $di = $this->container;
+        if ($di !== null && $di->has(Services::VIEW) && $di->getService(Services::VIEW)->isResolved()) {
+            /** @var \Phalcon\Mvc\View $view */
+            $view = $di->getShared(Services::VIEW);
+            $this->startView($view);
+        }
+
+        $response = $this->handle($this->incomingUri());
+
+        $this->renderedView($response);
+
+        return $response;
+    }
+
+    /**
+     * Without implicit views, starts the view (called by the View provider when it builds it): the actions render
+     * into it, and its content goes to the response.
+     *
+     * @internal
+     */
+    public function startView(\Phalcon\Mvc\View $view): void
+    {
+        if ($this->implicitView || $this->viewStarted) {
+            return;
+        }
+
+        $view->start();
+        $this->viewStarted = true;
+    }
+
+    /**
+     * Without implicit views, the actions render with $this->view->render(): the View provider started the view,
+     * its content goes to the response, unless the action set the content of the response itself. Called by
+     * handleIncoming(), and by the Debugger before the debug bar reads the response. Not an events listener: any
+     * listener on the application events costs about 20 µs per request.
+     *
+     * @internal
+     */
+    public function renderedView(mixed $response): void
+    {
+        $di = $this->container;
+
+        if (!$this->viewStarted || $di === null) {
+            return;
+        }
+
+        $this->viewStarted = false;
+
+        /** @var \Phalcon\Mvc\View $view */
+        $view = $di->getShared(Services::VIEW);
+        $view->finish();
+
+        if ($response instanceof ResponseInterface && $response->getContent() === '') {
+            $response->setContent((string) $view->getContent());
+        }
     }
 }

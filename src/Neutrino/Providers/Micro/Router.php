@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers\Micro;
 
 use Neutrino\Constants\Services;
@@ -12,9 +14,9 @@ use Neutrino\Support\SimpleProvider;
  */
 class Router extends SimpleProvider
 {
-    protected $class = \Neutrino\Micro\Router::class;
+    protected string $class = \Neutrino\Micro\Router::class;
 
-    protected $name = Services::MICRO_ROUTER;
+    protected string $name = Services::MICRO_ROUTER;
 
-    protected $shared = true;
+    protected bool $shared = true;
 }

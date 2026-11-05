@@ -1,36 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Providers;
 
 use Neutrino\Constants\Services;
 use Neutrino\Support\Provider;
+use Phalcon\Config\Config;
+use Phalcon\Mvc\Url as MvcUrl;
 
 /**
- * Class Url
- *
- *  @package Neutrino\Foundation\Bootstrap
+ * URL generator: `app.base_uri`, and `app.static_base_uri` for static resources (defaults to `base_uri`).
  */
 class Url extends Provider
 {
-    protected $name = Services::URL;
+    protected string $name = Services::URL;
 
-    protected $shared = true;
+    protected bool $shared = true;
 
-    protected $aliases = [\Phalcon\Mvc\Url::class];
+    protected array $aliases = [MvcUrl::class];
 
-    /**
-     * The URL component is used to generate all kind of urls in the application
-     *
-     * @return \Phalcon\Mvc\Url
-     */
-    protected function register()
+    protected function register(): MvcUrl
     {
-        $url = new \Phalcon\Mvc\Url();
+        /** @var Config $config */
+        $config = $this->getDI()->getShared(Services::CONFIG);
 
-        $appConf = $this->getDI()->getShared(Services::CONFIG)->app;
+        $baseUri = $config->path('app.base_uri', '/');
+        $baseUri = is_string($baseUri) ? $baseUri : '/';
+        $staticBaseUri = $config->path('app.static_base_uri', $baseUri);
 
-        $url->setBaseUri($appConf->base_uri);
-        $url->setStaticBaseUri(isset($appConf->static_base_uri) ? $appConf->static_base_uri : $appConf->base_uri);
+        $url = new MvcUrl();
+        $url->setBaseUri($baseUri);
+        $url->setStaticBaseUri(is_string($staticBaseUri) ? $staticBaseUri : $baseUri);
 
         return $url;
     }

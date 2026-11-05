@@ -1,0 +1,48 @@
+{
+    "phalcon": "3.4.5",
+    "key": "TnVjbGVvbi0xLjMta2V5LTMyLWJ5dGVzLWxvbmchISE=",
+    "values": [
+        {
+            "cipher": "aes-256-cfb",
+            "signing": false,
+            "plain": "Nucleon 1.3 secret: été",
+            "base64": "//66eiOK/qUbPcU9/FuLs5zNG911iI1c6RVEUo//5LxSy7aMx5h+59s=",
+            "base64_safe": "NjC7uZruoU5OWuFAjz4bvrVWMXhe_NVR6O4Wm4Cn0nbpDLhkOT558Uo"
+        },
+        {
+            "cipher": "aes-256-cfb",
+            "signing": true,
+            "plain": "Nucleon 1.3 secret: été",
+            "base64": "bM8mbl9X5zf68o9sq4YCnVUZPcwt+B7bBdtCwoZOpOCr5SNr6+lNxWFqoqx3WuHoNjJG4eYAN2KicBkEQHnjL3m3uyK5N6nOsQ==",
+            "base64_safe": "LvJDSUGALnuFXxW3PcSCo1UZPcwt-B7bBdtCwoZOpOCr5SNr6-lNxWFqoqx3WuHo9o0xD1NxUVAC-Sb3HinpgavG0_BdwttmGg"
+        },
+        {
+            "cipher": "aes-256-cbc",
+            "signing": false,
+            "plain": "Nucleon 1.3 secret: été",
+            "base64": "jNkRv3scbKlhp0ID54gkb0bX91gRu4FJxmUPJrX7rBwtgkK+Q/q0rsXL+LZVvKGO",
+            "base64_safe": "EiuSq4gmPNsy7D7h4rUsNTe2kQyAym2-dzc9HUX2eW56v0akktv2PFS76Rxg9C8U"
+        },
+        {
+            "cipher": "aes-256-cbc",
+            "signing": true,
+            "plain": "Nucleon 1.3 secret: été",
+            "base64": "9GFW081kb2wMnm0OL1uGIVUZPcwt+B7bBdtCwoZOpOCr5SNr6+lNxWFqoqx3WuHoZpMJOA9LYVMGt1fxtJEfexoKjScwUPQpKs7MGuIFMaQ=",
+            "base64_safe": "RU5goei8dZ1pExxTxl-DMVUZPcwt-B7bBdtCwoZOpOCr5SNr6-lNxWFqoqx3WuHojO6KB5di-lvrNqbpl8B5DqHUFy-QO5pEx8GRi8YWDc8"
+        },
+        {
+            "cipher": "aes-128-ctr",
+            "signing": false,
+            "plain": "Nucleon 1.3 secret: été",
+            "base64": "6/hcp3xyMGbsoRodF57EvX7G39C+A5tlAxZM1LqK9ZKH1NRK2YlIRLI=",
+            "base64_safe": "JwnYzju_oEZB25iiz9uANGta2DTWXo9_9QGRWtht2-74on8sierBEnA"
+        },
+        {
+            "cipher": "aes-128-ctr",
+            "signing": true,
+            "plain": "Nucleon 1.3 secret: été",
+            "base64": "PUeXPGOjytqnBTndnZ5kmFUZPcwt+B7bBdtCwoZOpOCr5SNr6+lNxWFqoqx3WuHoYtYUBkqXVdVyUATZDMjK2BHcxdCH2eIU/A==",
+            "base64_safe": "tN4ezhztIawWaVizTkGVQlUZPcwt-B7bBdtCwoZOpOCr5SNr6-lNxWFqoqx3WuHoXyvTjFunXSuVGMNO6YIAmA8XBYTxg_--xA"
+        }
+    ]
+}

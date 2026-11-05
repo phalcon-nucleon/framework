@@ -1,60 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\View\Engines\Volt\Compiler\Extensions;
 
-use Neutrino\Debug\Reflexion;
 use Neutrino\Support\Str;
 use Neutrino\View\Engines\Volt\Compiler\ExtensionExtend;
+use ReflectionMethod;
 
 /**
- * Class StrExtension
- *
- * Neutrino\View\Extensions
+ * `{{ str_<method>(...) }}` calls the public static methods of {@see Str} (`str_slug(title)`), unless a PHP
+ * function has this name (`str_replace`). Filters `slug`, `limit` and `words`.
  */
 class StrExtension extends ExtensionExtend
 {
-    /**
-     * This method is called on any attempt to compile a function call
-     *
-     * @param $name
-     * @param $arguments
-     *
-     * @return null|string
-     */
-    public function compileFunction($name, $arguments, $funcArguments)
+    private const array FILTERS = ['slug', 'limit', 'words'];
+
+    public function compileFunction(string $name, string $arguments, ?array $funcArguments): ?string
     {
-        if (!Str::startsWith($name, 'str_') || function_exists($name)) {
+        if (!str_starts_with($name, 'str_') || function_exists($name)) {
             return null;
         }
 
-        $name = substr($name, 4);
+        $method = substr($name, 4);
 
-        if (method_exists(Str::class, $name) && Reflexion::getReflectionMethod(Str::class, $name)->isPublic()) {
-            return Str::class . '::' . $name . '(' . $arguments . ')';
+        if (!method_exists(Str::class, $method)) {
+            return null;
         }
 
-        return null;
+        $reflection = new ReflectionMethod(Str::class, $method);
+
+        return $reflection->isPublic() && $reflection->isStatic() ? '\\' . Str::class . '::' . $method . '(' . $arguments . ')' : null;
     }
 
-    public function compileFilter($name, $arguments, $funcArguments)
+    public function compileFilter(string $name, string $arguments, ?array $funcArguments): ?string
     {
-        switch ($name) {
-            case 'slug':
-                return Str::class . '::slug(' . $arguments . ')';
-            case 'limit':
-                return Str::class . '::limit(' . $arguments . ')';
-            case 'words':
-                return Str::class . '::words(' . $arguments . ')';
-        }
-
-        return null;
-    }
-
-    public function resolveExpression($expr)
-    {
-    }
-
-    public function compileStatement($statement)
-    {
+        return in_array($name, self::FILTERS, true) ? '\\' . Str::class . '::' . $name . '(' . $arguments . ')' : null;
     }
 }

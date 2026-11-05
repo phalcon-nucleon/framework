@@ -1,0 +1,14 @@
+{
+    "name": "nucleon/bench-current",
+    "description": "The current framework (this repository) installed without dev dependencies, as an application would install it.",
+    "type": "project",
+    "repositories": [
+        {"type": "path", "url": "../..", "options": {"symlink": true}}
+    ],
+    "require": {
+        "nucleon/framework": "*@dev"
+    },
+    "config": {
+        "allow-plugins": false
+    }
+}

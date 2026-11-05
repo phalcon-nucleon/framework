@@ -1,0 +1,96 @@
+# Release Note
+
+## v2.0.0 (unreleased)
+
+Nucleon 2.0 runs on PHP ≥ 8.3 and Phalcon ≥ 5.22. Migration notes: `UPGRADING-2.0.md`.
+
+### Added
+ - `optimize`: authoritative Composer classmap and OPcache preload script (`bootstrap/compile/preload.php`).
+ - `Config\ConfigCompiler`: `config:cache` evaluates and validates the configuration.
+ - `Support\IdeHelper\Generator`: `_ide_helper.php` (Facades `@method`, `@property-read` of the services on `Phalcon\Di\Injectable`) and `.phpstorm.meta.php` (`DiInterface::get()` / `getShared()` return types), generated from the booted application.
+ - `Neutrino\Config\Config`: a `Phalcon\Config\Config` with reads 7 to 9 times faster.
+ - `Kernelable::handleIncoming()`.
+ - `FuncTestCase::dispatch()`: request headers and JSON body.
+ - CLI: `ide-helper` and `dotconst:cache` commands; task documentation attributes (`Neutrino\Cli\Attribute`); `ProvidesTasks`; `NO_COLOR`.
+ - Micro handlers `'Controller::action'` and `[Controller::class, 'action']`; `Micro\MiddlewarePosition`.
+ - `StatusCode`: 102, 103, 421, 425 and 451; `UNAUTHORIZED`, `UPGRADE_REQUIRED`, `BANDWIDTH_LIMIT_EXCEEDED`.
+ - Cache stores `rediscluster` and `weak`, serializer `msgpack`, custom adapters; `Providers\Cache::makeStore()`.
+ - Logger: several adapters (`log.adapters`), `log.level`, `line` or `json` formatter.
+ - Session: `noop` adapter and any `\SessionHandlerInterface`; session name per store.
+ - Model attributes `#[Primary]`, `#[Column]`, `#[Timestamps]`, `#[SoftDelete]`; `Neutrino\Model\MetaDataStrategy`; `models.metadata.adapter`; `model:cache` command; `Db::connection()`; connection adapters by name (`mysql`, `postgresql`, `sqlite`).
+ - Authentication on `Phalcon\Auth` (guards, access, `Auth::id()`, `validate()`, `guard()`); `Authenticate` redirection.
+ - `view:cache` command (run by `optimize`); `tagFactory` service; `view.php_functions` (`allow` / `deny`).
+ - Migrations: anonymous migrations, connection per migration (`$connection`, `--database`), transactions on PostgreSQL and SQLite (`$withinTransaction`), `migrations.connection`; `Builder::withoutForeignKeyConstraints()`; schema grammars (`Schema\Grammar`); `Db::pretend()` can run the reads.
+ - `security.csrf.rotate`, `security.throttle.store`; CSRF token in a JSON body.
+ - `app.crypt_signing`; `annotations.adapter` (`memory`, `apcu`, `stream`).
+ - Errors: `Foundation\Bootstrap` registers the error handler (`error.register`); `Handler::unregister()`, `isRegistered()`, `getWriters()`.
+ - Debug: `phalcon/debugbar` integration (suggested), with the queries, cache operations, views and logs of the Nucleon services; `Debug\Highlight` (HTML and terminal, with the suggested `tempest/highlight`); `VarDump::html()` and `text()`, console output, enums and `readonly` properties.
+ - HTTP client rewritten (`Neutrino\HttpClient`): `request()` / `withOptions()` with the `symfony/http-client` option names, typed exceptions, body chunks, cURL and stream transports, `MockTransport` for the tests; `httpClient` provider and `Http` Facade.
+ - Process: commands without shell (list), exit code, `run()`, `mustRun()`, `waitUntil()`, input, environment, incremental outputs, `ProcessFailedException` and `ProcessTimedOutException`.
+ - Event constants for the Phalcon 5 events: router, di, `db:connectionLost`, dispatcher binding and action calls, micro binding and exceptions, model `prepareSave` and `validation`, view compilation.
+
+### Changed
+ - Kernels, providers, modules, listeners, Facades, constants, Dotconst, `Support` helpers, traits and design patterns are typed (`strict_types`).
+ - Dotconst compiles constants with `const` (faster than `define()`).
+ - `Foundation\Middleware\Disptacher` renamed `Dispatcher`.
+ - The `Str` helpers use the PHP 8 string functions; `Str::slug` is 6 times faster.
+ - Cache: PSR-16 API (`Phalcon\Cache\CacheInterface`), stores configured with `adapter`, `serializer` and `options`.
+ - Session: `Phalcon\Session\Manager` on an adapter; `sessionBag` takes a name.
+ - Models described through a Phalcon meta-data strategy; `Repository`: a string is an equality, names and operators checked, typed API.
+ - Volt 5 option names (1.3 names converted); `tag` is a `Phalcon\Html\TagFactory`; `csrf_field()` writes its escaped field; `PhpFunctionExtension` refuses dangerous functions; the Nucleon filters and functions compile variables as arguments.
+ - `auth` is a `Phalcon\Auth\Manager`; `Auth::attempt()` returns a `bool`.
+ - CSRF: only POST, PUT, PATCH and DELETE are checked, token in the `X-CSRF-Token` header or the body; the token stays valid for the session.
+ - `RateLimiter`: fixed window, PSR-16 cache, atomic increment on Redis, APCu and Memcached; throttle signature `xxh128`.
+ - Migrations: typed, schema changes through the Phalcon 5 adapter, native Phalcon 5 column types (`UUID`, `INET`, `MACADDR`, `BYTEA`, `TIME`… on PostgreSQL), `make:migration` writes anonymous migrations, commands declared by `MigrationsServicesProvider` and documented with attributes.
+ - `Error\Error` is a `readonly` value object (`isFatal()`); the error writers are typed and the `Logger` writer formats the errors without changing the adapters' formatter; the debug error page has no CDN dependency anymore.
+ - `Debug\Reflexion` renamed `Support\Reflection`.
+ - `crypt`, `security`, `filter` and `escaper` are `Encryption\Crypt`, `Encryption\Security`, `Filter\Filter` and `Html\Escaper`; `crypt` signs by default.
+
+### Fixed
+ - `Facade::swap()` and `shouldReceive()` replace a service already resolved by the container.
+ - `Singleton`: one instance per subclass.
+ - Dotconst: `@php/dir@suffix` and unknown `@{reference}` values in the compiled file.
+ - `FuncTestCase::dispatch()`: PATCH parameters in `$_POST`, DELETE parameters kept, superglobals restored.
+ - `TestCase::checkExtension()`: the skip message was empty.
+ - Route middlewares declared as `[Middleware::class => $parameter]`.
+ - Micro: a Before middleware returning `false` stops the request (Phalcon 5 ignores the returned value).
+ - `Micro\Router::add()` returns the route; the controller of a Micro route is built once per request.
+ - CLI: `help <command>` and `help` alone; task options no longer break actions without parameters; a task run twice in a process reads its current options; `route:list` and `route:cache` no longer replace the console router; output blocks honour their padding.
+ - `Support\Db::getQueries()` left its listener attached on error and kept the events manager it created.
+ - The rate limiter released a client only when it stopped trying (sliding lifetime).
+ - Session provider: the construction error kept the previous exception as its code.
+ - Migrations: `migrate:rollback` rolled back one migration of the last batch; `Builder` read the tables of the `dbname` schema (wrong on PostgreSQL); `make:migration --table` wrote a call to a missing `Builder::update()`; `migrate --pretend` reported the introspection queries and missed the modifications; `migrate:fresh` left the tables of the other connections (log, migrations on their own connection).
+ - Errors: the fatal errors other than `E_ERROR` (`E_PARSE`, `E_CORE_ERROR`, `E_COMPILE_ERROR`, `E_RECOVERABLE_ERROR`) were not reported; a failing writer stopped the others; the `Flash` writer output a fatal error before the error page, which lost its 500 status.
+ - HTTP client: `StreamContext::disableSsl()` did not disable the TLS checks.
+ - Views rendered by the actions (`view.implicit` false) went straight to the output with Phalcon 5, before the status, the headers and the cookies of the response: they go to the response.
+ - `view:cache` failed on the `{% extends %}` and `{% include %}` relative to `views_dir`.
+ - `view:cache` compiled the templates with the services of the console: `assets.x`, `auth.x`, `flash.x`… became undefined local variables, and every page using a service failed once compiled (500). It compiles with the services of the HTTP kernel.
+ - `Model::timestamps()` left `updated_at` null on create: rejected by the `NOT NULL` columns of `Blueprint::timestamps()` (MySQL).
+ - `RoutesTestCase` with a full URL in `app.base_uri`.
+ - Process: `wait()` returned at once while the timeout was not over; `wait()` and `watch()` added milliseconds to seconds; `stop()` waited 1 000 times too long and never killed a process ignoring SIGTERM; the exit code was lost; reading the outputs while the process wrote could overwrite them.
+ - `route:cache`: route names and hostnames are escaped; routes that cannot be cached are rejected instead of being lost.
+
+### Security
+ - `Repository`: column names, operators and sort directions were written unchecked in the PHQL: injection when they came from the request. They are checked against the model attributes and lists of operators and directions (E10).
+ - Remember-me: the token is stored hashed (SHA-256) and bound to the user agent, revoked at logout; the cookie lasts one year (1.3: 100 years), `HttpOnly` and `Secure`; malformed cookies are ignored (E8).
+ - CSRF: the token is read from the `X-CSRF-Token` header or the body only, no longer from the query string, where it ended up in the logs and the `Referer` (E8).
+ - Volt `PhpFunctionExtension` refuses the dangerous PHP functions in templates (commands, files, `ini_set`, callbacks…) (E9).
+ - HTTP client: any protocol was accepted (`file://`, `gopher://`, `dict://`: SSRF), also on redirections; `Authorization` and cookies were sent to another host on a redirection; header values are now checked for line breaks (E13). (`StreamContext::disableSsl()` did not disable the TLS checks: a bug, not a weakness, listed in Fixed.)
+ - Process: a command can be a list, run without shell (no command injection through its arguments) (E14).
+ - CSRF: the safe methods are those of the request itself: a POST overridden to GET (`X-HTTP-Method-Override`, or `_method` when the application allows it) was not checked (E15).
+ - Volt `PhpFunctionExtension` also refuses the functions writing files (`error_log`), opening connections (`fsockopen`, `curl_*`), reading the configuration and the constants (`ini_get`, `get_defined_constants`, `get_defined_vars`) and the other callbacks (`array_udiff`…). Volt's own `constant()` stays available (E15).
+
+### Removed
+ - Assets (`Neutrino\Assets`, `assets:*` tasks), `Optimizer`, `PhpPreloader` (and `nikic/php-parser`), `ConfigPreloader`, `ReturnConverter`.
+ - `Str::{length, lower, upper, substr, title, quickRandom, normalizePath}`, `Arr::where`.
+ - Collection (ODM) and Volt event constants, `Model::NOT_SAVE(D)`.
+ - `Micro\Router` methods that threw an exception, `Micro\Middleware::ON_*` constants.
+ - Cache: output cache (`start`/`stop`), `queryKeys`, `save`/`exists`; backends `Memcache`, `Mongo`, `Database`, `Aerospike`, `Wincache`, `Xcache`; frontend `Output`.
+ - `Database\DatabaseStrategy` (`db` is the default connection, the others `db.<name>`); `Neutrino\Model::metaData()` / `columnMap()`.
+ - Volt `{% cache %}` (no output cache in Phalcon 5).
+ - `Neutrino\Auth\Manager` (replaced by `Phalcon\Auth\Manager`); CSRF token read from the query string.
+ - Migrations: `FileStorage`, `Schema\Dialect\*`, `Schema\DialectInterface`, `Schema\DialectTrait`.
+ - Nucleon debug bar (`DebugToolbar`, `DebugEventsManagerWrapper`, profilers), `Foundation\Middleware\Debug`, `ark4ne/highlight`.
+ - HTTP client: `Request`, `Provider\{Curl, StreamContext}`, `Factory`, `Header`, `Uri`, parsers (`Json`, `JsonArray`, `Xml`, `XmlArray`), streaming events.
+ - Process: `exec()`, `close()`, `getError()`, `pid()`, `readStatus()`, `Process\Exception` and `Process\Timeout` (see `UPGRADING-2.0.md`).
+ - Logger adapters `Firelogger`, `Udplogger`, `Multiple`; session adapters `Files` (now `stream`) and `Memcache`.

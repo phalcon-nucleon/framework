@@ -1,208 +1,121 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Test\Middleware;
 
+use Fake\Kernels\Http\Controllers;
 use Fake\Kernels\Http\Controllers\StubController;
+use Neutrino\Auth\Middleware\ThrottleLogin;
 use Neutrino\Constants\Services;
 use Neutrino\Http\Middleware\ThrottleRequest;
 use Neutrino\Http\Standards\StatusCode;
 use Neutrino\Middleware\Throttle;
 use Phalcon\Http\Response;
+use RuntimeException;
 use Test\TestCase\TestCase;
 use Test\TestCase\UseCaches;
 
-/**
- * Trait ThrottleTest
- *
- * @package Middleware
- */
-class ThrottleTest extends TestCase
+final class ThrottleTest extends TestCase
 {
     use UseCaches;
 
-    public function testThrottle()
+    protected function setUp(): void
     {
+        parent::setUp();
+
         $this->app->useImplicitView(false);
-
-        $this->app->router->addGet('/', [
-            'namespace'  => \Fake\Kernels\Http\Controllers::class,
-            'controller' => 'Stubthrottled',
-            'action'     => 'index'
-        ]);
-
-        $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
-            $status = StatusCode::TOO_MANY_REQUESTS;
-        } else {
-            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
-        }
-        for ($i = 1; $i <= 11; $i++) {
-            // WHEN
-            $this->dispatch('/');
-            $response = $this->app->response;
-            $headers  = $response->getHeaders();
-            if ($i <= 10) {
-                $this->assertNotEquals($status, $response->getStatusCode(), "status:$i");
-                $this->assertNotEquals($msg, $response->getContent(), "content:$i");
-                $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
-                $this->assertEquals(10 - $i, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
-                $this->assertEquals(null, $headers->get('Retry-After'), "Retry-After:$i");
-            } else {
-                $this->assertEquals($status, $response->getStatusCode(), "status:$i");
-                $this->assertEquals($msg, $response->getContent(), "content:$i");
-                $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
-                $this->assertEquals(0, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
-                $this->assertEquals(60, $headers->get('Retry-After'), "Retry-After:$i");
-            }
-        }
-
-        sleep(1);
-        $this->dispatch('/');
-
-        $response = $this->app->response;
-
-        $this->assertEquals($status, $response->getStatusCode());
-        $this->assertEquals($msg, $response->getContent());
-        $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
-        $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
-        $this->assertLessThanOrEqual(59, $response->getHeaders()->get('Retry-After'));
+        $this->app->router->addGet('/', ['namespace' => Controllers::class, 'controller' => 'Stubthrottled', 'action' => 'index']);
+        $this->app->router->addGet('/not-throttled', ['namespace' => Controllers::class, 'controller' => 'Stubthrottled', 'action' => 'throttled']);
+        $this->app->router->addGet('/route', ['namespace' => Controllers::class, 'controller' => 'Stub', 'action' => 'index', 'middleware' => [ThrottleRequest::class => [10, 60]]]);
+        $this->app->router->addGet('/login', ['namespace' => Controllers::class, 'controller' => 'Stub', 'action' => 'index', 'middleware' => [ThrottleLogin::class => [2, 30]]]);
     }
 
-    public function testThrottleFiltered()
+    public function testControllerMiddleware(): void
     {
-        $this->app->useImplicitView(false);
-
-        $this->app->router->addGet('/', [
-            'namespace'  => \Fake\Kernels\Http\Controllers::class,
-            'controller' => 'Stubthrottled',
-            'action'     => 'index'
-        ]);
-
-        $this->app->router->addGet('/throttled', [
-            'namespace'  => \Fake\Kernels\Http\Controllers::class,
-            'controller' => 'Stubthrottled',
-            'action'     => 'throttled'
-        ]);
-
-        $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
-            $status = StatusCode::TOO_MANY_REQUESTS;
-        } else {
-            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
-        }
-        for ($i = 1; $i <= 10; $i++) {
-            // WHEN
-            $this->dispatch('/');
-            $response = $this->app->getDI()->getShared(Services::RESPONSE);
-
-            $this->assertNotEquals($status, $response->getStatusCode());
-            $this->assertNotEquals($msg, $response->getContent());
-            $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
-            $this->assertEquals(10 - $i, $response->getHeaders()->get('X-RateLimit-Remaining'));
-            $this->assertEquals(null, $response->getHeaders()->get('Retry-After'));
-        }
-
-        usleep(1000000);
-
-        $this->app->getDI()->remove(Services::RESPONSE);
-        $this->app->getDI()->setShared(Services::RESPONSE, function () {
-            $response = new Response();
-            $response->setHeaders(new Response\Headers());
-
-            return $response;
-        });
-
-        $this->dispatch('/throttled');
-
-        $response = $this->app->getDI()->getShared(Services::RESPONSE);
-
-        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
-            $this->assertEquals(200, $response->getStatusCode());
-        } else {
-            $this->assertEquals('200 OK', $response->getStatusCode());
-        }
-        $this->assertEquals('', $response->getContent());
-        $this->assertEquals(false, $response->getHeaders()->get('X-RateLimit-Limit'));
-        $this->assertEquals(false, $response->getHeaders()->get('X-RateLimit-Remaining'));
-        $this->assertEquals(false, $response->getHeaders()->get('Retry-After'));
-
-        $this->app->getDI()->remove(Services::RESPONSE);
-        $this->app->getDI()->setShared(Services::RESPONSE, function () {
-            $response = new Response();
-            $response->setHeaders(new Response\Headers());
-
-            return $response;
-        });
-
-        $this->dispatch('/');
-
-        $response = $this->app->getDI()->getShared(Services::RESPONSE);
-
-        $this->assertEquals($status, $response->getStatusCode());
-        $this->assertEquals($msg, $response->getContent());
-        $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
-        $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
-        $this->assertEquals(60, $response->getHeaders()->get('Retry-After'));
+        $this->assertThrottled('/', 10, 60);
     }
 
-    public function testThrottleRegisterFromRoute()
+    public function testRouteMiddleware(): void
     {
-        $this->app->useImplicitView(false);
-
-        StubController::$middlewares = [];
-
-        $this->app->router->addGet('/route-throttled', [
-            'namespace'  => \Fake\Kernels\Http\Controllers::class,
-            'controller' => 'Stub',
-            'action'     => 'index',
-            'middleware' => [ThrottleRequest::class => [10, 60]]
-        ]);
-
-        $msg    = StatusCode::message(StatusCode::TOO_MANY_REQUESTS);
-        if(\Phalcon\Version::getPart(\Phalcon\Version::VERSION_MEDIUM) >= 2){
-            $status = StatusCode::TOO_MANY_REQUESTS;
-        } else {
-            $status = StatusCode::TOO_MANY_REQUESTS . ' ' . $msg;
-        }
-        for ($i = 1; $i <= 11; $i++) {
-            // WHEN
-            $this->dispatch('/route-throttled');
-
-            $response = $this->app->response;
-            $headers  = $response->getHeaders();
-            if ($i <= 10) {
-                $this->assertNotEquals($status, $response->getStatusCode(), "status:$i");
-                $this->assertNotEquals($msg, $response->getContent(), "content:$i");
-                $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
-                $this->assertEquals(10 - $i, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
-                $this->assertEquals(null, $headers->get('Retry-After'), "Retry-After:$i");
-            } else {
-                $this->assertEquals($status, $response->getStatusCode(), "status:$i");
-                $this->assertEquals($msg, $response->getContent(), "content:$i");
-                $this->assertEquals(10, $headers->get('X-RateLimit-Limit'), "X-RateLimit-Limit:$i");
-                $this->assertEquals(0, $headers->get('X-RateLimit-Remaining'), "X-RateLimit-Remaining:$i");
-                $this->assertEquals(60, $headers->get('Retry-After'), "Retry-After:$i");
-            }
-        }
-
-        usleep(1000000);
-        $this->dispatch('/route-throttled');
-
-        $response = $this->app->response;
-
-        $this->assertEquals($status, $response->getStatusCode());
-        $this->assertEquals($msg, $response->getContent());
-        $this->assertEquals(10, $response->getHeaders()->get('X-RateLimit-Limit'));
-        $this->assertEquals(0, $response->getHeaders()->get('X-RateLimit-Remaining'));
-        $this->assertLessThanOrEqual(59, $response->getHeaders()->get('Retry-After'));
+        $this->assertThrottled('/route', 10, 60);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
-    public function testWrongImplementedMiddleware()
+    public function testLoginMiddleware(): void
     {
-        new StubThrolledWrongImplemented(StubController::class, 0);
+        $this->assertThrottled('/login', 2, 30);
+    }
+
+    public function testOtherActionsAreNotThrottled(): void
+    {
+        for ($i = 0; $i < 11; $i++) {
+            $this->request('/');
+        }
+
+        $response = $this->request('/not-throttled');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertFalse($response->getHeaders()->get('X-RateLimit-Limit'));
+    }
+
+    public function testRoutesAreCountedSeparately(): void
+    {
+        for ($i = 0; $i < 11; $i++) {
+            $this->request('/route');
+        }
+
+        $this->assertSame('9', $this->request('/')->getHeaders()->get('X-RateLimit-Remaining'));
+    }
+
+    public function testCountersInADedicatedStore(): void
+    {
+        $this->getDI()->getShared(Services::CONFIG)->merge(['security' => ['throttle' => ['store' => 'file']]]);
+
+        $this->request('/route');
+
+        $this->assertNotSame([], glob(self::$cache_dir . '*') ?: []);
+        $this->assertNull($this->getDI()->getShared(Services::CACHE . '.memory')->getAdapter()->getKeys() ?: null);
+    }
+
+    public function testMiddlewareWithoutName(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(StubThrottleWithoutName::class . '->name is empty.');
+
+        new StubThrottleWithoutName(StubController::class, 1);
+    }
+
+    private function assertThrottled(string $url, int $max, int $decay): void
+    {
+        for ($i = 1; $i <= $max; $i++) {
+            $headers = $this->request($url)->getHeaders();
+
+            $this->assertSame((string) $max, $headers->get('X-RateLimit-Limit'), "request $i");
+            $this->assertSame((string) ($max - $i), $headers->get('X-RateLimit-Remaining'), "request $i");
+            $this->assertFalse($headers->get('Retry-After'), "request $i");
+        }
+
+        $response = $this->request($url);
+        $headers = $response->getHeaders();
+
+        $this->assertSame(StatusCode::TOO_MANY_REQUESTS, $response->getStatusCode());
+        $this->assertSame(StatusCode::message(StatusCode::TOO_MANY_REQUESTS), $response->getContent());
+        $this->assertSame((string) $max, $headers->get('X-RateLimit-Limit'));
+        $this->assertSame('0', $headers->get('X-RateLimit-Remaining'));
+        $this->assertContains($headers->get('Retry-After'), [(string) $decay, (string) ($decay - 1)]);
+    }
+
+    private function request(string $url): Response
+    {
+        $di = $this->getDI();
+        $di->remove(Services::RESPONSE);
+        $di->setShared(Services::RESPONSE, new Response());
+
+        $this->dispatch($url);
+
+        /** @var Response */
+        return $di->getShared(Services::RESPONSE);
     }
 }
 
-class StubThrolledWrongImplemented extends Throttle{}
+final class StubThrottleWithoutName extends Throttle {}

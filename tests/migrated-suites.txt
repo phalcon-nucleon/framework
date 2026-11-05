@@ -1,0 +1,29 @@
+# Test suites (as named in phpunit.xml) already ported to Nucleon 2.0.
+# Only these suites run in CI. Each epic adds its suites here once they pass.
+Assert
+Auth
+Cache
+Cli
+Database
+Debug
+Config
+Design
+Dotconst
+Error
+Events
+Facades
+Foundation
+Helpers
+Http
+HttpClient
+Micro
+Middleware
+Models
+Optimize
+Process
+Providers
+Rector
+Repositories
+Security
+Support
+View

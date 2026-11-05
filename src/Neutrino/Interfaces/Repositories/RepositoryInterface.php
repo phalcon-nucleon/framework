@@ -1,120 +1,103 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Interfaces\Repositories;
 
+use Generator;
+use Phalcon\Messages\MessageInterface;
+use Phalcon\Mvc\Model\ResultsetInterface;
+use Phalcon\Mvc\ModelInterface;
+
 /**
- * Interface RepositoryInterface
+ * Queries and writes of a model.
  *
- * @package Neutrino\Interfaces\Repositories
+ * `$params` are conditions on the model attributes, joined with AND:
+ * - `'name' => 'Nucleon'`: `name = 'Nucleon'` (any scalar), `'name' => null`: `name IS NULL`;
+ * - `'id' => [1, 2]`: `id IN (1, 2)`;
+ * - `'name' => ['operator' => 'LIKE', 'value' => 'N%']`, with `=`, `!=`, `<>`, `<`, `<=`, `>`, `>=`, `LIKE`,
+ *   `NOT LIKE`, `IN`, `NOT IN`, `IS NULL`, `IS NOT NULL`.
+ *
+ * `$order`: `['name', 'id' => 'DESC']`. Unknown attributes, operators and directions throw an
+ * `\InvalidArgumentException`: the values are bound, the names never reach the query unchecked.
  */
 interface RepositoryInterface
 {
     /**
-     * Retourne tous les models d'une table.
-     *
-     * @return \Phalcon\Mvc\Model\ResultsetInterface|\Neutrino\Model[]|\Phalcon\Mvc\Model[]
      */
-    public function all();
+    public function all(): ResultsetInterface;
 
     /**
-     * @param null|array $params Wheres Criteria ...
-     *
-     * @return \Phalcon\Mvc\Model\ResultsetInterface|int
+     * @param array<string, mixed>|null $params
      */
-    public function count(array $params = null);
+    public function count(?array $params = null): int;
 
     /**
-     * Recherche & renvoie une liste de model selon les criteria transmis
+     * @param array<string, mixed>   $params
+     * @param array<int|string, string>|null $order
      *
-     * @param array      $params Wheres Criteria ...
-     * @param array|null $order  Order By ...
-     * @param int|null   $limit  Limit By ...
-     * @param int|null   $offset OffSet ...
-     *
-     * @return \Neutrino\Model[]|\Phalcon\Mvc\Model[]|\Phalcon\Mvc\Model\ResultsetInterface
+     * @return ResultsetInterface
      */
-    public function find(array $params = [], array $order = null, $limit = null, $offset = null);
+    public function find(array $params = [], ?array $order = null, ?int $limit = null, ?int $offset = null): ResultsetInterface;
 
     /**
-     * Recherche & renvoie le premier model selon les criteria transmis
+     * @param array<string, mixed>   $params
+     * @param array<int|string, string>|null $order
      *
-     * @param array      $params Wheres Criteria ...
-     * @param array|null $order  Order By ...
-     *
-     * @return bool|\Neutrino\Model|\Phalcon\Mvc\Model
+     * @return ModelInterface<mixed>|null
      */
-    public function first(array $params = [], array $order = null);
+    public function first(array $params = [], ?array $order = null): ?ModelInterface;
 
     /**
-     * @param array $params
-     * @param bool  $create
-     * @param bool  $withTransaction
+     * The first model matching `$params`, or a new one filled with them (created when `$create`).
      *
-     * @return \Neutrino\Model|\Phalcon\Mvc\Model
+     * @param array<string, mixed> $params
+     *
+     * @return ModelInterface<mixed>
      */
-    public function firstOrNew(array $params = [], $create = false, $withTransaction = false);
+    public function firstOrNew(array $params = [], bool $create = false, bool $withTransaction = false): ModelInterface;
 
     /**
-     * @param array $params
-     * @param bool  $withTransaction
+     * @param array<string, mixed> $params
      *
-     * @return \Neutrino\Model|\Phalcon\Mvc\Model
+     * @return ModelInterface<mixed>
      */
-    public function firstOrCreate(array $params = [], $withTransaction = false);
+    public function firstOrCreate(array $params = [], bool $withTransaction = false): ModelInterface;
 
     /**
-     * Appel la methode create sur le, ou les, models transmis, dans une transaction.
-     *
-     * @param \Neutrino\Model|\Neutrino\Model[]|\Phalcon\Mvc\Model|\Phalcon\Mvc\Model[] $value
-     * @param bool                                                                      $withTransaction
-     *
-     * @return bool
+     * @param ModelInterface<mixed>|list<ModelInterface<mixed>> $value
      */
-    public function create($value, $withTransaction = true);
+    public function create(ModelInterface|array $value, bool $withTransaction = true): bool;
 
     /**
-     * Appel la methode save sur le, ou les, models transmis, dans une transaction.
-     *
-     * @param \Neutrino\Model|\Neutrino\Model[]|\Phalcon\Mvc\Model|\Phalcon\Mvc\Model[] $value
-     * @param bool                                                                      $withTransaction
-     *
-     * @return bool
+     * @param ModelInterface<mixed>|list<ModelInterface<mixed>> $value
      */
-    public function save($value, $withTransaction = true);
+    public function save(ModelInterface|array $value, bool $withTransaction = true): bool;
 
     /**
-     * Appel la methode update sur le, ou les, models transmis, dans une transaction.
-     *
-     * @param \Neutrino\Model|\Neutrino\Model[]|\Phalcon\Mvc\Model|\Phalcon\Mvc\Model[] $value
-     * @param bool                                                                      $withTransaction
-     *
-     * @return bool
+     * @param ModelInterface<mixed>|list<ModelInterface<mixed>> $value
      */
-    public function update($value, $withTransaction = true);
+    public function update(ModelInterface|array $value, bool $withTransaction = true): bool;
 
     /**
-     * Appel la methode delete sur le, ou les, models transmis, dans une transaction.
-     *
-     * @param \Neutrino\Model|\Neutrino\Model[]|\Phalcon\Mvc\Model|\Phalcon\Mvc\Model[] $value
-     * @param bool                                                                      $withTransaction
-     *
-     * @return bool
+     * @param ModelInterface<mixed>|list<ModelInterface<mixed>> $value
      */
-    public function delete($value, $withTransaction = true);
+    public function delete(ModelInterface|array $value, bool $withTransaction = true): bool;
 
     /**
-     * Use as :
-     * foreach($repository->each() as $model){
-     *     // ... do some stuff
-     * }
+     * Messages of the last failed write.
      *
-     * @param array      $params
-     * @param null|int   $start
-     * @param null|int   $end
-     * @param int        $pad
-     * @param array|null $order
-     *
-     * @return \Generator|\Neutrino\Model[]|\Phalcon\Mvc\Model[]
+     * @return list<MessageInterface|string>
      */
-    public function each(array $params = [], $start = null, $end = null, $pad = 100, array $order = null);
+    public function getMessages(): array;
+
+    /**
+     * Iterates over the models matching `$params`, `$pad` rows per query, from the row `$start` to `$end`.
+     *
+     * @param array<string, mixed>   $params
+     * @param array<int|string, string>|null $order
+     *
+     * @return Generator<int, ModelInterface<mixed>>
+     */
+    public function each(array $params = [], ?int $start = null, ?int $end = null, int $pad = 100, ?array $order = null): Generator;
 }

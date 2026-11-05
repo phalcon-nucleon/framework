@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Middleware\Stub;
 
 use Neutrino\Foundation\Middleware\Controller;
@@ -45,7 +47,7 @@ class ControllerForwardMiddlewareStub extends Controller implements
 
         $this->dispatcher->forward([
             'controller' => $this->forwardClass,
-            'action'     => $this->forwardAction
+            'action'     => $this->forwardAction,
         ]);
     }
 }

@@ -3,7 +3,7 @@
 namespace Fake\Kernels\Cli;
 
 use Neutrino\Foundation\Cli\Kernel as CliApplication;
-use Phalcon\Di;
+use Phalcon\Di\Di;
 
 /**
  * Class StubKernelEmpty
@@ -13,21 +13,21 @@ use Phalcon\Di;
 class StubKernelCliEmpty extends CliApplication
 {
 
-    protected $dependencyInjection = Di::class;
+    protected ?string $dependencyInjection = Di::class;
 
     /**
      * Return the Provider List to load.
      *
      * @var string[]
      */
-    protected $providers = [];
+    protected array $providers = [];
 
     /**
      * Register the routes.
      *
      * @return void
      */
-    public function registerRoutes()
+    public function registerRoutes(): void
     {
         // TODO: Implement registerRoutes() method.
     }

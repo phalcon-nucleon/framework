@@ -1,27 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Interfaces\Middleware;
 
 use Phalcon\Events\Event;
 
-/**
- * Interface FinishMiddleware
- *
- *  @package Neutrino\Middleware
- *
- * Middleware finish handled
- */
 interface FinishInterface
 {
     /**
-     * Called before the execution of handler
+     * Called at the end of the request (before the response is sent, or at the end of the dispatch loop).
      *
-     * @param \Phalcon\Events\Event $event
-     * @param \Phalcon\Dispatcher|mixed   $source
-     * @param mixed|null                  $data
+     * No return type is imposed, so that implementations may return nothing:
+     * only `false` has an effect (it stops cancelable events).
      *
-     * @throws \Exception
-     * @return bool
+     * @param object $source The application, the dispatcher…
+     * @param mixed  $data   Data of the event
+     *
+     * @return bool|null|void
      */
-    public function finish(Event $event, $source, $data = null);
+    public function finish(Event $event, object $source, mixed $data = null);
 }

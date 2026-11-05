@@ -1,408 +1,362 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Repositories;
 
+use Generator;
+use InvalidArgumentException;
+use Neutrino\Constants\Services;
 use Neutrino\Interfaces\Repositories\RepositoryInterface;
 use Neutrino\Repositories\Exceptions\TransactionException;
-use Neutrino\Support\Arr;
 use Phalcon\Di\Injectable;
-use Phalcon\Mvc\Model\Transaction;
+use Phalcon\Messages\MessageInterface;
+use Phalcon\Mvc\Model\ResultsetInterface;
+use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
+use Phalcon\Mvc\ModelInterface;
+use RuntimeException;
+use Throwable;
 
 /**
- * Class Repository
- *
- * @package Neutrino\Repositories
+ * Queries and writes of a model: `protected ?string $modelClass = User::class;`. See {@see RepositoryInterface}
+ * for the conditions.
  */
 abstract class Repository extends Injectable implements RepositoryInterface
 {
-    /** @var \Neutrino\Model */
-    protected $modelClass;
-
-    /** @var \Phalcon\Mvc\Model\MessageInterface[] */
-    protected $messages = [];
+    /**
+     * Operators accepted in the conditions.
+     *
+     * @var list<string>
+     */
+    public const array OPERATORS = ['=', '!=', '<>', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'];
 
     /**
-     * Repository constructor.
-     *
-     * @param null $modelClass
-     *
-     * @throws \RuntimeException
+     * @var class-string<ModelInterface<mixed>>|null
      */
-    public function __construct($modelClass = null)
-    {
-        $this->modelClass = is_null($modelClass) ? $this->modelClass : $modelClass;
+    protected ?string $modelClass = null;
 
-        if (empty($this->modelClass)) {
-            throw new \RuntimeException(static::class . ' must have a $modelClass.');
+    /**
+     * @var list<MessageInterface|string>
+     */
+    protected array $messages = [];
+
+    /**
+     * Attributes of the model, by name.
+     *
+     * @var array<string, true>|null
+     */
+    private ?array $attributes = null;
+
+    /**
+     * @param class-string<ModelInterface<mixed>>|null $modelClass
+     */
+    public function __construct(?string $modelClass = null)
+    {
+        $this->modelClass = $modelClass ?? $this->modelClass;
+
+        if ($this->modelClass === null) {
+            throw new RuntimeException(static::class . ' must have a $modelClass.');
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function all()
+    public function all(): ResultsetInterface
     {
-        $class = $this->modelClass;
+        return self::resultset($this->model()::find());
+    }
 
-        return $class::find();
+    public function count(?array $params = null): int
+    {
+        $count = $this->model()::count($this->paramsToCriteria($params ?? []));
+
+        // A ResultsetInterface when the count is grouped.
+        return is_int($count) ? $count : ($count instanceof \Countable ? count($count) : 0);
+    }
+
+    public function find(array $params = [], ?array $order = null, ?int $limit = null, ?int $offset = null): ResultsetInterface
+    {
+        return self::resultset($this->model()::find($this->paramsToCriteria($params, $order, $limit, $offset)));
+    }
+
+    public function first(array $params = [], ?array $order = null): ?ModelInterface
+    {
+        $model = $this->model()::findFirst($this->paramsToCriteria($params, $order));
+
+        return $model instanceof ModelInterface ? $model : null;
     }
 
     /**
-     * @inheritdoc
+     * @param array<string, mixed>           $params
+     * @param array<int|string, string>|null $order
      */
-    public function count(array $params = null)
+    public function average(string $column, array $params = [], ?array $order = null, ?int $limit = null, ?int $offset = null): mixed
     {
-        $class = $this->modelClass;
-
-        return $class::count($this->paramsToCriteria($params));
+        return $this->model()::average(['column' => $this->attribute($column)] + $this->paramsToCriteria($params, $order, $limit, $offset));
     }
 
     /**
-     * @inheritdoc
+     * @param array<string, mixed>           $params
+     * @param array<int|string, string>|null $order
      */
-    public function find(array $params = [], array $order = null, $limit = null, $offset = null)
+    public function minimum(string $column, array $params = [], ?array $order = null, ?int $limit = null, ?int $offset = null): mixed
     {
-        $class = $this->modelClass;
-
-        return $class::find($this->paramsToCriteria($params, $order, $limit, $offset));
+        return $this->model()::minimum(['column' => $this->attribute($column)] + $this->paramsToCriteria($params, $order, $limit, $offset));
     }
 
     /**
-     * @inheritdoc
+     * @param array<string, mixed>           $params
+     * @param array<int|string, string>|null $order
      */
-    public function first(array $params = [], array $order = null)
+    public function maximum(string $column, array $params = [], ?array $order = null, ?int $limit = null, ?int $offset = null): mixed
     {
-        $class = $this->modelClass;
-
-        return $class::findFirst($this->paramsToCriteria($params, $order));
+        return $this->model()::maximum(['column' => $this->attribute($column)] + $this->paramsToCriteria($params, $order, $limit, $offset));
     }
 
-    public function average($column, array $params = [], array $order = null, $limit = null, $offset = null)
-    {
-        $class = $this->modelClass;
-
-        $parameters = $this->paramsToCriteria($params, $order, $limit, $offset);
-
-        $parameters['column'] = $column;
-
-        return $class::average($parameters);
-    }
-
-    public function minimum($column, array $params = [], array $order = null, $limit = null, $offset = null)
-    {
-        $class = $this->modelClass;
-
-        $parameters = $this->paramsToCriteria($params, $order, $limit, $offset);
-
-        $parameters['column'] = $column;
-
-        return $class::minimum($parameters);
-    }
-
-    public function maximum($column, array $params = [], array $order = null, $limit = null, $offset = null)
-    {
-        $class = $this->modelClass;
-
-        $parameters = $this->paramsToCriteria($params, $order, $limit, $offset);
-
-        $parameters['column'] = $column;
-
-        return $class::maximum($parameters);
-    }
-
-    /**
-     * @param array $params
-     * @param bool  $create
-     * @param bool  $withTransaction
-     *
-     * @return \Neutrino\Model|\Phalcon\Mvc\Model
-     * @throws \Neutrino\Repositories\Exceptions\TransactionException
-     */
-    public function firstOrNew(array $params = [], $create = false, $withTransaction = false)
+    public function firstOrNew(array $params = [], bool $create = false, bool $withTransaction = false): ModelInterface
     {
         $model = $this->first($params);
 
-        if ($model === false) {
-            $class = $this->modelClass;
+        if ($model !== null) {
+            return $model;
+        }
 
-            $model = new $class;
+        $class = $this->model();
+        $model = new $class();
 
-            foreach ($params as $key => $param) {
-                $model->$key = $param;
-            }
+        $data = [];
+        foreach ($params as $key => $param) {
+            $data[$this->attribute($key)] = $param;
+        }
+        $model->assign($data);
 
-            if ($create && $this->create($model, $withTransaction) === false) {
-                throw new TransactionException(__METHOD__ . ': can\'t create model : ' . get_class($model));
-            };
+        if ($create && !$this->create($model, $withTransaction)) {
+            throw new TransactionException(__METHOD__ . ': can\'t create model: ' . $model::class);
         }
 
         return $model;
     }
 
-    /**
-     * @param array $params
-     * @param bool  $withTransaction
-     *
-     * @return \Neutrino\Model|\Phalcon\Mvc\Model
-     */
-    public function firstOrCreate(array $params = [], $withTransaction = false)
+    public function firstOrCreate(array $params = [], bool $withTransaction = false): ModelInterface
     {
         return $this->firstOrNew($params, true, $withTransaction);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function each(array $params = [], $start = null, $end = null, $pad = 100, array $order = null)
+    public function each(array $params = [], ?int $start = null, ?int $end = null, int $pad = 100, ?array $order = null): Generator
     {
-        if (is_null($start)) {
-            $start = 0;
-        }
+        $start ??= 0;
 
-        if (is_null($end)) {
-            $end = INF;
-        }
-
-        if ($start >= $end) {
+        if ($pad < 1 || ($end !== null && $start >= $end)) {
             return;
         }
 
-        $class = $this->modelClass;
+        $index = 0;
 
-        $nb   = ceil(($end - $start) / $pad);
-        $idx  = 0;
-        $page = 0;
-        do {
-            $finish = true;
+        for ($offset = $start; $end === null || $offset < $end; $offset += $pad) {
+            $limit = $end === null ? $pad : min($pad, $end - $offset);
+            $count = 0;
 
-            $models = $class::find($this->paramsToCriteria($params, $order, $pad, ($start + ($pad * $page))));
+            foreach ($this->model()::find($this->paramsToCriteria($params, $order, $limit, $offset)) as $model) {
+                $count++;
 
-            foreach ($models as $model) {
-                $finish = false;
-
-                yield $idx => $model;
-
-                $idx++;
+                /** @var ModelInterface<mixed> $model */
+                yield $index++ => $model;
             }
 
-            $page++;
-
-            if ($page >= $nb) {
-                $finish = true;
+            // A partial page is the last one.
+            if ($count < $limit) {
+                return;
             }
-        } while (!$finish);
-    }
-
-    /**
-     * @param \Neutrino\Model|\Neutrino\Model[] $value
-     * @param bool                              $withTransaction
-     *
-     * @return bool
-     */
-    public function create($value, $withTransaction = true)
-    {
-        if ($withTransaction) {
-            return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
         }
-
-        return $this->basicCall(is_array($value) ? $value : [$value], __FUNCTION__);
     }
 
-    /**
-     * @param \Neutrino\Model|\Neutrino\Model[] $value
-     * @param bool                              $withTransaction
-     *
-     * @return bool
-     */
-    public function save($value, $withTransaction = true)
+    public function create(ModelInterface|array $value, bool $withTransaction = true): bool
     {
-        if ($withTransaction) {
-            return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
-        }
-
-        return $this->basicCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        return $this->write(is_array($value) ? $value : [$value], 'create', $withTransaction);
     }
 
-    /**
-     * @param \Neutrino\Model|\Neutrino\Model[] $value
-     * @param bool                              $withTransaction
-     *
-     * @return bool
-     */
-    public function update($value, $withTransaction = true)
+    public function save(ModelInterface|array $value, bool $withTransaction = true): bool
     {
-        if ($withTransaction) {
-            return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
-        }
-
-        return $this->basicCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        return $this->write(is_array($value) ? $value : [$value], 'save', $withTransaction);
     }
 
-    /**
-     * @param \Neutrino\Model|\Neutrino\Model[] $value
-     * @param bool                              $withTransaction
-     *
-     * @return bool
-     */
-    public function delete($value, $withTransaction = true)
+    public function update(ModelInterface|array $value, bool $withTransaction = true): bool
     {
-        if ($withTransaction) {
-            return $this->transactionCall(is_array($value) ? $value : [$value], __FUNCTION__);
-        }
-
-        return $this->basicCall(is_array($value) ? $value : [$value], __FUNCTION__);
+        return $this->write(is_array($value) ? $value : [$value], 'update', $withTransaction);
     }
 
-    /**
-     * @return \Phalcon\Mvc\Model\MessageInterface[]
-     */
-    public function getMessages()
+    public function delete(ModelInterface|array $value, bool $withTransaction = true): bool
+    {
+        return $this->write(is_array($value) ? $value : [$value], 'delete', $withTransaction);
+    }
+
+    public function getMessages(): array
     {
         return $this->messages;
     }
 
     /**
-     * @param array      $params
-     * @param array|null $orders
-     * @param null       $limit
-     * @param null       $offset
+     * Builds the criteria of `find()`: conditions on checked attribute names and operators, bound values.
      *
-     * @return array
+     * @param array<string, mixed>           $params
+     * @param array<int|string, string>|null $orders
+     *
+     * @return array<int|string, mixed>
      */
-    protected function paramsToCriteria(array $params = null, array $orders = null, $limit = null, $offset = null)
+    protected function paramsToCriteria(array $params = [], ?array $orders = null, ?int $limit = null, ?int $offset = null): array
     {
         $criteria = [];
+        $clauses = [];
+        $bind = [];
+        $index = 0;
 
-        if (!empty($params)) {
-            $clauses = [];
+        foreach ($params as $key => $value) {
+            $column = '[' . $this->attribute((string) $key) . ']';
+            $placeholder = 'p' . $index++;
+            $operator = null;
 
-            foreach ($params as $key => $value) {
-                if (is_array($value)) {
-                    if(isset($value['operator']) && array_key_exists('value', $value)){
-                        if(is_array($value['value'])){
-                            $clauses[] = "$key {$value['operator']} ({{$key}:array})";
-                        } else {
-                            $clauses[] = "$key {$value['operator']} :$key:";
-                        }
-                        $params[$key] = $value['value'];
-                    } else {
-                        $clauses[] = "$key IN ({{$key}:array})";
-                    }
-                } elseif (is_string($value)) {
-                    $clauses[] = "$key LIKE :$key:";
-                } else {
-                    $clauses[] = "$key = :$key:";
+            if (is_array($value) && array_key_exists('operator', $value)) {
+                $operator = is_string($value['operator']) ? strtoupper(trim($value['operator'])) : '';
+                $value = $value['value'] ?? null;
+
+                if (!in_array($operator, self::OPERATORS, true)) {
+                    throw new InvalidArgumentException(static::class . ': unknown operator "' . $operator . '".');
                 }
             }
 
-            $criteria = [
-                implode(' AND ', $clauses),
-                'bind' => $params
-            ];
+            $operator ??= match (true) {
+                $value === null  => 'IS NULL',
+                is_array($value) => 'IN',
+                default          => '=',
+            };
+
+            if ($operator === 'IS NULL' || $operator === 'IS NOT NULL') {
+                $clauses[] = "$column $operator";
+            } elseif ($operator === 'IN' || $operator === 'NOT IN') {
+                $clauses[] = "$column $operator ({{$placeholder}:array})";
+                $bind[$placeholder] = is_array($value) ? array_values($value) : [$value];
+            } else {
+                $clauses[] = "$column $operator :$placeholder:";
+                $bind[$placeholder] = $value;
+            }
         }
 
-        if (!empty($orders)) {
-            $_orders = [];
-            foreach ($orders as $key => $order) {
-                if (is_int($key)) {
-                    $key   = $order;
-                    $order = 'ASC';
+        if ($clauses !== []) {
+            $criteria = [implode(' AND ', $clauses), 'bind' => $bind];
+        }
+
+        if ($orders !== null && $orders !== []) {
+            $sorts = [];
+            foreach ($orders as $key => $direction) {
+                [$attribute, $direction] = is_int($key) ? [$direction, 'ASC'] : [$key, strtoupper($direction)];
+
+                if ($direction !== 'ASC' && $direction !== 'DESC') {
+                    throw new InvalidArgumentException(static::class . ': unknown sort direction "' . $direction . '".');
                 }
-                $_orders[] = "$key $order";
+
+                $sorts[] = '[' . $this->attribute($attribute) . '] ' . $direction;
             }
 
-            $criteria['order'] = implode(', ', $_orders);
+            $criteria['order'] = implode(', ', $sorts);
         }
 
-        if (isset($limit)) {
+        if ($limit !== null) {
             $criteria['limit'] = $limit;
         }
-
-        if (isset($offset)) {
+        if ($offset !== null) {
             $criteria['offset'] = $offset;
         }
 
         return $criteria;
     }
 
-    /**
-     * @param array $values
-     * @param       $method
-     *
-     * @return bool
-     */
-    protected function basicCall(array $values, $method)
+    private static function resultset(mixed $found): ResultsetInterface
     {
-        try {
-            $this->messages = [];
-
-            foreach ($values as $item) {
-                if ($item->$method() === false) {
-                    $this->messages = array_merge($this->messages, $item->getMessages());
-                }
-            }
-
-            if (!empty($this->messages)) {
-                throw new TransactionException(
-                    get_class(Arr::fetch($values, 0)) . ':' . $method .
-                    ': failed. Show ' . static::class . '::getMessages().'
-                );
-            }
-        } catch (\Exception $e) {
-            $this->messages[] = $e->getMessage();
-
-            return false;
-        }
-
-        return true;
+        return $found instanceof ResultsetInterface ? $found : throw new RuntimeException('find() did not return a resultset.');
     }
 
     /**
-     * @param \Neutrino\Model[]|\Phalcon\Mvc\Model[] $values
-     * @param string                                 $method
-     *
-     * @return bool
+     * @return class-string<ModelInterface<mixed>>
      */
-    protected function transactionCall(array $values, $method)
+    protected function model(): string
     {
-        if (empty($values)) {
+        /** @var class-string<ModelInterface<mixed>> */
+        return $this->modelClass;
+    }
+
+    /**
+     * Checks an attribute name of the model.
+     */
+    protected function attribute(string $name): string
+    {
+        if ($this->attributes === null) {
+            $class = $this->model();
+            $model = new $class();
+            $metaData = $model->getModelsMetaData();
+            $map = $metaData->getColumnMap($model);
+
+            $this->attributes = array_fill_keys(is_array($map) ? array_values($map) : $metaData->getAttributes($model), true);
+        }
+
+        if (!isset($this->attributes[$name])) {
+            throw new InvalidArgumentException(static::class . ': unknown attribute "' . $name . '" of ' . $this->model() . '.');
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param array<ModelInterface<mixed>> $models
+     */
+    private function write(array $models, string $method, bool $withTransaction): bool
+    {
+        $this->messages = [];
+
+        if ($models === []) {
             return true;
         }
 
-        /** @var \Phalcon\Mvc\Model\Transaction $tx */
-        $tx = $this->getDI()->getShared(Transaction\Manager::class)->get();
+        $transaction = null;
+        if ($withTransaction) {
+            /** @var TransactionManager $manager */
+            $manager = $this->getDI()->getShared(Services::TRANSACTION_MANAGER);
+            $transaction = $manager->get();
+        }
 
         try {
-            $this->messages = [];
+            foreach ($models as $model) {
+                if ($transaction !== null) {
+                    $model->setTransaction($transaction);
+                }
 
-            foreach ($values as $item) {
-
-                $item->setTransaction($tx);
-
-                if ($item->$method() === false) {
-                    $this->messages = array_merge($this->messages, $item->getMessages());
+                if ($model->$method() === false) {
+                    /** @var list<MessageInterface> $messages */
+                    $messages = $model->getMessages();
+                    array_push($this->messages, ...$messages);
                 }
             }
 
-            if (!empty($this->messages)) {
-                throw new TransactionException(
-                    get_class(Arr::fetch($values, 0)) . ':' . $method .
-                    ': failed. Show ' . static::class . '::getMessages().'
-                );
+            if ($this->messages !== []) {
+                throw new TransactionException(reset($models)::class . ':' . $method . ': failed. Show ' . static::class . '::getMessages().');
             }
 
-            if ($tx->commit() === false) {
+            if ($transaction !== null && !$transaction->commit()) {
                 throw new TransactionException('Commit failed.');
             }
 
             return true;
-        } catch (\Exception $e) {
-            $tx->rollback();
+        } catch (Throwable $e) {
+            if ($transaction !== null) {
+                try {
+                    $transaction->rollback();
+                } catch (Throwable) {
+                    // the rollback exception of Phalcon: the messages are read below
+                }
+
+                /** @var list<MessageInterface> $messages */
+                $messages = $transaction->getMessages();
+                array_push($this->messages, ...$messages);
+            }
 
             $this->messages[] = $e->getMessage();
-            if (!is_null($messages = $tx->getMessages())) {
-                $this->messages = array_merge($this->messages, $messages);
-            }
 
             return false;
         }

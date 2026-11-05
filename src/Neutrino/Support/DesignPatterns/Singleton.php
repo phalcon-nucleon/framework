@@ -1,48 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Support\DesignPatterns;
+
 use Phalcon\Di\Injectable;
+use RuntimeException;
 
 /**
- * Class Singleton
+ * Singleton design pattern: one instance per subclass.
  *
- * Singleton Design Pattern
- * 
- *  @package Neutrino\Support\DesignPatterns
+ * @phpstan-consistent-constructor
  */
 abstract class Singleton extends Injectable
 {
     /**
-     * @var static
+     * @var array<class-string<static>, static>
      */
-    private static $instance;
+    private static array $instances = [];
+
+    protected function __construct() {}
 
     /**
-     * Singleton constructor.
+     * @throws RuntimeException
      */
-    protected function __construct()
+    private function __clone()
     {
+        throw new RuntimeException('Try to clone Singleton instance.');
     }
 
     /**
-     * @throws \RuntimeException
+     * Instantiates and returns the instance of the called class.
      */
-    final private function __clone()
+    public static function instance(): static
     {
-        throw new \RuntimeException('Try to clone Singleton instance.');
-    }
-
-    /**
-     * Instantiate & return static instance
-     *
-     * @return static
-     */
-    public static function instance()
-    {
-        if (self::$instance == null) {
-            self::$instance = new static();
-        }
-
-        return self::$instance;
+        /** @var static */
+        return self::$instances[static::class] ??= new static();
     }
 }

@@ -1,74 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Migrations\Storage;
 
 /**
- * Interface StorageInterface
+ * The migrations that ran, and their batch.
  *
- * @package Neutrino\Database\Migrations\Storage
+ * @phpstan-type MigrationRow array{migration: string, batch: int}
  */
 interface StorageInterface
 {
     /**
-     * Get the ran migrations.
+     * The migrations that ran, in their order.
      *
-     * @return array
+     * @return list<string>
      */
-    public function getRan();
+    public function getRan(): array;
 
     /**
-     * Get list of migrations.
+     * The last `$steps` migrations that ran, the last one first.
      *
-     * @param  int  $steps
-     * @return array
+     * @return list<MigrationRow>
      */
-    public function getMigrations($steps);
+    public function getMigrations(int $steps): array;
 
     /**
-     * Get the last migration batch.
+     * The migrations of the last batch, the last one first.
      *
-     * @return array
+     * @return list<MigrationRow>
      */
-    public function getLast();
+    public function getLast(): array;
 
     /**
      * Log that a migration was run.
-     *
-     * @param string $migration Migration Name
-     * @param int    $batch     Batch number
-     *
-     * @throws \Exception
-     * @return void
      */
-    public function log($migration, $batch);
+    public function log(string $migration, int $batch): void;
 
     /**
      * Remove a migration from the log.
-     *
-     * @param string $migration Migration Name
-     *
-     * @throws \Exception
-     * @return void
      */
-    public function delete($migration);
+    public function delete(string $migration): void;
 
-    /**
-     * @return int
-     */
-    public function getLastBatchNumber();
+    public function getLastBatchNumber(): int;
 
-    /**
-     * @return int
-     */
-    public function getNextBatchNumber();
+    public function getNextBatchNumber(): int;
 
-    /**
-     * @return bool
-     */
-    public function createStorage();
+    public function createStorage(): bool;
 
-    /**
-     * @return bool
-     */
-    public function storageExist();
+    public function storageExist(): bool;
 }

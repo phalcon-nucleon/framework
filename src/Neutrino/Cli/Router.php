@@ -1,38 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Cli;
 
+use Phalcon\Cli\Router\RouteInterface;
+
 /**
- * Class Router
- *
- *  @package Neutrino\Cli
+ * Console router, with routes to task classes.
  */
 class Router extends \Phalcon\Cli\Router
 {
     /**
-     * Adds a route to the router, with task as class.
+     * Adds a command handled by a task class. `{param}` parts become named parameters.
      *
-     * ex : $router->addTask('some', SomeTask::class);
+     * ex : $router->addTask('make:migration {name}', MakerTask::class);
      *
-     * @param string      $command
-     * @param string      $class
-     * @param string|null $action
-     * @param array       $params
-     *
-     * @return \Phalcon\Cli\Router\Route|\Phalcon\Cli\Router\RouteInterface
+     * @param class-string             $class
+     * @param array<string, mixed>     $params
      */
-    public function addTask($command, $class, $action = null, array $params = [])
+    public function addTask(string $command, string $class, ?string $action = null, array $params = []): RouteInterface
     {
         $params['task'] = $class;
+        if ($action !== null) {
+            $params['action'] = $action;
+        }
 
-        $params['action'] = $action;
+        preg_match_all('/\{(\w+)\}/', $command, $matches);
 
-        preg_match_all('/\{([\w_]+)\}/', $command, $matches);
-
-        foreach ($matches[0] as $k => $match) {
+        foreach ($matches[0] as $position => $match) {
             $command = str_replace($match, '([[:word:]]+)', $command);
 
-            $params[substr($match, 1, -1)] = $k + 1;
+            $params[$matches[1][$position]] = $position + 1;
         }
 
         return $this->add($command, $params);

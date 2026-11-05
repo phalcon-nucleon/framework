@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Middleware;
 
 use Fake\Kernels\Http\Controllers\StubController;
@@ -15,9 +17,9 @@ use Test\TestCase\TestListenize;
  *
  * @package Test
  */
-class MiddlewareTest extends TestCase
+final class MiddlewareTest extends TestCase
 {
-    public function testControllerMiddleware()
+    public function testControllerMiddleware(): void
     {
         // GIVEN
         $middleware = new ControllerMiddlewareStub(StubController::class);
@@ -41,7 +43,7 @@ class MiddlewareTest extends TestCase
         $this->assertEquals(1, count($middleware->getView('finish')));
     }
 
-    public function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -52,7 +54,7 @@ class MiddlewareTest extends TestCase
     /**
      * @return array
      */
-    public function dataFiltereControllerMiddleware()
+    public static function dataFiltereControllerMiddleware(): array
     {
         return [
             'only.indexAction'   => ['only', ['index'], 0, 1, 1, 1],
@@ -63,7 +65,6 @@ class MiddlewareTest extends TestCase
     }
 
     /**
-     * @dataProvider dataFiltereControllerMiddleware
      *
      * @param $filter
      * @param $methods
@@ -72,18 +73,19 @@ class MiddlewareTest extends TestCase
      * @param $after
      * @param $finish
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('dataFiltereControllerMiddleware')]
     public function testFilteredControllerMiddleware(
         $filter,
         $methods,
         $init,
         $before,
         $after,
-        $finish
-    ) {
+        $finish,
+    ): void {
         // GIVEN
         StubController::$middlewares[] = [
             'middleware' => ControllerMiddlewareStub::class,
-            'params'     => [$filter => $methods]
+            'params'     => [$filter => $methods],
         ];
 
         $this->app->useImplicitView(false);
@@ -101,7 +103,7 @@ class MiddlewareTest extends TestCase
         $this->assertEquals($finish, count($middleware->getView('finish')));
     }
 
-    public function testDispatchMiddleware()
+    public function testDispatchMiddleware(): void
     {
         // GIVEN
         $middleware = new DispatchMiddlewareStub();
@@ -125,7 +127,7 @@ class MiddlewareTest extends TestCase
         $this->assertEquals(1, count($middleware->getView('finish')));
     }
 
-    public function testApplicationMiddleware()
+    public function testApplicationMiddleware(): void
     {
         // GIVEN
         $middleware = new ApplicationMiddlewareStub();
@@ -149,16 +151,16 @@ class MiddlewareTest extends TestCase
         $this->assertEquals(1, count($middleware->getView('finish')));
     }
 
-    public function testForwarded()
+    public function testForwarded(): void
     {
         StubController::$middlewares[] = [
             'middleware' => ControllerMiddlewareStub::class,
-            'params'     => ['only' => ['forwarded']]
+            'params'     => ['only' => ['forwarded']],
         ];
 
         StubController::$middlewares[] = [
             'middleware' => ControllerMiddlewareStub::class,
-            'params'     => ['only' => ['index']]
+            'params'     => ['only' => ['index']],
         ];
 
         $this->dispatch('/forwarded');
@@ -179,17 +181,17 @@ class MiddlewareTest extends TestCase
         $this->assertEquals(1, count($middleware->getView('finish')));
     }
 
-    public function testForwardedByMiddleware()
+    public function testForwardedByMiddleware(): void
     {
         StubController::$middlewares[] = [
             'middleware' => ControllerForwardMiddlewareStub::class,
             'params'     => ['only' => ['return']],
-            'construct'  => ['Stub', 'index']
+            'construct'  => ['Stub', 'index'],
         ];
 
         StubController::$middlewares[] = [
             'middleware' => ControllerMiddlewareStub::class,
-            'params'     => ['only' => ['index']]
+            'params'     => ['only' => ['index']],
         ];
 
         $this->dispatch('/return');

@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Auth\Middleware;
 
 use Neutrino\Constants\Services;
-use Neutrino\Middleware\Throttle as ThrottleMiddleware;
+use Neutrino\Middleware\Throttle;
 
 /**
- * Class Throttle
- *
- *  @package Neutrino\Auth\Middleware
+ * Limits the login attempts: `'middleware' => [ThrottleLogin::class => [$max, $decaySeconds]]`.
  */
-class ThrottleLogin extends ThrottleMiddleware
+class ThrottleLogin extends Throttle
 {
-    protected $name = Services::AUTH;
+    protected string $name = Services::AUTH;
 }

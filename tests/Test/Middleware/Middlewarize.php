@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Test\Middleware;
 
 use Phalcon\Events\Event;

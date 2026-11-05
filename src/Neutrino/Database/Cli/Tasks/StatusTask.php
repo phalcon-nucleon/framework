@@ -1,64 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Neutrino\Database\Cli\Tasks;
 
+use Neutrino\Cli\Attribute\Description;
+use Neutrino\Cli\Attribute\Option;
 use Neutrino\Cli\Output\Decorate;
 
-/**
- * Class StatusTask
- *
- * @package Neutrino\Database\Cli\Tasks
- */
-class StatusTask extends BaseTask
+final class StatusTask extends BaseTask
 {
-    /**
-     * @description Show the status of each migration.
-     */
-    public function mainAction()
+    #[Description('Show the status of each migration.')]
+    #[Option('--path={path}', 'Path of the migrations, relative to the application.')]
+    public function mainAction(): void
     {
-        if (!$this->migrator->storageExist()) {
+        if (!$this->storage()->storageExist()) {
+            $this->error('Migration table not found.');
+
+            return;
+        }
+
+        $ran = array_flip($this->storage()->getRan());
+        $rows = [];
+
+        foreach (array_keys($this->migrator()->getMigrationFiles($this->getMigrationPaths())) as $name) {
+            $rows[] = [
+                'Ran?'      => isset($ran[$name]) ? Decorate::info('Y') : Decorate::apply('N', 'red'),
+                'Migration' => $name,
+            ];
+        }
+
+        if ($rows === []) {
             $this->error('No migrations found.');
 
             return;
         }
 
-        $ran = $this->migrator->getStorage()->getRan();
-
-        if (count($migrations = $this->getStatusFor($ran)) > 0) {
-            $this->table($migrations);
-        } else {
-            $this->error('No migrations found.');
-        }
-    }
-
-    /**
-     * Get the status for the given ran migrations.
-     *
-     * @param array $ran
-     *
-     * @return array
-     */
-    protected function getStatusFor(array $ran)
-    {
-        return array_map(function ($migration) use ($ran) {
-            $migrationName = $this->migrator->getMigrationName($migration);
-
-            return [
-                'Ran?'      => in_array($migrationName, $ran)
-                    ? Decorate::info('Y')
-                    : Decorate::apply('N', 'red'),
-                'Migration' => $migrationName
-            ];
-        }, $this->getAllMigrationFiles());
-    }
-
-    /**
-     * Get an array of all of the migration files.
-     *
-     * @return array
-     */
-    protected function getAllMigrationFiles()
-    {
-        return $this->migrator->getMigrationFiles($this->getMigrationPaths());
+        $this->table($rows);
     }
 }

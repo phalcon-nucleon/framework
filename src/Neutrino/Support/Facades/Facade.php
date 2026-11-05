@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Taylor Otwell
  *
@@ -7,188 +10,154 @@
 
 namespace Neutrino\Support\Facades;
 
+use LogicException;
 use Mockery;
 use Mockery\MockInterface;
-use Phalcon\DiInterface;
+use Phalcon\Di\DiInterface;
 use RuntimeException;
 
 /**
- * Class Facade
+ * Static proxy to a service of the container.
  *
- *  @package Neutrino\Support\Facades
+ * `shouldReceive()` needs mockery/mockery, a development dependency: it is only loaded when called.
  */
 abstract class Facade
 {
-    /**
-     * @var \Phalcon\DiInterface
-     */
-    protected static $di;
+    protected static ?DiInterface $di = null;
 
     /**
-     * The resolved object instances.
+     * The resolved object instances, by service name.
      *
-     * @var array
+     * @var array<string, object>
      */
-    protected static $resolvedInstance;
+    protected static array $resolvedInstance = [];
 
-    public static function clearResolvedInstances()
+    public static function clearResolvedInstances(): void
     {
         self::$resolvedInstance = [];
     }
 
-    /**
-     * @param \Phalcon\DiInterface $di
-     */
-    public static function setDependencyInjection(DiInterface $di)
+    public static function setDependencyInjection(DiInterface $di): void
     {
         static::$di = $di;
     }
 
     /**
-     * Hotswap the underlying instance behind the facade.
-     *
-     * @param  mixed $instance
-     *
-     * @return void
+     * Hotswaps the underlying instance behind the facade.
      */
-    public static function swap($instance)
+    public static function swap(object $instance): void
     {
-        self::$resolvedInstance[static::getFacadeAccessor()] = $instance;
+        $name = self::accessorName();
 
-        static::$di->setShared(static::getFacadeAccessor(), $instance);
+        self::$resolvedInstance[$name] = $instance;
+
+        self::replaceService($name, $instance);
     }
 
     /**
-     * Initiate a mock expectation on the facade.
+     * Initiates a mock expectation on the facade.
      *
-     * @param mixed ...$params
+     * @param array<string, mixed>|string ...$params
      *
-     * @return \Mockery\Expectation
+     * @return \Mockery\Expectation|\Mockery\CompositeExpectation|\Mockery\HigherOrderMessage
      */
-    public static function shouldReceive(...$params)
+    public static function shouldReceive(array|string ...$params): mixed
     {
-        $name = static::getFacadeAccessor();
-        if (static::isMock()) {
-            $mock = self::$resolvedInstance[$name];
-        } else {
-            $mock = static::createFreshMockInstance();
+        if (!class_exists(Mockery::class)) {
+            throw new LogicException(static::class . '::shouldReceive() requires mockery/mockery (composer require --dev mockery/mockery).');
         }
 
+        $name = self::accessorName();
+
+        $mock = static::isMock() ? self::$resolvedInstance[$name] : static::createFreshMockInstance();
+
+        /** @var MockInterface $mock */
         return $mock->shouldReceive(...$params);
     }
 
     /**
-     * Get the root object behind the facade.
-     *
-     * @return mixed
+     * Gets the root object behind the facade.
      */
-    public static function getFacadeRoot()
+    public static function getFacadeRoot(): object
     {
         return static::resolveFacadeInstance(static::getFacadeAccessor());
     }
 
     /**
-     * Handle dynamic, static calls to the object.
+     * Handles dynamic, static calls to the object.
      *
-     * @param  string $method
-     * @param  array  $args
-     *
-     * @return mixed
-     * @throws RuntimeException
+     * @param array<int|string, mixed> $args
      */
-    public static function __callStatic($method, $args)
+    public static function __callStatic(string $method, array $args): mixed
     {
-        $instance = static::getFacadeRoot();
-
-        if (!$instance) {
-            throw new RuntimeException('A facade root has not been set.');
-        }
-
-        if (empty($args)) {
-            return $instance->$method();
-        } else {
-            return $instance->$method(...$args);
-        }
+        return static::getFacadeRoot()->$method(...$args);
     }
 
     /**
-     * Get the registered name of the component.
-     *
-     * @return string
-     * @throws RuntimeException
+     * Gets the name of the service in the container, or the object itself.
      */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string|object
     {
         throw new RuntimeException('Facade does not implement getFacadeAccessor method.');
     }
 
     /**
-     * Create a fresh mock instance.
-     *
-     * @return MockInterface
+     * Creates a fresh mock instance and registers it as the service.
      */
-    protected static function createFreshMockInstance()
+    protected static function createFreshMockInstance(): MockInterface
     {
-        $name = static::getFacadeAccessor();
+        $name = self::accessorName();
 
         self::$resolvedInstance[$name] = $mock = static::createMockInstance();
 
         $mock->shouldAllowMockingProtectedMethods();
 
-        if (isset(static::$di)) {
-            static::$di->setShared($name, $mock);
-        }
+        self::replaceService($name, $mock);
 
         return $mock;
     }
 
-    /**
-     * Create a fresh mock instance.
-     *
-     * @return MockInterface
-     */
-    protected static function createMockInstance()
+    protected static function createMockInstance(): MockInterface
     {
         $class = static::getMockableClass();
 
-        return $class ? Mockery::mock($class) : Mockery::mock();
+        return $class !== null ? Mockery::mock($class) : Mockery::mock();
     }
 
     /**
      * Determines whether a mock is set as the instance of the facade.
-     *
-     * @return bool
      */
-    protected static function isMock()
+    protected static function isMock(): bool
     {
-        $name = static::getFacadeAccessor();
+        $name = self::accessorName();
 
         return isset(self::$resolvedInstance[$name]) && self::$resolvedInstance[$name] instanceof MockInterface;
     }
 
     /**
-     * Get the mockable class for the bound instance.
+     * Gets the class to mock: the class of the current root, if it can be resolved.
      *
-     * @return string|null
+     * @return class-string|null
      */
-    protected static function getMockableClass()
+    protected static function getMockableClass(): ?string
     {
-        if ($root = static::getFacadeRoot()) {
-            return get_class($root);
+        $name = self::accessorName();
+
+        if (isset(self::$resolvedInstance[$name])) {
+            return self::$resolvedInstance[$name]::class;
+        }
+
+        if (static::$di !== null && static::$di->has($name)) {
+            return static::resolveFacadeInstance($name)::class;
         }
 
         return null;
     }
 
     /**
-     * Resolve the facade root instance from the container.
-     *
-     * @param  string|object $name
-     *
-     * @return mixed
-     * @throws RuntimeException
+     * Resolves the facade root instance from the container.
      */
-    protected static function resolveFacadeInstance($name)
+    protected static function resolveFacadeInstance(string|object $name): object
     {
         if (is_object($name)) {
             return $name;
@@ -198,6 +167,40 @@ abstract class Facade
             return self::$resolvedInstance[$name];
         }
 
-        return self::$resolvedInstance[$name] = static::$di->getShared($name);
+        if (static::$di === null) {
+            throw new RuntimeException('A facade root has not been set.');
+        }
+
+        $instance = static::$di->getShared($name);
+
+        if (!is_object($instance)) {
+            throw new RuntimeException('A facade root has not been set.');
+        }
+
+        return self::$resolvedInstance[$name] = $instance;
+    }
+
+    /**
+     * Replaces the service in the container. The container caches resolved shared instances:
+     * the service is removed first so that the new instance is the one resolved.
+     */
+    private static function replaceService(string $name, object $instance): void
+    {
+        if (static::$di === null) {
+            return;
+        }
+
+        static::$di->remove($name);
+        static::$di->setShared($name, $instance);
+    }
+
+    /**
+     * Name under which the mock and the swapped instance are stored.
+     */
+    private static function accessorName(): string
+    {
+        $accessor = static::getFacadeAccessor();
+
+        return is_object($accessor) ? $accessor::class : $accessor;
     }
 }
